@@ -447,24 +447,26 @@ class XTFinishersDefaultSlowdownQueryResponder extends XTFinishersSlowdownQueryR
 
 // slowdown
 
-class XTFinishersDefaultSlowdownManager extends XTFinishersAbstractSlowdownManager {
-	public function Init() {
-		var listener : XTFinishersSlowdownFinisherAListener;
-		
-		super.Init();
-		
-		listener = new XTFinishersSlowdownFinisherAListener in this;
-		listener.Init(0);
-		theGame.xtFinishersMgr.eventMgr.RegisterSlowdownListener(listener);
-	}
-	
-	protected function OnSlowdownTriggered(context : XTFinishersActionContext) {
+class XTFinishersDefaultSlowdownManager extends XTFinishersAbstractSlowdownManager {	
+	protected function OnSlowdownSequenceStart(context : XTFinishersActionContext) {
 		var listener : XTFinishersSlowdownFinisherAListener;
 		
 		if (context.slowdown.isFinisher) {
 			PrepSlowdownFinisher(context);
 		} else {
 			PrepSlowdownDismember(context);
+		}
+	}
+	
+	protected function OnSlowdownSessionEnd(success : bool, id : string) {
+		if (success && id == "finisher_A") {
+			if (theGame.xtFinishersMgr.params.SLOWDOWN_FINISHER_B_DELAY <= 0) {
+				((XTFinishersDefaultSlowdownManager)theGame.xtFinishersMgr.slowdownMgr).DoSlowdownFinisherB();
+			} else {
+				thePlayer.AddTimer('XTFinishersDefaultSlowdownFinisherBDelayCallback', theGame.xtFinishersMgr.params.SLOWDOWN_FINISHER_B_DELAY, false);
+			}
+		} else {
+			EndSlowdownSequence();
 		}
 	}
 	
@@ -477,11 +479,11 @@ class XTFinishersDefaultSlowdownManager extends XTFinishersAbstractSlowdownManag
 	}
 	
 	public function DoSlowdownFinisherA() {
-		StartSlowdown(theGame.xtFinishersMgr.params.SLOWDOWN_FINISHER_A_FACTOR, theGame.xtFinishersMgr.params.SLOWDOWN_FINISHER_A_DURATION, "finisher_A");
+		StartSlowdownSession(theGame.xtFinishersMgr.params.SLOWDOWN_FINISHER_A_FACTOR, theGame.xtFinishersMgr.params.SLOWDOWN_FINISHER_A_DURATION, "finisher_A");
 	}
 	
 	public function DoSlowdownFinisherB() {
-		StartSlowdown(theGame.xtFinishersMgr.params.SLOWDOWN_FINISHER_B_FACTOR, theGame.xtFinishersMgr.params.SLOWDOWN_FINISHER_B_DURATION, "finisher_B");
+		StartSlowdownSession(theGame.xtFinishersMgr.params.SLOWDOWN_FINISHER_B_FACTOR, theGame.xtFinishersMgr.params.SLOWDOWN_FINISHER_B_DURATION, "finisher_B");
 	}
 	
 	protected function PrepSlowdownDismember(context : XTFinishersActionContext) {
@@ -493,18 +495,6 @@ class XTFinishersDefaultSlowdownManager extends XTFinishersAbstractSlowdownManag
 	}
 	
 	public function DoSlowdownDismember() {
-		StartSlowdown(theGame.xtFinishersMgr.params.SLOWDOWN_DISMEMBER_FACTOR, theGame.xtFinishersMgr.params.SLOWDOWN_DISMEMBER_DURATION, "dismember");
-	}
-}
-
-class XTFinishersSlowdownFinisherAListener extends XTFinishersAbstractSlowdownEventListener {
-	public function OnSlowdownEnd(success : bool, id : string) {
-		if (success && id == "finisher_A") {
-			if (theGame.xtFinishersMgr.params.SLOWDOWN_FINISHER_B_DELAY <= 0) {
-				((XTFinishersDefaultSlowdownManager)theGame.xtFinishersMgr.slowdownMgr).DoSlowdownFinisherB();
-			} else {
-				thePlayer.AddTimer('XTFinishersDefaultSlowdownFinisherBDelayCallback', theGame.xtFinishersMgr.params.SLOWDOWN_FINISHER_B_DELAY, false);
-			}
-		}
+		StartSlowdownSession(theGame.xtFinishersMgr.params.SLOWDOWN_DISMEMBER_FACTOR, theGame.xtFinishersMgr.params.SLOWDOWN_DISMEMBER_DURATION, "dismember");
 	}
 }

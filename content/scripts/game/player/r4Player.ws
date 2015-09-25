@@ -13429,7 +13429,7 @@ statemachine abstract import class CR4Player extends CPlayer
 	
 	// modXTFinishers BEGIN
 	timer function XTFinishersSlowdownTimerCallback(dt : float, id : int) {
-		((XTFinishersAbstractSlowdownManager)theGame.xtFinishersMgr.slowdownMgr).EndSlowdown(true);
+		((XTFinishersAbstractSlowdownManager)theGame.xtFinishersMgr.slowdownMgr).EndSlowdownSession(true);
 	}
 	
 	timer function XTFinishersDefaultSlowdownFinisherADelayCallback(dt : float, id : int) {

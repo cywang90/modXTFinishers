@@ -66,7 +66,7 @@ class XTFinishersEventManager {
 	public function FireActionEndEvent(out context : XTFinishersActionContext) {
 		var i : int;
 		
-		for (i = 0; i < actionStartListenerQueue.Size(); i += 1) {
+		for (i = 0; i < actionEndListenerQueue.Size(); i += 1) {
 			((XTFinishersAbstractActionEndEventListener)actionEndListenerQueue.Get(i)).OnActionEndTriggered(context);
 		}
 	}
@@ -111,27 +111,35 @@ class XTFinishersEventManager {
 		}
 	}
 	
-	public function FireSlowdownTriggerEvent(out context : XTFinishersActionContext) {
+	public function FireSlowdownSequenceStartEvent(out context : XTFinishersActionContext) {
 		var i : int;
 		
 		for (i = 0; i < slowdownListenerQueue.Size(); i += 1) {
-			((XTFinishersAbstractSlowdownEventListener)slowdownListenerQueue.Get(i)).OnSlowdownTriggered(context);
+			((XTFinishersAbstractSlowdownEventListener)slowdownListenerQueue.Get(i)).OnSlowdownSequenceStartTriggered(context);
 		}
 	}
 	
-	public function FireSlowdownStartEvent(factor : float, duration : float, id : string) {
+	public function FireSlowdownSequenceEndEvent(out context : XTFinishersActionContext) {
 		var i : int;
 		
 		for (i = 0; i < slowdownListenerQueue.Size(); i += 1) {
-			((XTFinishersAbstractSlowdownEventListener)slowdownListenerQueue.Get(i)).OnSlowdownStart(factor, duration, id);
+			((XTFinishersAbstractSlowdownEventListener)slowdownListenerQueue.Get(i)).OnSlowdownSequenceEndTriggered(context);
 		}
 	}
 	
-	public function FireSlowdownEndEvent(success : bool, id : string) {
+	public function FireSlowdownSessionStartEvent(factor : float, duration : float, id : string) {
+		var i : int;
+		
+		for (i = 0; i < slowdownListenerQueue.Size(); i += 1) {
+			((XTFinishersAbstractSlowdownEventListener)slowdownListenerQueue.Get(i)).OnSlowdownSessionStart(factor, duration, id);
+		}
+	}
+	
+	public function FireSlowdownSessionEndEvent(success : bool, id : string) {
 		var i : int;
 
 		for (i = 0; i < slowdownListenerQueue.Size(); i += 1) {
-			((XTFinishersAbstractSlowdownEventListener)slowdownListenerQueue.Get(i)).OnSlowdownEnd(success, id);
+			((XTFinishersAbstractSlowdownEventListener)slowdownListenerQueue.Get(i)).OnSlowdownSessionEnd(success, id);
 		}
 	}
 }
@@ -335,14 +343,15 @@ class XTFinishersAbstractFinisherCamEventListener extends XTFinishersPriorityLis
 }
 
 class XTFinishersAbstractSlowdownEventListener extends XTFinishersPriorityListener {
-	public function OnSlowdownTriggered(out context : XTFinishersActionContext) {}
+	public function OnSlowdownSequenceStartTriggered(out context : XTFinishersActionContext) {}
+	public function OnSlowdownSequenceEndTriggered(out context : XTFinishersActionContext) {}
 	
 	// factor : time factor
 	// duration : duration of slowdown
 	// id : identifier string assigned to the slowdown session that started.
-	public function OnSlowdownStart(factor : float, duration : float, id : string) {}
+	public function OnSlowdownSessionStart(factor : float, duration : float, id : string) {}
 	
 	// success : if the slowdown session timed out as intended (i.e. it was not terminated prematurely)
 	// id : identifier string assigned to the slowdown session that ended.
-	public function OnSlowdownEnd(success : bool, id : string) {}
+	public function OnSlowdownSessionEnd(success : bool, id : string) {}
 }
