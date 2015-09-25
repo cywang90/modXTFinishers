@@ -326,9 +326,9 @@ import class CR4Game extends CCommonGame
 	
 	public var effectMgr : W3GameEffectManager;
 	
-	// modXTFinishers
+	// modXTFinishers BEGIN
 	public var xtFinishersMgr : XTFinishersManager;
-	// modXTFinishers
+	// modXTFinishers END
 	
 	private var timescaleSources : array<STimescaleSource>;
 
@@ -607,10 +607,10 @@ import class CR4Game extends CCommonGame
 				
 		InitGamerProfile();
 		
-		// modXTFinishers
+		// modXTFinishers BEGIN
 		xtFinishersMgr = new XTFinishersManager in this;
 		xtFinishersMgr.Init();
-		// modXTFinishers
+		// modXTFinishers END
 		
 		damageMgr = new W3DamageManager in this;
 

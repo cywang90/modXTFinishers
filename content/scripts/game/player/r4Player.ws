@@ -11016,7 +11016,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		OnRangedForceHolster( true, true, false );
 	}
 	
-	// modXTfinishers
+	// modXTfinishers BEGIN
 	private var finisherContext : XTFinishersFinisherContext;
 	
 	public function LoadFinisherContext(context : XTFinishersFinisherContext) {
@@ -11042,7 +11042,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		return context;
 	}
-	// modXTFinishers
+	// modXTFinishers END
 	
 	private var finisherSaveLock : int;
 	event OnFinisherStart()
@@ -11059,21 +11059,21 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		CancelHoldAttacks();
 		
-		// modXTFinishers
+		// modXTFinishers BEGIN
 		theGame.xtFinishersMgr.eventMgr.FireFinisherEvent(finisherContext);
-		// modXTFinishers
+		// modXTFinishers END
 	
 		PlayFinisherCameraAnimation( theGame.GetSyncAnimManager().GetFinisherCameraAnimName() );
 		this.AddAnimEventCallback('SyncEvent','OnFinisherAnimEvent_SyncEvent');
 		SetImmortalityMode( AIM_Invulnerable, AIC_SyncedAnim );
 		
-		// modXTFinishers
+		// modXTFinishers BEGIN
 		slowdownContext = CreateSlowdownFinisherContext();
 		theGame.xtFinishersMgr.queryMgr.FireSlowdownFinisherQuery(slowdownContext);
 		if (slowdownContext.active) {
 			theGame.xtFinishersMgr.slowdownMgr.TriggerSlowdown(slowdownContext);
 		}
-		// modXTFinishers
+		// modXTFinishers END
 	}
 	
 	public function IsPerformingFinisher() : bool
@@ -11085,7 +11085,7 @@ statemachine abstract import class CR4Player extends CPlayer
 	{
 		var camera 	: CCustomCamera = theGame.GetGameCamera();
 		var animation		: SCameraAnimationDefinition;
-		// modXTFinishers
+		// modXTFinishers BEGIN
 		var finisherCamContext : XTFinishersFinisherCamContext;
 		
 		finisherCamContext = CreateFinisherCamContext();
@@ -11108,7 +11108,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			
 			theGame.xtFinishersMgr.eventMgr.FireFinisherCamEvent(finisherCamContext);
 		}
-		// modXTFinishers
+		// modXTFinishers END
 	}	
 	
 	public function IsLastEnemyKilled() : bool
@@ -13429,7 +13429,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		theGame.RemoveTimeScale( theGame.GetTimescaleSource(ETS_InstantKill) );
 	}
 	
-	// modXTFinishers
+	// modXTFinishers BEGIN
 	timer function XTFinishersSlowdownTimerCallback(dt : float, id : int) {
 		((XTFinishersAbstractSlowdownManager)theGame.xtFinishersMgr.slowdownMgr).EndSlowdown(true);
 	}
@@ -13445,7 +13445,7 @@ statemachine abstract import class CR4Player extends CPlayer
 	timer function XTFinishersDefaultSlowdownDismemberDelayCallback(dt : float, id : int) {
 		((XTFinishersDefaultSlowdownManager)theGame.xtFinishersMgr.slowdownMgr).DoSlowdownDismember();
 	}
-	// modXTFinishers
+	// modXTFinishers END
 	
 	public final function Debug_ClearAllActionLocks(optional action : EInputActionBlock, optional all : bool)
 	{
