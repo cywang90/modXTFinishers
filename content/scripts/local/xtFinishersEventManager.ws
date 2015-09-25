@@ -7,9 +7,12 @@
 		- if a.GetPriority() == b.GetPriority() is true, there is no guarantee which one will be called first.
 */
 class XTFinishersEventManager {
-	private var finisherListenerQueue, dismemberListenerQueue, finisherCamListenerQueue, slowdownListenerQueue : XTFinishersPriorityListenerQueue;
+	private var actionEndListenerQueue, actionEndListenerQueue, reactionListenerQueue, finisherListenerQueue, dismemberListenerQueue, finisherCamListenerQueue, slowdownListenerQueue : XTFinishersPriorityListenerQueue;
 	
 	public function Init() {
+		actionStartListenerQueue = new XTFinishersPriorityListenerQueue in this;
+		actionEndListenerQueue = new XTFinishersPriorityListenerQueue in this;
+		reactionListenerQueue = new XTFinishersPriorityListenerQueue in this;
 		finisherListenerQueue = new XTFinishersPriorityListenerQueue in this;
 		dismemberListenerQueue = new XTFinishersPriorityListenerQueue in this;
 		finisherCamListenerQueue = new XTFinishersPriorityListenerQueue in this;
@@ -21,6 +24,18 @@ class XTFinishersEventManager {
 	}
 	
 	// register listeners
+	
+	public function RegisterActionStartListener(listener : XTFinishersAbstractActionStartEventListener) {
+		actionStartListenerQueue.Add(listener);
+	}
+	
+	public function RegisterActionEndListener(listener : XTFinishersAbstractActionEndEventListener) {
+		actionEndListenerQueue.Add(listener);
+	}
+	
+	public function RegisterReactionListener(listener : XTFinishersAbstractReactionEventListener) {
+		reactionListenerQueue.Add(listener);
+	}
 	
 	public function RegisterFinisherListener(listener : XTFinishersAbstractFinisherEventListener) {
 		finisherListenerQueue.Add(listener);
@@ -40,7 +55,39 @@ class XTFinishersEventManager {
 	
 	// fire events
 	
-	public function FireFinisherEvent(context : XTFinishersFinisherContext) {
+	public function FireActionStartEvent(out context : XTFinishersActionContext) {
+		var i : int;
+		
+		for (i = 0; i < actionStartListenerQueue.Size(); i += 1) {
+			((XTFinishersAbstractActionStartEventListener)actionStartListenerQueue.Get(i)).OnActionStartTriggered(context);
+		}
+	}
+	
+	public function FireActionEndEvent(out context : XTFinishersActionContext) {
+		var i : int;
+		
+		for (i = 0; i < actionStartListenerQueue.Size(); i += 1) {
+			((XTFinishersAbstractActionEndEventListener)actionEndListenerQueue.Get(i)).OnActionEndTriggered(context);
+		}
+	}
+	
+	public function FireReactionStartEvent(out context : XTFinishersActionContext) {
+		var i : int;
+		
+		for (i = 0; i < reactionListenerQueue.Size(); i += 1) {
+			((XTFinishersAbstractReactionEventListener)reactionListenerQueue.Get(i)).OnReactionStartTriggered(context);
+		}
+	}
+	
+	public function FireReactionEndEvent(out context : XTFinishersActionContext) {
+		var i : int;
+		
+		for (i = 0; i < reactionListenerQueue.Size(); i += 1) {
+			((XTFinishersAbstractReactionEventListener)reactionListenerQueue.Get(i)).OnReactionEndTriggered(context);
+		}
+	}
+	
+	public function FireFinisherEvent(out context : XTFinishersActionContext) {
 		var i : int;
 		
 		for (i = 0; i < finisherListenerQueue.Size(); i += 1) {
@@ -48,7 +95,7 @@ class XTFinishersEventManager {
 		}
 	}
 	
-	public function FireDismemberEvent(context : XTFinishersDismemberContext) {
+	public function FireDismemberEvent(out context : XTFinishersActionContext) {
 		var i : int;
 		
 		for (i = 0; i < dismemberListenerQueue.Size(); i += 1) {
@@ -56,7 +103,7 @@ class XTFinishersEventManager {
 		}
 	}
 	
-	public function FireFinisherCamEvent(context : XTFinishersFinisherCamContext) {
+	public function FireFinisherCamEvent(out context : XTFinishersActionContext) {
 		var i : int;
 		
 		for (i = 0; i < finisherCamListenerQueue.Size(); i += 1) {
@@ -64,7 +111,7 @@ class XTFinishersEventManager {
 		}
 	}
 	
-	public function FireSlowdownTriggerEvent(context : XTFinishersSlowdownContext) {
+	public function FireSlowdownTriggerEvent(out context : XTFinishersActionContext) {
 		var i : int;
 		
 		for (i = 0; i < slowdownListenerQueue.Size(); i += 1) {
@@ -112,9 +159,16 @@ class XTFinishersEffectsSnapshot {
 	}
 }
 
+struct XTFinishersActionContext {
+	var action : W3DamageAction;
+	var effectsSnapshot : XTFinishersEffectsSnapshot;
+	var finisher : XTFinishersFinisherContext;
+	var dismember : XTFinishersDismemberContext;
+	var finisherCam : XTFinishersFinisherCamContext;
+	var slowdown : XTFinishersSlowdownContext;
+}
+
 struct XTFinishersFinisherContext {
-	var action : W3DamageAction;							// action that triggered finisher
-	var effectsSnapshot : XTFinishersEffectsSnapshot;		// list of effects active on finisher target
 	var active : bool;										// will finisher be performed
 	var auto : bool;										// is AUTOMATIC finisher
 	var instantKill : bool;									// is INSTANT-KILL finisher
@@ -122,8 +176,6 @@ struct XTFinishersFinisherContext {
 };
 
 struct XTFinishersDismemberContext {
-	var action : W3DamageAction;							// action that triggered dismember
-	var effectsSnapshot : XTFinishersEffectsSnapshot;		// list of effects active on dismember target
 	var active : bool;										// will dismember be performed
 	var explosion : bool;									// is dismember explosion
 	var camShake : bool;									// do camera shake
@@ -132,13 +184,10 @@ struct XTFinishersDismemberContext {
 };
 
 struct XTFinishersFinisherCamContext {
-	var finisherContext : XTFinishersFinisherContext;		// finisher that triggered cinematic camera
 	var active : bool;										// will cinematic camera be activated
 };
 
 struct XTFinishersSlowdownContext {
-	var finisherContext : XTFinishersFinisherContext;		// finisher that triggered slowdown (if applicable)
-	var dismemberContext : XTFinishersDismemberContext;		// dismember that triggered slowdown (if applicable)
 	var isFinisher, isDismember : bool;						// whether finisher or dismember triggered slowdown
 	var active : bool;										// will slowdown be performed
 };
@@ -260,20 +309,33 @@ class XTFinishersPriorityListener {
 	}
 }
 
+class XTFinishersAbstractActionStartEventListener extends XTFinishersPriorityListener {
+	public function OnActionStartTriggered(out context : XTFinishersActionContext) {}
+}
+
+class XTFinishersAbstractActionEndEventListener extends XTFinishersPriorityListener {
+	public function OnActionEndTriggered(out context : XTFinishersActionContext) {}
+}
+
+class XTFinishersAbstractReactionEventListener extends XTFinishersPriorityListener {
+	public function OnReactionStartTriggered(out context : XTFinishersActionContext) {}
+	public function OnReactionEndTriggered(out context : XTFinishersActionContext) {}
+}
+
 class XTFinishersAbstractFinisherEventListener extends XTFinishersPriorityListener {
-	public function OnFinisherTriggered(context : XTFinishersFinisherContext) {}
+	public function OnFinisherTriggered(out context : XTFinishersActionContext) {}
 }
 
 class XTFinishersAbstractDismemberEventListener extends XTFinishersPriorityListener {
-	public function OnDismemberTriggered(context : XTFinishersDismemberContext) {}
+	public function OnDismemberTriggered(out context : XTFinishersActionContext) {}
 }
 
 class XTFinishersAbstractFinisherCamEventListener extends XTFinishersPriorityListener {
-	public function OnFinisherCamTriggered(context : XTFinishersFinisherCamContext) {}
+	public function OnFinisherCamTriggered(out context : XTFinishersActionContext) {}
 }
 
 class XTFinishersAbstractSlowdownEventListener extends XTFinishersPriorityListener {
-	public function OnSlowdownTriggered(context : XTFinishersSlowdownContext) {}
+	public function OnSlowdownTriggered(out context : XTFinishersActionContext) {}
 	
 	// factor : time factor
 	// duration : duration of slowdown

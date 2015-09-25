@@ -23,5 +23,17 @@ class XTFinishersManager {
 		queryMgr.LoadDismemberResponder(new XTFinishersDefaultDismemberQueryResponder in this);
 		queryMgr.LoadFinisherCamResponder(new XTFinishersDefaultFinisherCamQueryResponder in this);
 		queryMgr.LoadSlowdownResponder(new XTFinishersDefaultSlowdownQueryResponder in this);
+		
+		eventMgr.RegisterReactionListener(new XTFinishersDefaultFinisherQueryDispatcher in this);
+		eventMgr.RegisterReactionListener(new XTFinishersDefaultDismemberQueryDispatcher in this);
+	}
+	
+	public function CreateActionContext(action : W3DamageAction, effectsSnapshot : XTFinishersEffectsSnapshot) : XTFinishersActionContext {
+		var context : XTFinishersActionContext;
+		
+		context.action = action;
+		context.effectsSnapshot = effectsSnapshot;
+		
+		return context;
 	}
 }

@@ -7,7 +7,7 @@
 class XTFinishersSlowdownManager {
 	public function Init() {}
 	public function IsActive() : bool {return false;}
-	public function TriggerSlowdown(context : XTFinishersSlowdownContext) {}
+	public function TriggerSlowdown(context : XTFinishersActionContext) {}
 }
 
 class XTFinishersAbstractSlowdownManager extends XTFinishersSlowdownManager {
@@ -23,7 +23,7 @@ class XTFinishersAbstractSlowdownManager extends XTFinishersSlowdownManager {
 		return active;
 	}
 	
-	public final function TriggerSlowdown(context : XTFinishersSlowdownContext) {
+	public final function TriggerSlowdown(context : XTFinishersActionContext) {
 		OnSlowdownTriggered(context);
 		theGame.xtFinishersMgr.eventMgr.FireSlowdownTriggerEvent(context);
 	}
@@ -58,5 +58,5 @@ class XTFinishersAbstractSlowdownManager extends XTFinishersSlowdownManager {
 		theGame.xtFinishersMgr.eventMgr.FireSlowdownEndEvent(success, id);
 	}
 	
-	protected function OnSlowdownTriggered(context : XTFinishersSlowdownContext) {}
+	protected function OnSlowdownTriggered(context : XTFinishersActionContext) {}
 }

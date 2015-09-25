@@ -30,41 +30,41 @@ class XTFinishersQueryManager {
 	
 	// fire queries
 	
-	public function FireFinisherQuery(out context : XTFinishersFinisherContext) {
+	public function FireFinisherQuery(out context : XTFinishersActionContext) {
 		finisherResponder.CanPerformFinisher(context);
 	}
 	
-	public function FireDismemberQuery(out context : XTFinishersDismemberContext) {
+	public function FireDismemberQuery(out context : XTFinishersActionContext) {
 		dismemberResponder.CanPerformDismember(context);
 	}
 	
-	public function FireFinisherCamQuery(out context : XTFinishersFinisherCamContext) {
+	public function FireFinisherCamQuery(out context : XTFinishersActionContext) {
 		finisherCamResponder.CanPerformFinisherCam(context);
 	}
 	
-	public function FireSlowdownFinisherQuery(out context : XTFinishersSlowdownContext) {
+	public function FireSlowdownFinisherQuery(out context : XTFinishersActionContext) {
 		slowdownResponder.CanPerformSlowdownFinisher(context);
 	}
 	
-	public function FireSlowdownDismemberQuery(out context : XTFinishersSlowdownContext) {
+	public function FireSlowdownDismemberQuery(out context : XTFinishersActionContext) {
 		slowdownResponder.CanPerformSlowdownDismember(context);
 	}
 }
 
 class XTFinishersFinisherQueryResponder {
-	public function CanPerformFinisher(out context : XTFinishersFinisherContext) {}
+	public function CanPerformFinisher(out context : XTFinishersActionContext) {}
 }
 
 class XTFinishersDismemberQueryResponder {
-	public function CanPerformDismember(out context : XTFinishersDismemberContext) {}
+	public function CanPerformDismember(out context : XTFinishersActionContext) {}
 }
 
 class XTFinishersFinisherCamQueryResponder {
-	public function CanPerformFinisherCam(out context : XTFinishersFinisherCamContext) {}
+	public function CanPerformFinisherCam(out context : XTFinishersActionContext) {}
 }
 
 class XTFinishersSlowdownQueryResponder {
-	public function CanPerformSlowdownFinisher(out context : XTFinishersSlowdownContext) {}
+	public function CanPerformSlowdownFinisher(out context : XTFinishersActionContext) {}
 	
-	public function CanPerformSlowdownDismember(out context : XTFinishersSlowdownContext) {}
+	public function CanPerformSlowdownDismember(out context : XTFinishersActionContext) {}
 }

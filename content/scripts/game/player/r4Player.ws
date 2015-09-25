@@ -11017,10 +11017,10 @@ statemachine abstract import class CR4Player extends CPlayer
 	}
 	
 	// modXTfinishers BEGIN
-	private var finisherContext : XTFinishersFinisherContext;
+	private var actionContext : XTFinishersActionContext;
 	
-	public function LoadFinisherContext(context : XTFinishersFinisherContext) {
-		finisherContext = context;
+	public function LoadActionContext(context : XTFinishersActionContext) {
+		actionContext = context;
 	}
 	
 	private function CreateFinisherCamContext() : XTFinishersFinisherCamContext {
@@ -11060,7 +11060,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		CancelHoldAttacks();
 		
 		// modXTFinishers BEGIN
-		theGame.xtFinishersMgr.eventMgr.FireFinisherEvent(finisherContext);
+		theGame.xtFinishersMgr.eventMgr.FireFinisherEvent(actionContext);
 		// modXTFinishers END
 	
 		PlayFinisherCameraAnimation( theGame.GetSyncAnimManager().GetFinisherCameraAnimName() );
@@ -11068,10 +11068,10 @@ statemachine abstract import class CR4Player extends CPlayer
 		SetImmortalityMode( AIM_Invulnerable, AIC_SyncedAnim );
 		
 		// modXTFinishers BEGIN
-		slowdownContext = CreateSlowdownFinisherContext();
-		theGame.xtFinishersMgr.queryMgr.FireSlowdownFinisherQuery(slowdownContext);
-		if (slowdownContext.active) {
-			theGame.xtFinishersMgr.slowdownMgr.TriggerSlowdown(slowdownContext);
+		//slowdownContext = CreateSlowdownFinisherContext();
+		//theGame.xtFinishersMgr.queryMgr.FireSlowdownFinisherQuery(slowdownContext);
+		if (actionContext.slowdown.active) {
+			theGame.xtFinishersMgr.slowdownMgr.TriggerSlowdown(actionContext);
 		}
 		// modXTFinishers END
 	}
@@ -11085,13 +11085,11 @@ statemachine abstract import class CR4Player extends CPlayer
 	{
 		var camera 	: CCustomCamera = theGame.GetGameCamera();
 		var animation		: SCameraAnimationDefinition;
+		
 		// modXTFinishers BEGIN
-		var finisherCamContext : XTFinishersFinisherCamContext;
+		//theGame.xtFinishersMgr.queryMgr.FireFinisherCamQuery(finisherCamContext);
 		
-		finisherCamContext = CreateFinisherCamContext();
-		theGame.xtFinishersMgr.queryMgr.FireFinisherCamQuery(finisherCamContext);
-		
-		if  (finisherCamContext.active) {
+		if  (actionContext.finisherCam.active) {
 			camera.StopAnimation('camera_shake_hit_lvl3_1' );
 			
 			animation.animation = cameraAnimName;
@@ -11106,7 +11104,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			
 			thePlayer.EnableManualCameraControl( false, 'Finisher' );
 			
-			theGame.xtFinishersMgr.eventMgr.FireFinisherCamEvent(finisherCamContext);
+			theGame.xtFinishersMgr.eventMgr.FireFinisherCamEvent(actionContext);
 		}
 		// modXTFinishers END
 	}	
