@@ -1,8 +1,6 @@
 class XTFinishersCustomSlowdownModule {
 	public var params : XTFinishersCustomSlowdownParams;
 	
-	public var slowdownMgr : XTFinishersSlowdownManager;
-	
 	public function InitAllComponents() {
 		InitBaseComponents();
 		InitSlowdownComponents();
@@ -13,8 +11,8 @@ class XTFinishersCustomSlowdownModule {
 	}
 	
 	public function InitSlowdownComponents() {
-		slowdownMgr = new XTFinishersCustomSlowdownManager in this;
-		slowdownMgr.Init();
+		theGame.xtFinishersMgr.SetSlowdownManager(new XTFinishersCustomSlowdownManager in this);
+		theGame.xtFinishersMgr.slowdownMgr.Init();
 		
 		theGame.xtFinishersMgr.queryMgr.LoadSlowdownResponder(new XTFinishersCustomSlowdownQueryResponder in this);
 		
@@ -41,7 +39,7 @@ class XTFinishersCustomSlowdownFinisherQueryDispatcher extends XTFinishersAbstra
 		}
 		
 		if (context.slowdown.active) {
-			theGame.xtFinishersMgr.slowdownModule.slowdownMgr.TriggerSlowdown(context);
+			theGame.xtFinishersMgr.slowdownMgr.TriggerSlowdown(context);
 		}
 	}
 }
@@ -60,7 +58,7 @@ class XTFinishersCustomSlowdownDismemberQueryDispatcher extends XTFinishersAbstr
 		theGame.xtFinishersMgr.queryMgr.FireSlowdownQuery(context);
 		
 		if (context.slowdown.active) {
-			theGame.xtFinishersMgr.slowdownModule.slowdownMgr.TriggerSlowdown(context);
+			theGame.xtFinishersMgr.slowdownMgr.TriggerSlowdown(context);
 		}
 	}
 }
