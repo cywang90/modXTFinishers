@@ -1,7 +1,7 @@
 class XTFinishersDefaultSlowdownParams {
 	// general settings
 	public const var SLOWDOWN_DISABLE_CAMERA_SHAKE : bool;
-		default SLOWDOWN_DISABLE_CAMERA_SHAKE = true;				// If TRUE -> Prevents camera shake when a slowdown is activated.
+		default SLOWDOWN_DISABLE_CAMERA_SHAKE = true;				// If TRUE -> prevents camera shake when a slowdown is activated.
 	
 	// critical hit slowdown settings
 	public const var SLOWDOWN_CRIT_CHANCE_NONFATAL, SLOWDOWN_CRIT_CHANCE_FATAL, SLOWDOWN_CRIT_CHANCE_FATAL_LAST_ENEMY : float;

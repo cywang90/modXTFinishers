@@ -1,4 +1,19 @@
 class XTFinishersDefaultCamShakeParams {
-	public const var DISMEMBER_CAMERA_SHAKE : bool;
-		default DISMEMBER_CAMERA_SHAKE = true;						// If TRUE -> Triggers camera shake when a dismember is triggered.
+	// rend
+	public const var CAMERA_SHAKE_ON_REND : bool;
+		default CAMERA_SHAKE_ON_REND = true;						// If TRUE -> triggers camera shake on Rend attacks.
+		
+	// critical hits
+	public const var CAMERA_SHAKE_ON_CRIT_NONFATAL, CAMERA_SHAKE_ON_CRIT_FATAL : bool;
+		default CAMERA_SHAKE_ON_CRIT_NONFATAL = false;				// If TRUE -> triggers camera shake on non-fatal critical hits.
+		default CAMERA_SHAKE_ON_CRIT_FATAL = true;					// If TRUE -> triggers camera shake on fatal critical hits.
+	public const var CAMERA_SHAKE_CRIT_NONFATAL_STRENGTH, CAMERA_SHAKE_CRIT_FATAL_STRENGTH : float;
+		default CAMERA_SHAKE_CRIT_NONFATAL_STRENGTH = 0.5;			// Strength of camera shake on non-fatal critical hits.
+		default CAMERA_SHAKE_CRIT_FATAL_STRENGTH = 0.5;				// Strength of camera shake on fatal critical hits.
+	
+	// dismember
+	public const var CAMERA_SHAKE_ON_DISMEMBER : bool;
+		default CAMERA_SHAKE_ON_DISMEMBER = true;					// If TRUE -> Triggers camera shake when a dismemberment is triggered.
+	public const var CAMERA_SHAKE_DISMEMBER_STRENGTH : float;
+		default CAMERA_SHAKE_DISMEMBER_STRENGTH = 0.5;				// Strength of camera shake when a dismemberment is triggered.
 }
