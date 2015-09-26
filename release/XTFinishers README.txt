@@ -51,7 +51,7 @@ QUICK AND EASY METHOD:
 	2. Copy the "content" folder in the "modXTFinishers\complete" directory into your "<The Witcher 3 Path>\mods\" directory.
 	
 ADVANCED METHOD:
-	1. Download the "modXTFinishers_BASE_ONLY" file and any module files (named "modXTFinishers_MODULE_XX", where XX is the name of the module) you wish to install from Nexus Mods.
+	1. Download the "modXTFinishers_BASE_ONLY" file and any module files (named "modXTFinishers_XX", where XX is the name of the module) you wish to install from Nexus Mods.
 	2. Install the BASE mod (see above).
 	3. Follow the instructions in the INSTALLATION.txt files found in the module files (located at "modXTFinishers_xx\INSTALLATION.txt").
 	
