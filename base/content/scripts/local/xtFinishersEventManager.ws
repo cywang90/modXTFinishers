@@ -127,19 +127,19 @@ class XTFinishersEventManager {
 		}
 	}
 	
-	public function FireSlowdownSessionStartEvent(factor : float, duration : float, id : string) {
+	public function FireSlowdownSegmentStartEvent(segment : XTFinishersSlowdownSegment) {
 		var i : int;
 		
 		for (i = 0; i < slowdownListenerQueue.Size(); i += 1) {
-			((XTFinishersAbstractSlowdownEventListener)slowdownListenerQueue.Get(i)).OnSlowdownSessionStart(factor, duration, id);
+			((XTFinishersAbstractSlowdownEventListener)slowdownListenerQueue.Get(i)).OnSlowdownSegmentStart(segment);
 		}
 	}
 	
-	public function FireSlowdownSessionEndEvent(success : bool, id : string) {
+	public function FireSlowdownSegmentEndEvent(segment : XTFinishersSlowdownSegment, success : bool) {
 		var i : int;
 
 		for (i = 0; i < slowdownListenerQueue.Size(); i += 1) {
-			((XTFinishersAbstractSlowdownEventListener)slowdownListenerQueue.Get(i)).OnSlowdownSessionEnd(success, id);
+			((XTFinishersAbstractSlowdownEventListener)slowdownListenerQueue.Get(i)).OnSlowdownSegmentEnd(segment, success);
 		}
 	}
 }
@@ -346,12 +346,6 @@ class XTFinishersAbstractSlowdownEventListener extends XTFinishersPriorityListen
 	public function OnSlowdownSequenceStartTriggered(out context : XTFinishersActionContext) {}
 	public function OnSlowdownSequenceEndTriggered(out context : XTFinishersActionContext) {}
 	
-	// factor : time factor
-	// duration : duration of slowdown
-	// id : identifier string assigned to the slowdown session that started.
-	public function OnSlowdownSessionStart(factor : float, duration : float, id : string) {}
-	
-	// success : if the slowdown session timed out as intended (i.e. it was not terminated prematurely)
-	// id : identifier string assigned to the slowdown session that ended.
-	public function OnSlowdownSessionEnd(success : bool, id : string) {}
+	public function OnSlowdownSegmentStart(segment : XTFinishersSlowdownSegment) {}
+	public function OnSlowdownSegmentEnd(segment : XTFinishersSlowdownSegment, success : bool) {}
 }

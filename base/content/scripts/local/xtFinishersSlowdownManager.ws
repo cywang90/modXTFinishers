@@ -13,15 +13,14 @@ class XTFinishersSlowdownManager {
 }
 
 class XTFinishersAbstractSlowdownManager extends XTFinishersSlowdownManager {
-	private var sequenceActive, sessionActive : bool;
+	private var sequenceDef : XTFinishersSlowdownSequenceDef;
+	private var currentIndex : int;
+	private var sequenceActive;
 	private var sequenceContext : XTFinishersActionContext;
 	
-	private var sessionId : string;
-	
 	public function Init() {
+		currentSequence = NULL;
 		sequenceActive = false;
-		sessionActive = false;
-		sessionId = "";
 	}
 	
 	public final function IsSequenceActive() : bool {
@@ -45,47 +44,117 @@ class XTFinishersAbstractSlowdownManager extends XTFinishersSlowdownManager {
 	
 	public final function EndSlowdownSequence() {
 		sequenceActive = false;
+		currentIndex = -1;
 		OnSlowdownSequenceEnd(sequenceContext);
 		theGame.xtFinishersMgr.eventMgr.FireSlowdownSequenceEndEvent(sequenceContext);
 	}
 	
-	// factor : time factor
-	// duration : duration of slowdown
-	// id : identifier string that will be assigned to the slowdown session.
-	// endSeqOnInterrupt : whether to end the sequence if the session is interrupted
-	// endSeqOnTimeout : whether to end the sequence if the session times out
-	public function StartSlowdownSession(factor : float, duration : float, id : string) : bool {
-		if (IsSessionActive()) {
-			return false;
+	protected function ExecuteSlowdownSequence(sequenceDef : XTFinishersSlowdownSequenceDef) {
+		this.sequenceDef = sequenceDef;
+		this.currentIndex = 0;
+		
+		TrySlowdownSegment();
+	}
+	
+	private function TrySlowdownSegment() {
+		if (currentIndex < sequenceDef.Size()) {
+			StartSlowdownSegment();
+		} else {
+			EndSlowdownSequence();
 		}
+	}
+	
+	public function StartSlowdownSegment() {
+		var segment : XTFinishersSlowdownSegment;
 	
 		if (!thePlayer.IsCameraControlDisabled('Finisher')) { // make sure finisher cam is not active
-			theGame.SetTimeScale(factor, theGame.GetTimescaleSource(ETS_CFM_On), theGame.GetTimescalePriority(ETS_CFM_On), true, true);
-			thePlayer.AddTimer('XTFinishersSlowdownTimerCallback', duration, false);
-			sessionActive = true;
-			this.sessionId = id;
-			OnSlowdownSessionStart(factor, duration, id);
-			theGame.xtFinishersMgr.eventMgr.FireSlowdownSessionStartEvent(factor, duration, id);
-			return true;
+			segment = sequenceDef.GetSegment(currentIndex);
+			
+			segment.Start();
+			
+			OnSlowdownSegmentStart(segment);
+			theGame.xtFinishersMgr.eventMgr.FireSlowdownSegmentStartEvent(segment);
 		}
-		return false;
 	}
 	
 	// success : if the slowdown session timed out as intended (i.e. it was not terminated prematurely)
-	public function EndSlowdownSession(success : bool) {
-		var id : string;
+	public function EndSlowdownSegment(success : bool) {
+		var segment : XTFinishersSlowdownSegment;
 		
-		theGame.RemoveTimeScale(theGame.GetTimescaleSource(ETS_CFM_On));
-		active = false;
-		id = this.sessionId;
-		this.sessionId = "";
-		OnSlowdownSessionEnd(success, id);
-		theGame.xtFinishersMgr.eventMgr.FireSlowdownSessionEndEvent(success, id);
+		segment = sequenceDef.GetSegment(currentIndex);
+		
+		segment.End(success);
+		
+		OnSlowdownSessionEnd(segment, success);
+		theGame.xtFinishersMgr.eventMgr.FireSlowdownSegmentEndEvent(segment, success);
+		
+		currentIndex += 1;
+		TrySlowdownSegment();
 	}
 	
 	protected function OnSlowdownSequenceStart(context : XTFinishersActionContext) {}
 	protected function OnSlowdownSequenceEnd(context : XTFinishersActionContext) {}
 	
-	protected function OnSlowdownSessionStart(factor : float, duration : float, id : string) {}
-	protected function OnSlowdownSessionEnd(success : bool, id : string) {}
+	protected function OnSlowdownSegmentStart(segment : XTFinishersSlowdownSegment) {}
+	protected function OnSlowdownSessionEnd(segment : XTFinishersSlowdownSegment, success : bool) {}
+}
+
+class XTFinishersSlowdownSequenceDef {
+	private var segments : array<XTFinishersSlowdownSegment>;
+	
+	public function Size() : int {
+		return segments.Size();
+	}
+	
+	public function AddSegment(segment : XTFinishersSlowdownSegment) {
+		segments.PushBack(segment);
+	}
+	
+	public function GetSegment(index : int) : XTFinishersSlowdownSegment {
+		if (index < segments.Size()) {
+			return segments[index];
+		} else {
+			return NULL;
+		}
+	}
+}
+
+class XTFinishersSlowdownSegment {
+	private var duration : float;
+	
+	public function Init(duration : float) {
+		this.duration = duration;
+	}
+	
+	public function GetDuration() : float {
+		return duration;
+	}
+	
+	public function Start(context : XTFinishersActionContext) {
+		thePlayer.AddTimer('XTFinishersSlowdownTimerCallback', GetDuration(), false);
+	}
+	
+	public function End() {}
+}
+
+class XTFinishersSlowdownSession extends XTFinishersSlowdownSegment {
+	private var factor : float;
+	
+	public function Init(duration : float, factor : float) {
+		super.Init(duration);
+		this.factor = factor;
+	}
+	
+	public function Start(context : XTFinishersActionContext) {
+		super.Start(context);
+		theGame.SetTimeScale(factor, theGame.GetTimescaleSource(ETS_CFM_On), theGame.GetTimescalePriority(ETS_CFM_On), true, true);
+	}
+	
+	public function End(success : bool) {
+		theGame.RemoveTimeScale(theGame.GetTimescaleSource(ETS_CFM_On));
+		super.End(success);
+	}
+}
+
+class XTFinishersSlowdownDelay extends XTFinishersSlowdownSegment {
 }
