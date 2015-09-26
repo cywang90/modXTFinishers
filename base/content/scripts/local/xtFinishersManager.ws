@@ -19,7 +19,7 @@ class XTFinishersManager {
 		
 		// load default module
 		defaultModule = new XTFinishersDefaultModule in this;
-		defaultModule.Init();
+		defaultModule.InitAllComponents();
 	}
 	
 	public function SetSlowdownManager(mgr : XTFinishersSlowdownManager) {
