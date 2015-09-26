@@ -19,29 +19,29 @@ class XTFinishersDefaultModule {
 	public function InitFinisherComponents() {
 		theGame.xtFinishersMgr.queryMgr.LoadFinisherResponder(new XTFinishersDefaultFinisherQueryResponder in this);
 		
-		theGame.xtFinishersMgr.eventMgr.RegisterReactionListener(new XTFinishersDefaultFinisherQueryDispatcher in this);
+		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.REACTION_START_EVENT_ID, new XTFinishersDefaultFinisherQueryDispatcher in this);
 	}
 	
 	public function InitDismemberComponents() {
 		theGame.xtFinishersMgr.queryMgr.LoadDismemberResponder(new XTFinishersDefaultDismemberQueryResponder in this);
 		
-		theGame.xtFinishersMgr.eventMgr.RegisterReactionListener(new XTFinishersDefaultDismemberQueryDispatcher in this);
+		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.REACTION_START_EVENT_ID, new XTFinishersDefaultDismemberQueryDispatcher in this);
 	}
 	
 	public function InitFinisherCamComponents() {
 		theGame.xtFinishersMgr.queryMgr.LoadFinisherCamResponder(new XTFinishersDefaultFinisherCamQueryResponder in this);
 		
-		theGame.xtFinishersMgr.eventMgr.RegisterFinisherListener(new XTFinishersDefaultFinisherCamQueryDispatcher in this);
+		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.FINISHER_EVENT_ID, new XTFinishersDefaultFinisherCamQueryDispatcher in this);
 	}
 	
 	public function InitCamShakeComponents() {
-		theGame.xtFinishersMgr.eventMgr.RegisterActionEndListener(new XTFinishersDefaultCamShakeHandler in this);
+		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.ACTION_END_EVENT_ID, new XTFinishersDefaultCamShakeHandler in this);
 	}
 }
 
 // listeners
 
-class XTFinishersDefaultFinisherQueryDispatcher extends XTFinishersAbstractReactionEventListener {
+class XTFinishersDefaultFinisherQueryDispatcher extends XTFinishersAbstractReactionStartEventListener {
 	public function GetPriority() : int {
 		return theGame.xtFinishersMgr.consts.DEFAULT_FINISHER_QUERY_DISPATCHER_PRIORITY;
 	}
@@ -49,11 +49,9 @@ class XTFinishersDefaultFinisherQueryDispatcher extends XTFinishersAbstractReact
 	public function OnReactionStartTriggered(out context : XTFinishersActionContext) {
 		theGame.xtFinishersMgr.queryMgr.FireFinisherQuery(context);
 	}
-	
-	public function OnReactionEndTriggered(out context : XTFinishersActionContext) {}
 }
 
-class XTFinishersDefaultDismemberQueryDispatcher extends XTFinishersAbstractReactionEventListener {
+class XTFinishersDefaultDismemberQueryDispatcher extends XTFinishersAbstractReactionStartEventListener {
 	public function GetPriority() : int {
 		return theGame.xtFinishersMgr.consts.DEFAULT_DISMEMBER_QUERY_DISPATCHER_PRIORITY;
 	}
@@ -61,8 +59,6 @@ class XTFinishersDefaultDismemberQueryDispatcher extends XTFinishersAbstractReac
 	public function OnReactionStartTriggered(out context : XTFinishersActionContext) {
 		theGame.xtFinishersMgr.queryMgr.FireDismemberQuery(context);
 	}
-	
-	public function OnReactionEndTriggered(out context : XTFinishersActionContext) {}
 }
 
 class XTFinishersDefaultFinisherCamQueryDispatcher extends XTFinishersAbstractFinisherEventListener {

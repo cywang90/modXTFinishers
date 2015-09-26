@@ -16,8 +16,8 @@ class XTFinishersCustomSlowdownModule {
 		
 		theGame.xtFinishersMgr.queryMgr.LoadSlowdownResponder(new XTFinishersCustomSlowdownQueryResponder in this);
 		
-		theGame.xtFinishersMgr.eventMgr.RegisterFinisherListener(new XTFinishersCustomSlowdownFinisherQueryDispatcher in this);
-		theGame.xtFinishersMgr.eventMgr.RegisterDismemberListener(new XTFinishersCustomSlowdownDismemberQueryDispatcher in this);
+		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.FINISHER_EVENT_ID, new XTFinishersCustomSlowdownFinisherQueryDispatcher in this);
+		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.DISMEMBER_EVENT_ID, new XTFinishersCustomSlowdownDismemberQueryDispatcher in this);
 	}
 }
 
