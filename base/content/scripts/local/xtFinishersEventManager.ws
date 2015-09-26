@@ -12,9 +12,6 @@ class XTFinishersEventManager {
 	private var queues : array<XTFinishersPriorityListenerQueue>;
 	private var ids : array<string>;
 	
-	public function Init() {
-	}
-	
 	public function RegisterEventListener(id : string, listener : XTFinishersPriorityListener) {
 		AddListener(id, listener);
 	}

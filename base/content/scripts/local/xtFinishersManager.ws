@@ -17,7 +17,6 @@ class XTFinishersManager {
 		queryMgr = new XTFinishersQueryManager in this;
 		
 		eventMgr = new XTFinishersEventManager in this;
-		eventMgr.Init();
 		
 		//==================
 		// LOAD MODULES HERE
