@@ -205,9 +205,6 @@ class XTFinishersDefaultCamShakeHandler extends XTFinishersAbstractActionEndEven
 		ProcessDismember(context);
 		ProcessSlowdown(context);
 		
-		theGame.witcherLog.AddCombatMessage("active: " + context.camShake.active, context.action.attacker, NULL);
-		theGame.witcherLog.AddCombatMessage("force off: " + context.camShake.forceOff, context.action.attacker, NULL);
-		
 		if (!context.camShake.forceOff && (context.camShake.forceOn || context.camShake.active)) {
 			if (context.camShake.useExtraOpts) {
 				GCameraShake(context.camShake.strength, false, context.camShake.epicenter, context.camShake.maxDistance);
