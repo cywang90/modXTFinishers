@@ -9,6 +9,7 @@ class XTFinishersDefaultModule {
 		InitDismemberComponents();
 		InitFinisherCamComponents();
 		InitSlowdownComponents();
+		InitCamShakeComponents();
 	}
 	
 	public function InitBaseComponents() {
@@ -59,6 +60,8 @@ class XTFinishersDefaultFinisherQueryDispatcher extends XTFinishersAbstractReact
 	public function OnReactionStartTriggered(out context : XTFinishersActionContext) {
 		theGame.xtFinishersMgr.queryMgr.FireFinisherQuery(context);
 	}
+	
+	public function OnReactionEndTriggered(out context : XTFinishersActionContext) {}
 }
 
 class XTFinishersDefaultDismemberQueryDispatcher extends XTFinishersAbstractReactionEventListener {
@@ -69,6 +72,8 @@ class XTFinishersDefaultDismemberQueryDispatcher extends XTFinishersAbstractReac
 	public function OnReactionStartTriggered(out context : XTFinishersActionContext) {
 		theGame.xtFinishersMgr.queryMgr.FireDismemberQuery(context);
 	}
+	
+	public function OnReactionEndTriggered(out context : XTFinishersActionContext) {}
 }
 
 class XTFinishersDefaultFinisherCamQueryDispatcher extends XTFinishersAbstractFinisherEventListener {
@@ -199,6 +204,9 @@ class XTFinishersDefaultCamShakeHandler extends XTFinishersAbstractActionEndEven
 		ProcessCriticalHit(context);
 		ProcessDismember(context);
 		ProcessSlowdown(context);
+		
+		theGame.witcherLog.AddCombatMessage("active: " + context.camShake.active, context.action.attacker, NULL);
+		theGame.witcherLog.AddCombatMessage("force off: " + context.camShake.forceOff, context.action.attacker, NULL);
 		
 		if (!context.camShake.forceOff && (context.camShake.forceOn || context.camShake.active)) {
 			if (context.camShake.useExtraOpts) {
@@ -429,7 +437,7 @@ class XTFinishersDefaultDismemberQueryResponder extends XTFinishersDismemberQuer
 		var i					: int;
 		var secondaryWeapon		: bool;
 		
-		if (context.finisher.active) {
+		if (context.finisher.active || context.action.victim.IsAlive()) {
 			return;
 		}
 		

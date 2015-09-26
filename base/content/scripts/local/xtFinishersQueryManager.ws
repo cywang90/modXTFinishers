@@ -47,18 +47,18 @@ class XTFinishersQueryManager {
 	}
 }
 
-class XTFinishersFinisherQueryResponder {
-	public function CanPerformFinisher(out context : XTFinishersActionContext) {}
+abstract class XTFinishersFinisherQueryResponder {
+	public function CanPerformFinisher(out context : XTFinishersActionContext);
 }
 
-class XTFinishersDismemberQueryResponder {
-	public function CanPerformDismember(out context : XTFinishersActionContext) {}
+abstract class XTFinishersDismemberQueryResponder {
+	public function CanPerformDismember(out context : XTFinishersActionContext);
 }
 
-class XTFinishersFinisherCamQueryResponder {
-	public function CanPerformFinisherCam(out context : XTFinishersActionContext) {}
+abstract class XTFinishersFinisherCamQueryResponder {
+	public function CanPerformFinisherCam(out context : XTFinishersActionContext);
 }
 
-class XTFinishersSlowdownQueryResponder {
-	public function CanPerformSlowdown(out context : XTFinishersActionContext) {}
+abstract class XTFinishersSlowdownQueryResponder {
+	public function CanPerformSlowdown(out context : XTFinishersActionContext);
 }

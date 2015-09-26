@@ -261,35 +261,35 @@ class XTFinishersPriorityListener {
 	}
 }
 
-class XTFinishersAbstractActionStartEventListener extends XTFinishersPriorityListener {
-	public function OnActionStartTriggered(out context : XTFinishersActionContext) {}
+abstract class XTFinishersAbstractActionStartEventListener extends XTFinishersPriorityListener {
+	public function OnActionStartTriggered(out context : XTFinishersActionContext);
 }
 
-class XTFinishersAbstractActionEndEventListener extends XTFinishersPriorityListener {
-	public function OnActionEndTriggered(out context : XTFinishersActionContext) {}
+abstract class XTFinishersAbstractActionEndEventListener extends XTFinishersPriorityListener {
+	public function OnActionEndTriggered(out context : XTFinishersActionContext);
 }
 
-class XTFinishersAbstractReactionEventListener extends XTFinishersPriorityListener {
-	public function OnReactionStartTriggered(out context : XTFinishersActionContext) {}
-	public function OnReactionEndTriggered(out context : XTFinishersActionContext) {}
+abstract class XTFinishersAbstractReactionEventListener extends XTFinishersPriorityListener {
+	public function OnReactionStartTriggered(out context : XTFinishersActionContext);
+	public function OnReactionEndTriggered(out context : XTFinishersActionContext);
 }
 
-class XTFinishersAbstractFinisherEventListener extends XTFinishersPriorityListener {
-	public function OnFinisherTriggered(out context : XTFinishersActionContext) {}
+abstract class XTFinishersAbstractFinisherEventListener extends XTFinishersPriorityListener {
+	public function OnFinisherTriggered(out context : XTFinishersActionContext);
 }
 
-class XTFinishersAbstractDismemberEventListener extends XTFinishersPriorityListener {
-	public function OnDismemberTriggered(out context : XTFinishersActionContext) {}
+abstract class XTFinishersAbstractDismemberEventListener extends XTFinishersPriorityListener {
+	public function OnDismemberTriggered(out context : XTFinishersActionContext);
 }
 
-class XTFinishersAbstractFinisherCamEventListener extends XTFinishersPriorityListener {
-	public function OnFinisherCamTriggered(out context : XTFinishersActionContext) {}
+abstract class XTFinishersAbstractFinisherCamEventListener extends XTFinishersPriorityListener {
+	public function OnFinisherCamTriggered(out context : XTFinishersActionContext);
 }
 
-class XTFinishersAbstractSlowdownEventListener extends XTFinishersPriorityListener {
-	public function OnSlowdownSequenceStartTriggered(out context : XTFinishersActionContext) {}
-	public function OnSlowdownSequenceEndTriggered(out context : XTFinishersActionContext) {}
+abstract class XTFinishersAbstractSlowdownEventListener extends XTFinishersPriorityListener {
+	public function OnSlowdownSequenceStartTriggered(out context : XTFinishersActionContext);
+	public function OnSlowdownSequenceEndTriggered(out context : XTFinishersActionContext);
 	
-	public function OnSlowdownSegmentStart(segment : XTFinishersSlowdownSegment) {}
-	public function OnSlowdownSegmentEnd(segment : XTFinishersSlowdownSegment, success : bool) {}
+	public function OnSlowdownSegmentStart(segment : XTFinishersSlowdownSegment);
+	public function OnSlowdownSegmentEnd(segment : XTFinishersSlowdownSegment, success : bool);
 }

@@ -4,14 +4,14 @@
 	
 	Use StartSlowdownSequence() to start a slow-motion sequence.
 */
-class XTFinishersSlowdownManager {
-	public function Init() {}
-	public function IsSequenceActive() : bool {return false;}
-	public function IsSessionActive() : bool {return false;}
-	public function TriggerSlowdown(context : XTFinishersActionContext) {}
+abstract class XTFinishersSlowdownManager {
+	public function Init();
+	public function IsSequenceActive() : bool;
+	public function IsSessionActive() : bool;
+	public function TriggerSlowdown(context : XTFinishersActionContext);
 }
 
-class XTFinishersAbstractSlowdownManager extends XTFinishersSlowdownManager {
+abstract class XTFinishersAbstractSlowdownManager extends XTFinishersSlowdownManager {
 	private var sequenceDef : XTFinishersSlowdownSequenceDef;
 	private var currentIndex : int;
 	private var sequenceActive: bool;
@@ -114,7 +114,7 @@ class XTFinishersSlowdownSequenceDef {
 	}
 }
 
-class XTFinishersSlowdownSegment {
+abstract class XTFinishersSlowdownSegment {
 	private var duration : float;
 	
 	public function Init(duration : float) {
