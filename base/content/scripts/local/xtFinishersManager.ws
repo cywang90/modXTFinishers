@@ -3,10 +3,10 @@ class XTFinishersManager {
 	
 	public var queryMgr : XTFinishersQueryManager;
 	public var eventMgr : XTFinishersEventManager;
-	public var slowdownMgr : XTFinishersSlowdownManager;
 	
 	// modules
 	public var defaultModule : XTFinishersDefaultModule;
+	public var slowdownModule : XTFinishersCustomSlowdownModule;
 	
 	public function Init() {
 		// base mod components (don't mess with these unless you know what you are doing)
@@ -20,10 +20,10 @@ class XTFinishersManager {
 		// load default module
 		defaultModule = new XTFinishersDefaultModule in this;
 		defaultModule.InitAllComponents();
-	}
-	
-	public function SetSlowdownManager(mgr : XTFinishersSlowdownManager) {
-		slowdownMgr = mgr;
+		
+		// load slowdown module
+		slowdownModule = new XTFinishersCustomSlowdownModule in this;
+		slowdownModule.InitAllComponents();
 	}
 	
 	public function CreateActionContext(action : W3DamageAction, effectsSnapshot : XTFinishersEffectsSnapshot) : XTFinishersActionContext {
