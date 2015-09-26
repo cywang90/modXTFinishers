@@ -20,9 +20,10 @@ Priority=1
 USAGE
 -----
 
-All user-modifiable config options are located in file:
+All user-modifiable config options for the modules included in this mod release are located in files:
 	
-	modXTFinishers\content\scripts\local\xtFinishersParams.ws
+	modXTFinishers\content\scripts\local\xtFinishersDefaultParams.ws
+	modXTFinishers\content\scripts\local\xtFinishersCustomSlowdownParams.ws
 	
 Descriptions of what the individual settings do can be found in the comments in the code.
 

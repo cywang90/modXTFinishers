@@ -1,8 +1,19 @@
-class XTFinishersCustomSlowdownParams {
-	// finisher slowdown settings
+class XTFinishersDefaultSlowdownParams {
+	// general settings
 	public const var SLOWDOWN_DISABLE_CAMERA_SHAKE : bool;
 		default SLOWDOWN_DISABLE_CAMERA_SHAKE = true;				// If TRUE -> Prevents camera shake when a slowdown is activated.
 	
+	// critical hit slowdown settings
+	public const var SLOWDOWN_CRIT_CHANCE_NONFATAL, SLOWDOWN_CRIT_CHANCE_FATAL, SLOWDOWN_CRIT_CHANCE_FATAL_LAST_ENEMY : float;
+		default SLOWDOWN_CRIT_CHANCE_NONFATAL = 0.0;				// Chance to activate slow motion when a critical hit is performed on a non-fatal attack.
+		default SLOWDOWN_CRIT_CHANCE_FATAL = 0.0;					// Chance to activate slow motion when a critical hit is performed on a fatal attack.
+		default SLOWDOWN_CRIT_CHANCE_FATAL_LAST_ENEMY = 0.0;		// Chance to activate slow motion when a critical hit is performed on a fatal attack on the LAST enemy in combat.
+	public const var SLOWDOWN_CRIT_FACTOR, SLOWDOWN_CRIT_DURATION, SLOWDOWN_CRIT_DELAY : float;
+		default SLOWDOWN_CRIT_FACTOR = 0.3;							// Time factor for slow motion during a critical hit (smaller number = more slowdown).
+		default SLOWDOWN_CRIT_DURATION = 0.3;						// Duration of slow motion during a critical hit (seconds in game time).
+		default SLOWDOWN_CRIT_DELAY = 0.1;							// Delay after critical hit is triggered before slow motion activates (seconds in game time).
+	
+	// finisher slowdown settings
 	public const var SLOWDOWN_FINISHER_CHANCE, SLOWDOWN_FINISHER_AUTO_CHANCE : float;
 		default SLOWDOWN_FINISHER_CHANCE = 100.0;					// Chance to activate slow motion when a REGULAR finisher is triggered.
 		default SLOWDOWN_FINISHER_AUTO_CHANCE = 100.0;				// Chance to activate slow motion when an AUTOMATIC finisher is triggered.

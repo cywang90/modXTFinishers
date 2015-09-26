@@ -1,31 +1,51 @@
-class XTFinishersCustomSlowdownModule {
-	public var params : XTFinishersCustomSlowdownParams;
+class XTFinishersDefaultSlowdownModule {
+	public var params : XTFinishersDefaultSlowdownParams;
 	
-	public function InitAllComponents() {
-		InitBaseComponents();
-		InitSlowdownComponents();
-	}
-	
-	public function InitBaseComponents() {
-		params = new XTFinishersCustomSlowdownParams in this;
-	}
-	
-	public function InitSlowdownComponents() {
-		theGame.xtFinishersMgr.SetSlowdownManager(new XTFinishersCustomSlowdownManager in this);
+	public function Init() {
+		params = new XTFinishersDefaultSlowdownParams in this;
+		
+		theGame.xtFinishersMgr.SetSlowdownManager(new XTFinishersDefaultSlowdownManager in this);
 		theGame.xtFinishersMgr.slowdownMgr.Init();
 		
-		theGame.xtFinishersMgr.queryMgr.LoadSlowdownResponder(new XTFinishersCustomSlowdownQueryResponder in this);
+		theGame.xtFinishersMgr.queryMgr.LoadSlowdownResponder(new XTFinishersDefaultSlowdownQueryResponder in this);
 		
-		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.FINISHER_EVENT_ID, new XTFinishersCustomSlowdownFinisherQueryDispatcher in this);
-		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.DISMEMBER_EVENT_ID, new XTFinishersCustomSlowdownDismemberQueryDispatcher in this);
+		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.FINISHER_EVENT_ID, new XTFinishersDefaultSlowdownFinisherQueryDispatcher in this);
+		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.DISMEMBER_EVENT_ID, new XTFinishersDefaultSlowdownDismemberQueryDispatcher in this);
 	}
 }
 
 // listeners
 
-class XTFinishersCustomSlowdownFinisherQueryDispatcher extends XTFinishersAbstractFinisherEventListener {
+class XTFinishersDefaultSlowdownCritQueryDispatcher extends XTFinishersAbstractActionEndEventListener {
 	public function GetPriority() : int {
-		return theGame.xtFinishersMgr.consts.CUSTOM_SLOWDOWN_FINISHER_QUERY_DISPATCHER_PRIORITY;
+		return theGame.xtFinishersMgr.consts.DEFAULT_SLOWDOWN_CRIT_QUERY_DISPATCHER_PRIORITY;
+	}
+	
+	public function OnActionEndTriggered(out context : XTFinishersActionContext) {
+		var attackAction : W3Action_Attack;
+		
+		if (context.finisher.active || context.slowdown.active) {
+			return;
+		}
+		
+		attackAction = (W3Action_Attack)context.action;
+		if ((CR4Player)context.action.attacker && attackAction && attackAction.IsActionMelee() && attackAction.IsCriticalHit()) {
+			context.slowdown.type = theGame.xtFinishersMgr.consts.SLOWDOWN_TYPE_CRIT;
+			
+			if (context.slowdown.active) {
+				if (context.slowdown.active && theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_DISABLE_CAMERA_SHAKE) {
+					context.camShake.forceOff = true;
+				}
+				
+				theGame.xtFinishersMgr.slowdownMgr.TriggerSlowdown(context);
+			}
+		}
+	}
+}
+
+class XTFinishersDefaultSlowdownFinisherQueryDispatcher extends XTFinishersAbstractFinisherEventListener {
+	public function GetPriority() : int {
+		return theGame.xtFinishersMgr.consts.DEFAULT_SLOWDOWN_FINISHER_QUERY_DISPATCHER_PRIORITY;
 	}
 	
 	public function OnFinisherTriggered(out context : XTFinishersActionContext) {
@@ -44,9 +64,9 @@ class XTFinishersCustomSlowdownFinisherQueryDispatcher extends XTFinishersAbstra
 	}
 }
 
-class XTFinishersCustomSlowdownDismemberQueryDispatcher extends XTFinishersAbstractDismemberEventListener {
+class XTFinishersDefaultSlowdownDismemberQueryDispatcher extends XTFinishersAbstractDismemberEventListener {
 	public function GetPriority() : int {
-		return theGame.xtFinishersMgr.consts.CUSTOM_SLOWDOWN_DISMEMBER_QUERY_DISPATCHER_PRIORITY;
+		return theGame.xtFinishersMgr.consts.DEFAULT_SLOWDOWN_DISMEMBER_QUERY_DISPATCHER_PRIORITY;
 	}
 	
 	public function OnDismemberTriggered(out context : XTFinishersActionContext) {
@@ -69,7 +89,23 @@ class XTFinishersCustomSlowdownDismemberQueryDispatcher extends XTFinishersAbstr
 
 // responders
 
-class XTFinishersCustomSlowdownQueryResponder extends XTFinishersSlowdownQueryResponder {
+class XTFinishersDefaultSlowdownQueryResponder extends XTFinishersSlowdownQueryResponder {
+	protected function CanPerformSlowdownCrit(out context : XTFinishersActionContext) {
+		var chance : float;
+		
+		if (context.action.victim.IsAlive()) {
+			chance = theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_CRIT_CHANCE_NONFATAL;
+		} else {
+			if (thePlayer.IsLastEnemyKilled()) {
+				chance = theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_CRIT_CHANCE_FATAL_LAST_ENEMY;
+			} else {
+				chance = theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_CRIT_CHANCE_FATAL;
+			}
+		}
+		
+		context.slowdown.active = RandRangeF(100) < chance;
+	}
+	
 	protected function CanPerformSlowdownFinisher(out context : XTFinishersActionContext) {
 		var chance : float;
 		
@@ -116,6 +152,9 @@ class XTFinishersCustomSlowdownQueryResponder extends XTFinishersSlowdownQueryRe
 		}
 		
 		switch (context.slowdown.type) {
+		case theGame.xtFinishersMgr.consts.SLOWDOWN_TYPE_CRIT :
+			CanPerformSlowdownCrit(context);
+			break;
 		case theGame.xtFinishersMgr.consts.SLOWDOWN_TYPE_FINISHER :
 			CanPerformSlowdownFinisher(context);
 			break;
@@ -128,13 +167,26 @@ class XTFinishersCustomSlowdownQueryResponder extends XTFinishersSlowdownQueryRe
 
 // slowdown
 
-class XTFinishersCustomSlowdownManager extends XTFinishersAbstractSlowdownManager {
-	private var finisherSeqDef, dismemberSeqDef : XTFinishersSlowdownSequenceDef;
+class XTFinishersDefaultSlowdownManager extends XTFinishersAbstractSlowdownManager {
+	private var critSeqDef, finisherSeqDef, dismemberSeqDef : XTFinishersSlowdownSequenceDef;
 	
 	public function Init() {
 		var temp : XTFinishersSlowdownSegment;
 		
 		super.Init();
+		
+		// define critical hit slowdown sequence
+		critSeqDef = new XTFinishersSlowdownSequenceDef in this;
+		if (theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_CRIT_DELAY > 0) {
+			temp = new XTFinishersSlowdownDelay in this;
+			temp.Init(theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_CRIT_DELAY);
+			critSeqDef.AddSegment(temp);
+		}
+		if (theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_CRIT_DURATION > 0) {
+			temp = new XTFinishersSlowdownSession in this;
+			((XTFinishersSlowdownSession)temp).Init_Session(theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_CRIT_DURATION, theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_CRIT_FACTOR);
+			critSeqDef.AddSegment(temp);
+		}
 		
 		// define finisher slowdown sequence
 		finisherSeqDef = new XTFinishersSlowdownSequenceDef in this;
@@ -178,6 +230,8 @@ class XTFinishersCustomSlowdownManager extends XTFinishersAbstractSlowdownManage
 		
 		seqDef = NULL;
 		switch (context.slowdown.type) {
+		case theGame.xtFinishersMgr.consts.SLOWDOWN_TYPE_CRIT :
+			seqDef = critSeqDef;
 		case theGame.xtFinishersMgr.consts.SLOWDOWN_TYPE_FINISHER :
 			seqDef = finisherSeqDef;
 			break;

@@ -6,8 +6,10 @@ class XTFinishersManager {
 	public var slowdownMgr : XTFinishersSlowdownManager;
 	
 	// modules
-	public var defaultModule : XTFinishersDefaultModule;
-	public var slowdownModule : XTFinishersCustomSlowdownModule;
+	public var finisherModule : XTFinishersDefaultFinisherModule;
+	public var dismemberModule : XTFinishersDefaultDismemberModule;
+	public var slowdownModule : XTFinishersDefaultSlowdownModule;
+	public var camshakeModule : XTFinishersDefaultCamShakeModule;
 	
 	public function Init() {
 		// base mod components (don't mess with these unless you know what you are doing)
@@ -18,13 +20,21 @@ class XTFinishersManager {
 		eventMgr = new XTFinishersEventManager in this;
 		eventMgr.Init();
 		
-		// load default module
-		defaultModule = new XTFinishersDefaultModule in this;
-		defaultModule.InitAllComponents();
+		// load finisher module
+		finisherModule = new XTFinishersDefaultFinisherModule in this;
+		finisherModule.Init();
+		
+		// load dismember module
+		dismemberModule = new XTFinishersDefaultDismemberModule in this;
+		dismemberModule.Init();
 		
 		// load slowdown module
-		slowdownModule = new XTFinishersCustomSlowdownModule in this;
-		slowdownModule.InitAllComponents();
+		slowdownModule = new XTFinishersDefaultSlowdownModule in this;
+		slowdownModule.Init();
+		
+		// load camshake module
+		camshakeModule = new XTFinishersDefaultCamShakeModule in this;
+		camshakeModule.Init();
 	}
 	
 	public function SetSlowdownManager(mgr : XTFinishersSlowdownManager) {
