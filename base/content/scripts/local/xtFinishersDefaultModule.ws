@@ -142,17 +142,10 @@ class XTFinishersDefaultCamShakeHandler extends XTFinishersAbstractActionEndEven
 		}
 	}
 	
-	protected function ProcessSlowdown(out context : XTFinishersActionContext) {
-		if (context.slowdown.active && theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_DISABLE_CAMERA_SHAKE) {
-			context.camShake.forceOff = true;
-		}
-	}
-	
 	public function OnActionEndTriggered(out context : XTFinishersActionContext) {
 		ProcessNormalStrike(context);
 		ProcessCriticalHit(context);
 		ProcessDismember(context);
-		ProcessSlowdown(context);
 	}
 }
 

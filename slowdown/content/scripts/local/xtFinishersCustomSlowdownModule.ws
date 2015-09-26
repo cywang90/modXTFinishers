@@ -58,6 +58,10 @@ class XTFinishersCustomSlowdownDismemberQueryDispatcher extends XTFinishersAbstr
 		theGame.xtFinishersMgr.queryMgr.FireSlowdownQuery(context);
 		
 		if (context.slowdown.active) {
+			if (context.slowdown.active && theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_DISABLE_CAMERA_SHAKE) {
+				context.camShake.forceOff = true;
+			}
+			
 			theGame.xtFinishersMgr.slowdownMgr.TriggerSlowdown(context);
 		}
 	}
