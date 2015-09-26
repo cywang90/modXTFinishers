@@ -1,27 +1,18 @@
 
 /*
-	Event dispatcher for XTFinishers. Tracks and notifies event listeners. Listeners are added using the RegisterXXListener() functions. Events are triggered using the FireXXEvent functions.
+	Event dispatcher for XTFinishers. Tracks and notifies event listeners. Listeners are added using the RegisterEventListener() function. Events are triggered using the FireEvent function.
+	
+	When a listener is added, it is bound to an event id string. Listeners may be added multiple times with either the same or different event id strings. A listener will be notified once for every time it is added under a certain event id when an event with a matching event id is triggered.
 	
 	When an event is triggered, listeners are called in order according to the value returned by their GetPriority() function:
 		- listener a is guaranteed to be called before listener b if and only if a.GetPriority() < b.GetPriority().
 		- if a.GetPriority() == b.GetPriority() is true, there is no guarantee which one will be called first.
 */
 class XTFinishersEventManager {
-	//private var actionStartListenerQueue, actionEndListenerQueue, reactionListenerQueue, finisherListenerQueue, dismemberListenerQueue, finisherCamListenerQueue, slowdownListenerQueue : XTFinishersPriorityListenerQueue;
-	
 	private var queues : array<XTFinishersPriorityListenerQueue>;
 	private var ids : array<string>;
 	
 	public function Init() {
-		/*
-		actionStartListenerQueue = new XTFinishersPriorityListenerQueue in this;
-		actionEndListenerQueue = new XTFinishersPriorityListenerQueue in this;
-		reactionListenerQueue = new XTFinishersPriorityListenerQueue in this;
-		finisherListenerQueue = new XTFinishersPriorityListenerQueue in this;
-		dismemberListenerQueue = new XTFinishersPriorityListenerQueue in this;
-		finisherCamListenerQueue = new XTFinishersPriorityListenerQueue in this;
-		slowdownListenerQueue = new XTFinishersPriorityListenerQueue in this;
-		*/
 	}
 	
 	public function RegisterEventListener(id : string, listener : XTFinishersPriorityListener) {

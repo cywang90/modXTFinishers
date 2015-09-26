@@ -40,7 +40,7 @@ class XTFinishersConsts {
 		default DEFAULT_FINISHER_CAM_QUERY_DISPATCHER = 0;
 		default DEFAULT_SLOWDOWN_FINISHER_QUERY_DISPATCHER_PRIORITY = 10;
 	
-	// Slowdown Module
+	// Slowdown types
 	
 	public const var SLOWDOWN_TYPE_FINISHER, SLOWDOWN_TYPE_DISMEMBER, SLOWDOWN_TYPE_CRIT : int;
 		default SLOWDOWN_TYPE_FINISHER = 1;

@@ -5,7 +5,9 @@ class XTFinishersManager {
 	public var eventMgr : XTFinishersEventManager;
 	public var slowdownMgr : XTFinishersSlowdownManager;
 	
-	// modules
+	//========================
+	// DEFINE MODULE VARS HERE
+	//========================
 	public var finisherModule : XTFinishersDefaultFinisherModule;
 	public var dismemberModule : XTFinishersDefaultDismemberModule;
 	public var slowdownModule : XTFinishersDefaultSlowdownModule;
@@ -19,6 +21,10 @@ class XTFinishersManager {
 		
 		eventMgr = new XTFinishersEventManager in this;
 		eventMgr.Init();
+		
+		//==================
+		// LOAD MODULES HERE
+		//==================
 		
 		// load finisher module
 		finisherModule = new XTFinishersDefaultFinisherModule in this;
