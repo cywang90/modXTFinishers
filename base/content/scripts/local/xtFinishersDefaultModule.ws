@@ -1,3 +1,28 @@
+// module
+
+class XTFinishersDefaultModule {
+	public var params : XTFinishersDefaultParams;
+	
+	public function Init() {
+		params = new XTFinishersDefaultParams in this;
+		params.Init();
+		
+		theGame.xtFinishersMgr.SetSlowdownManager(new XTFinishersDefaultSlowdownManager in this);
+		theGame.xtFinishersMgr.slowdownMgr.Init();
+		
+		theGame.xtFinishersMgr.queryMgr.LoadFinisherResponder(new XTFinishersDefaultFinisherQueryResponder in this);
+		theGame.xtFinishersMgr.queryMgr.LoadDismemberResponder(new XTFinishersDefaultDismemberQueryResponder in this);
+		theGame.xtFinishersMgr.queryMgr.LoadFinisherCamResponder(new XTFinishersDefaultFinisherCamQueryResponder in this);
+		theGame.xtFinishersMgr.queryMgr.LoadSlowdownResponder(new XTFinishersDefaultSlowdownQueryResponder in this);
+		
+		theGame.xtFinishersMgr.eventMgr.RegisterReactionListener(new XTFinishersDefaultFinisherQueryDispatcher in this);
+		theGame.xtFinishersMgr.eventMgr.RegisterReactionListener(new XTFinishersDefaultDismemberQueryDispatcher in this);
+		theGame.xtFinishersMgr.eventMgr.RegisterFinisherListener(new XTFinishersDefaultFinisherCamQueryDispatcher in this);
+		theGame.xtFinishersMgr.eventMgr.RegisterFinisherListener(new XTFinishersDefaultSlowdownFinisherQueryDispatcher in this);
+		theGame.xtFinishersMgr.eventMgr.RegisterDismemberListener(new XTFinishersDefaultSlowdownDismemberQueryDispatcher in this);
+	}
+}
+
 // listeners
 
 class XTFinishersDefaultFinisherQueryDispatcher extends XTFinishersAbstractReactionEventListener {
@@ -36,11 +61,53 @@ class XTFinishersDefaultSlowdownFinisherQueryDispatcher extends XTFinishersAbstr
 	}
 	
 	public function OnFinisherTriggered(out context : XTFinishersActionContext) {
+		if (context.slowdown.active) {
+			return;
+		}
+		
+		context.slowdown.type = theGame.xtFinishersMgr.consts.SLOWDOWN_TYPE_FINISHER;
 		if (!context.finisherCam.active) {
-			theGame.xtFinishersMgr.queryMgr.FireSlowdownFinisherQuery(context);
+			theGame.xtFinishersMgr.queryMgr.FireSlowdownQuery(context);
+		}
+		
+		if (context.slowdown.active) {
+			theGame.xtFinishersMgr.slowdownMgr.TriggerSlowdown(context);
 		}
 	}
 }
+
+class XTFinishersDefaultSlowdownDismemberQueryDispatcher extends XTFinishersAbstractDismemberEventListener {
+	public function GetPriority() : int {
+		return 0;
+	}
+	
+	public function OnDismemberTriggered(out context : XTFinishersActionContext) {
+		if (context.slowdown.active) {
+			return;
+		}
+		
+		context.slowdown.type = theGame.xtFinishersMgr.consts.SLOWDOWN_TYPE_DISMEMBER;
+		theGame.xtFinishersMgr.queryMgr.FireSlowdownQuery(context);
+		
+		if (context.slowdown.active) {
+			theGame.xtFinishersMgr.slowdownMgr.TriggerSlowdown(context);
+		}
+	}
+}
+
+class XTFinishersDefaultDismemberCamShakeHandler extends XTFinishersAbstractDismemberEventListener {
+	public function GetPriority() : int {
+		return 0;
+	}
+	
+	public function OnDismemberTriggered(out context : XTFinishersActionContext) {
+		if (theGame.xtFinishersMgr.defaultModule.params.DISMEMBER_CAMERA_SHAKE) {
+			context.camShake.active = true;
+		}
+	}
+}
+
+
 
 // responders
 
@@ -56,22 +123,22 @@ class XTFinishersDefaultFinisherQueryResponder extends XTFinishersFinisherQueryR
 		attackAction = (W3Action_Attack)context.action;
 		
 		if (attackAction) {
-			if (attackAction.IsCriticalHit() && RandRangeF(100) < theGame.xtFinishersMgr.params.FINISHER_AUTO_CHANCE_CRIT) {
+			if (attackAction.IsCriticalHit() && RandRangeF(100) < theGame.xtFinishersMgr.defaultModule.params.FINISHER_AUTO_CHANCE_CRIT) {
 				result = true;
-			} else if (SkillNameToEnum(attackAction.GetAttackTypeName()) == S_Sword_s02 && RandRangeF(100) < theGame.xtFinishersMgr.params.FINISHER_AUTO_CHANCE_REND) {
+			} else if (SkillNameToEnum(attackAction.GetAttackTypeName()) == S_Sword_s02 && RandRangeF(100) < theGame.xtFinishersMgr.defaultModule.params.FINISHER_AUTO_CHANCE_REND) {
 				result = true;
-			} else if (thePlayer.IsLastEnemyKilled() && RandRangeF(100) < theGame.xtFinishersMgr.params.FINISHER_AUTO_CHANCE_LAST_ENEMY) {
+			} else if (thePlayer.IsLastEnemyKilled() && RandRangeF(100) < theGame.xtFinishersMgr.defaultModule.params.FINISHER_AUTO_CHANCE_LAST_ENEMY) {
 				result = true;
 			} else {
 				hasEffect = false;
-				autoFinisherEffectTypes = theGame.xtFinishersMgr.params.autoFinisherEffectTypes;
+				autoFinisherEffectTypes = theGame.xtFinishersMgr.defaultModule.params.autoFinisherEffectTypes;
 				for (i = 0; i < autoFinisherEffectTypes.Size(); i += 1) {
 					hasEffect = context.effectsSnapshot.HasEffect(autoFinisherEffectTypes[i]);
 					if (hasEffect) {
 						break;
 					}
 				}
-				result = hasEffect && RandRangeF(100) < theGame.xtFinishersMgr.params.FINISHER_AUTO_CHANCE_EFFECTS;
+				result = hasEffect && RandRangeF(100) < theGame.xtFinishersMgr.defaultModule.params.FINISHER_AUTO_CHANCE_EFFECTS;
 			}
 		}
 		
@@ -92,20 +159,20 @@ class XTFinishersDefaultFinisherQueryResponder extends XTFinishersFinisherQueryR
 		
 		if (actorVictim.IsVulnerable() && !actorVictim.HasAbility('InstantKillImmune')) {
 			if (attackAction) {
-				if (attackAction.IsCriticalHit() && RandRangeF(100) < theGame.xtFinishersMgr.params.FINISHER_INSTANTKILL_CHANCE_CRIT) {
+				if (attackAction.IsCriticalHit() && RandRangeF(100) < theGame.xtFinishersMgr.defaultModule.params.FINISHER_INSTANTKILL_CHANCE_CRIT) {
 					result = true;
-				} else if (thePlayer.IsLastEnemyKilled() && RandRangeF(100) < theGame.xtFinishersMgr.params.FINISHER_INSTANTKILL_CHANCE_LAST_ENEMY) {
+				} else if (thePlayer.IsLastEnemyKilled() && RandRangeF(100) < theGame.xtFinishersMgr.defaultModule.params.FINISHER_INSTANTKILL_CHANCE_LAST_ENEMY) {
 					result = true;
 				} else {
 					hasEffect = false;
-					instantKillFinisherEffectTypes = theGame.xtFinishersMgr.params.instantKillFinisherEffectTypes;
+					instantKillFinisherEffectTypes = theGame.xtFinishersMgr.defaultModule.params.instantKillFinisherEffectTypes;
 					for (i = 0; i < instantKillFinisherEffectTypes.Size(); i += 1) {
 						hasEffect = context.effectsSnapshot.HasEffect(instantKillFinisherEffectTypes[i]);
 						if (hasEffect) {
 							break;
 						}
 					}
-					result = hasEffect && RandRangeF(100) < theGame.xtFinishersMgr.params.FINISHER_INSTANTKILL_CHANCE_EFFECTS;
+					result = hasEffect && RandRangeF(100) < theGame.xtFinishersMgr.defaultModule.params.FINISHER_INSTANTKILL_CHANCE_EFFECTS;
 				}
 			}
 		}
@@ -166,13 +233,13 @@ class XTFinishersDefaultFinisherQueryResponder extends XTFinishersFinisherQueryR
 					if (!context.finisher.forced && !context.finisher.auto) {
 						if (( size <= 1 && theGame.params.FINISHER_ON_DEATH_CHANCE > 0) || (actorVictim.HasAbility('ForceFinisher'))) {
 							finisherChance = 100;
-						} else if (theGame.xtFinishersMgr.params.FINISHER_CHANCE_OVERRIDE) {
-							finisherChance = theGame.xtFinishersMgr.params.FINISHER_CHANCE_BASE;
+						} else if (theGame.xtFinishersMgr.defaultModule.params.FINISHER_CHANCE_OVERRIDE) {
+							finisherChance = theGame.xtFinishersMgr.defaultModule.params.FINISHER_CHANCE_BASE;
 							levelDelta = thePlayer.GetLevel() - npc.currentLevel;
 							if (levelDelta >= 0) {
-								finisherChance += theGame.xtFinishersMgr.params.FINISHER_CHANCE_LEVEL_BONUS * levelDelta;
+								finisherChance += theGame.xtFinishersMgr.defaultModule.params.FINISHER_CHANCE_LEVEL_BONUS * levelDelta;
 							} else {
-								finisherChance += theGame.xtFinishersMgr.params.FINISHER_CHANCE_LEVEL_PENALTY * levelDelta;
+								finisherChance += theGame.xtFinishersMgr.defaultModule.params.FINISHER_CHANCE_LEVEL_PENALTY * levelDelta;
 							}
 						} else {
 							if (npc.currentLevel - thePlayer.GetLevel() < -5) {
@@ -196,14 +263,14 @@ class XTFinishersDefaultFinisherQueryResponder extends XTFinishersFinisherQueryR
 		}
 		
 		if (context.finisher.auto) {
-			areEnemiesAttackingModifier = !theGame.xtFinishersMgr.params.FINISHER_AUTO_REQUIRE_NO_AGGRO;
-			navCheckModifier = !theGame.xtFinishersMgr.params.FINISHER_AUTO_REQUIRE_NAV_CHECK;
+			areEnemiesAttackingModifier = !theGame.xtFinishersMgr.defaultModule.params.FINISHER_AUTO_REQUIRE_NO_AGGRO;
+			navCheckModifier = !theGame.xtFinishersMgr.defaultModule.params.FINISHER_AUTO_REQUIRE_NAV_CHECK;
 		} else if (context.finisher.instantKill) {
-			areEnemiesAttackingModifier = !theGame.xtFinishersMgr.params.FINISHER_INSTANTKILL_REQUIRE_NO_AGGRO;
-			navCheckModifier = !theGame.xtFinishersMgr.params.FINISHER_INSTANTKILL_REQUIRE_NAV_CHECK;
+			areEnemiesAttackingModifier = !theGame.xtFinishersMgr.defaultModule.params.FINISHER_INSTANTKILL_REQUIRE_NO_AGGRO;
+			navCheckModifier = !theGame.xtFinishersMgr.defaultModule.params.FINISHER_INSTANTKILL_REQUIRE_NAV_CHECK;
 		} else {
-			areEnemiesAttackingModifier = !theGame.xtFinishersMgr.params.FINISHER_REQUIRE_NO_AGGRO;
-			navCheckModifier = !theGame.xtFinishersMgr.params.FINISHER_REQUIRE_NAV_CHECK;
+			areEnemiesAttackingModifier = !theGame.xtFinishersMgr.defaultModule.params.FINISHER_REQUIRE_NO_AGGRO;
+			navCheckModifier = !theGame.xtFinishersMgr.defaultModule.params.FINISHER_REQUIRE_NAV_CHECK;
 		}
 		
 			
@@ -288,21 +355,17 @@ class XTFinishersDefaultDismemberQueryResponder extends XTFinishersDismemberQuer
 		} else if (arrow) {
 			result = false;
 		} else if (actorAttacker.HasAbility('ForceDismemberment')) {
-			context.forced = true;
+			context.dismember.forced = true;
 			result = true;
 		} else if (context.effectsSnapshot.HasEffect(EET_Frozen)) {
-			context.forced = true;
 			result = true;
 		} else if ((petard && petard.DismembersOnKill()) || (bolt && bolt.DismembersOnKill())) {
-			context.forced = true;
 			result = true;
 		} else if ((W3Effect_YrdenHealthDrain)context.action.causer) {
-			context.explosion = true;
-			context.forced = true;
+			context.dismember.explosion = true;
 			result = true;
 		} else if (toxicCloud && toxicCloud.HasExplodingTargetDamages()) {
-			context.explosion = true;
-			context.forced = true;
+			context.dismember.explosion = true;
 			result = true;
 		} else {
 			inv = actorAttacker.GetInventory();
@@ -315,28 +378,28 @@ class XTFinishersDefaultDismemberQueryResponder extends XTFinishersDismemberQuer
 				result = false;
 			} else {
 				if (attackAction && attackAction.IsActionMelee()) {
-					if (attackAction.IsCriticalHit() && RandRangeF(100) < theGame.xtFinishersMgr.params.DISMEMBER_AUTO_CHANCE_CRIT) {
-						context.dismember.explosion = RandRangeF(100) < theGame.xtFinishersMgr.params.DISMEMBER_AUTO_EXPLOSION_CHANCE_CRIT;
+					if (attackAction.IsCriticalHit() && RandRangeF(100) < theGame.xtFinishersMgr.defaultModule.params.DISMEMBER_AUTO_CHANCE_CRIT) {
+						context.dismember.explosion = RandRangeF(100) < theGame.xtFinishersMgr.defaultModule.params.DISMEMBER_AUTO_EXPLOSION_CHANCE_CRIT;
 						context.dismember.auto = true;
 						result = true;
-					} else if (SkillNameToEnum(attackAction.GetAttackTypeName()) == S_Sword_s02 && RandRangeF(100) < theGame.xtFinishersMgr.params.DISMEMBER_AUTO_CHANCE_REND) {
-						context.dismember.explosion = RandRangeF(100) < theGame.xtFinishersMgr.params.DISMEMBER_AUTO_EXPLOSION_CHANCE_REND;
+					} else if (SkillNameToEnum(attackAction.GetAttackTypeName()) == S_Sword_s02 && RandRangeF(100) < theGame.xtFinishersMgr.defaultModule.params.DISMEMBER_AUTO_CHANCE_REND) {
+						context.dismember.explosion = RandRangeF(100) < theGame.xtFinishersMgr.defaultModule.params.DISMEMBER_AUTO_EXPLOSION_CHANCE_REND;
 						context.dismember.auto = true;
 						result = true;
-					} else if ((W3PlayerWitcher)playerAttacker && playerAttacker.GetBehaviorVariable('combatActionType') == (int)CAT_SpecialAttack && playerAttacker.GetBehaviorVariable('playerAttackType') == 0 && RandRangeF(100) < theGame.xtFinishersMgr.params.DISMEMBER_AUTO_CHANCE_WHIRL) {
-						context.dismember.explosion = RandRangeF(100) < theGame.xtFinishersMgr.params.DISMEMBER_AUTO_EXPLOSION_CHANCE_WHIRL;
+					} else if ((W3PlayerWitcher)playerAttacker && playerAttacker.GetBehaviorVariable('combatActionType') == (int)CAT_SpecialAttack && playerAttacker.GetBehaviorVariable('playerAttackType') == 0 && RandRangeF(100) < theGame.xtFinishersMgr.defaultModule.params.DISMEMBER_AUTO_CHANCE_WHIRL) {
+						context.dismember.explosion = RandRangeF(100) < theGame.xtFinishersMgr.defaultModule.params.DISMEMBER_AUTO_EXPLOSION_CHANCE_WHIRL;
 						context.dismember.auto = true;
 						result = true;
-					} else if (playerAttacker.IsHeavyAttack(attackAction.GetAttackName()) && RandRangeF(100) < theGame.xtFinishersMgr.params.DISMEMBER_AUTO_CHANCE_STRONG) {
-						context.dismember.explosion = RandRangeF(100) < theGame.xtFinishersMgr.params.DISMEMBER_AUTO_EXPLOSION_CHANCE_STRONG;
+					} else if (playerAttacker.IsHeavyAttack(attackAction.GetAttackName()) && RandRangeF(100) < theGame.xtFinishersMgr.defaultModule.params.DISMEMBER_AUTO_CHANCE_STRONG) {
+						context.dismember.explosion = RandRangeF(100) < theGame.xtFinishersMgr.defaultModule.params.DISMEMBER_AUTO_EXPLOSION_CHANCE_STRONG;
 						context.dismember.auto = true;
 						result = true;
-					} else if (playerAttacker.IsLightAttack(attackAction.GetAttackName()) && RandRangeF(100) < theGame.xtFinishersMgr.params.DISMEMBER_AUTO_CHANCE_FAST) {
-						context.dismember.explosion = RandRangeF(100) < theGame.xtFinishersMgr.params.DISMEMBER_AUTO_EXPLOSION_CHANCE_FAST;
+					} else if (playerAttacker.IsLightAttack(attackAction.GetAttackName()) && RandRangeF(100) < theGame.xtFinishersMgr.defaultModule.params.DISMEMBER_AUTO_CHANCE_FAST) {
+						context.dismember.explosion = RandRangeF(100) < theGame.xtFinishersMgr.defaultModule.params.DISMEMBER_AUTO_EXPLOSION_CHANCE_FAST;
 						context.dismember.auto = true;
 						result = true;
-					} else if (thePlayer.IsLastEnemyKilled() && RandRangeF(100) < theGame.xtFinishersMgr.params.DISMEMBER_AUTO_CHANCE_LAST_ENEMY) {
-						context.dismember.explosion = RandRangeF(100) < theGame.xtFinishersMgr.params.DISMEMBER_AUTO_EXPLOSION_CHANCE_LAST_ENEMY;
+					} else if (thePlayer.IsLastEnemyKilled() && RandRangeF(100) < theGame.xtFinishersMgr.defaultModule.params.DISMEMBER_AUTO_CHANCE_LAST_ENEMY) {
+						context.dismember.explosion = RandRangeF(100) < theGame.xtFinishersMgr.defaultModule.params.DISMEMBER_AUTO_EXPLOSION_CHANCE_LAST_ENEMY;
 						context.dismember.auto = true;
 						result = true;
 					}
@@ -347,7 +410,7 @@ class XTFinishersDefaultDismemberQueryResponder extends XTFinishersDismemberQuer
 					
 					if (playerAttacker && playerAttacker.forceDismember) {
 						dismemberChance = thePlayer.forceDismemberChance;
-						context.explosion = thePlayer.forceDismemberExplosion;
+						context.dismember.explosion = thePlayer.forceDismemberExplosion;
 					}
 					
 					if (attackAction) {
@@ -370,7 +433,7 @@ class XTFinishersDefaultDismemberQueryResponder extends XTFinishersDismemberQuer
 				}
 			}
 		}
-		context.dismember.camShake = theGame.xtFinishersMgr.params.DISMEMBER_CAMERA_SHAKE;
+		
 		context.dismember.active = result;
 	}
 }
@@ -380,67 +443,73 @@ class XTFinishersDefaultFinisherCamQueryResponder extends XTFinishersFinisherCam
 		var chance : float;
 		
 		if (thePlayer.IsLastEnemyKilled()) {
-			chance = theGame.xtFinishersMgr.params.FINISHER_CAM_CHANCE_LAST_ENEMY;
+			chance = theGame.xtFinishersMgr.defaultModule.params.FINISHER_CAM_CHANCE_LAST_ENEMY;
 		} else {
-			chance = theGame.xtFinishersMgr.params.FINISHER_CAM_CHANCE;
+			chance = theGame.xtFinishersMgr.defaultModule.params.FINISHER_CAM_CHANCE;
 		}
 	
 		context.finisherCam.active = RandRangeF(100) < chance
-				&& (!theGame.xtFinishersMgr.params.FINISHER_CAM_REQUIRE_NAV_CHECK || theGame.GetWorld().NavigationCircleTest(thePlayer.GetWorldPosition(), 3.f));
+				&& (!theGame.xtFinishersMgr.defaultModule.params.FINISHER_CAM_REQUIRE_NAV_CHECK || theGame.GetWorld().NavigationCircleTest(thePlayer.GetWorldPosition(), 3.f));
 	}
 }
 
 class XTFinishersDefaultSlowdownQueryResponder extends XTFinishersSlowdownQueryResponder {
-	public function CanPerformSlowdownFinisher(out context : XTFinishersActionContext) {
+	protected function CanPerformSlowdownFinisher(out context : XTFinishersActionContext) {
 		var chance : float;
-		
-		if (thePlayer.IsCameraControlDisabled('Finisher')) {
-			context.slowdown.active = false;
-			return;
-		}
 		
 		if (thePlayer.IsLastEnemyKilled()) {
 			if (context.finisher.auto) {
-				chance = theGame.xtFinishersMgr.params.SLOWDOWN_FINISHER_AUTO_CHANCE_LAST_ENEMY;
+				chance = theGame.xtFinishersMgr.defaultModule.params.SLOWDOWN_FINISHER_AUTO_CHANCE_LAST_ENEMY;
 			} else {
-				chance = theGame.xtFinishersMgr.params.SLOWDOWN_FINISHER_CHANCE_LAST_ENEMY;
+				chance = theGame.xtFinishersMgr.defaultModule.params.SLOWDOWN_FINISHER_CHANCE_LAST_ENEMY;
 			}
 		} else {
 			if (context.finisher.auto) {
-				chance = theGame.xtFinishersMgr.params.SLOWDOWN_FINISHER_AUTO_CHANCE;
+				chance = theGame.xtFinishersMgr.defaultModule.params.SLOWDOWN_FINISHER_AUTO_CHANCE;
 			} else {
-				chance = theGame.xtFinishersMgr.params.SLOWDOWN_FINISHER_CHANCE;
+				chance = theGame.xtFinishersMgr.defaultModule.params.SLOWDOWN_FINISHER_CHANCE;
 			}
 		}
 		
 		context.slowdown.active = RandRangeF(100) < chance;
 	}
 	
-	public function CanPerformSlowdownDismember(out context : XTFinishersActionContext) {
+	protected function CanPerformSlowdownDismember(out context : XTFinishersActionContext) {
 		var chance : float;
-		
-		if (thePlayer.IsCameraControlDisabled('Finisher')) {
-			context.slowdown.active = false;
-			return;
-		}
 		
 		if (thePlayer.IsLastEnemyKilled()) {
 			if (context.dismember.auto) {
-				chance = theGame.xtFinishersMgr.params.SLOWDOWN_DISMEMBER_AUTO_CHANCE_LAST_ENEMY;
+				chance = theGame.xtFinishersMgr.defaultModule.params.SLOWDOWN_DISMEMBER_AUTO_CHANCE_LAST_ENEMY;
 			} else {
-				chance = theGame.xtFinishersMgr.params.SLOWDOWN_DISMEMBER_CHANCE_LAST_ENEMY;
+				chance = theGame.xtFinishersMgr.defaultModule.params.SLOWDOWN_DISMEMBER_CHANCE_LAST_ENEMY;
 			}
 		} else {
 			if (context.dismember.auto) {
-				chance = theGame.xtFinishersMgr.params.SLOWDOWN_DISMEMBER_AUTO_CHANCE;
+				chance = theGame.xtFinishersMgr.defaultModule.params.SLOWDOWN_DISMEMBER_AUTO_CHANCE;
 			} else {
-				chance = theGame.xtFinishersMgr.params.SLOWDOWN_DISMEMBER_CHANCE;
+				chance = theGame.xtFinishersMgr.defaultModule.params.SLOWDOWN_DISMEMBER_CHANCE;
 			}
 		}
 		
 		context.slowdown.active = RandRangeF(100) < chance;
-		if (context.active && theGame.xtFinishersMgr.params.SLOWDOWN_DISMEMBER_DISABLE_CAMERA_SHAKE) {
-			context.dismember.camShake = false;
+	}
+	
+	public function CanPerformSlowdown(out context : XTFinishersActionContext) {
+		if (thePlayer.IsCameraControlDisabled('Finisher')) {
+			return;
+		}
+		
+		switch (context.slowdown.type) {
+		case theGame.xtFinishersMgr.consts.SLOWDOWN_TYPE_FINISHER :
+			CanPerformSlowdownFinisher(context);
+			break;
+		case theGame.xtFinishersMgr.consts.SLOWDOWN_TYPE_DISMEMBER :
+			CanPerformSlowdownDismember(context);
+			break;
+		}
+		
+		if (context.slowdown.active && theGame.xtFinishersMgr.defaultModule.params.SLOWDOWN_DISABLE_CAMERA_SHAKE) {
+			context.camShake.forceOff = true;
 		}
 	}
 }
@@ -457,37 +526,37 @@ class XTFinishersDefaultSlowdownManager extends XTFinishersAbstractSlowdownManag
 		
 		// define finisher slowdown sequence
 		finisherSeqDef = new XTFinishersSlowdownSequenceDef in this;
-		if (theGame.xtFinishersMgr.params.SLOWDOWN_FINISHER_A_DELAY > 0) {
+		if (theGame.xtFinishersMgr.defaultModule.params.SLOWDOWN_FINISHER_A_DELAY > 0) {
 			temp = new XTFinishersSlowdownDelay in this;
-			temp.Init(theGame.xtFinishersMgr.params.SLOWDOWN_FINISHER_A_DELAY);
+			temp.Init(theGame.xtFinishersMgr.defaultModule.params.SLOWDOWN_FINISHER_A_DELAY);
 			finisherSeqDef.AddSegment(temp);
 		}
-		if (theGame.xtFinishersMgr.params.SLOWDOWN_FINISHER_A_DURATION > 0) {
+		if (theGame.xtFinishersMgr.defaultModule.params.SLOWDOWN_FINISHER_A_DURATION > 0) {
 			temp = new XTFinishersSlowdownSession in this;
-			temp.Init(theGame.xtFinishersMgr.params.SLOWDOWN_FINISHER_A_DURATION, theGame.xtFinishersMgr.params.SLOWDOWN_FINISHER_A_FACTOR);
+			((XTFinishersSlowdownSession)temp).Init_Session(theGame.xtFinishersMgr.defaultModule.params.SLOWDOWN_FINISHER_A_DURATION, theGame.xtFinishersMgr.defaultModule.params.SLOWDOWN_FINISHER_A_FACTOR);
 			finisherSeqDef.AddSegment(temp);
 		}
-		if (theGame.xtFinishersMgr.params.SLOWDOWN_FINISHER_B_DELAY > 0) {
+		if (theGame.xtFinishersMgr.defaultModule.params.SLOWDOWN_FINISHER_B_DELAY > 0) {
 			temp = new XTFinishersSlowdownDelay in this;
-			temp.Init(theGame.xtFinishersMgr.params.SLOWDOWN_FINISHER_B_DELAY);
+			temp.Init(theGame.xtFinishersMgr.defaultModule.params.SLOWDOWN_FINISHER_B_DELAY);
 			finisherSeqDef.AddSegment(temp);
 		}
-		if (theGame.xtFinishersMgr.params.SLOWDOWN_FINISHER_B_DURATION > 0) {
+		if (theGame.xtFinishersMgr.defaultModule.params.SLOWDOWN_FINISHER_B_DURATION > 0) {
 			temp = new XTFinishersSlowdownSession in this;
-			temp.Init(theGame.xtFinishersMgr.params.SLOWDOWN_FINISHER_B_DURATION, theGame.xtFinishersMgr.params.SLOWDOWN_FINISHER_B_FACTOR);
+			((XTFinishersSlowdownSession)temp).Init_Session(theGame.xtFinishersMgr.defaultModule.params.SLOWDOWN_FINISHER_B_DURATION, theGame.xtFinishersMgr.defaultModule.params.SLOWDOWN_FINISHER_B_FACTOR);
 			finisherSeqDef.AddSegment(temp);
 		}
 		
 		// define dismember slowdown sequence
 		dismemberSeqDef = new XTFinishersSlowdownSequenceDef in this;
-		if (theGame.xtFinishersMgr.params.SLOWDOWN_DISMEMBER_DELAY > 0) {
+		if (theGame.xtFinishersMgr.defaultModule.params.SLOWDOWN_DISMEMBER_DELAY > 0) {
 			temp = new XTFinishersSlowdownDelay in this;
-			temp.Init(theGame.xtFinishersMgr.params.SLOWDOWN_DISMEMBER_DELAY);
+			temp.Init(theGame.xtFinishersMgr.defaultModule.params.SLOWDOWN_DISMEMBER_DELAY);
 			dismemberSeqDef.AddSegment(temp);
 		}
-		if (theGame.xtFinishersMgr.params.SLOWDOWN_DISMEMBER_DURATION > 0) {
+		if (theGame.xtFinishersMgr.defaultModule.params.SLOWDOWN_DISMEMBER_DURATION > 0) {
 			temp = new XTFinishersSlowdownSession in this;
-			temp.Init(theGame.xtFinishersMgr.params.SLOWDOWN_DISMEMBER_DURATION, theGame.xtFinishersMgr.params.SLOWDOWN_DISMEMBER_FACTOR);
+			((XTFinishersSlowdownSession)temp).Init_Session(theGame.xtFinishersMgr.defaultModule.params.SLOWDOWN_DISMEMBER_DURATION, theGame.xtFinishersMgr.defaultModule.params.SLOWDOWN_DISMEMBER_FACTOR);
 			dismemberSeqDef.AddSegment(temp);
 		}
 	}
@@ -496,14 +565,17 @@ class XTFinishersDefaultSlowdownManager extends XTFinishersAbstractSlowdownManag
 		var seqDef : XTFinishersSlowdownSequenceDef;
 		
 		seqDef = NULL;
-		if (context.slowdown.isFinisher) {
+		switch (context.slowdown.type) {
+		case theGame.xtFinishersMgr.consts.SLOWDOWN_TYPE_FINISHER :
 			seqDef = finisherSeqDef;
-		} else if (context.slowdown.isDismember) {
+			break;
+		case theGame.xtFinishersMgr.consts.SLOWDOWN_TYPE_DISMEMBER :
 			seqDef = dismemberSeqDef;
+			break;
 		}
 		
 		if (seqDef) {
-			ExecuteSlowdownSequence(seqDef);
+			StartSlowdownSequence(seqDef);
 		}
 	}
 }

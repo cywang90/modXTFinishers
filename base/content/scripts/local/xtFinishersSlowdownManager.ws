@@ -8,18 +8,17 @@ class XTFinishersSlowdownManager {
 	public function Init() {}
 	public function IsSequenceActive() : bool {return false;}
 	public function IsSessionActive() : bool {return false;}
-	public function StartSlowdownSequence(context : XTFinishersActionContext) {}
-	public function EndSlowdownSequence() {}
+	public function TriggerSlowdown(context : XTFinishersActionContext) {}
 }
 
 class XTFinishersAbstractSlowdownManager extends XTFinishersSlowdownManager {
 	private var sequenceDef : XTFinishersSlowdownSequenceDef;
 	private var currentIndex : int;
-	private var sequenceActive;
+	private var sequenceActive: bool;
 	private var sequenceContext : XTFinishersActionContext;
 	
 	public function Init() {
-		currentSequence = NULL;
+		sequenceDef = NULL;
 		sequenceActive = false;
 	}
 	
@@ -27,11 +26,7 @@ class XTFinishersAbstractSlowdownManager extends XTFinishersSlowdownManager {
 		return sequenceActive;
 	}
 	
-	public final function IsSessionActive() : bool {
-		return sessionActive;
-	}
-	
-	public final function StartSlowdownSequence(context : XTFinishersActionContext) {
+	public final function TriggerSlowdown(context : XTFinishersActionContext) {
 		if (IsSequenceActive()) {
 			return;
 		}
@@ -42,18 +37,18 @@ class XTFinishersAbstractSlowdownManager extends XTFinishersSlowdownManager {
 		theGame.xtFinishersMgr.eventMgr.FireSlowdownSequenceStartEvent(context);
 	}
 	
-	public final function EndSlowdownSequence() {
-		sequenceActive = false;
-		currentIndex = -1;
-		OnSlowdownSequenceEnd(sequenceContext);
-		theGame.xtFinishersMgr.eventMgr.FireSlowdownSequenceEndEvent(sequenceContext);
-	}
-	
-	protected function ExecuteSlowdownSequence(sequenceDef : XTFinishersSlowdownSequenceDef) {
+	protected function StartSlowdownSequence(sequenceDef : XTFinishersSlowdownSequenceDef) {
 		this.sequenceDef = sequenceDef;
 		this.currentIndex = 0;
 		
 		TrySlowdownSegment();
+	}
+	
+	protected function EndSlowdownSequence() {
+		sequenceActive = false;
+		currentIndex = -1;
+		OnSlowdownSequenceEnd(sequenceContext);
+		theGame.xtFinishersMgr.eventMgr.FireSlowdownSequenceEndEvent(sequenceContext);
 	}
 	
 	private function TrySlowdownSegment() {
@@ -70,7 +65,7 @@ class XTFinishersAbstractSlowdownManager extends XTFinishersSlowdownManager {
 		if (!thePlayer.IsCameraControlDisabled('Finisher')) { // make sure finisher cam is not active
 			segment = sequenceDef.GetSegment(currentIndex);
 			
-			segment.Start();
+			segment.Start(sequenceContext);
 			
 			OnSlowdownSegmentStart(segment);
 			theGame.xtFinishersMgr.eventMgr.FireSlowdownSegmentStartEvent(segment);
@@ -134,14 +129,14 @@ class XTFinishersSlowdownSegment {
 		thePlayer.AddTimer('XTFinishersSlowdownTimerCallback', GetDuration(), false);
 	}
 	
-	public function End() {}
+	public function End(success : bool) {}
 }
 
 class XTFinishersSlowdownSession extends XTFinishersSlowdownSegment {
 	private var factor : float;
 	
-	public function Init(duration : float, factor : float) {
-		super.Init(duration);
+	public function Init_Session(duration : float, factor : float) {
+		Init(duration);
 		this.factor = factor;
 	}
 	

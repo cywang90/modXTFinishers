@@ -1,4 +1,4 @@
-class XTFinishersParams {
+class XTFinishersDefaultParams {
 	// finisher settings
 	public const var FINISHER_REQUIRE_NO_AGGRO, FINISHER_REQUIRE_NAV_CHECK : bool;
 		default FINISHER_REQUIRE_NO_AGGRO = true;					// if TRUE -> REGULAR finishers will not trigger if Geralt has aggro.
@@ -54,6 +54,9 @@ class XTFinishersParams {
 		default FINISHER_CAM_REQUIRE_NAV_CHECK = false;				// if TRUE -> cinematic finisher camera will not activate if there are obstacles (walls, cliffs, objects, etc.) near Geralt.
 	
 	// finisher slowdown settings
+	public const var SLOWDOWN_DISABLE_CAMERA_SHAKE : bool;
+		default SLOWDOWN_DISABLE_CAMERA_SHAKE = true;				// If TRUE -> Prevents camera shake when a slowdown is activated.
+	
 	public const var SLOWDOWN_FINISHER_CHANCE, SLOWDOWN_FINISHER_AUTO_CHANCE : float;
 		default SLOWDOWN_FINISHER_CHANCE = 100.0;					// Chance to activate slow motion when a REGULAR finisher is triggered.
 		default SLOWDOWN_FINISHER_AUTO_CHANCE = 100.0;				// Chance to activate slow motion when an AUTOMATIC finisher is triggered.
@@ -75,8 +78,6 @@ class XTFinishersParams {
 		default SLOWDOWN_DISMEMBER_AUTO_CHANCE = 100.0;				// Chance to activate slow motion when an AUTOMATIC dismember is triggered.
 		default SLOWDOWN_DISMEMBER_CHANCE_LAST_ENEMY = 100.0;		// Chance to activate slow motion when a dismember is triggered on the LAST enemy in combat.
 		default SLOWDOWN_DISMEMBER_AUTO_CHANCE_LAST_ENEMY = 100.0;	// Chance to activate slow motion when an AUTOMATIC dismember is triggered on the LAST enemy in combat.
-	public const var SLOWDOWN_DISMEMBER_DISABLE_CAMERA_SHAKE : bool;
-		default SLOWDOWN_DISMEMBER_DISABLE_CAMERA_SHAKE = true;		// If TRUE -> Prevents camera shake when a slowdown is activated on a dismember.
 	public const var SLOWDOWN_DISMEMBER_FACTOR, SLOWDOWN_DISMEMBER_DURATION, SLOWDOWN_DISMEMBER_DELAY : float;
 		default SLOWDOWN_DISMEMBER_FACTOR = 0.3;					// Time factor for slow motion during a dismember (smaller number = more slowdown).
 		default SLOWDOWN_DISMEMBER_DURATION = 0.3;					// Duration of slow motion during a dismember (seconds in game time).

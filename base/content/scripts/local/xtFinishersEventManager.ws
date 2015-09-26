@@ -7,7 +7,7 @@
 		- if a.GetPriority() == b.GetPriority() is true, there is no guarantee which one will be called first.
 */
 class XTFinishersEventManager {
-	private var actionEndListenerQueue, actionEndListenerQueue, reactionListenerQueue, finisherListenerQueue, dismemberListenerQueue, finisherCamListenerQueue, slowdownListenerQueue : XTFinishersPriorityListenerQueue;
+	private var actionStartListenerQueue, actionEndListenerQueue, reactionListenerQueue, finisherListenerQueue, dismemberListenerQueue, finisherCamListenerQueue, slowdownListenerQueue : XTFinishersPriorityListenerQueue;
 	
 	public function Init() {
 		actionStartListenerQueue = new XTFinishersPriorityListenerQueue in this;
@@ -143,62 +143,6 @@ class XTFinishersEventManager {
 		}
 	}
 }
-
-class XTFinishersEffectsSnapshot {
-	private var effectsTable : array<bool>;
-	
-	public function Initialize(actor : CActor) {
-		var effects : array<CBaseGameplayEffect>;
-		var i : int;
-		
-		effectsTable.Grow(EnumGetMax('EEffectType') + 1);
-		for (i=0; i<effectsTable.Size(); i+=1) {
-			effectsTable[i] = false;
-		}
-		
-		effects = actor.GetBuffs();
-		for (i=0; i<effects.Size(); i+=1) {
-			effectsTable[effects[i].GetEffectType()] = true;
-		}
-	}
-	
-	public function HasEffect(type : EEffectType) : bool {
-		return effectsTable[type];
-	}
-}
-
-struct XTFinishersActionContext {
-	var action : W3DamageAction;
-	var effectsSnapshot : XTFinishersEffectsSnapshot;
-	var finisher : XTFinishersFinisherContext;
-	var dismember : XTFinishersDismemberContext;
-	var finisherCam : XTFinishersFinisherCamContext;
-	var slowdown : XTFinishersSlowdownContext;
-}
-
-struct XTFinishersFinisherContext {
-	var active : bool;										// will finisher be performed
-	var auto : bool;										// is AUTOMATIC finisher
-	var instantKill : bool;									// is INSTANT-KILL finisher
-	var forced : bool;										// is FORCED finisher
-};
-
-struct XTFinishersDismemberContext {
-	var active : bool;										// will dismember be performed
-	var explosion : bool;									// is dismember explosion
-	var camShake : bool;									// do camera shake
-	var auto : bool;										// is AUTOMATIC finisher
-	var forced : bool;										// is FORCED dismember
-};
-
-struct XTFinishersFinisherCamContext {
-	var active : bool;										// will cinematic camera be activated
-};
-
-struct XTFinishersSlowdownContext {
-	var isFinisher, isDismember : bool;						// whether finisher or dismember triggered slowdown
-	var active : bool;										// will slowdown be performed
-};
 
 class XTFinishersPriorityListenerQueue {
 	private var queue : array<XTFinishersPriorityListener>;

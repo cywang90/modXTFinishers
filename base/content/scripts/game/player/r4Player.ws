@@ -8025,14 +8025,15 @@ statemachine abstract import class CR4Player extends CPlayer
 		var weapon : EPlayerWeapon;
 		var targetActor : CActor;
 		
-		
+		// modXTFinishers BEGIN
+		/*
 		if ( animData.attackName == 'attack_heavy_special' )
 		{
 			if( specialAttackTimeRatio != 1 )
 				shakeStr = (specialAttackTimeRatio / 3.333) + 0.2;
 			else
 				shakeStr = 0.5;	
-	
+			
 			GCameraShake( shakeStr, false, GetWorldPosition(), 10);
 		}
 		else if ( IsHeavyAttack(attackActionName) )
@@ -8041,9 +8042,12 @@ statemachine abstract import class CR4Player extends CPlayer
 				shakeStr = 0.2;
 			else
 				shakeStr = 0.1;
-				
+			
+			
 			GCameraShake(shakeStr, false, GetWorldPosition(), 10);
 		}
+		*/
+		// modXTfinishers END
 		
 		targetActor = (CActor)slideTarget;
 		if ( targetActor && hitTargets.Contains(targetActor) )
@@ -11022,26 +11026,6 @@ statemachine abstract import class CR4Player extends CPlayer
 	public function LoadActionContext(context : XTFinishersActionContext) {
 		actionContext = context;
 	}
-	
-	private function CreateFinisherCamContext() : XTFinishersFinisherCamContext {
-		var context : XTFinishersFinisherCamContext;
-		
-		context.finisherContext = finisherContext;
-		context.active = false;
-		
-		return context;
-	}
-	
-	private function CreateSlowdownFinisherContext() : XTFinishersSlowdownContext {
-		var context : XTFinishersSlowdownContext;
-		
-		context.finisherContext = finisherContext;
-		context.isFinisher = true;
-		context.isDismember = false;
-		context.active = false;
-		
-		return context;
-	}
 	// modXTFinishers END
 	
 	private var finisherSaveLock : int;
@@ -11066,14 +11050,6 @@ statemachine abstract import class CR4Player extends CPlayer
 		PlayFinisherCameraAnimation( theGame.GetSyncAnimManager().GetFinisherCameraAnimName() );
 		this.AddAnimEventCallback('SyncEvent','OnFinisherAnimEvent_SyncEvent');
 		SetImmortalityMode( AIM_Invulnerable, AIC_SyncedAnim );
-		
-		// modXTFinishers BEGIN
-		//slowdownContext = CreateSlowdownFinisherContext();
-		//theGame.xtFinishersMgr.queryMgr.FireSlowdownFinisherQuery(slowdownContext);
-		if (actionContext.slowdown.active) {
-			theGame.xtFinishersMgr.slowdownMgr.TriggerSlowdown(actionContext);
-		}
-		// modXTFinishers END
 	}
 	
 	public function IsPerformingFinisher() : bool

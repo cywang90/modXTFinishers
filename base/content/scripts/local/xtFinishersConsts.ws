@@ -1,0 +1,6 @@
+class XTFinishersConsts {
+	public const var SLOWDOWN_TYPE_FINISHER, SLOWDOWN_TYPE_DISMEMBER, SLOWDOWN_TYPE_CRIT : int;
+		default SLOWDOWN_TYPE_FINISHER = 1;
+		default SLOWDOWN_TYPE_DISMEMBER = 2;
+		default SLOWDOWN_TYPE_CRIT = 3;
+}

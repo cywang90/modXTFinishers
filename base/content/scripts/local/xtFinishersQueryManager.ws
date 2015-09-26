@@ -42,12 +42,8 @@ class XTFinishersQueryManager {
 		finisherCamResponder.CanPerformFinisherCam(context);
 	}
 	
-	public function FireSlowdownFinisherQuery(out context : XTFinishersActionContext) {
-		slowdownResponder.CanPerformSlowdownFinisher(context);
-	}
-	
-	public function FireSlowdownDismemberQuery(out context : XTFinishersActionContext) {
-		slowdownResponder.CanPerformSlowdownDismember(context);
+	public function FireSlowdownQuery(out context : XTFinishersActionContext) {
+		slowdownResponder.CanPerformSlowdown(context);
 	}
 }
 
@@ -64,7 +60,5 @@ class XTFinishersFinisherCamQueryResponder {
 }
 
 class XTFinishersSlowdownQueryResponder {
-	public function CanPerformSlowdownFinisher(out context : XTFinishersActionContext) {}
-	
-	public function CanPerformSlowdownDismember(out context : XTFinishersActionContext) {}
+	public function CanPerformSlowdown(out context : XTFinishersActionContext) {}
 }
