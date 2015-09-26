@@ -153,14 +153,6 @@ class XTFinishersDefaultCamShakeHandler extends XTFinishersAbstractActionEndEven
 		ProcessCriticalHit(context);
 		ProcessDismember(context);
 		ProcessSlowdown(context);
-		
-		if (!context.camShake.forceOff && (context.camShake.forceOn || context.camShake.active)) {
-			if (context.camShake.useExtraOpts) {
-				GCameraShake(context.camShake.strength, false, context.camShake.epicenter, context.camShake.maxDistance);
-			} else {
-				GCameraShake(context.camShake.strength);
-			}
-		}
 	}
 }
 
