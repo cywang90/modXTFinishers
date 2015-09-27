@@ -53,7 +53,7 @@ QUICK AND EASY METHOD:
 ADVANCED METHOD:
 	1. Download the "modXTFinishers_BASE_ONLY" file and any module files (named "modXTFinishers_XX", where XX is the name of the module) you wish to install from Nexus Mods.
 	2. Install the BASE mod (see above).
-	3. Follow the instructions in the INSTALLATION.txt files found in the module files (located at "modXTFinishers_xx\INSTALLATION.txt").
+	3. Follow the instructions in the README.txt files found in the module files (located at "modXTFinishers_xx\README.txt").
 	
 You can install as few or as many of the default modules as you wish based on which functionalities you want. 
 
