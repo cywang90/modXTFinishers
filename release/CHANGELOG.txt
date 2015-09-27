@@ -3,6 +3,19 @@ eXTensible Finishers Changelog
 ==============================
 
 -----
+v2.01
+-----
+
+Includes
+--------
+
+Bug Fixes
+---------
+- DISMEMBER_AUTO_STRONG is now a mutually exclusive condition with DISMEMBER_AUTO_REND (Rend attacks used to be eligible for both conditions).
+- DISMEMBER_AUTO_FAST is now a mutually exclusive condition with DISMEMBER_AUTO_WHIRL (Whirl attacks used to be eligible for both conditions).
+
+
+-----
 v2.00
 -----
 
