@@ -1,0 +1,51 @@
+==============================
+eXTensible Finishers Changelog
+==============================
+
+-----
+v2.00
+-----
+
+Includes
+--------
+BASE		eXTensible Finishers		v2.00
+MODULE		finisher_default			v1.00
+MODULE		dismember_default			v1.00
+MODULE		slowdown_default			v1.00
+MODULE		camshake_default			v1.00
+
+API
+---
+- Major refactor of underlying code. Most important changes include:
+	- Functionality now segregated into discrete modules with no interdependencies.
+	- Abstract classes are now actually abstract!
+	- The new XTFinishersActionContext struct is now used universally across the API for passing combat action contexts to, from, and between listeners and responders.
+	- XTFinishersEventManager now has a much more extensible API:
+		- Enables support for arbitrary events using string IDs.
+		- Enables support for passing arbitrary data to listeners using the XTFinishersEventData container class.
+	- The base code now contains support for the following events:
+		- OnActionStart
+		- OnActionEnd
+		- OnReactionStart
+		- OnReactionEnd
+		- OnFinisher
+		- OnDismember
+		- OnFinisherCam
+		- OnSlowdownSequenceStart
+		- OnSlowdownSequenceEnd
+		- OnSlowdownSegmentStart
+		- OnSlowdownSegmentEnd
+	- XTFinishersAbstractSlowdownManager has been rewritten to use the XTFinishersSlowdownSequence and XTFinishersSlowdownSegment API. This makes creating slowdowns with an arbitrary number and combination of slowdown sessions and delays simpler and quicker, using a consistent API, and without the need to write additional custom code in r4Player.ws.
+- Because of the extensive changes in the code base, this and future versions will not be backwards compatible with v1.00. Custom code written using the v1.00 API will need to be rewritten to be compatible with the new API.
+
+Features
+--------
+- Mod code in existing script files now delimited with "// modXTFinishers BEGIN" and "// modXTFinishers END" to make identifying which lines were added/changed by the mod more obvious.
+- Added support for triggering slowdowns on critical hits.
+- Added expanded support for customizing camera-shake.
+
+-----
+v1.00
+-----
+
+Initial Release.
