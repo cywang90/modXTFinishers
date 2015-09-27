@@ -83,7 +83,7 @@ class XTFinishersDefaultFinisherQueryResponder extends XTFinishersFinisherQueryR
 		actorVictim = (CActor)context.action.victim;
 		attackAction = (W3Action_Attack)context.action;
 		
-		if (actorVictim.IsVulnerable() && !actorVictim.HasAbility('InstantKillImmune')) {
+		if (actorVictim.IsHuman() && actorVictim.IsVulnerable() && !actorVictim.HasAbility('InstantKillImmune')) {
 			if (attackAction) {
 				if (attackAction.IsCriticalHit() && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_INSTANTKILL_CHANCE_CRIT) {
 					result = true;
@@ -130,29 +130,32 @@ class XTFinishersDefaultFinisherQueryResponder extends XTFinishersFinisherQueryR
 			return;
 		}
 		
-		playerPos = thePlayer.GetWorldPosition();
-		moveTargets = thePlayer.GetMoveTargets();	
-		size = moveTargets.Size();
-		if (size > 0) {
-			areEnemiesAttacking = false;			
-			for(i = 0; i < size; i += 1) {
-				npc = (CNewNPC)moveTargets[i];
-				if(npc && VecDistanceSquared(playerPos, moveTargets[i].GetWorldPosition()) < 7 && npc.IsAttacking() && npc != actorVictim ) {
-					areEnemiesAttacking = true;
-					break;
+		if (actorVictim.IsAlive()) {
+			context.finisher.instantKill = CanPerformInstantKillFinisher(context);
+			if (!context.finisher.instantKill) {
+				return;
+			}
+		} else {
+			playerPos = thePlayer.GetWorldPosition();
+			moveTargets = thePlayer.GetMoveTargets();	
+			size = moveTargets.Size();
+			if (size > 0) {
+				areEnemiesAttacking = false;			
+				for(i = 0; i < size; i += 1) {
+					npc = (CNewNPC)moveTargets[i];
+					if(npc && VecDistanceSquared(playerPos, moveTargets[i].GetWorldPosition()) < 7 && npc.IsAttacking() && npc != actorVictim ) {
+						areEnemiesAttacking = true;
+						break;
+					}
 				}
 			}
-		}
-		
-		victimToPlayerVector = actorVictim.GetWorldPosition() - playerPos;
-		
-		context.finisher.forced = actorVictim.HasTag('ForceFinisher');
 			
-		if (!context.finisher.forced) {
-			if (actorVictim.IsHuman()) {
-				if (actorVictim.IsAlive()) {
-					context.finisher.instantKill = CanPerformInstantKillFinisher(context);
-				} else {
+			victimToPlayerVector = actorVictim.GetWorldPosition() - playerPos;
+			
+			context.finisher.forced = actorVictim.HasTag('ForceFinisher');
+				
+			if (!context.finisher.forced) {
+				if (actorVictim.IsHuman()) {
 					context.finisher.auto = CanPerformAutoFinisher(context);
 					
 					npc = (CNewNPC)actorVictim;
@@ -175,10 +178,10 @@ class XTFinishersDefaultFinisherQueryResponder extends XTFinishersFinisherQueryR
 							}
 						}
 					}
+					finisherChance = ClampF(finisherChance, 0, 100);
+				} else {
+					finisherChance = 0;
 				}
-				finisherChance = ClampF(finisherChance, 0, 100);
-			} else {
-				finisherChance = 0;
 			}
 		}
 		
