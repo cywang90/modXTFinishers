@@ -1,0 +1,9 @@
+=================================
+CamShake Default Module Changelog
+=================================
+
+-----
+v1.00
+-----
+
+Initial Release.

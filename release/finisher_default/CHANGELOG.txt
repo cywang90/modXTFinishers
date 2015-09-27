@@ -1,0 +1,17 @@
+=================================
+Finisher Default Module Changelog
+=================================
+
+-----
+v1.01
+-----
+
+Bug Fixes
+---------
+- Enemies with force finisher tags no longer always trigger INSTANT-KILL finishers.
+
+-----
+v1.00
+-----
+
+Initial Release.

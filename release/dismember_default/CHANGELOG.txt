@@ -1,0 +1,18 @@
+==================================
+Dismember Default Module Changelog
+==================================
+
+-----
+v1.01
+-----
+
+Bug Fixes
+---------
+- DISMEMBER_AUTO_STRONG is now a mutually exclusive condition with DISMEMBER_AUTO_REND (Rend attacks used to be eligible for both conditions).
+- DISMEMBER_AUTO_FAST is now a mutually exclusive condition with DISMEMBER_AUTO_WHIRL (Whirl attacks used to be eligible for both conditions).
+
+-----
+v1.00
+-----
+
+Initial Release.

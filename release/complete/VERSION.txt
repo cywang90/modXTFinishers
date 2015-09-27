@@ -1,7 +1,9 @@
+eXTensible Finishers Complete Package v2.01
+
 This package includes the following components:
 
 BASE		eXTensible Finishers 		v2.00
-MODULE		finisher_default 			v1.00
-MODULE		dismember_default 			v1.00
+MODULE		finisher_default 			v1.01
+MODULE		dismember_default 			v1.01
 MODULE		slowdown_default 			v1.00
 MODULE		camshake_default			v1.00

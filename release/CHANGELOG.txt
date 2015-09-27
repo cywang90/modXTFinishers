@@ -8,12 +8,20 @@ v2.01
 
 Includes
 --------
+BASE		eXTensible Finishers		v2.00
+MODULE		finisher_default			v1.01
+MODULE		dismember_default			v1.01
+MODULE		slowdown_default			v1.00
+MODULE		camshake_default			v1.00
+
 
 Bug Fixes
 ---------
-- DISMEMBER_AUTO_STRONG is now a mutually exclusive condition with DISMEMBER_AUTO_REND (Rend attacks used to be eligible for both conditions).
-- DISMEMBER_AUTO_FAST is now a mutually exclusive condition with DISMEMBER_AUTO_WHIRL (Whirl attacks used to be eligible for both conditions).
-
+- MODULE finisher_default:
+	- Enemies with force finisher tags no longer always trigger INSTANT-KILL finishers.
+- MODULE dismember_default:
+	- DISMEMBER_AUTO_STRONG is now a mutually exclusive condition with DISMEMBER_AUTO_REND (Rend attacks used to be eligible for both conditions).
+	- DISMEMBER_AUTO_FAST is now a mutually exclusive condition with DISMEMBER_AUTO_WHIRL (Whirl attacks used to be eligible for both conditions).
 
 -----
 v2.00
