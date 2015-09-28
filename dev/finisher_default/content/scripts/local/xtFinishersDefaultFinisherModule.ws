@@ -159,7 +159,7 @@ class XTFinishersDefaultFinisherQueryResponder extends XTFinishersFinisherQueryR
 					context.finisher.auto = CanPerformAutoFinisher(context);
 					
 					npc = (CNewNPC)actorVictim;
-					if (!context.finisher.forced && !context.finisher.auto) {
+					if (!context.finisher.auto) {
 						if (( size <= 1 && theGame.params.FINISHER_ON_DEATH_CHANCE > 0) || (actorVictim.HasAbility('ForceFinisher'))) {
 							finisherChance = 100;
 						} else if (theGame.xtFinishersMgr.finisherModule.params.FINISHER_CHANCE_OVERRIDE) {
@@ -183,6 +183,12 @@ class XTFinishersDefaultFinisherQueryResponder extends XTFinishersFinisherQueryR
 					finisherChance = 0;
 				}
 			}
+		}
+		
+		if (thePlayer.forceFinisher && actorVictim.IsHuman()) {
+			context.finisher.active = true;
+			context.finisher.forced = true;
+			return;
 		}
 		
 		if (context.finisher.auto) {
@@ -225,9 +231,7 @@ class XTFinishersDefaultFinisherQueryResponder extends XTFinishersFinisherQueryR
 		result = result && !thePlayer.IsCurrentSignChanneled();
 		result = result && (theGame.GetWorld().NavigationCircleTest(actorVictim.GetWorldPosition(), 2.f) || navCheckModifier) ;
 		
-		if (context.finisher.forced || (thePlayer.forceFinisher && actorVictim.IsHuman())) {
-			context.finisher.active = true;
-		} else if (result) {
+		if (result) {
 			if (!actorVictim.IsAlive()) {
 				actorVictim.AddAbility('DisableFinishers', false);
 			}
