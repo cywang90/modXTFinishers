@@ -11,12 +11,24 @@ class XTFinishersManager {
 	
 	
 	public function Init() {
+		var vanilla : XTFinishersVanillaModule;
+		
 		// base mod components (don't mess with these unless you know what you are doing)
 		consts = new XTFinishersConsts in this;
 		
 		queryMgr = new XTFinishersQueryManager in this;
 		
 		eventMgr = new XTFinishersEventManager in this;
+		
+		vanilla = new XTFinishersVanillaModule in this;
+		
+		//=================================================================
+		// COMMENT LINES BELOW TO SELECTIVELY DISABLE VANILLA FUNCTIONALITY
+		//=================================================================
+		
+		vanilla.InitFinisherComponents();	// finishers and cinematic finishers
+		vanilla.InitDismemberComponents();	// dismemberments
+		vanilla.InitCamShakeComponents();	// camera shake
 		
 		//==================
 		// LOAD MODULES HERE
