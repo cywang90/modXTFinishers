@@ -27,7 +27,7 @@ class XTFinishersDefaultFinisherQueryDispatcher extends XTFinishersAbstractReact
 
 class XTFinishersDefaultFinisherCamQueryDispatcher extends XTFinishersAbstractFinisherEventListener {
 	public function GetPriority() : int {
-		return theGame.xtFinishersMgr.consts.DEFAULT_FINISHER_CAM_QUERY_DISPATCHER;
+		return theGame.xtFinishersMgr.consts.DEFAULT_FINISHER_CAM_QUERY_DISPATCHER_PRIORITY;
 	}
 	
 	public function OnFinisherTriggered(out context : XTFinishersActionContext) {
