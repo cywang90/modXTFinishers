@@ -30,7 +30,7 @@ class XTFinishersVanillaFinisherQueryDispatcher extends XTFinishersAbstractReact
 	}
 }
 
-class XTFinishersDefaultDismemberQueryDispatcher extends XTFinishersAbstractReactionStartEventListener {
+class XTFinishersVanillaDismemberQueryDispatcher extends XTFinishersAbstractReactionStartEventListener {
 	public function GetPriority() : int {
 		return theGame.xtFinishersMgr.consts.VANILLA_DISMEMBER_QUERY_DISPATCHER_PRIORITY;
 	}
@@ -69,7 +69,7 @@ class XTFinishersVanillaCamShakeHandler extends XTFinishersAbstractActionEndEven
 				context.camShake.useExtraOpts = true;
 				context.camShake.epicenter = playerAttacker.GetWorldPosition();
 				context.camShake.maxDistance = 10;
-			} else if (SkillNameToEnum(attackAction.GetAttackTypeName()) == S_Sword_s02 && theGame.xtFinishersMgr.camshakeModule.params.CAMERA_SHAKE_ON_REND) {
+			} else if (SkillNameToEnum(attackAction.GetAttackTypeName()) == S_Sword_s02) {
 				context.camShake.active = true;
 				context.camShake.strength = thePlayer.GetSpecialAttackTimeRatio() / 3.333 + 0.2;
 				context.camShake.useExtraOpts = true;
@@ -134,7 +134,6 @@ class XTFinishersVanillaFinisherQueryResponder extends XTFinishersFinisherQueryR
 		var instantKillFinisherEffectTypes : array<EEffectType>;
 		var i : int;
 		
-		result = false;
 		actorVictim = (CActor)context.action.victim;
 		attackAction = (W3Action_Attack)context.action;
 		
@@ -363,8 +362,8 @@ class XTFinishersVanillaDismemberQueryResponder extends XTFinishersDismemberQuer
 	}
 }
 
-class XTFinishersDefaultFinisherCamQueryResponder extends XTFinishersFinisherCamQueryResponder {
+class XTFinishersVanillaFinisherCamQueryResponder extends XTFinishersFinisherCamQueryResponder {
 	public function CanPerformFinisherCam(out context : XTFinishersActionContext) {
-		context.finisherCam.active = thePlayer.isLastEnemyKilled() && theGame.GetWorld().NavigationCircleTest(thePlayer.GetWorldPosition(), 3.f);
+		context.finisherCam.active = thePlayer.IsLastEnemyKilled() && theGame.GetWorld().NavigationCircleTest(thePlayer.GetWorldPosition(), 3.f);
 	}
 }
