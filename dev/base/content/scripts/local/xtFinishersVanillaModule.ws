@@ -166,6 +166,22 @@ class XTFinishersVanillaFinisherQueryResponder extends XTFinishersFinisherQueryR
 			return;
 		}
 		
+		playerPos = thePlayer.GetWorldPosition();
+		moveTargets = thePlayer.GetMoveTargets();	
+		size = moveTargets.Size();
+		if (size > 0) {
+			areEnemiesAttacking = false;			
+			for (i = 0; i < size; i += 1) {
+				npc = (CNewNPC)moveTargets[i];
+				if (npc && VecDistanceSquared(playerPos, moveTargets[i].GetWorldPosition()) < 7 && npc.IsAttacking() && npc != actorVictim) {
+					areEnemiesAttacking = true;
+					break;
+				}
+			}
+		}
+		
+		victimToPlayerVector = actorVictim.GetWorldPosition() - playerPos;
+		
 		if (actorVictim.IsAlive()) {
 			if (CanPerformInstantKillFinisher(context)) {
 				finisherChance = 75 - (npc.currentLevel - thePlayer.GetLevel());
@@ -173,24 +189,8 @@ class XTFinishersVanillaFinisherQueryResponder extends XTFinishersFinisherQueryR
 				return;
 			}
 		} else {
-			playerPos = thePlayer.GetWorldPosition();
-			moveTargets = thePlayer.GetMoveTargets();	
-			size = moveTargets.Size();
-			if (size > 0) {
-				areEnemiesAttacking = false;			
-				for(i = 0; i < size; i += 1) {
-					npc = (CNewNPC)moveTargets[i];
-					if(npc && VecDistanceSquared(playerPos, moveTargets[i].GetWorldPosition()) < 7 && npc.IsAttacking() && npc != actorVictim ) {
-						areEnemiesAttacking = true;
-						break;
-					}
-				}
-			}
-			
-			victimToPlayerVector = actorVictim.GetWorldPosition() - playerPos;
-			
 			context.finisher.forced = actorVictim.HasTag('ForceFinisher');
-				
+			
 			if (!context.finisher.forced) {
 				if (actorVictim.IsHuman()) {
 					if (context.effectsSnapshot.HasEffect(EET_Confusion) || context.effectsSnapshot.HasEffect(EET_AxiiGuardMe)) {
