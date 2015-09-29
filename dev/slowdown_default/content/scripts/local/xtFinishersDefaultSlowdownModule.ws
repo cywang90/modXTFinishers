@@ -231,17 +231,29 @@ class XTFinishersDefaultSlowdownManager extends XTFinishersAbstractSlowdownManag
 		seqDef = NULL;
 		switch (context.slowdown.type) {
 		case theGame.xtFinishersMgr.consts.SLOWDOWN_TYPE_CRIT :
-			seqDef = critSeqDef;
+			seqDef = GetCritSequence(context);
 		case theGame.xtFinishersMgr.consts.SLOWDOWN_TYPE_FINISHER :
-			seqDef = finisherSeqDef;
+			seqDef = GetFinisherSequence(context);
 			break;
 		case theGame.xtFinishersMgr.consts.SLOWDOWN_TYPE_DISMEMBER :
-			seqDef = dismemberSeqDef;
+			seqDef = GetDismemberSequence(context);
 			break;
 		}
 		
 		if (seqDef) {
 			StartSlowdownSequence(seqDef);
 		}
+	}
+	
+	protected function GetCritSequence(context : XTFinishersActionContext) {
+		return critSeqDef;
+	}
+	
+	protected function GetFinisherSequence(context : XTFinishersActionContext) {
+		return finisherSeqDef;
+	}
+	
+	protected function GetDismemberSequence(context : XTFinishersActionContext) {
+		return dismemberSeqDef;
 	}
 }
