@@ -1,5 +1,5 @@
 ==============================
-Default Slowdown Module README
+MODULE slowdown_default README
 ==============================
 
 Author: aznricepuff
@@ -72,3 +72,19 @@ Configuration options provided by this module include:
 		- Target killed by a finisher.
 	- Options to define duration, slowdown factor, and delay of slow-motion sequences for each of the above conditions.
 	- Option to disable camera shake when a slow-motion sequence is triggered.
+	
+1. Delete the following files from your <The Witcher 3 Path>\mods\ directory:
+
+		modXTFinishers\content\scripts\local\xtFinishersDefaultSlowdownModule.ws
+		modXTFinishers\content\scripts\local\xtFinishersDefaultSlowdownParams.ws
+		
+2. Open modXTFinishers\content\scripts\local\xtFinishersManager.ws ...
+	a. In the section marked "DEFINE MODULE VARS HERE", remove the following line:
+	
+		public var slowdownModule : XTFinishersDefaultSlowdownModule;
+		
+	b. In the section marked "LOAD MODULES HERE", remove the following lines:
+		
+		// load camshake module
+		slowdownModule = new XTFinishersDefaultSlowdownModule in this;
+		slowdownModule.Init();

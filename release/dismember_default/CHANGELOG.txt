@@ -1,5 +1,5 @@
 ==================================
-Dismember Default Module Changelog
+MODULE dismember_default Changelog
 ==================================
 
 -----

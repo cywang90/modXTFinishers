@@ -3,6 +3,31 @@ eXTensible Finishers Changelog
 ==============================
 
 -----
+v2.02
+-----
+
+Includes
+--------
+BASE		eXTensible Finishers		v2.01
+MODULE		finisher_default			v1.02
+MODULE		dismember_default			v1.01
+MODULE		slowdown_default			v1.00
+MODULE		camshake_default			v1.00
+
+Features
+--------
+- BASE		eXTensible Finishers
+	- Added XTFinishersVanillaModule. This module recapitulates the behavior of the vanilla (un-modded) game when loaded. The BASE package now loads the vanilla module by default, so that if any of the default modules are not used and no custom modules are used in their place, the game will fall back to vanilla behavior for that part of the mod.
+
+Bug Fixes
+---------
+- BASE		eXTensible Finishers
+	- XTFinishersEventManager no longer incorrectly skips certain event listeners when FireEvent() is called.
+	- Other minor fixes.
+- MODULE	finisher_default:
+	- INSTANT-KILL finishers no longer always ignore aggro checks.
+
+-----
 v2.01
 -----
 

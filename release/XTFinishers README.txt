@@ -77,9 +77,13 @@ The process of installing custom modules will depend on how the module is writte
 -------------
 DOCUMENTATION
 -------------
+
+BASE eXtensible Finishers
+-------------------------
+The BASE package contains the foundation and API of eXTensible Finishers. If no other modules are installed, the BASE package utilizes the vanilla module (included with BASE, not available as a separate module), which simply recapitulates the behavior of the vanilla (un-modded) game using the eXTensible Finishers API. To define custom behavior, users will need to replace the vanilla module by manually installing other modules.
 		
-Finisher Module
----------------
+MODULE finisher_default
+-----------------------
 This module changes the way finishers and cinematic finishers are triggered.
 
 There are four types of finishers defined by the module:
@@ -113,8 +117,8 @@ Configuration options provided by this module include:
 		- Target must be the last enemy in combat.
 		- Geralt must be clear of terrain/object obstacles within a certain distance.
 	
-Dismember Module
-----------------
+MODULE dismember_default
+------------------------
 This module changes the way dismemberments are triggered. There are two types of dismemberments defined by the module:
 	- REGULAR dismemberments: These are dismemberments that are triggered by conditions defined by vanilla game code. In other words, these are the finishers that would have been triggered even if the mod had not been installed.
 	- AUTOMATIC dismemberments: These are dismemberments triggered specifically by the mod.
@@ -134,8 +138,8 @@ Configuration options provided by this module include:
 		- Target is the last enemy to be killed in combat.
 	- Options to define chance to trigger dismemberment explosions.
 		
-Slowdown Module
----------------
+MODULE slowdown_default
+-----------------------
 This module adds the ability to control how slow-motion sequences are triggered.
 
 The following terms are used by the module's documentation and related material when discussing slow-motion:
@@ -161,8 +165,8 @@ Configuration options provided by this module include:
 	- Options to define duration, slowdown factor, and delay of slow-motion sequences for each of the above conditions.
 	- Option to disable camera shake when a slow-motion sequence is triggered.
 
-CamShake Module
----------------
+MODULE camshake_default
+-----------------------
 This module adds the ability to control how camera shakes are triggered.
 
 If camera shake can be triggered under more than one condition (e.g. on an attack that is both a critical hit and a Rend attack), the module will select one condition as the "primary" condition on which to trigger the camera shake. This will determine the settings of the camera shake that gets played. The order of precedence for the different conditions is as follows:

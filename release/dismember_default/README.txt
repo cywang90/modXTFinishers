@@ -1,5 +1,5 @@
 ===============================
-Default Dismember Module README
+MODULE dismember_default README
 ===============================
 
 Author: aznricepuff
@@ -21,6 +21,14 @@ This module requires the base eXTensible Finishers mod.
 		// load dismember module
 		dismemberModule = new XTFinishersDefaultDismemberModule in this;
 		dismemberModule.Init();
+		
+	c. In the section marked "COMMENT LINES BELOW TO SELECTIVELY DISABLE VANILLA FUNCTIONALITY", comment out the following line:
+		
+		vanillaModule.InitDismemberComponents();
+		
+	   The line should look like this when you are done:
+	   
+		//vanillaModule.InitDismemberComponents();
 		
 3. Open modXTFinishers\content\scripts\local\xtFinishersConsts.ws ...
 	a. Copy the following lines into the file beneath where it says MODULE CONSTS GO HERE:
@@ -60,3 +68,31 @@ Configuration options provided by this module include:
 		- Target killed by a Whirl attack (special fast attack).
 		- Target is the last enemy to be killed in combat.
 	- Options to define chance to trigger dismemberment explosions.
+	
+--------------
+UNINSTALLATION
+--------------
+
+1. Delete the following files from your <The Witcher 3 Path>\mods\ directory:
+
+		modXTFinishers\content\scripts\local\xtFinishersDefaultDismemberModule.ws
+		modXTFinishers\content\scripts\local\xtFinishersDefaultDismemberParams.ws
+		
+2. Open modXTFinishers\content\scripts\local\xtFinishersManager.ws ...
+	a. In the section marked "DEFINE MODULE VARS HERE", remove the following line:
+	
+		public var dismemberModule : XTFinishersDefaultDismemberModule;
+		
+	b. In the section marked "LOAD MODULES HERE", remove the following lines:
+		
+		// load camshake module
+		dismemberModule = new XTFinishersDefaultDismemberModule in this;
+		dismemberModule.Init();
+		
+	c. If you wish to restore vanilla behavior for finishers, in the section marked "COMMENT LINES BELOW TO SELECTIVELY DISABLE VANILLA FUNCTIONALITY", uncomment the following line:
+
+		//vanillaModule.InitDismemberComponents();
+		
+	   The line should look like this when you are done:
+	   
+		vanillaModule.InitDismemberComponents();

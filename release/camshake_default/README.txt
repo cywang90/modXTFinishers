@@ -1,5 +1,5 @@
 ==============================
-Default CamShake Module README
+MODULE camshake_default README
 ==============================
 
 Author: aznricepuff
@@ -21,6 +21,14 @@ This module requires the base eXTensible Finishers mod.
 		// load camshake module
 		camshakeModule = new XTFinishersDefaultCamShakeModule in this;
 		camshakeModule.Init();
+		
+	c. In the section marked "COMMENT LINES BELOW TO SELECTIVELY DISABLE VANILLA FUNCTIONALITY", comment out the following line:
+		
+		vanillaModule.InitCamShakeComponents();
+		
+	   The line should look like this when you are done:
+	   
+		//vanillaModule.InitCamShakeComponents();
 		
 3. Open modXTFinishers\content\scripts\local\xtFinishersConsts.ws ...
 	a. Copy the following lines into the file beneath where it says MODULE CONSTS GO HERE:
@@ -57,3 +65,31 @@ Configuration options provided by this module include:
 		- Target hit by a critical hit.
 		- Target killed by a dismemberment.
 	- Options to define strength of the camera shake for each of the above conditions.
+	
+--------------
+UNINSTALLATION
+--------------
+
+1. Delete the following files from your <The Witcher 3 Path>\mods\ directory:
+
+		modXTFinishers\content\scripts\local\xtFinishersDefaultCamShakeModule.ws
+		modXTFinishers\content\scripts\local\xtFinishersDefaultCamShakeParams.ws
+		
+2. Open modXTFinishers\content\scripts\local\xtFinishersManager.ws ...
+	a. In the section marked "DEFINE MODULE VARS HERE", remove the following line:
+	
+		public var camshakeModule : XTFinishersDefaultCamShakeModule;
+		
+	b. In the section marked "LOAD MODULES HERE", remove the following lines:
+		
+		// load camshake module
+		camshakeModule = new XTFinishersDefaultCamShakeModule in this;
+		camshakeModule.Init();
+		
+	c. If you wish to restore vanilla behavior for finishers, in the section marked "COMMENT LINES BELOW TO SELECTIVELY DISABLE VANILLA FUNCTIONALITY", uncomment the following line:
+
+		//vanillaModule.InitCamShakeComponents();
+		
+	   The line should look like this when you are done:
+	   
+		vanillaModule.InitCamShakeComponents();
