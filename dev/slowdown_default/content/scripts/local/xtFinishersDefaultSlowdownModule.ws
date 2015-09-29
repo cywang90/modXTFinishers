@@ -232,6 +232,7 @@ class XTFinishersDefaultSlowdownManager extends XTFinishersAbstractSlowdownManag
 		switch (context.slowdown.type) {
 		case theGame.xtFinishersMgr.consts.SLOWDOWN_TYPE_CRIT :
 			seqDef = GetCritSequence(context);
+			break;
 		case theGame.xtFinishersMgr.consts.SLOWDOWN_TYPE_FINISHER :
 			seqDef = GetFinisherSequence(context);
 			break;
