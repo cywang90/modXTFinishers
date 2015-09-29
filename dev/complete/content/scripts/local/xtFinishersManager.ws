@@ -5,6 +5,8 @@ class XTFinishersManager {
 	public var eventMgr : XTFinishersEventManager;
 	public var slowdownMgr : XTFinishersSlowdownManager;
 	
+	private var vanillaModule : XTFinishersVanillaModule;
+	
 	//========================
 	// DEFINE MODULE VARS HERE
 	//========================
@@ -20,6 +22,14 @@ class XTFinishersManager {
 		queryMgr = new XTFinishersQueryManager in this;
 		
 		eventMgr = new XTFinishersEventManager in this;
+		
+		//=================================================================
+		// COMMENT LINES BELOW TO SELECTIVELY DISABLE VANILLA FUNCTIONALITY
+		//=================================================================
+		
+		//vanillaModule.InitFinisherComponents();		// finishers and cinematic finishers
+		//vanillaModule.InitDismemberComponents();	// dismemberments
+		//vanillaModule.InitCamShakeComponents();		// camera shake
 		
 		//==================
 		// LOAD MODULES HERE

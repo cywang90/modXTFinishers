@@ -1,5 +1,5 @@
 =================================
-CamShake Default Module Changelog
+MODULE camshake_default Changelog
 =================================
 
 -----

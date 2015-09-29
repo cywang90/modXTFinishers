@@ -1,5 +1,5 @@
 ==============================
-Default Finisher Module README
+MODULE finisher_default README
 ==============================
 
 Author: aznricepuff
@@ -22,14 +22,22 @@ This module requires the base eXTensible Finishers mod.
 		finisherModule = new XTFinishersDefaultFinisherModule in this;
 		finisherModule.Init();
 		
+	c. In the section marked "COMMENT LINES BELOW TO SELECTIVELY DISABLE VANILLA FUNCTIONALITY", comment out the following line:
+		
+		vanillaModule.InitFinisherComponents();
+		
+	   The line should look like this when you are done:
+	   
+		//vanillaModule.InitFinisherComponents();
+		
 3. Open modXTFinishers\content\scripts\local\xtFinishersConsts.ws ...
 	a. Copy the following lines into the file beneath where it says MODULE CONSTS GO HERE:
 		
 		public const var DEFAULT_FINISHER_QUERY_DISPATCHER_PRIORITY : int;
 			default DEFAULT_FINISHER_QUERY_DISPATCHER_PRIORITY = 0;
 			
-		public const var DEFAULT_FINISHER_CAM_QUERY_DISPATCHER : int;
-			default DEFAULT_FINISHER_CAM_QUERY_DISPATCHER = 0;
+		public const var DEFAULT_FINISHER_CAM_QUERY_DISPATCHER_PRIORITY : int;
+			default DEFAULT_FINISHER_CAM_QUERY_DISPATCHER_PRIORITY = 0;
 
 -------------
 CONFIGURATION
@@ -77,3 +85,31 @@ Configuration options provided by this module include:
 	- Options to disable certain checks that often block cinematic finishers from triggering in the vanilla game:
 		- Target must be the last enemy in combat.
 		- Geralt must be clear of terrain/object obstacles within a certain distance.
+		
+--------------
+UNINSTALLATION
+--------------
+
+1. Delete the following files from your <The Witcher 3 Path>\mods\ directory:
+
+		modXTFinishers\content\scripts\local\xtFinishersDefaultFinisherModule.ws
+		modXTFinishers\content\scripts\local\xtFinishersDefaultFinisherParams.ws
+		
+2. Open modXTFinishers\content\scripts\local\xtFinishersManager.ws ...
+	a. In the section marked "DEFINE MODULE VARS HERE", remove the following line:
+	
+		public var finisherModule : XTFinishersDefaultFinisherModule;
+		
+	b. In the section marked "LOAD MODULES HERE", remove the following lines:
+		
+		// load camshake module
+		finisherModule = new XTFinishersDefaultFinisherModule in this;
+		finisherModule.Init();
+		
+	c. If you wish to restore vanilla behavior for finishers, in the section marked "COMMENT LINES BELOW TO SELECTIVELY DISABLE VANILLA FUNCTIONALITY", uncomment the following line:
+
+		//vanillaModule.InitFinisherComponents();
+		
+	   The line should look like this when you are done:
+	   
+		vanillaModule.InitFinisherComponents();

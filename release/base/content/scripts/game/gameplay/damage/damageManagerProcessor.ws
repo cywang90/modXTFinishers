@@ -1656,10 +1656,6 @@ class W3DamageManagerProcessor extends CObject
 					actorVictim.AddAbility( 'ForceFinisher', false );
 				
 				actorVictim.SignalGameplayEvent( 'ForceFinisher' );
-				
-				// modXTFinishers BEGIN
-				thePlayer.LoadActionContext(actionContext);
-				// modXTFinishers END
 			} 
 			else if ( weaponName == 'fists' && npcVictim )
 			{

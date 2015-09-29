@@ -1,5 +1,5 @@
 =================================
-Slowdown Default Module Changelog
+MODULE slowdown_default Changelog
 =================================
 
 -----
