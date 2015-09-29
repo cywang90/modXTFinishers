@@ -26,9 +26,9 @@ class XTFinishersManager {
 		// COMMENT LINES BELOW TO SELECTIVELY DISABLE VANILLA FUNCTIONALITY
 		//=================================================================
 		
-		vanillaModule.InitFinisherComponents();	// finishers and cinematic finishers
+		vanillaModule.InitFinisherComponents();		// finishers and cinematic finishers
 		vanillaModule.InitDismemberComponents();	// dismemberments
-		vanillaModule.InitCamShakeComponents();	// camera shake
+		vanillaModule.InitCamShakeComponents();		// camera shake
 		
 		//==================
 		// LOAD MODULES HERE
