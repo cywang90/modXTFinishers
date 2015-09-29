@@ -1,6 +1,14 @@
 =================================
-Finisher Default Module Changelog
+MODULE finisher_default Changelog
 =================================
+
+-----
+v1.02
+-----
+
+Bug Fixes
+---------
+- INSTANT-KILL finishers no longer always ignore aggro checks.
 
 -----
 v1.01

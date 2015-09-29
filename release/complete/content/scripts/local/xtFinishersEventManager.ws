@@ -20,7 +20,7 @@ class XTFinishersEventManager {
 		var index : int;
 		
 		index = FindId(id);
-		if (index > 0) {
+		if (index >= 0) {
 			NotifyListeners(index, data);
 		}
 	}

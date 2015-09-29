@@ -5,14 +5,14 @@ class XTFinishersManager {
 	public var eventMgr : XTFinishersEventManager;
 	public var slowdownMgr : XTFinishersSlowdownManager;
 	
+	private var vanillaModule : XTFinishersVanillaModule;
+	
 	//========================
 	// DEFINE MODULE VARS HERE
 	//========================
 	
 	
 	public function Init() {
-		var vanilla : XTFinishersVanillaModule;
-		
 		// base mod components (don't mess with these unless you know what you are doing)
 		consts = new XTFinishersConsts in this;
 		
@@ -20,15 +20,15 @@ class XTFinishersManager {
 		
 		eventMgr = new XTFinishersEventManager in this;
 		
-		vanilla = new XTFinishersVanillaModule in this;
+		vanillaModule = new XTFinishersVanillaModule in this;
 		
 		//=================================================================
 		// COMMENT LINES BELOW TO SELECTIVELY DISABLE VANILLA FUNCTIONALITY
 		//=================================================================
 		
-		vanilla.InitFinisherComponents();	// finishers and cinematic finishers
-		vanilla.InitDismemberComponents();	// dismemberments
-		vanilla.InitCamShakeComponents();	// camera shake
+		vanillaModule.InitFinisherComponents();		// finishers and cinematic finishers
+		vanillaModule.InitDismemberComponents();	// dismemberments
+		vanillaModule.InitCamShakeComponents();		// camera shake
 		
 		//==================
 		// LOAD MODULES HERE
