@@ -267,6 +267,7 @@ class XTFinishersDefaultFinisherQueryResponder extends XTFinishersFinisherQueryR
 				actorVictim.AddAbility('DisableFinishers', false);
 			}
 			context.finisher.active = true;
+			context.finisher.animName = SelectFinisherAnimName(context);
 		}
 	}
 }
