@@ -134,6 +134,7 @@ class XTFinishersDefaultFinisherQueryResponder extends XTFinishersFinisherQueryR
 		} else {
 			animNames = theGame.xtFinishersMgr.finisherModule.params.allowedRightSideFinisherAnimNames;
 		}
+		
 		return animNames[RandRange(animNames.Size(), 0)];
 	}
 	

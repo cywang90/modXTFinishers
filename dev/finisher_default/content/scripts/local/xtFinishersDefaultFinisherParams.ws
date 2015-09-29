@@ -50,6 +50,8 @@ class XTFinishersDefaultFinisherParams {
 	public var allowedLeftSideFinisherAnimNames, allowedRightSideFinisherAnimNames : array<name>;
 	
 	public function Init() {
+		var dlcFinishers : array<CR4FinisherDLC>;
+		
 		//===================================
 		// AUTOMATIC FINISHER EFFECT TRIGGERS
 		//===================================
@@ -79,6 +81,7 @@ class XTFinishersDefaultFinisherParams {
 		//====================
 		
 		// load allowed finisher animations (comment to disable, uncomment to enable)
+		
 		allowedLeftSideFinisherAnimNames.PushBack('man_finisher_02_lp');
 		allowedLeftSideFinisherAnimNames.PushBack('man_finisher_04_lp');
 		allowedLeftSideFinisherAnimNames.PushBack('man_finisher_06_lp');
@@ -88,5 +91,24 @@ class XTFinishersDefaultFinisherParams {
 		allowedRightSideFinisherAnimNames.PushBack('man_finisher_01_rp');
 		allowedRightSideFinisherAnimNames.PushBack('man_finisher_03_rp');
 		allowedRightSideFinisherAnimNames.PushBack('man_finisher_05_rp');
+		
+		//========================
+		// DLC FINISHER ANIMATIONS
+		//========================
+		
+		// load allowed DLC finisher animations (comment to disable, uncomment to enable)
+		
+		dlcFinishers = theGame.GetSyncAnimManager().dlcFinishersRightSide;
+		if (dlcFinishers.Size() > 0) {
+			allowedLeftSideFinisherAnimNames.PushBack('man_finisher_dlc_arm_lp');
+			allowedLeftSideFinisherAnimNames.PushBack('man_finisher_dlc_legs_lp');
+			allowedLeftSideFinisherAnimNames.PushBack('man_finisher_dlc_torso_lp');
+			
+			allowedRightSideFinisherAnimNames.PushBack('man_finisher_dlc_arm_rp');
+			allowedRightSideFinisherAnimNames.PushBack('man_finisher_dlc_legs_rp');
+			allowedRightSideFinisherAnimNames.PushBack('man_finisher_dlc_torso_rp');
+			allowedRightSideFinisherAnimNames.PushBack('man_finisher_dlc_head_rp');
+			allowedRightSideFinisherAnimNames.PushBack('man_finisher_dlc_neck_rp');
+		}
 	}
 }
