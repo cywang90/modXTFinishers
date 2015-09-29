@@ -1,0 +1,49 @@
+﻿/*
+Copyright © CD Projekt RED 2015
+*/
+
+
+
+
+
+class CBTCondTargetHasTag extends IBehTreeTask
+{
+	var tag		: name;
+	
+	function IsAvailable() : bool
+	{
+		var owner : CActor = GetActor();
+		
+		if( GetCombatTarget().HasTag( tag ))
+		{
+			return true;
+		}
+		return false;
+	}
+};
+
+
+class CBTCondTargetHasTagDef extends IBehTreeConditionalTaskDefinition
+{
+	default instanceClass = 'CBTCondTargetHasTag';
+
+	editable var tag		: name;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
