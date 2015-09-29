@@ -8,6 +8,7 @@ class XTFinishersDefaultSlowdownModule {
 		
 		theGame.xtFinishersMgr.queryMgr.LoadSlowdownResponder(GetNewSlowdownQueryResponderInstance());
 		
+		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.ACTION_END_EVENT_ID, GetNewSlowdownCritQueryDispatcher());
 		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.FINISHER_EVENT_ID, GetNewSlowdownFinisherQueryDispatcher());
 		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.DISMEMBER_EVENT_ID, GetNewSlowdownDismemberQueryDispatcher());
 	}
@@ -23,6 +24,10 @@ class XTFinishersDefaultSlowdownModule {
 	
 	protected function GetNewSlowdownQueryResponderInstance() : XTFinishersSlowdownQueryResponder {
 		return new XTFinishersDefaultSlowdownQueryResponder in this;
+	}
+	
+	protected function GetNewSlowdownCritQueryDispatcher() : XTFinishersAbstractActionEndEventListener {
+		return new XTFinishersDefaultSlowdownCritQueryDispatcher in this;
 	}
 	
 	protected function GetNewSlowdownFinisherQueryDispatcher() : XTFinishersAbstractFinisherEventListener {
