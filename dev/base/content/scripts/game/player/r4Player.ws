@@ -11026,6 +11026,10 @@ statemachine abstract import class CR4Player extends CPlayer
 	public function LoadActionContext(context : XTFinishersActionContext) {
 		actionContext = context;
 	}
+	
+	public function GetActionContext() : XTFinishersActionContext {
+		return actionContext;
+	}
 	// modXTFinishers END
 	
 	private var finisherSaveLock : int;

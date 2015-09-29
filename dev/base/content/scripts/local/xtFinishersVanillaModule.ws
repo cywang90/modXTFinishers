@@ -141,6 +141,38 @@ class XTFinishersVanillaFinisherQueryResponder extends XTFinishersFinisherQueryR
 				&& (context.effectsSnapshot.HasEffect(EET_Confusion) || context.effectsSnapshot.HasEffect(EET_AxiiGuardMe));
 	}
 	
+	protected function SelectFinisherAnimName(context : XTFinishersActionContext) : name {
+		var syncAnimName 	: name;
+		var syncAnimsNames	: array<name>;
+		var size 			: int;
+		var i 				: int;
+		
+		if (thePlayer.forceFinisher && thePlayer.forceFinisherAnimName != '') {
+			return thePlayer.forceFinisherAnimName;
+		}
+		
+		if (thePlayer.GetCombatIdleStance() <= 0.f) {
+			syncAnimsNames.PushBack('man_finisher_02_lp');
+			syncAnimsNames.PushBack('man_finisher_04_lp');
+			syncAnimsNames.PushBack('man_finisher_06_lp');
+			syncAnimsNames.PushBack('man_finisher_07_lp');
+			syncAnimsNames.PushBack('man_finisher_08_lp');
+			size = dlcFinishersLeftSide.Size();
+			for (i = 0; i < size; i += 1) {
+				syncAnimsNames.PushBack(dlcFinishersLeftSide[i].finisherAnimName);
+			}
+		} else {
+			syncAnimsNames.PushBack('man_finisher_01_rp');
+			syncAnimsNames.PushBack('man_finisher_03_rp');
+			syncAnimsNames.PushBack('man_finisher_05_rp');
+			size = dlcFinishersRightSide.Size();
+			for (i = 0; i < size; i += 1) {
+				syncAnimsNames.PushBack(dlcFinishersRightSide[i].finisherAnimName);
+			}
+		}
+		return syncAnimsNames[RandRange(syncAnimsNames.Size(), 0)];
+	}
+	
 	public function CanPerformFinisher(out context : XTFinishersActionContext) {
 		var actorVictim				: CActor;
 		var attackAction			: W3Action_Attack;
@@ -250,6 +282,8 @@ class XTFinishersVanillaFinisherQueryResponder extends XTFinishersFinisherQueryR
 				context.finisher.instantKill = true;
 			}
 			context.finisher.active = true;
+			
+			context.finisher.animName = SelectFinisherAnimName(context);
 		}
 	}
 }
