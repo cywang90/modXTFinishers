@@ -143,6 +143,7 @@ class XTFinishersVanillaFinisherQueryResponder extends XTFinishersFinisherQueryR
 	
 	protected function SelectFinisherAnimName(context : XTFinishersActionContext) : name {
 		var syncAnimName 	: name;
+		var dlcFinishers : array<CR4FinisherDLC>;
 		var syncAnimsNames	: array<name>;
 		var size 			: int;
 		var i 				: int;
@@ -157,19 +158,18 @@ class XTFinishersVanillaFinisherQueryResponder extends XTFinishersFinisherQueryR
 			syncAnimsNames.PushBack('man_finisher_06_lp');
 			syncAnimsNames.PushBack('man_finisher_07_lp');
 			syncAnimsNames.PushBack('man_finisher_08_lp');
-			size = dlcFinishersLeftSide.Size();
-			for (i = 0; i < size; i += 1) {
-				syncAnimsNames.PushBack(dlcFinishersLeftSide[i].finisherAnimName);
-			}
+			dlcFinishers = theGame.GetSyncAnimManager().dlcFinishersLeftSide;
 		} else {
 			syncAnimsNames.PushBack('man_finisher_01_rp');
 			syncAnimsNames.PushBack('man_finisher_03_rp');
 			syncAnimsNames.PushBack('man_finisher_05_rp');
-			size = dlcFinishersRightSide.Size();
-			for (i = 0; i < size; i += 1) {
-				syncAnimsNames.PushBack(dlcFinishersRightSide[i].finisherAnimName);
-			}
+			dlcFinishers = theGame.GetSyncAnimManager().dlcFinishersLeftSide;
 		}
+		size = dlcFinishers.Size();
+		for (i = 0; i < size; i += 1) {
+			syncAnimsNames.PushBack(dlcFinishers[i].finisherAnimName);
+		}
+			
 		return syncAnimsNames[RandRange(syncAnimsNames.Size(), 0)];
 	}
 	

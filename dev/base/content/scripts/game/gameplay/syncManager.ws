@@ -108,6 +108,9 @@ statemachine class W3SyncAnimationManager
 		
 		var node, node1 : CNode; 
 		var rot0, rot1 : EulerAngles;
+		// modXTFinishers BEGIN
+		var actionContext : XTFinishersActionContext;
+		// modXTFinishers END
 		
 		syncInstance = CreateNewSyncInstance( instanceIndex );
 		
@@ -158,7 +161,8 @@ statemachine class W3SyncAnimationManager
 			case 'DeathFinisher':
 			{
 				// modXTFinishers BEGIN
-				syncAnimName = thePlayer.GetActionContext().finisher.animName;
+				actionContext = thePlayer.GetActionContext();
+				syncAnimName = actionContext.finisher.animName;
 				// modXTFinishers END
 				
 				if ( thePlayer.forceFinisher && thePlayer.forceFinisherAnimName != '' )

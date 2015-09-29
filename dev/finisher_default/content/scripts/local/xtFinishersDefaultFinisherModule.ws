@@ -20,11 +20,11 @@ class XTFinishersDefaultFinisherModule {
 		return new XTFinishersDefaultFinisherCamQueryResponder in this;
 	}
 	
-	protected function GetNewFinisherQueryDispatcherInstance() : XTFinishersAbstractReactionStartListener {
+	protected function GetNewFinisherQueryDispatcherInstance() : XTFinishersAbstractReactionStartEventListener {
 		return new XTFinishersDefaultFinisherQueryDispatcher in this;
 	}
 	
-	protected function GetNewFinisherCamQueryDispatcherInstance() : XTFinishersAbstractFinisherListener {
+	protected function GetNewFinisherCamQueryDispatcherInstance() : XTFinishersAbstractFinisherEventListener {
 		return new XTFinishersDefaultFinisherCamQueryDispatcher in this;
 	}
 }

@@ -271,15 +271,15 @@ class XTFinishersDefaultSlowdownManager extends XTFinishersAbstractSlowdownManag
 		}
 	}
 	
-	protected function GetCritSequence(context : XTFinishersActionContext) {
+	protected function GetCritSequence(context : XTFinishersActionContext) : XTFinishersSlowdownSequenceDef {
 		return critSeqDef;
 	}
 	
-	protected function GetFinisherSequence(context : XTFinishersActionContext) {
+	protected function GetFinisherSequence(context : XTFinishersActionContext) : XTFinishersSlowdownSequenceDef {
 		return finisherSeqDef;
 	}
 	
-	protected function GetDismemberSequence(context : XTFinishersActionContext) {
+	protected function GetDismemberSequence(context : XTFinishersActionContext) : XTFinishersSlowdownSequenceDef {
 		return dismemberSeqDef;
 	}
 }
