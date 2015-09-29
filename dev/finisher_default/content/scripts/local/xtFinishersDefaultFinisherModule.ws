@@ -107,35 +107,18 @@ class XTFinishersDefaultFinisherQueryResponder extends XTFinishersFinisherQueryR
 	}
 	
 	protected function SelectFinisherAnimName(context : XTFinishersActionContext) : name {
-		var syncAnimName 	: name;
-		var syncAnimsNames	: array<name>;
-		var size 			: int;
-		var i 				: int;
+		var animNames : array<name>;
 		
 		if (thePlayer.forceFinisher && thePlayer.forceFinisherAnimName != '') {
 			return thePlayer.forceFinisherAnimName;
 		}
 		
 		if (thePlayer.GetCombatIdleStance() <= 0.f) {
-			syncAnimsNames.PushBack('man_finisher_02_lp');
-			syncAnimsNames.PushBack('man_finisher_04_lp');
-			syncAnimsNames.PushBack('man_finisher_06_lp');
-			syncAnimsNames.PushBack('man_finisher_07_lp');
-			syncAnimsNames.PushBack('man_finisher_08_lp');
-			size = dlcFinishersLeftSide.Size();
-			for (i = 0; i < size; i += 1) {
-				syncAnimsNames.PushBack(dlcFinishersLeftSide[i].finisherAnimName);
-			}
+			animNames = theGame.xtFinishersMgr.finisherModule.params.allowedLeftSideFinisherAnimNames;
 		} else {
-			syncAnimsNames.PushBack('man_finisher_01_rp');
-			syncAnimsNames.PushBack('man_finisher_03_rp');
-			syncAnimsNames.PushBack('man_finisher_05_rp');
-			size = dlcFinishersRightSide.Size();
-			for (i = 0; i < size; i += 1) {
-				syncAnimsNames.PushBack(dlcFinishersRightSide[i].finisherAnimName);
-			}
+			animNames = theGame.xtFinishersMgr.finisherModule.params.allowedRightSideFinisherAnimNames;
 		}
-		return syncAnimsNames[RandRange(syncAnimsNames.Size(), 0)];
+		return animNames[RandRange(animNames.Size(), 0)];
 	}
 	
 	public function CanPerformFinisher(out context : XTFinishersActionContext) {

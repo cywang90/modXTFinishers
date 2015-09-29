@@ -36,6 +36,8 @@ class XTFinishersDefaultFinisherParams {
 	
 	public var autoFinisherEffectTypes, instantKillFinisherEffectTypes : array<EEffectType>;
 	
+	public var allowedLeftSideFinisherAnimNames, allowedRightSideFinisherAnimNames : array<name>;
+	
 	public function Init() {
 		// load effect types that allow AUTOMATIC finishers (comment to disable, uncomment to enable)
 		autoFinisherEffectTypes.PushBack(EET_Confusion);				// Axii stun
@@ -52,5 +54,16 @@ class XTFinishersDefaultFinisherParams {
 		//instantKillFinisherEffectTypes.PushBack(EET_Burning);			// Burning
 		//instantKillFinisherEffectTypes.PushBack(EET_Bleeding);		// Bleeding
 		//instantKillFinisherEffectTypes.PushBack(EET_Poison);			// Poison
+		
+		// load allowed finisher animations (comment to disable, uncomment to enable)
+		allowedLeftSideFinisherAnimNames.PushBack('man_finisher_02_lp');
+		allowedLeftSideFinisherAnimNames.PushBack('man_finisher_04_lp');
+		allowedLeftSideFinisherAnimNames.PushBack('man_finisher_06_lp');
+		allowedLeftSideFinisherAnimNames.PushBack('man_finisher_07_lp');
+		allowedLeftSideFinisherAnimNames.PushBack('man_finisher_08_lp');
+		
+		allowedRightSideFinisherAnimNames.PushBack('man_finisher_01_rp');
+		allowedRightSideFinisherAnimNames.PushBack('man_finisher_03_rp');
+		allowedRightSideFinisherAnimNames.PushBack('man_finisher_05_rp');
 	}
 }
