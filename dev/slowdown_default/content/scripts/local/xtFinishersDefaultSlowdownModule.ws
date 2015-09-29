@@ -4,13 +4,33 @@ class XTFinishersDefaultSlowdownModule {
 	public function Init() {
 		params = new XTFinishersDefaultSlowdownParams in this;
 		
-		theGame.xtFinishersMgr.SetSlowdownManager(new XTFinishersDefaultSlowdownManager in this);
-		theGame.xtFinishersMgr.slowdownMgr.Init();
+		theGame.xtFinishersMgr.SetSlowdownManager(GetNewSlowdownManagerInstance());
 		
-		theGame.xtFinishersMgr.queryMgr.LoadSlowdownResponder(new XTFinishersDefaultSlowdownQueryResponder in this);
+		theGame.xtFinishersMgr.queryMgr.LoadSlowdownResponder(GetNewSlowdownQueryResponderInstance());
 		
-		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.FINISHER_EVENT_ID, new XTFinishersDefaultSlowdownFinisherQueryDispatcher in this);
-		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.DISMEMBER_EVENT_ID, new XTFinishersDefaultSlowdownDismemberQueryDispatcher in this);
+		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.FINISHER_EVENT_ID, GetNewSlowdownFinisherQueryDispatcher());
+		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.DISMEMBER_EVENT_ID, GetNewSlowdownDismemberQueryDispatcher());
+	}
+	
+	protected function GetNewSlowdownManagerInstance() : XTFinishersSlowdownManager {
+		var mgr : XTFinishersDefaultSlowdownManager;
+		
+		mgr = new XTFinishersDefaultSlowdownManager in this;
+		mgr.Init();
+		
+		return mgr;
+	}
+	
+	protected function GetNewSlowdownQueryResponderInstance() : XTFinishersSlowdownQueryResponder {
+		return new XTFinishersDefaultSlowdownQueryResponder in this;
+	}
+	
+	protected function GetNewSlowdownFinisherQueryDispatcher() : XTFinishersAbstractFinisherEventListener {
+		return new XTFinishersDefaultSlowdownFinisherQueryDispatcher in this;
+	}
+	
+	protected function GetNewSlowdownDismemberQueryDispatcher() : XTFinishersAbstractDismemberEventListener {
+		return new XTFinishersDefaultSlowdownDismemberQueryDispatcher in this;
 	}
 }
 
