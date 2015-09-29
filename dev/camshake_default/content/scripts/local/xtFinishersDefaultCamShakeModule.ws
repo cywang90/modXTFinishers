@@ -4,7 +4,11 @@ class XTFinishersDefaultCamShakeModule {
 	public function Init() {
 		params = new XTFinishersDefaultCamShakeParams in this;
 		
-		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.ACTION_END_EVENT_ID, new XTFinishersDefaultCamShakeHandler in this);
+		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.ACTION_END_EVENT_ID, GetNewCamShakeHandlerInstance());
+	}
+	
+	protected function GetNewCamShakeHandlerInstance() : XTFinishersAbstractActionEndEventListener {
+		return new XTFinishersDefaultCamShakeHandler in this;
 	}
 }
 

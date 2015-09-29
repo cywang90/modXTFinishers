@@ -5,11 +5,27 @@ class XTFinishersDefaultFinisherModule {
 		params = new XTFinishersDefaultFinisherParams in this;
 		params.Init();
 		
-		theGame.xtFinishersMgr.queryMgr.LoadFinisherResponder(new XTFinishersDefaultFinisherQueryResponder in this);
-		theGame.xtFinishersMgr.queryMgr.LoadFinisherCamResponder(new XTFinishersDefaultFinisherCamQueryResponder in this);
+		theGame.xtFinishersMgr.queryMgr.LoadFinisherResponder(GetNewFinisherQueryResponderInstance());
+		theGame.xtFinishersMgr.queryMgr.LoadFinisherCamResponder(GetNewFinisherCamQueryResponderInstance());
 		
-		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.REACTION_START_EVENT_ID, new XTFinishersDefaultFinisherQueryDispatcher in this);
-		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.FINISHER_EVENT_ID, new XTFinishersDefaultFinisherCamQueryDispatcher in this);
+		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.REACTION_START_EVENT_ID, GetNewFinisherQueryDispatcherInstance());
+		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.FINISHER_EVENT_ID, GetNewFinisherCamQueryDispatcherInstance());
+	}
+	
+	protected function GetNewFinisherQueryResponderInstance() : XTFinishersFinisherQueryResponder {
+		return new XTFinishersDefaultFinisherQueryResponder in this;
+	}
+	
+	protected function GetNewFinisherCamQueryResponderInstance() : XTFinishersFinisherCamQueryResponder {
+		return new XTFinishersDefaultFinisherCamQueryResponder in this;
+	}
+	
+	protected function GetNewFinisherQueryDispatcherInstance() : XTFinishersAbstractReactionStartListener {
+		return new XTFinishersDefaultFinisherQueryDispatcher in this;
+	}
+	
+	protected function GetNewFinisherCamQueryDispatcherInstance() : XTFinishersAbstractFinisherListener {
+		return new XTFinishersDefaultFinisherCamQueryDispatcher in this;
 	}
 }
 
