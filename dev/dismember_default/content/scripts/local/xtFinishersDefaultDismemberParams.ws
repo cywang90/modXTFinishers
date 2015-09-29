@@ -1,6 +1,6 @@
 class XTFinishersDefaultDismemberParams {
 	//=============================
-	// AUTOMATIC Dismember Settings
+	// AUTOMATIC DISMEMBER SETTINGS
 	//=============================
 	
 	public const var DISMEMBER_AUTO_CHANCE_EFFECTS, DISMEMBER_AUTO_CHANCE_CRIT, DISMEMBER_AUTO_CHANCE_STRONG, DISMEMBER_AUTO_CHANCE_FAST, DISMEMBER_AUTO_CHANCE_REND, DISMEMBER_AUTO_CHANCE_WHIRL, DISMEMBER_AUTO_CHANCE_LAST_ENEMY : float;
@@ -13,7 +13,7 @@ class XTFinishersDefaultDismemberParams {
 		default DISMEMBER_AUTO_CHANCE_LAST_ENEMY = 100.0;			// Chance to perform an AUTOMATIC dismember when the LAST enemy in combat is killed.
 	
 	//=======================================
-	// AUTOMATIC Dismember Explosion Settings
+	// AUTOMATIC DISMEMBER EXPLOSION SETTINGS
 	//=======================================
 	
 	public const var DISMEMBER_AUTO_EXPLOSION_CHANCE_EFFECTS, DISMEMBER_AUTO_EXPLOSION_CHANCE_CRIT, DISMEMBER_AUTO_EXPLOSION_CHANCE_STRONG, DISMEMBER_AUTO_EXPLOSION_CHANCE_FAST, DISMEMBER_AUTO_EXPLOSION_CHANCE_REND, DISMEMBER_AUTO_EXPLOSION_CHANCE_WHIRL, DISMEMBER_AUTO_EXPLOSION_CHANCE_LAST_ENEMY : float;
