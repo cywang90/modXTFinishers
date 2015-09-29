@@ -1,9 +1,14 @@
 class XTFinishersDefaultSlowdownParams {
-	// general settings
+	//=================
+	// GENERAL SETTINGS
+	//=================
 	public const var SLOWDOWN_DISABLE_CAMERA_SHAKE : bool;
 		default SLOWDOWN_DISABLE_CAMERA_SHAKE = true;				// If TRUE -> prevents camera shake when a slowdown is activated.
 	
-	// critical hit slowdown settings
+	//==================================
+	// SLOWDOWN ON CRITICAL HIT SETTINGS
+	//==================================
+	
 	public const var SLOWDOWN_CRIT_CHANCE_NONFATAL, SLOWDOWN_CRIT_CHANCE_FATAL, SLOWDOWN_CRIT_CHANCE_FATAL_LAST_ENEMY : float;
 		default SLOWDOWN_CRIT_CHANCE_NONFATAL = 0.0;				// Chance to activate slow motion when a critical hit is performed on a non-fatal attack.
 		default SLOWDOWN_CRIT_CHANCE_FATAL = 0.0;					// Chance to activate slow motion when a critical hit is performed on a fatal attack.
@@ -13,7 +18,10 @@ class XTFinishersDefaultSlowdownParams {
 		default SLOWDOWN_CRIT_DURATION = 0.3;						// Duration of slow motion during a critical hit (seconds in game time).
 		default SLOWDOWN_CRIT_DELAY = 0.1;							// Delay after critical hit is triggered before slow motion activates (seconds in game time).
 	
-	// finisher slowdown settings
+	//==============================
+	// SLOWDOWN ON FINISHER SETTINGS
+	//==============================
+	
 	public const var SLOWDOWN_FINISHER_CHANCE, SLOWDOWN_FINISHER_AUTO_CHANCE : float;
 		default SLOWDOWN_FINISHER_CHANCE = 100.0;					// Chance to activate slow motion when a REGULAR finisher is triggered.
 		default SLOWDOWN_FINISHER_AUTO_CHANCE = 100.0;				// Chance to activate slow motion when an AUTOMATIC finisher is triggered.
@@ -29,7 +37,10 @@ class XTFinishersDefaultSlowdownParams {
 		default SLOWDOWN_FINISHER_B_DURATION = 0.3;					// Duration of second slow motion section during a finisher (seconds in game time).
 		default SLOWDOWN_FINISHER_B_DELAY = 1.15;					// Delay after first slow motion section finishes before second slow motion section activates (seconds in game time).
 	
-	// dismember slowdown settings
+	//===============================
+	// SLOWDOWN ON DISMEMBER SETTINGS
+	//===============================
+	
 	public const var SLOWDOWN_DISMEMBER_CHANCE, SLOWDOWN_DISMEMBER_AUTO_CHANCE, SLOWDOWN_DISMEMBER_CHANCE_LAST_ENEMY, SLOWDOWN_DISMEMBER_AUTO_CHANCE_LAST_ENEMY : float;
 		default SLOWDOWN_DISMEMBER_CHANCE = 0.0;					// Chance to activate slow motion when a dismember is triggered.
 		default SLOWDOWN_DISMEMBER_AUTO_CHANCE = 100.0;				// Chance to activate slow motion when an AUTOMATIC dismember is triggered.
