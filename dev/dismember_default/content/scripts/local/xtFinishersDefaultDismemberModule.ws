@@ -4,9 +4,17 @@ class XTFinishersDefaultDismemberModule {
 	public function Init() {
 		params = new XTFinishersDefaultDismemberParams in this;
 		
-		theGame.xtFinishersMgr.queryMgr.LoadDismemberResponder(new XTFinishersDefaultDismemberQueryResponder in this);
+		theGame.xtFinishersMgr.queryMgr.LoadDismemberResponder(GetNewDismemberQueryResponderInstance());
 		
-		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.REACTION_START_EVENT_ID, new XTFinishersDefaultDismemberQueryDispatcher in this);
+		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.REACTION_START_EVENT_ID, GetNewDismemberQueryDispatcherInstance());
+	}
+	
+	protected function GetNewDismemberQueryResponderInstance() : XTFinishersDismemberQueryResponder {
+		return new XTFinishersDefaultDismemberQueryResponder in this;
+	}
+	
+	protected function GetNewDismemberQueryDispatcherInstance() : XTFinishersAbstractReactionStartEventListener {
+		return new XTFinishersDefaultDismemberQueryDispatcher in this;
 	}
 }
 

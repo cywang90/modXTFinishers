@@ -4,13 +4,38 @@ class XTFinishersDefaultSlowdownModule {
 	public function Init() {
 		params = new XTFinishersDefaultSlowdownParams in this;
 		
-		theGame.xtFinishersMgr.SetSlowdownManager(new XTFinishersDefaultSlowdownManager in this);
-		theGame.xtFinishersMgr.slowdownMgr.Init();
+		theGame.xtFinishersMgr.SetSlowdownManager(GetNewSlowdownManagerInstance());
 		
-		theGame.xtFinishersMgr.queryMgr.LoadSlowdownResponder(new XTFinishersDefaultSlowdownQueryResponder in this);
+		theGame.xtFinishersMgr.queryMgr.LoadSlowdownResponder(GetNewSlowdownQueryResponderInstance());
 		
-		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.FINISHER_EVENT_ID, new XTFinishersDefaultSlowdownFinisherQueryDispatcher in this);
-		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.DISMEMBER_EVENT_ID, new XTFinishersDefaultSlowdownDismemberQueryDispatcher in this);
+		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.ACTION_END_EVENT_ID, GetNewSlowdownCritQueryDispatcher());
+		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.FINISHER_EVENT_ID, GetNewSlowdownFinisherQueryDispatcher());
+		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.DISMEMBER_EVENT_ID, GetNewSlowdownDismemberQueryDispatcher());
+	}
+	
+	protected function GetNewSlowdownManagerInstance() : XTFinishersSlowdownManager {
+		var mgr : XTFinishersDefaultSlowdownManager;
+		
+		mgr = new XTFinishersDefaultSlowdownManager in this;
+		mgr.Init();
+		
+		return mgr;
+	}
+	
+	protected function GetNewSlowdownQueryResponderInstance() : XTFinishersSlowdownQueryResponder {
+		return new XTFinishersDefaultSlowdownQueryResponder in this;
+	}
+	
+	protected function GetNewSlowdownCritQueryDispatcher() : XTFinishersAbstractActionEndEventListener {
+		return new XTFinishersDefaultSlowdownCritQueryDispatcher in this;
+	}
+	
+	protected function GetNewSlowdownFinisherQueryDispatcher() : XTFinishersAbstractFinisherEventListener {
+		return new XTFinishersDefaultSlowdownFinisherQueryDispatcher in this;
+	}
+	
+	protected function GetNewSlowdownDismemberQueryDispatcher() : XTFinishersAbstractDismemberEventListener {
+		return new XTFinishersDefaultSlowdownDismemberQueryDispatcher in this;
 	}
 }
 
@@ -231,17 +256,30 @@ class XTFinishersDefaultSlowdownManager extends XTFinishersAbstractSlowdownManag
 		seqDef = NULL;
 		switch (context.slowdown.type) {
 		case theGame.xtFinishersMgr.consts.SLOWDOWN_TYPE_CRIT :
-			seqDef = critSeqDef;
+			seqDef = GetCritSequence(context);
+			break;
 		case theGame.xtFinishersMgr.consts.SLOWDOWN_TYPE_FINISHER :
-			seqDef = finisherSeqDef;
+			seqDef = GetFinisherSequence(context);
 			break;
 		case theGame.xtFinishersMgr.consts.SLOWDOWN_TYPE_DISMEMBER :
-			seqDef = dismemberSeqDef;
+			seqDef = GetDismemberSequence(context);
 			break;
 		}
 		
 		if (seqDef) {
 			StartSlowdownSequence(seqDef);
 		}
+	}
+	
+	protected function GetCritSequence(context : XTFinishersActionContext) : XTFinishersSlowdownSequenceDef {
+		return critSeqDef;
+	}
+	
+	protected function GetFinisherSequence(context : XTFinishersActionContext) : XTFinishersSlowdownSequenceDef {
+		return finisherSeqDef;
+	}
+	
+	protected function GetDismemberSequence(context : XTFinishersActionContext) : XTFinishersSlowdownSequenceDef {
+		return dismemberSeqDef;
 	}
 }

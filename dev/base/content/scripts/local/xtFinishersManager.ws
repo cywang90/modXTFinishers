@@ -88,6 +88,7 @@ struct XTFinishersFinisherContext {
 	var auto : bool;										// is AUTOMATIC finisher
 	var instantKill : bool;									// is INSTANT-KILL finisher
 	var forced : bool;										// is FORCED finisher
+	var animName : name;
 };
 
 struct XTFinishersDismemberContext {
