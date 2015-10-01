@@ -167,3 +167,23 @@ class XTFinishersSlowdownSession extends XTFinishersSlowdownSegment {
 
 class XTFinishersSlowdownDelay extends XTFinishersSlowdownSegment {
 }
+
+// constructors
+
+function CreateXTFinishersSlowdownSession(owner : XTFinishersObject, duration : float, factor : float) : XTFinishersSlowdownSegment {
+	var newInstance : XTFinishersSlowdownSession;
+	
+	newInstance = new XTFinishersSlowdownSession in owner;
+	newInstance.Init_Session(duration, factor);
+	
+	return newInstance;
+}
+
+function CreateXTFinishersSlowdownDelay(owner : XTFinishersObject, duration : float) : XTFinishersSlowdownDelay {
+	var newInstance : XTFinishersSlowdownDelay;
+	
+	newInstance = new XTFinishersSlowdownDelay in owner;
+	newInstance.Init(duration);
+	
+	return newInstance;
+}
