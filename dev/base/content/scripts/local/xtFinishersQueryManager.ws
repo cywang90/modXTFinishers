@@ -30,35 +30,35 @@ class XTFinishersQueryManager extends XTFinishersObject {
 	
 	// fire queries
 	
-	public function FireFinisherQuery(out context : XTFinishersActionContext) {
+	public function FireFinisherQuery(context : XTFinishersActionContext) {
 		finisherResponder.CanPerformFinisher(context);
 	}
 	
-	public function FireDismemberQuery(out context : XTFinishersActionContext) {
+	public function FireDismemberQuery(context : XTFinishersActionContext) {
 		dismemberResponder.CanPerformDismember(context);
 	}
 	
-	public function FireFinisherCamQuery(out context : XTFinishersActionContext) {
+	public function FireFinisherCamQuery(context : XTFinishersActionContext) {
 		finisherCamResponder.CanPerformFinisherCam(context);
 	}
 	
-	public function FireSlowdownQuery(out context : XTFinishersActionContext) {
+	public function FireSlowdownQuery(context : XTFinishersActionContext) {
 		slowdownResponder.CanPerformSlowdown(context);
 	}
 }
 
 abstract class XTFinishersFinisherQueryResponder extends XTFinishersObject {
-	public function CanPerformFinisher(out context : XTFinishersActionContext);
+	public function CanPerformFinisher(context : XTFinishersActionContext);
 }
 
 abstract class XTFinishersDismemberQueryResponder extends XTFinishersObject {
-	public function CanPerformDismember(out context : XTFinishersActionContext);
+	public function CanPerformDismember(context : XTFinishersActionContext);
 }
 
 abstract class XTFinishersFinisherCamQueryResponder extends XTFinishersObject {
-	public function CanPerformFinisherCam(out context : XTFinishersActionContext);
+	public function CanPerformFinisherCam(context : XTFinishersActionContext);
 }
 
 abstract class XTFinishersSlowdownQueryResponder extends XTFinishersObject {
-	public function CanPerformSlowdown(out context : XTFinishersActionContext);
+	public function CanPerformSlowdown(context : XTFinishersActionContext);
 }

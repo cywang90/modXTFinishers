@@ -25,7 +25,7 @@ class XTFinishersVanillaFinisherQueryDispatcher extends XTFinishersAbstractReact
 		return theGame.xtFinishersMgr.consts.VANILLA_FINISHER_QUERY_DISPATCHER_PRIORITY;
 	}
 	
-	public function OnReactionStartTriggered(out context : XTFinishersActionContext) {
+	public function OnReactionStartTriggered(context : XTFinishersActionContext) {
 		theGame.xtFinishersMgr.queryMgr.FireFinisherQuery(context);
 	}
 }
@@ -35,7 +35,7 @@ class XTFinishersVanillaDismemberQueryDispatcher extends XTFinishersAbstractReac
 		return theGame.xtFinishersMgr.consts.VANILLA_DISMEMBER_QUERY_DISPATCHER_PRIORITY;
 	}
 	
-	public function OnReactionStartTriggered(out context : XTFinishersActionContext) {
+	public function OnReactionStartTriggered(context : XTFinishersActionContext) {
 		theGame.xtFinishersMgr.queryMgr.FireDismemberQuery(context);
 	}
 }
@@ -45,7 +45,7 @@ class XTFinishersVanillaFinisherCamQueryDispatcher extends XTFinishersAbstractFi
 		return theGame.xtFinishersMgr.consts.VANILLA_FINISHER_CAM_QUERY_DISPATCHER_PRIORITY;
 	}
 	
-	public function OnFinisherTriggered(out context : XTFinishersActionContext) {
+	public function OnFinisherTriggered(context : XTFinishersActionContext) {
 		theGame.xtFinishersMgr.queryMgr.FireFinisherCamQuery(context);
 	}
 }
@@ -55,7 +55,7 @@ class XTFinishersVanillaCamShakeHandler extends XTFinishersAbstractActionEndEven
 		return theGame.xtFinishersMgr.consts.VANILLA_CAMSHAKE_HANDLER_PRIORITY;
 	}
 	
-	protected function ProcessNormalStrike(out context : XTFinishersActionContext) {
+	protected function ProcessNormalStrike(context : XTFinishersActionContext) {
 		var playerAttacker : CR4Player;
 		var attackAction : W3Action_Attack;
 		
@@ -89,7 +89,7 @@ class XTFinishersVanillaCamShakeHandler extends XTFinishersAbstractActionEndEven
 		}
 	}
 	
-	protected function ProcessCriticalHit(out context : XTFinishersActionContext) {
+	protected function ProcessCriticalHit(context : XTFinishersActionContext) {
 		var attackAction : W3Action_Attack;
 		var actorVictim : CActor;
 		
@@ -103,7 +103,7 @@ class XTFinishersVanillaCamShakeHandler extends XTFinishersAbstractActionEndEven
 		}
 	}
 	
-	protected function ProcessDismember(out context : XTFinishersActionContext) {
+	protected function ProcessDismember(context : XTFinishersActionContext) {
 		var actorAttacker : CActor;
 		
 		actorAttacker = (CActor)context.action.attacker;
@@ -117,7 +117,7 @@ class XTFinishersVanillaCamShakeHandler extends XTFinishersAbstractActionEndEven
 		}
 	}
 	
-	public function OnActionEndTriggered(out context : XTFinishersActionContext) {
+	public function OnActionEndTriggered(context : XTFinishersActionContext) {
 		ProcessNormalStrike(context);
 		ProcessCriticalHit(context);
 		ProcessDismember(context);
@@ -173,7 +173,7 @@ class XTFinishersVanillaFinisherQueryResponder extends XTFinishersFinisherQueryR
 		return syncAnimsNames[RandRange(syncAnimsNames.Size(), 0)];
 	}
 	
-	public function CanPerformFinisher(out context : XTFinishersActionContext) {
+	public function CanPerformFinisher(context : XTFinishersActionContext) {
 		var actorVictim				: CActor;
 		var attackAction			: W3Action_Attack;
 		var finisherChance 			: float;
@@ -289,7 +289,7 @@ class XTFinishersVanillaFinisherQueryResponder extends XTFinishersFinisherQueryR
 }
 
 class XTFinishersVanillaDismemberQueryResponder extends XTFinishersDismemberQueryResponder {
-	public function CanPerformDismember(out context : XTFinishersActionContext) {
+	public function CanPerformDismember(context : XTFinishersActionContext) {
 		var playerAttacker		: CR4Player;
 		var actorAttacker		: CActor;
 		var actorVictim			: CActor;
@@ -397,7 +397,7 @@ class XTFinishersVanillaDismemberQueryResponder extends XTFinishersDismemberQuer
 }
 
 class XTFinishersVanillaFinisherCamQueryResponder extends XTFinishersFinisherCamQueryResponder {
-	public function CanPerformFinisherCam(out context : XTFinishersActionContext) {
+	public function CanPerformFinisherCam(context : XTFinishersActionContext) {
 		context.finisherCam.active = thePlayer.IsLastEnemyKilled() && theGame.GetWorld().NavigationCircleTest(thePlayer.GetWorldPosition(), 3.f);
 	}
 }

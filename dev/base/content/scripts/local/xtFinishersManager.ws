@@ -39,13 +39,4 @@ class XTFinishersManager extends XTFinishersObject {
 	public function SetSlowdownManager(mgr : XTFinishersSlowdownManager) {
 		slowdownMgr = mgr;
 	}
-	
-	public function CreateActionContext(action : W3DamageAction, effectsSnapshot : XTFinishersEffectsSnapshot) : XTFinishersActionContext {
-		var context : XTFinishersActionContext;
-		
-		context.action = action;
-		context.effectsSnapshot = effectsSnapshot;
-		
-		return context;
-	}
 }

@@ -36,7 +36,7 @@ class XTFinishersDefaultFinisherQueryDispatcher extends XTFinishersAbstractReact
 		return theGame.xtFinishersMgr.consts.DEFAULT_FINISHER_QUERY_DISPATCHER_PRIORITY;
 	}
 	
-	public function OnReactionStartTriggered(out context : XTFinishersActionContext) {
+	public function OnReactionStartTriggered(context : XTFinishersActionContext) {
 		theGame.xtFinishersMgr.queryMgr.FireFinisherQuery(context);
 	}
 }
@@ -46,7 +46,7 @@ class XTFinishersDefaultFinisherCamQueryDispatcher extends XTFinishersAbstractFi
 		return theGame.xtFinishersMgr.consts.DEFAULT_FINISHER_CAM_QUERY_DISPATCHER_PRIORITY;
 	}
 	
-	public function OnFinisherTriggered(out context : XTFinishersActionContext) {
+	public function OnFinisherTriggered(context : XTFinishersActionContext) {
 		theGame.xtFinishersMgr.queryMgr.FireFinisherCamQuery(context);
 	}
 }
@@ -138,7 +138,7 @@ class XTFinishersDefaultFinisherQueryResponder extends XTFinishersFinisherQueryR
 		return animNames[RandRange(animNames.Size(), 0)];
 	}
 	
-	public function CanPerformFinisher(out context : XTFinishersActionContext) {
+	public function CanPerformFinisher(context : XTFinishersActionContext) {
 		var actorVictim				: CActor;
 		var attackAction			: W3Action_Attack;
 		var finisherChance 			: float;
@@ -274,7 +274,7 @@ class XTFinishersDefaultFinisherQueryResponder extends XTFinishersFinisherQueryR
 }
 
 class XTFinishersDefaultFinisherCamQueryResponder extends XTFinishersFinisherCamQueryResponder {
-	public function CanPerformFinisherCam(out context : XTFinishersActionContext) {
+	public function CanPerformFinisherCam(context : XTFinishersActionContext) {
 		var chance : float;
 		
 		if (thePlayer.IsLastEnemyKilled()) {

@@ -46,7 +46,7 @@ class XTFinishersDefaultSlowdownCritQueryDispatcher extends XTFinishersAbstractA
 		return theGame.xtFinishersMgr.consts.DEFAULT_SLOWDOWN_CRIT_QUERY_DISPATCHER_PRIORITY;
 	}
 	
-	public function OnActionEndTriggered(out context : XTFinishersActionContext) {
+	public function OnActionEndTriggered(context : XTFinishersActionContext) {
 		var attackAction : W3Action_Attack;
 		
 		if (context.finisher.active || context.slowdown.active) {
@@ -73,7 +73,7 @@ class XTFinishersDefaultSlowdownFinisherQueryDispatcher extends XTFinishersAbstr
 		return theGame.xtFinishersMgr.consts.DEFAULT_SLOWDOWN_FINISHER_QUERY_DISPATCHER_PRIORITY;
 	}
 	
-	public function OnFinisherTriggered(out context : XTFinishersActionContext) {
+	public function OnFinisherTriggered(context : XTFinishersActionContext) {
 		if (context.slowdown.active) {
 			return;
 		}
@@ -94,7 +94,7 @@ class XTFinishersDefaultSlowdownDismemberQueryDispatcher extends XTFinishersAbst
 		return theGame.xtFinishersMgr.consts.DEFAULT_SLOWDOWN_DISMEMBER_QUERY_DISPATCHER_PRIORITY;
 	}
 	
-	public function OnDismemberTriggered(out context : XTFinishersActionContext) {
+	public function OnDismemberTriggered(context : XTFinishersActionContext) {
 		if (context.slowdown.active) {
 			return;
 		}
@@ -115,7 +115,7 @@ class XTFinishersDefaultSlowdownDismemberQueryDispatcher extends XTFinishersAbst
 // responders
 
 class XTFinishersDefaultSlowdownQueryResponder extends XTFinishersSlowdownQueryResponder {
-	protected function CanPerformSlowdownCrit(out context : XTFinishersActionContext) {
+	protected function CanPerformSlowdownCrit(context : XTFinishersActionContext) {
 		var chance : float;
 		
 		if (context.action.victim.IsAlive()) {
@@ -131,7 +131,7 @@ class XTFinishersDefaultSlowdownQueryResponder extends XTFinishersSlowdownQueryR
 		context.slowdown.active = RandRangeF(100) < chance;
 	}
 	
-	protected function CanPerformSlowdownFinisher(out context : XTFinishersActionContext) {
+	protected function CanPerformSlowdownFinisher(context : XTFinishersActionContext) {
 		var chance : float;
 		
 		if (thePlayer.IsLastEnemyKilled()) {
@@ -151,7 +151,7 @@ class XTFinishersDefaultSlowdownQueryResponder extends XTFinishersSlowdownQueryR
 		context.slowdown.active = RandRangeF(100) < chance;
 	}
 	
-	protected function CanPerformSlowdownDismember(out context : XTFinishersActionContext) {
+	protected function CanPerformSlowdownDismember(context : XTFinishersActionContext) {
 		var chance : float;
 		
 		if (thePlayer.IsLastEnemyKilled()) {
@@ -171,7 +171,7 @@ class XTFinishersDefaultSlowdownQueryResponder extends XTFinishersSlowdownQueryR
 		context.slowdown.active = RandRangeF(100) < chance;
 	}
 	
-	public function CanPerformSlowdown(out context : XTFinishersActionContext) {
+	public function CanPerformSlowdown(context : XTFinishersActionContext) {
 		if (thePlayer.IsCameraControlDisabled('Finisher')) {
 			return;
 		}

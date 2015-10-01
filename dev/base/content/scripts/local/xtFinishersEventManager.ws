@@ -244,7 +244,7 @@ abstract class XTFinishersAbstractActionStartEventListener extends XTFinishersPr
 		actionContextData.SetData(context);
 	}
 	
-	public function OnActionStartTriggered(out context : XTFinishersActionContext);
+	public function OnActionStartTriggered(context : XTFinishersActionContext);
 }
 
 abstract class XTFinishersAbstractActionEndEventListener extends XTFinishersPriorityListener {
@@ -258,7 +258,7 @@ abstract class XTFinishersAbstractActionEndEventListener extends XTFinishersPrio
 		actionContextData.SetData(context);
 	}
 	
-	public function OnActionEndTriggered(out context : XTFinishersActionContext);
+	public function OnActionEndTriggered(context : XTFinishersActionContext);
 }
 
 abstract class XTFinishersAbstractReactionStartEventListener extends XTFinishersPriorityListener {
@@ -272,7 +272,7 @@ abstract class XTFinishersAbstractReactionStartEventListener extends XTFinishers
 		actionContextData.SetData(context);
 	}
 	
-	public function OnReactionStartTriggered(out context : XTFinishersActionContext);
+	public function OnReactionStartTriggered(context : XTFinishersActionContext);
 }
 
 abstract class XTFinishersAbstractReactionEndEventListener extends XTFinishersPriorityListener {
@@ -286,7 +286,7 @@ abstract class XTFinishersAbstractReactionEndEventListener extends XTFinishersPr
 		actionContextData.SetData(context);
 	}
 	
-	public function OnReactionEndTriggered(out context : XTFinishersActionContext);
+	public function OnReactionEndTriggered(context : XTFinishersActionContext);
 }
 
 abstract class XTFinishersAbstractFinisherEventListener extends XTFinishersPriorityListener {
@@ -300,7 +300,7 @@ abstract class XTFinishersAbstractFinisherEventListener extends XTFinishersPrior
 		actionContextData.SetData(context);
 	}
 	
-	public function OnFinisherTriggered(out context : XTFinishersActionContext);
+	public function OnFinisherTriggered(context : XTFinishersActionContext);
 }
 
 abstract class XTFinishersAbstractDismemberEventListener extends XTFinishersPriorityListener {
@@ -314,7 +314,7 @@ abstract class XTFinishersAbstractDismemberEventListener extends XTFinishersPrio
 		actionContextData.SetData(context);
 	}
 	
-	public function OnDismemberTriggered(out context : XTFinishersActionContext);
+	public function OnDismemberTriggered(context : XTFinishersActionContext);
 }
 
 abstract class XTFinishersAbstractFinisherCamEventListener extends XTFinishersPriorityListener {
@@ -328,7 +328,7 @@ abstract class XTFinishersAbstractFinisherCamEventListener extends XTFinishersPr
 		actionContextData.SetData(context);
 	}
 	
-	public function OnFinisherCamTriggered(out context : XTFinishersActionContext);
+	public function OnFinisherCamTriggered(context : XTFinishersActionContext);
 }
 
 class XTFinishersSlowdownSegmentData extends XTFinishersEventData {
@@ -392,8 +392,8 @@ abstract class XTFinishersAbstractSlowdownEventListener extends XTFinishersPrior
 		}
 	}
 	
-	public function OnSlowdownSequenceStartTriggered(out context : XTFinishersActionContext);
-	public function OnSlowdownSequenceEndTriggered(out context : XTFinishersActionContext);
+	public function OnSlowdownSequenceStartTriggered(context : XTFinishersActionContext);
+	public function OnSlowdownSequenceEndTriggered(context : XTFinishersActionContext);
 	
 	public function OnSlowdownSegmentStart(segment : XTFinishersSlowdownSegment);
 	public function OnSlowdownSegmentEnd(segment : XTFinishersSlowdownSegment, success : bool);

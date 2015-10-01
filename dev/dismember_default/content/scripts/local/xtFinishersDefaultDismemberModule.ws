@@ -25,7 +25,7 @@ class XTFinishersDefaultDismemberQueryDispatcher extends XTFinishersAbstractReac
 		return theGame.xtFinishersMgr.consts.DEFAULT_DISMEMBER_QUERY_DISPATCHER_PRIORITY;
 	}
 	
-	public function OnReactionStartTriggered(out context : XTFinishersActionContext) {
+	public function OnReactionStartTriggered(context : XTFinishersActionContext) {
 		theGame.xtFinishersMgr.queryMgr.FireDismemberQuery(context);
 	}
 }
@@ -33,7 +33,7 @@ class XTFinishersDefaultDismemberQueryDispatcher extends XTFinishersAbstractReac
 // responders
 
 class XTFinishersDefaultDismemberQueryResponder extends XTFinishersDismemberQueryResponder {
-	public function CanPerformDismember(out context : XTFinishersActionContext) {
+	public function CanPerformDismember(context : XTFinishersActionContext) {
 		var playerAttacker		: CR4Player;
 		var actorAttacker		: CActor;
 		var actorVictim			: CActor;
