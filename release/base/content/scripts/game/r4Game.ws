@@ -1014,6 +1014,13 @@ import class CR4Game extends CCommonGame
 		}
 		
 		DeactivateEnvironment( environmentID, 0 );
+		
+		// modXTFinishers BEGIN
+		if (xtFinishersMgr) {
+			delete xtFinishersMgr;
+			xtFinishersMgr = NULL;
+		}
+		// modXTFinishers END
 			
 		if(effectMgr)
 		{

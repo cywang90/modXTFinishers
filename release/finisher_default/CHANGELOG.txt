@@ -3,6 +3,22 @@ MODULE finisher_default Changelog
 =================================
 
 -----
+v1.03
+-----
+
+General
+-------
+- Moved script files to content\scripts\local\finisher_default\
+
+API
+---
+- XTFinishersDefaultFinisherModule.Init() now uses protected functions to initialize individual module components.
+
+Features
+--------
+- Added configuration options to choose which finisher animations are allowed to be played when a finisher is triggered.
+
+-----
 v1.02
 -----
 

@@ -3,6 +3,27 @@ MODULE slowdown_default Changelog
 =================================
 
 -----
+v1.01
+-----
+
+General
+-------
+- Moved script files to content\scripts\local\slowdown_default\
+
+API
+---
+- XTFinishersDefaultSlowdownModule.Init() now uses protected functions to initialize individual module components.
+- XTFinishersDefaultSlowdownManager now uses protected functions to retrieve slowdown sequence definitions when a slowdown is triggered.
+
+Features
+--------
+- Added new configuration options for slowdowns on INSTANT-KILL finishers (previously INSTANT-KILL finishers were treated as REGULAR finishers).
+
+Bug Fixes
+---------
+- Slowdowns will now correctly trigger on critical hits.
+
+-----
 v1.00
 -----
 
