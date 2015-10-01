@@ -11021,7 +11021,7 @@ statemachine abstract import class CR4Player extends CPlayer
 	}
 	
 	// modXTfinishers BEGIN
-	private var actionContext : XTFinishersActionContext;
+	public var actionContext : XTFinishersActionContext;
 	
 	public function LoadActionContext(context : XTFinishersActionContext) {
 		actionContext = context;
@@ -11031,10 +11031,6 @@ statemachine abstract import class CR4Player extends CPlayer
 	private var finisherSaveLock : int;
 	event OnFinisherStart()
 	{
-		// modXTFinishers Begin
-		var eventData : XTFinishersActionContextData;
-		// modXTFinishers END
-		
 		theGame.CreateNoSaveLock("Finisher",finisherSaveLock,true,false);
 		
 		isInFinisher = true;
@@ -11045,9 +11041,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		CancelHoldAttacks();
 		
 		// modXTFinishers BEGIN
-		eventData = theGame.xtFinishersMgr.eventMgr.CreateActionContextData(actionContext);
-		theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.FINISHER_EVENT_ID, eventData);
-		actionContext = eventData.context;
+		theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.FINISHER_EVENT_ID, CreateXTFinishersActionContextData(theGame.xtFinishersMgr.eventMgr, actionContext));
 		// modXTFinishers END
 	
 		PlayFinisherCameraAnimation( theGame.GetSyncAnimManager().GetFinisherCameraAnimName() );
@@ -11064,9 +11058,8 @@ statemachine abstract import class CR4Player extends CPlayer
 	{
 		var camera 	: CCustomCamera = theGame.GetGameCamera();
 		var animation		: SCameraAnimationDefinition;
-		// modXTFinishers BEGIN
-		var eventData : XTFinishersActionContextData;
 		
+		// modXTFinishers BEGIN
 		if  (actionContext.finisherCam.active) {
 			camera.StopAnimation('camera_shake_hit_lvl3_1' );
 			
@@ -11082,9 +11075,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			
 			thePlayer.EnableManualCameraControl( false, 'Finisher' );
 			
-			eventData = theGame.xtFinishersMgr.eventMgr.CreateActionContextData(actionContext);
-			theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.FINISHER_CAM_EVENT_ID, eventData);
-			actionContext = eventData.context;
+			theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.FINISHER_CAM_EVENT_ID, CreateXTFinishersActionContextData(theGame.xtFinishersMgr.eventMgr, actionContext));
 		}
 		// modXTFinishers END
 	}	

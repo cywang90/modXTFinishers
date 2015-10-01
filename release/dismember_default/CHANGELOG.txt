@@ -3,6 +3,18 @@ MODULE dismember_default Changelog
 ==================================
 
 -----
+v1.02
+-----
+
+General
+-------
+- Moved script files to content\scripts\local\dismember_default\
+
+API
+---
+- XTFinishersDefaultDismemberModule.Init() now uses protected functions to initialize individual module components.
+
+-----
 v1.01
 -----
 

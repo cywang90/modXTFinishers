@@ -3,6 +3,18 @@ MODULE camshake_default Changelog
 =================================
 
 -----
+v1.01
+-----
+
+General
+-------
+- Moved script files to content\scripts\local\camshake_default\
+
+API
+---
+- XTFinishersDefaultCamShakeModule.Init() now uses protected functions to initialize individual module components.
+
+-----
 v1.00
 -----
 
