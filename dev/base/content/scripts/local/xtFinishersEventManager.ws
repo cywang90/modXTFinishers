@@ -93,20 +93,6 @@ class XTFinishersEventManager extends XTFinishersObject {
 		ids[pos1] = ids[pos2];
 		ids[pos2] = temp;
 	}
-	
-	public function CreateActionContextData(context : XTFinishersActionContext) : XTFinishersActionContextData {
-		var data : XTFinishersActionContextData;
-		data = new XTFinishersActionContextData in this;
-		data.SetData(context);
-		return data;
-	}
-	
-	public function CreateSlowdownSegmentData(segment : XTFinishersSlowdownSegment, optional success : bool) : XTFinishersSlowdownSegmentData {
-		var data : XTFinishersSlowdownSegmentData;
-		data = new XTFinishersSlowdownSegmentData in this;
-		data.SetData(segment, success);
-		return data;
-	}
 }
 
 class XTFinishersPriorityListenerQueue extends XTFinishersObject {
@@ -238,6 +224,15 @@ class XTFinishersActionContextData extends XTFinishersEventData {
 	}
 }
 
+function CreateXTFinishersActionContextData(owner : XTFinishersObject, context : XTFinishersActionContext) : XTFinishersActionContextData {
+	var newInstance : XTFinishersActionContextData;
+	
+	newInstance = new XTFinishersActionContextData in owner;
+	newInstance.SetData(context);
+	
+	return newInstance;
+}
+
 abstract class XTFinishersAbstractActionStartEventListener extends XTFinishersPriorityListener {
 	public final function OnEventTriggered(id : string, data : XTFinishersEventData) {
 		var actionContextData : XTFinishersActionContextData;
@@ -344,6 +339,15 @@ class XTFinishersSlowdownSegmentData extends XTFinishersEventData {
 		this.segment = segment;
 		this.success = success;
 	}
+}
+
+function CreateXTFinishersSlowdownSegmentData(owner : XTFinishersObject, segment : XTFinishersSlowdownSegment, optional success : bool) : XTFinishersSlowdownSegmentData {
+	var newInstance : XTFinishersSlowdownSegmentData;
+	
+	newInstance = new XTFinishersSlowdownSegmentData in owner;
+	newInstance.SetData(segment, success);
+	
+	return newInstance;
 }
 
 abstract class XTFinishersAbstractSlowdownEventListener extends XTFinishersPriorityListener {

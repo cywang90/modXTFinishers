@@ -11049,7 +11049,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		CancelHoldAttacks();
 		
 		// modXTFinishers BEGIN
-		eventData = theGame.xtFinishersMgr.eventMgr.CreateActionContextData(actionContext);
+		eventData = CreateXTFinishersActionContextData(theGame.xtFinishersMgr.eventMgr, actionContext);
 		theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.FINISHER_EVENT_ID, eventData);
 		actionContext = eventData.context;
 		// modXTFinishers END
@@ -11086,7 +11086,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			
 			thePlayer.EnableManualCameraControl( false, 'Finisher' );
 			
-			eventData = theGame.xtFinishersMgr.eventMgr.CreateActionContextData(actionContext);
+			eventData = CreateXTFinishersActionContextData(theGame.xtFinishersMgr.eventMgr, actionContext);
 			theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.FINISHER_CAM_EVENT_ID, eventData);
 			actionContext = eventData.context;
 		}

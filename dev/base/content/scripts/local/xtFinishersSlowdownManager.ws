@@ -37,10 +37,7 @@ abstract class XTFinishersAbstractSlowdownManager extends XTFinishersSlowdownMan
 	}
 	
 	protected function StartSlowdownSequence(sequenceDef : XTFinishersSlowdownSequenceDef) {
-		var eventData : XTFinishersActionContextData;
-		
-		eventData = theGame.xtFinishersMgr.eventMgr.CreateActionContextData(sequenceContext);
-		theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.SLOWDOWN_SEQUENCE_START_EVENT_ID, eventData);
+		theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.SLOWDOWN_SEQUENCE_START_EVENT_ID, CreateXTFinishersActionContextData(this, sequenceContext));
 		
 		this.sequenceDef = sequenceDef;
 		this.currentIndex = 0;
@@ -49,14 +46,11 @@ abstract class XTFinishersAbstractSlowdownManager extends XTFinishersSlowdownMan
 	}
 	
 	protected function EndSlowdownSequence() {
-		var eventData : XTFinishersActionContextData;
-		
 		sequenceActive = false;
 		currentIndex = -1;
 		OnSlowdownSequenceEnd(sequenceContext);
 		
-		eventData = theGame.xtFinishersMgr.eventMgr.CreateActionContextData(sequenceContext);
-		theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.SLOWDOWN_SEQUENCE_END_EVENT_ID, eventData);
+		theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.SLOWDOWN_SEQUENCE_END_EVENT_ID, CreateXTFinishersActionContextData(this, sequenceContext));
 	}
 	
 	private function TrySlowdownSegment() {
@@ -69,7 +63,6 @@ abstract class XTFinishersAbstractSlowdownManager extends XTFinishersSlowdownMan
 	
 	public function StartSlowdownSegment() {
 		var segment : XTFinishersSlowdownSegment;
-		var eventData : XTFinishersSlowdownSegmentData;
 	
 		if (!thePlayer.IsCameraControlDisabled('Finisher')) { // make sure finisher cam is not active
 			segment = sequenceDef.GetSegment(currentIndex);
@@ -78,15 +71,13 @@ abstract class XTFinishersAbstractSlowdownManager extends XTFinishersSlowdownMan
 			
 			OnSlowdownSegmentStart(segment);
 			
-			eventData = theGame.xtFinishersMgr.eventMgr.CreateSlowdownSegmentData(segment);
-			theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.SLOWDOWN_SEGMENT_START_EVENT_ID, eventData);
+			theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.SLOWDOWN_SEGMENT_START_EVENT_ID, CreateXTFinishersSlowdownSegmentData(this, segment));
 		}
 	}
 	
 	// success : if the slowdown session timed out as intended (i.e. it was not terminated prematurely)
 	public function EndSlowdownSegment(success : bool) {
 		var segment : XTFinishersSlowdownSegment;
-		var eventData : XTFinishersSlowdownSegmentData;
 		
 		segment = sequenceDef.GetSegment(currentIndex);
 		
@@ -94,8 +85,7 @@ abstract class XTFinishersAbstractSlowdownManager extends XTFinishersSlowdownMan
 		
 		OnSlowdownSessionEnd(segment, success);
 		
-		eventData = theGame.xtFinishersMgr.eventMgr.CreateSlowdownSegmentData(segment, success);
-		theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.SLOWDOWN_SEGMENT_END_EVENT_ID, eventData);
+		theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.SLOWDOWN_SEGMENT_END_EVENT_ID, CreateXTFinishersSlowdownSegmentData(this, segment, success));
 		
 		currentIndex += 1;
 		TrySlowdownSegment();

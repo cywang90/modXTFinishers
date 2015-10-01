@@ -61,7 +61,7 @@ class W3DamageManagerProcessor extends CObject
 		actionContext = theGame.xtFinishersMgr.CreateActionContext(action, new XTFinishersEffectsSnapshot in this);
 		actionContext.effectsSnapshot.Initialize(actorVictim);
 		
-		eventData = theGame.xtFinishersMgr.eventMgr.CreateActionContextData(actionContext);
+		eventData = CreateXTFinishersActionContextData(theGame.xtFinishersMgr.eventMgr, actionContext);
 		theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.ACTION_START_EVENT_ID, eventData);
 		actionContext = eventData.context;
 		// modXTFinishers END
@@ -304,7 +304,7 @@ class W3DamageManagerProcessor extends CObject
 		PostProcessActionTutorial();
 		
 		// modXTFinishers BEGIN
-		eventData = theGame.xtFinishersMgr.eventMgr.CreateActionContextData(actionContext);
+		eventData = CreateXTFinishersActionContextData(theGame.xtFinishersMgr.eventMgr, actionContext);
 		theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.ACTION_END_EVENT_ID, eventData);
 		actionContext = eventData.context;
 		
@@ -1568,7 +1568,7 @@ class W3DamageManagerProcessor extends CObject
 			weaponName = actorAttacker.GetInventory().GetItemName(attackAction.GetWeaponId());
 		}
 		
-		eventData = theGame.xtFinishersMgr.eventMgr.CreateActionContextData(actionContext);
+		eventData = CreateXTFinishersActionContextData(theGame.xtFinishersMgr.eventMgr, actionContext);
 		theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.REACTION_START_EVENT_ID, eventData);
 		actionContext = eventData.context;
 		
@@ -1724,7 +1724,7 @@ class W3DamageManagerProcessor extends CObject
 		}
 		
 		// modXTFinishers BEGIN
-		eventData = theGame.xtFinishersMgr.eventMgr.CreateActionContextData(actionContext);
+		eventData = CreateXTFinishersActionContextData(theGame.xtFinishersMgr.eventMgr, actionContext);
 		theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.REACTION_END_EVENT_ID, eventData);
 		actionContext = eventData.context;
 		// modXTFinishers END
@@ -2165,7 +2165,7 @@ class W3DamageManagerProcessor extends CObject
 			DropEquipmentFromDismember( usedWound, true, true );
 			
 			// modXTFinishers BEGIN
-			eventData = theGame.xtFinishersMgr.eventMgr.CreateActionContextData(actionContext);
+			eventData = CreateXTFinishersActionContextData(theGame.xtFinishersMgr.eventMgr, actionContext);
 			theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.DISMEMBER_EVENT_ID, eventData);
 			actionContext = eventData.context;
 			
@@ -2227,7 +2227,7 @@ class W3DamageManagerProcessor extends CObject
 		DropEquipmentFromDismember( wound, true, true );
 		
 		// modXTFinishers BEGIN
-		eventData = theGame.xtFinishersMgr.eventMgr.CreateActionContextData(actionContext);
+		eventData = CreateXTFinishersActionContextData(theGame.xtFinishersMgr.eventMgr, actionContext);
 		theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.DISMEMBER_EVENT_ID, eventData);
 		actionContext = eventData.context;
 		
