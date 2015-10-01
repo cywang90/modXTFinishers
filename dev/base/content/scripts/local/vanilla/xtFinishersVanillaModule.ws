@@ -1,4 +1,4 @@
-class XTFinishersVanillaModule {
+class XTFinishersVanillaModule extends XTFinishersObject {
 	public function InitFinisherComponents() {
 		theGame.xtFinishersMgr.queryMgr.LoadFinisherResponder(new XTFinishersVanillaFinisherQueryResponder in this);
 		theGame.xtFinishersMgr.queryMgr.LoadFinisherCamResponder(new XTFinishersVanillaFinisherCamQueryResponder in this);
@@ -25,7 +25,7 @@ class XTFinishersVanillaFinisherQueryDispatcher extends XTFinishersAbstractReact
 		return theGame.xtFinishersMgr.consts.VANILLA_FINISHER_QUERY_DISPATCHER_PRIORITY;
 	}
 	
-	public function OnReactionStartTriggered(out context : XTFinishersActionContext) {
+	public function OnReactionStartTriggered(context : XTFinishersActionContext) {
 		theGame.xtFinishersMgr.queryMgr.FireFinisherQuery(context);
 	}
 }
@@ -35,7 +35,7 @@ class XTFinishersVanillaDismemberQueryDispatcher extends XTFinishersAbstractReac
 		return theGame.xtFinishersMgr.consts.VANILLA_DISMEMBER_QUERY_DISPATCHER_PRIORITY;
 	}
 	
-	public function OnReactionStartTriggered(out context : XTFinishersActionContext) {
+	public function OnReactionStartTriggered(context : XTFinishersActionContext) {
 		theGame.xtFinishersMgr.queryMgr.FireDismemberQuery(context);
 	}
 }
@@ -45,7 +45,7 @@ class XTFinishersVanillaFinisherCamQueryDispatcher extends XTFinishersAbstractFi
 		return theGame.xtFinishersMgr.consts.VANILLA_FINISHER_CAM_QUERY_DISPATCHER_PRIORITY;
 	}
 	
-	public function OnFinisherTriggered(out context : XTFinishersActionContext) {
+	public function OnFinisherTriggered(context : XTFinishersActionContext) {
 		theGame.xtFinishersMgr.queryMgr.FireFinisherCamQuery(context);
 	}
 }
@@ -55,7 +55,7 @@ class XTFinishersVanillaCamShakeHandler extends XTFinishersAbstractActionEndEven
 		return theGame.xtFinishersMgr.consts.VANILLA_CAMSHAKE_HANDLER_PRIORITY;
 	}
 	
-	protected function ProcessNormalStrike(out context : XTFinishersActionContext) {
+	protected function ProcessNormalStrike(context : XTFinishersActionContext) {
 		var playerAttacker : CR4Player;
 		var attackAction : W3Action_Attack;
 		
@@ -89,7 +89,7 @@ class XTFinishersVanillaCamShakeHandler extends XTFinishersAbstractActionEndEven
 		}
 	}
 	
-	protected function ProcessCriticalHit(out context : XTFinishersActionContext) {
+	protected function ProcessCriticalHit(context : XTFinishersActionContext) {
 		var attackAction : W3Action_Attack;
 		var actorVictim : CActor;
 		
@@ -103,7 +103,7 @@ class XTFinishersVanillaCamShakeHandler extends XTFinishersAbstractActionEndEven
 		}
 	}
 	
-	protected function ProcessDismember(out context : XTFinishersActionContext) {
+	protected function ProcessDismember(context : XTFinishersActionContext) {
 		var actorAttacker : CActor;
 		
 		actorAttacker = (CActor)context.action.attacker;
@@ -117,7 +117,7 @@ class XTFinishersVanillaCamShakeHandler extends XTFinishersAbstractActionEndEven
 		}
 	}
 	
-	public function OnActionEndTriggered(out context : XTFinishersActionContext) {
+	public function OnActionEndTriggered(context : XTFinishersActionContext) {
 		ProcessNormalStrike(context);
 		ProcessCriticalHit(context);
 		ProcessDismember(context);
@@ -141,7 +141,39 @@ class XTFinishersVanillaFinisherQueryResponder extends XTFinishersFinisherQueryR
 				&& (context.effectsSnapshot.HasEffect(EET_Confusion) || context.effectsSnapshot.HasEffect(EET_AxiiGuardMe));
 	}
 	
-	public function CanPerformFinisher(out context : XTFinishersActionContext) {
+	protected function SelectFinisherAnimName(context : XTFinishersActionContext) : name {
+		var syncAnimName 	: name;
+		var dlcFinishers : array<CR4FinisherDLC>;
+		var syncAnimsNames	: array<name>;
+		var size 			: int;
+		var i 				: int;
+		
+		if (thePlayer.forceFinisher && thePlayer.forceFinisherAnimName != '') {
+			return thePlayer.forceFinisherAnimName;
+		}
+		
+		if (thePlayer.GetCombatIdleStance() <= 0.f) {
+			syncAnimsNames.PushBack('man_finisher_02_lp');
+			syncAnimsNames.PushBack('man_finisher_04_lp');
+			syncAnimsNames.PushBack('man_finisher_06_lp');
+			syncAnimsNames.PushBack('man_finisher_07_lp');
+			syncAnimsNames.PushBack('man_finisher_08_lp');
+			dlcFinishers = theGame.GetSyncAnimManager().dlcFinishersLeftSide;
+		} else {
+			syncAnimsNames.PushBack('man_finisher_01_rp');
+			syncAnimsNames.PushBack('man_finisher_03_rp');
+			syncAnimsNames.PushBack('man_finisher_05_rp');
+			dlcFinishers = theGame.GetSyncAnimManager().dlcFinishersLeftSide;
+		}
+		size = dlcFinishers.Size();
+		for (i = 0; i < size; i += 1) {
+			syncAnimsNames.PushBack(dlcFinishers[i].finisherAnimName);
+		}
+			
+		return syncAnimsNames[RandRange(syncAnimsNames.Size(), 0)];
+	}
+	
+	public function CanPerformFinisher(context : XTFinishersActionContext) {
 		var actorVictim				: CActor;
 		var attackAction			: W3Action_Attack;
 		var finisherChance 			: float;
@@ -250,12 +282,14 @@ class XTFinishersVanillaFinisherQueryResponder extends XTFinishersFinisherQueryR
 				context.finisher.instantKill = true;
 			}
 			context.finisher.active = true;
+			
+			context.finisher.animName = SelectFinisherAnimName(context);
 		}
 	}
 }
 
 class XTFinishersVanillaDismemberQueryResponder extends XTFinishersDismemberQueryResponder {
-	public function CanPerformDismember(out context : XTFinishersActionContext) {
+	public function CanPerformDismember(context : XTFinishersActionContext) {
 		var playerAttacker		: CR4Player;
 		var actorAttacker		: CActor;
 		var actorVictim			: CActor;
@@ -363,7 +397,7 @@ class XTFinishersVanillaDismemberQueryResponder extends XTFinishersDismemberQuer
 }
 
 class XTFinishersVanillaFinisherCamQueryResponder extends XTFinishersFinisherCamQueryResponder {
-	public function CanPerformFinisherCam(out context : XTFinishersActionContext) {
+	public function CanPerformFinisherCam(context : XTFinishersActionContext) {
 		context.finisherCam.active = thePlayer.IsLastEnemyKilled() && theGame.GetWorld().NavigationCircleTest(thePlayer.GetWorldPosition(), 3.f);
 	}
 }

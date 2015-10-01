@@ -1,12 +1,20 @@
-class XTFinishersDefaultDismemberModule {
+class XTFinishersDefaultDismemberModule extends XTFinishersObject {
 	public var params : XTFinishersDefaultDismemberParams;
 	
 	public function Init() {
 		params = new XTFinishersDefaultDismemberParams in this;
 		
-		theGame.xtFinishersMgr.queryMgr.LoadDismemberResponder(new XTFinishersDefaultDismemberQueryResponder in this);
+		theGame.xtFinishersMgr.queryMgr.LoadDismemberResponder(GetNewDismemberQueryResponderInstance());
 		
-		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.REACTION_START_EVENT_ID, new XTFinishersDefaultDismemberQueryDispatcher in this);
+		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.REACTION_START_EVENT_ID, GetNewDismemberQueryDispatcherInstance());
+	}
+	
+	protected function GetNewDismemberQueryResponderInstance() : XTFinishersDismemberQueryResponder {
+		return new XTFinishersDefaultDismemberQueryResponder in this;
+	}
+	
+	protected function GetNewDismemberQueryDispatcherInstance() : XTFinishersAbstractReactionStartEventListener {
+		return new XTFinishersDefaultDismemberQueryDispatcher in this;
 	}
 }
 
@@ -17,7 +25,7 @@ class XTFinishersDefaultDismemberQueryDispatcher extends XTFinishersAbstractReac
 		return theGame.xtFinishersMgr.consts.DEFAULT_DISMEMBER_QUERY_DISPATCHER_PRIORITY;
 	}
 	
-	public function OnReactionStartTriggered(out context : XTFinishersActionContext) {
+	public function OnReactionStartTriggered(context : XTFinishersActionContext) {
 		theGame.xtFinishersMgr.queryMgr.FireDismemberQuery(context);
 	}
 }
@@ -25,7 +33,7 @@ class XTFinishersDefaultDismemberQueryDispatcher extends XTFinishersAbstractReac
 // responders
 
 class XTFinishersDefaultDismemberQueryResponder extends XTFinishersDismemberQueryResponder {
-	public function CanPerformDismember(out context : XTFinishersActionContext) {
+	public function CanPerformDismember(context : XTFinishersActionContext) {
 		var playerAttacker		: CR4Player;
 		var actorAttacker		: CActor;
 		var actorVictim			: CActor;

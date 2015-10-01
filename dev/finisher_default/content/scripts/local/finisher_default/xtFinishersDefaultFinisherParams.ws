@@ -1,5 +1,9 @@
 class XTFinishersDefaultFinisherParams {
-	// finisher settings
+	//==================
+	// FINISHER SETTINGS
+	//==================
+	
+	// REGULAR finishers
 	public const var FINISHER_REQUIRE_NO_AGGRO, FINISHER_REQUIRE_NAV_CHECK : bool;
 		default FINISHER_REQUIRE_NO_AGGRO = true;					// if TRUE -> REGULAR finishers will not trigger if Geralt has aggro.
 		default FINISHER_REQUIRE_NAV_CHECK = true;					// if TRUE -> REGULAR finishers will not trigger if there are obstacles (walls, cliffs, objects, etc.) near Geralt.
@@ -9,6 +13,8 @@ class XTFinishersDefaultFinisherParams {
 		default FINISHER_CHANCE_BASE = 0.0;							// Base chance to perform a REGULAR finisher.
 		default FINISHER_CHANCE_LEVEL_BONUS = 0.0;					// Bonus chance to perform a REGULAR finisher for every level Geralt is above the enemy.
 		default FINISHER_CHANCE_LEVEL_PENALTY = 0.0;				// Penalty to chance to perform a REGULAR finisher for every level Geralt is below the enemy.
+	
+	// AUTOMATIC finishers
 	public const var FINISHER_AUTO_CHANCE_EFFECTS, FINISHER_AUTO_CHANCE_CRIT, FINISHER_AUTO_CHANCE_REND, FINISHER_AUTO_CHANCE_LAST_ENEMY : float;
 		default FINISHER_AUTO_CHANCE_EFFECTS = 100.0;				// Chance to perform an AUTOMATIC finisher when target has certain effects. Use the Init() function to define which effects.
 		default FINISHER_AUTO_CHANCE_CRIT = 0.0;					// Chance to perform an AUTOMATIC finisher on critical hits.
@@ -17,6 +23,8 @@ class XTFinishersDefaultFinisherParams {
 	public const var FINISHER_AUTO_REQUIRE_NO_AGGRO, FINISHER_AUTO_REQUIRE_NAV_CHECK : bool;
 		default FINISHER_AUTO_REQUIRE_NO_AGGRO = false;				// if TRUE -> AUTOMATIC finishers will not trigger if Geralt has aggro.
 		default FINISHER_AUTO_REQUIRE_NAV_CHECK = false;			// if TRUE -> AUTOMATIC finishers will not trigger if there are obstacles (walls, cliffs, objects, etc.) near Geralt.
+	
+	// INSTANT-KILL finishers
 	public const var FINISHER_INSTANTKILL_CHANCE_EFFECTS, FINISHER_INSTANTKILL_CHANCE_CRIT, FINISHER_INSTANTKILL_CHANCE_LAST_ENEMY : float;
 		default FINISHER_INSTANTKILL_CHANCE_EFFECTS = 100.0;		// Chance to perform an INSTANT-KILL finisher when target has certain effects. Use the Init() function to define which effects.
 		default FINISHER_INSTANTKILL_CHANCE_CRIT = 0.0;				// Chance to perform an INSTANT-KILL finisher on critical hits.
@@ -25,18 +33,29 @@ class XTFinishersDefaultFinisherParams {
 		default FINISHER_INSTANTKILL_REQUIRE_NO_AGGRO = false;		// if TRUE -> INSTANT-KILL finishers will not trigger if Geralt has aggro.
 		default FINISHER_INSTANTKILL_REQUIRE_NAV_CHECK = false;		// if TRUE -> INSTANT-KILL finishers will not trigger if there are obstacles (walls, cliffs, objects, etc.) near Geralt.
 	
-	// finisher cam settings
+	//======================
+	// FINISHER CAM SETTINGS
+	//======================
+	
 	public const var FINISHER_CAM_CHANCE : float;
 		default FINISHER_CAM_CHANCE = 0.0;							// Chance to activate cinematic finisher camera when a finisher is triggered.
 	public const var FINISHER_CAM_CHANCE_LAST_ENEMY : float;
-		default FINISHER_CAM_CHANCE_LAST_ENEMY = 100.0;				// Chance to activate cinematic finisher camera when a finisher is triggered on the LAST enemy in combat.
+		default FINISHER_CAM_CHANCE_LAST_ENEMY = 0.0;				// Chance to activate cinematic finisher camera when a finisher is triggered on the LAST enemy in combat.
 	public const var FINISHER_CAM_REQUIRE_NAV_CHECK : bool;
 		default FINISHER_CAM_REQUIRE_NAV_CHECK = false;				// if TRUE -> cinematic finisher camera will not activate if there are obstacles (walls, cliffs, objects, etc.) near Geralt.
 	
 	
 	public var autoFinisherEffectTypes, instantKillFinisherEffectTypes : array<EEffectType>;
 	
+	public var allowedLeftSideFinisherAnimNames, allowedRightSideFinisherAnimNames : array<name>;
+	
 	public function Init() {
+		var dlcFinishers : array<CR4FinisherDLC>;
+		
+		//===================================
+		// AUTOMATIC FINISHER EFFECT TRIGGERS
+		//===================================
+		
 		// load effect types that allow AUTOMATIC finishers (comment to disable, uncomment to enable)
 		autoFinisherEffectTypes.PushBack(EET_Confusion);				// Axii stun
 		autoFinisherEffectTypes.PushBack(EET_AxiiGuardMe);				// Axii mind control
@@ -45,6 +64,10 @@ class XTFinishersDefaultFinisherParams {
 		//autoFinisherEffectTypes.PushBack(EET_Bleeding);				// Bleeding
 		//autoFinisherEffectTypes.PushBack(EET_Poison);					// Poison
 		
+		//======================================
+		// INSTANT-KILL FINISHER EFFECT TRIGGERS
+		//======================================
+		
 		// load effect types that allow instant-kill finishers (comment to disable, uncomment to enable)
 		instantKillFinisherEffectTypes.PushBack(EET_Confusion);			// Axii stun
 		instantKillFinisherEffectTypes.PushBack(EET_AxiiGuardMe);		// Axii mind control
@@ -52,5 +75,40 @@ class XTFinishersDefaultFinisherParams {
 		//instantKillFinisherEffectTypes.PushBack(EET_Burning);			// Burning
 		//instantKillFinisherEffectTypes.PushBack(EET_Bleeding);		// Bleeding
 		//instantKillFinisherEffectTypes.PushBack(EET_Poison);			// Poison
+		
+		//====================
+		// FINISHER ANIMATIONS
+		//====================
+		
+		// load allowed finisher animations (comment to disable, uncomment to enable)
+		
+		allowedLeftSideFinisherAnimNames.PushBack('man_finisher_02_lp');
+		allowedLeftSideFinisherAnimNames.PushBack('man_finisher_04_lp');
+		allowedLeftSideFinisherAnimNames.PushBack('man_finisher_06_lp');
+		allowedLeftSideFinisherAnimNames.PushBack('man_finisher_07_lp');
+		allowedLeftSideFinisherAnimNames.PushBack('man_finisher_08_lp');
+		
+		allowedRightSideFinisherAnimNames.PushBack('man_finisher_01_rp');
+		allowedRightSideFinisherAnimNames.PushBack('man_finisher_03_rp');
+		allowedRightSideFinisherAnimNames.PushBack('man_finisher_05_rp');
+		
+		//========================
+		// DLC FINISHER ANIMATIONS
+		//========================
+		
+		// load allowed DLC finisher animations (comment to disable, uncomment to enable)
+		
+		dlcFinishers = theGame.GetSyncAnimManager().dlcFinishersRightSide;
+		if (dlcFinishers.Size() > 0) {
+			allowedLeftSideFinisherAnimNames.PushBack('man_finisher_dlc_arm_lp');
+			allowedLeftSideFinisherAnimNames.PushBack('man_finisher_dlc_legs_lp');
+			allowedLeftSideFinisherAnimNames.PushBack('man_finisher_dlc_torso_lp');
+			
+			allowedRightSideFinisherAnimNames.PushBack('man_finisher_dlc_arm_rp');
+			allowedRightSideFinisherAnimNames.PushBack('man_finisher_dlc_legs_rp');
+			allowedRightSideFinisherAnimNames.PushBack('man_finisher_dlc_torso_rp');
+			allowedRightSideFinisherAnimNames.PushBack('man_finisher_dlc_head_rp');
+			allowedRightSideFinisherAnimNames.PushBack('man_finisher_dlc_neck_rp');
+		}
 	}
 }
