@@ -8,7 +8,7 @@
 		- listener a is guaranteed to be called before listener b if and only if a.GetPriority() < b.GetPriority().
 		- if a.GetPriority() == b.GetPriority() is true, there is no guarantee which one will be called first.
 */
-class XTFinishersEventManager {
+class XTFinishersEventManager extends XTFinishersObject {
 	private var queues : array<XTFinishersPriorityListenerQueue>;
 	private var ids : array<string>;
 	
@@ -93,23 +93,9 @@ class XTFinishersEventManager {
 		ids[pos1] = ids[pos2];
 		ids[pos2] = temp;
 	}
-	
-	public function CreateActionContextData(context : XTFinishersActionContext) : XTFinishersActionContextData {
-		var data : XTFinishersActionContextData;
-		data = new XTFinishersActionContextData in this;
-		data.SetData(context);
-		return data;
-	}
-	
-	public function CreateSlowdownSegmentData(segment : XTFinishersSlowdownSegment, optional success : bool) : XTFinishersSlowdownSegmentData {
-		var data : XTFinishersSlowdownSegmentData;
-		data = new XTFinishersSlowdownSegmentData in this;
-		data.SetData(segment, success);
-		return data;
-	}
 }
 
-class XTFinishersPriorityListenerQueue {
+class XTFinishersPriorityListenerQueue extends XTFinishersObject {
 	private var queue : array<XTFinishersPriorityListener>;
 	
 	public function Size() : int {
@@ -214,7 +200,7 @@ class XTFinishersPriorityListenerQueue {
 	}
 }
 
-abstract class XTFinishersPriorityListener {
+abstract class XTFinishersPriorityListener extends XTFinishersObject {
 	private var priority : int;
 	
 	public function Init(priorityArg : int) {
@@ -228,7 +214,7 @@ abstract class XTFinishersPriorityListener {
 	public function OnEventTriggered(id : string, data : XTFinishersEventData);
 }
 
-abstract class XTFinishersEventData {}
+abstract class XTFinishersEventData extends XTFinishersObject {}
 
 class XTFinishersActionContextData extends XTFinishersEventData {
 	public var context : XTFinishersActionContext;
@@ -236,6 +222,15 @@ class XTFinishersActionContextData extends XTFinishersEventData {
 	public function SetData(context : XTFinishersActionContext) {
 		this.context = context;
 	}
+}
+
+function CreateXTFinishersActionContextData(owner : XTFinishersObject, context : XTFinishersActionContext) : XTFinishersActionContextData {
+	var newInstance : XTFinishersActionContextData;
+	
+	newInstance = new XTFinishersActionContextData in owner;
+	newInstance.SetData(context);
+	
+	return newInstance;
 }
 
 abstract class XTFinishersAbstractActionStartEventListener extends XTFinishersPriorityListener {
@@ -249,7 +244,7 @@ abstract class XTFinishersAbstractActionStartEventListener extends XTFinishersPr
 		actionContextData.SetData(context);
 	}
 	
-	public function OnActionStartTriggered(out context : XTFinishersActionContext);
+	public function OnActionStartTriggered(context : XTFinishersActionContext);
 }
 
 abstract class XTFinishersAbstractActionEndEventListener extends XTFinishersPriorityListener {
@@ -263,7 +258,7 @@ abstract class XTFinishersAbstractActionEndEventListener extends XTFinishersPrio
 		actionContextData.SetData(context);
 	}
 	
-	public function OnActionEndTriggered(out context : XTFinishersActionContext);
+	public function OnActionEndTriggered(context : XTFinishersActionContext);
 }
 
 abstract class XTFinishersAbstractReactionStartEventListener extends XTFinishersPriorityListener {
@@ -277,7 +272,7 @@ abstract class XTFinishersAbstractReactionStartEventListener extends XTFinishers
 		actionContextData.SetData(context);
 	}
 	
-	public function OnReactionStartTriggered(out context : XTFinishersActionContext);
+	public function OnReactionStartTriggered(context : XTFinishersActionContext);
 }
 
 abstract class XTFinishersAbstractReactionEndEventListener extends XTFinishersPriorityListener {
@@ -291,7 +286,7 @@ abstract class XTFinishersAbstractReactionEndEventListener extends XTFinishersPr
 		actionContextData.SetData(context);
 	}
 	
-	public function OnReactionEndTriggered(out context : XTFinishersActionContext);
+	public function OnReactionEndTriggered(context : XTFinishersActionContext);
 }
 
 abstract class XTFinishersAbstractFinisherEventListener extends XTFinishersPriorityListener {
@@ -305,7 +300,7 @@ abstract class XTFinishersAbstractFinisherEventListener extends XTFinishersPrior
 		actionContextData.SetData(context);
 	}
 	
-	public function OnFinisherTriggered(out context : XTFinishersActionContext);
+	public function OnFinisherTriggered(context : XTFinishersActionContext);
 }
 
 abstract class XTFinishersAbstractDismemberEventListener extends XTFinishersPriorityListener {
@@ -319,7 +314,7 @@ abstract class XTFinishersAbstractDismemberEventListener extends XTFinishersPrio
 		actionContextData.SetData(context);
 	}
 	
-	public function OnDismemberTriggered(out context : XTFinishersActionContext);
+	public function OnDismemberTriggered(context : XTFinishersActionContext);
 }
 
 abstract class XTFinishersAbstractFinisherCamEventListener extends XTFinishersPriorityListener {
@@ -333,7 +328,7 @@ abstract class XTFinishersAbstractFinisherCamEventListener extends XTFinishersPr
 		actionContextData.SetData(context);
 	}
 	
-	public function OnFinisherCamTriggered(out context : XTFinishersActionContext);
+	public function OnFinisherCamTriggered(context : XTFinishersActionContext);
 }
 
 class XTFinishersSlowdownSegmentData extends XTFinishersEventData {
@@ -344,6 +339,15 @@ class XTFinishersSlowdownSegmentData extends XTFinishersEventData {
 		this.segment = segment;
 		this.success = success;
 	}
+}
+
+function CreateXTFinishersSlowdownSegmentData(owner : XTFinishersObject, segment : XTFinishersSlowdownSegment, optional success : bool) : XTFinishersSlowdownSegmentData {
+	var newInstance : XTFinishersSlowdownSegmentData;
+	
+	newInstance = new XTFinishersSlowdownSegmentData in owner;
+	newInstance.SetData(segment, success);
+	
+	return newInstance;
 }
 
 abstract class XTFinishersAbstractSlowdownEventListener extends XTFinishersPriorityListener {
@@ -388,8 +392,8 @@ abstract class XTFinishersAbstractSlowdownEventListener extends XTFinishersPrior
 		}
 	}
 	
-	public function OnSlowdownSequenceStartTriggered(out context : XTFinishersActionContext);
-	public function OnSlowdownSequenceEndTriggered(out context : XTFinishersActionContext);
+	public function OnSlowdownSequenceStartTriggered(context : XTFinishersActionContext);
+	public function OnSlowdownSequenceEndTriggered(context : XTFinishersActionContext);
 	
 	public function OnSlowdownSegmentStart(segment : XTFinishersSlowdownSegment);
 	public function OnSlowdownSegmentEnd(segment : XTFinishersSlowdownSegment, success : bool);

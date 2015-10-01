@@ -4,7 +4,7 @@
 	
 	The FireXXQuery() functions update contexts passed to them after they have been processed by responders. Responders should write any desired outputs to these contexts.
 */
-class XTFinishersQueryManager {
+class XTFinishersQueryManager extends XTFinishersObject {
 	private var finisherResponder : XTFinishersFinisherQueryResponder;
 	private var dismemberResponder : XTFinishersDismemberQueryResponder;
 	private var finisherCamResponder : XTFinishersFinisherCamQueryResponder;
@@ -30,35 +30,35 @@ class XTFinishersQueryManager {
 	
 	// fire queries
 	
-	public function FireFinisherQuery(out context : XTFinishersActionContext) {
+	public function FireFinisherQuery(context : XTFinishersActionContext) {
 		finisherResponder.CanPerformFinisher(context);
 	}
 	
-	public function FireDismemberQuery(out context : XTFinishersActionContext) {
+	public function FireDismemberQuery(context : XTFinishersActionContext) {
 		dismemberResponder.CanPerformDismember(context);
 	}
 	
-	public function FireFinisherCamQuery(out context : XTFinishersActionContext) {
+	public function FireFinisherCamQuery(context : XTFinishersActionContext) {
 		finisherCamResponder.CanPerformFinisherCam(context);
 	}
 	
-	public function FireSlowdownQuery(out context : XTFinishersActionContext) {
+	public function FireSlowdownQuery(context : XTFinishersActionContext) {
 		slowdownResponder.CanPerformSlowdown(context);
 	}
 }
 
-abstract class XTFinishersFinisherQueryResponder {
-	public function CanPerformFinisher(out context : XTFinishersActionContext);
+abstract class XTFinishersFinisherQueryResponder extends XTFinishersObject {
+	public function CanPerformFinisher(context : XTFinishersActionContext);
 }
 
-abstract class XTFinishersDismemberQueryResponder {
-	public function CanPerformDismember(out context : XTFinishersActionContext);
+abstract class XTFinishersDismemberQueryResponder extends XTFinishersObject {
+	public function CanPerformDismember(context : XTFinishersActionContext);
 }
 
-abstract class XTFinishersFinisherCamQueryResponder {
-	public function CanPerformFinisherCam(out context : XTFinishersActionContext);
+abstract class XTFinishersFinisherCamQueryResponder extends XTFinishersObject {
+	public function CanPerformFinisherCam(context : XTFinishersActionContext);
 }
 
-abstract class XTFinishersSlowdownQueryResponder {
-	public function CanPerformSlowdown(out context : XTFinishersActionContext);
+abstract class XTFinishersSlowdownQueryResponder extends XTFinishersObject {
+	public function CanPerformSlowdown(context : XTFinishersActionContext);
 }
