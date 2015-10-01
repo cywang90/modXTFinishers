@@ -8,9 +8,10 @@ Author: aznricepuff
 INSTALLATION
 ------------
 
-1. Create a folder named "mods" in your "<The Witcher 3 Path>\" directory. Skip this step if such a folder already exists.
-2. Create a text file in your "My Documents\The Witcher 3\" directory and name it "mods.settings". Skip this step if you already have a mods.settings file.
-3. Add the following lines in your mods.settings file:
+1. Create a folder named "mods" in your <The Witcher 3 Path>\ directory. Skip this step if such a folder already exists.
+2. Create a new folder named "modXTFinishers" in your <The Witcher 3 Path>\mods\ directory.
+3. Create a text file in your My Documents\The Witcher 3\ directory and name it "mods.settings". Skip this step if you already have a mods.settings file.
+4. Add the following lines in your mods.settings file:
 
 [modXTFinishers]
 Enabled=1
@@ -33,7 +34,7 @@ eXTensible Finishers is organized into two main parts:
 INSTALLING JUST THE BASE MOD
 ----------------------------
 	1. Download the "modXTFinishers_BASE_ONLY" file from Nexus Mods.
-	2. Copy the "content" folder in the "modXTFinishers\base" directory into your "<The Witcher 3 Path>\mods\" directory.
+	2. Copy the "content" folder in the modXTFinishers\base directory located in the download package into your <The Witcher 3 Path>\mods\modXTFinishers directory.
 	
 INSTALLING THE DEFAULT MODULES
 ------------------------------
