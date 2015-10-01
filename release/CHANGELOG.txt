@@ -2,9 +2,59 @@
 eXTensible Finishers Changelog
 ==============================
 
------
-v2.02
------
+------------
+Release 2.03
+------------
+
+Includes
+--------
+BASE		eXTensible Finishers		v2.02
+MODULE		finisher_default			v1.03
+MODULE		dismember_default			v1.02
+MODULE		slowdown_default			v1.01
+MODULE		camshake_default			v1.01
+
+General
+-------
+- Segregated script files into subdirectories in content\scripts\local\
+
+API
+---
+- BASE		eXTensible Finishers
+	- Most classes defined by eXTensible Finishers are now subclasses of XTFinishersObject.
+	- Changed XTFinishersActionContext's data type from struct to class. As a result, changes made to action contexts are now persistent without needing to be copied from stack to stack.
+	- Moved the constructors for the concrete subclasses of XTFinishersEventData out of XTFinishersEventManager. They are now global functions.
+	- Action contexts are now only loaded into thePlayer when context.finisher.active == true.
+	- Added constructors for XTFinishersSlowdownSession and XTFinishersSlowdownDelay.
+- MODULE	finisher_default
+	- XTFinishersDefaultFinisherModule.Init() now uses protected functions to initialize individual module components.
+- MODULE	dismember_default
+	- XTFinishersDefaultDismemberModule.Init() now uses protected functions to initialize individual module components.
+- MODULE	slowdown_default
+	- XTFinishersDefaultSlowdownModule.Init() now uses protected functions to initialize individual module components.
+	- XTFinishersDefaultSlowdownManager now uses protected functions to retrieve slowdown sequence definitions when a slowdown is triggered.
+- MODULE	camshake_default
+	- XTFinishersDefaultCamShakeModule.Init() now uses protected functions to initialize individual module components.
+
+Features
+--------
+- BASE		eXTensible Finishers
+	- Added the ability to set which finisher animation gets played when a finisher is triggered.
+- MODULE	finisher_default
+	- Added configuration options to choose which finisher animations are allowed to be played when a finisher is triggered.
+- MODULE	slowdown_default
+	- Added new configuration options for slowdowns on INSTANT-KILL finishers (previously INSTANT-KILL finishers were treated as REGULAR finishers).
+
+Bug Fixes
+---------
+- BASE		eXTensible Finishers
+	- Misc. minor bug fixes.
+- MODULE	slowdown_default
+	- Slowdowns will now correctly trigger on critical hits.
+
+------------
+Release 2.02
+------------
 
 Includes
 --------
@@ -27,9 +77,9 @@ Bug Fixes
 - MODULE	finisher_default:
 	- INSTANT-KILL finishers no longer always ignore aggro checks.
 
------
-v2.01
------
+------------
+Release 2.01
+------------
 
 Includes
 --------
@@ -48,9 +98,9 @@ Bug Fixes
 	- DISMEMBER_AUTO_STRONG is now a mutually exclusive condition with DISMEMBER_AUTO_REND (Rend attacks used to be eligible for both conditions).
 	- DISMEMBER_AUTO_FAST is now a mutually exclusive condition with DISMEMBER_AUTO_WHIRL (Whirl attacks used to be eligible for both conditions).
 
------
-v2.00
------
+------------
+Release 2.00
+------------
 
 Includes
 --------
@@ -90,8 +140,8 @@ Features
 - Added support for triggering slowdowns on critical hits.
 - Added expanded support for customizing camera-shake.
 
------
-v1.00
------
+------------
+Release 1.00
+------------
 
 Initial Release.

@@ -34,10 +34,6 @@ class W3DamageManagerProcessor extends CObject
 		var arrStr : array<string>;
 		var ciriPlayer : W3ReplacerCiri;
 		var buffs : array<EEffectType>;
-		// modXTFinishers BEGIN
-		var effectsSnapshot : XTFinishersEffectsSnapshot;
-		var eventData : XTFinishersActionContextData;
-		// modXTFinishers END
 		
 		if(!act || !act.victim)
 			return;
@@ -58,12 +54,9 @@ class W3DamageManagerProcessor extends CObject
  		InitializeActionVars(act);
  		
  		// modXTFinishers BEGIN
-		actionContext = theGame.xtFinishersMgr.CreateActionContext(action, new XTFinishersEffectsSnapshot in this);
-		actionContext.effectsSnapshot.Initialize(actorVictim);
+		actionContext = CreateXTFinishersActionContext(theGame.xtFinishersMgr, action);
 		
-		eventData = theGame.xtFinishersMgr.eventMgr.CreateActionContextData(actionContext);
-		theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.ACTION_START_EVENT_ID, eventData);
-		actionContext = eventData.context;
+		theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.ACTION_START_EVENT_ID, CreateXTFinishersActionContextData(theGame.xtFinishersMgr.eventMgr, actionContext));
 		// modXTFinishers END
  		
  		if(playerVictim && attackAction && attackAction.IsActionMelee() && !attackAction.CanBeParried() && attackAction.IsParried())
@@ -116,9 +109,7 @@ class W3DamageManagerProcessor extends CObject
 			}
 		}
 		
-		// modXTFinishers BEGIN
-		ProcessActionReaction(isFrozen, wasAlive, effectsSnapshot);
-		// modXTFinishers END
+		ProcessActionReaction(isFrozen, wasAlive);
 		
 		if( ( action.DealsAnyDamage() || action.ProcessBuffsIfNoDamage() ) )
 			ProcessActionBuffs();
@@ -304,9 +295,7 @@ class W3DamageManagerProcessor extends CObject
 		PostProcessActionTutorial();
 		
 		// modXTFinishers BEGIN
-		eventData = theGame.xtFinishersMgr.eventMgr.CreateActionContextData(actionContext);
-		theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.ACTION_END_EVENT_ID, eventData);
-		actionContext = eventData.context;
+		theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.ACTION_END_EVENT_ID, CreateXTFinishersActionContextData(theGame.xtFinishersMgr.eventMgr, actionContext));
 		
 		if (!actionContext.camShake.forceOff && (actionContext.camShake.forceOn || actionContext.camShake.active)) {
 			if (actionContext.camShake.useExtraOpts) {
@@ -315,8 +304,6 @@ class W3DamageManagerProcessor extends CObject
 				GCameraShake(actionContext.camShake.strength);
 			}
 		}
-		
-		thePlayer.LoadActionContext(actionContext);
 		// modXTFinishers END
 	}
 	
@@ -1538,7 +1525,7 @@ class W3DamageManagerProcessor extends CObject
 	
 	
 	
-	private function ProcessActionReaction(wasFrozen : bool, wasAlive : bool, effectsSnapshot : XTFinishersEffectsSnapshot)
+	private function ProcessActionReaction(wasFrozen : bool, wasAlive : bool)
 	{
 		var dismemberExplosion 			: bool;
 		var damageName 					: name;
@@ -1554,9 +1541,6 @@ class W3DamageManagerProcessor extends CObject
 		var playsNonAdditiveAnim		: bool;
 		var bleedCustomEffect 			: SCustomEffectParams;
 		var staminaPercent				: float;
-		// modXTFinishers BEGIN
-		var eventData : XTFinishersActionContextData;
-		// modXTFinishers END
 		
 		if(!actorVictim)
 			return;
@@ -1568,9 +1552,7 @@ class W3DamageManagerProcessor extends CObject
 			weaponName = actorAttacker.GetInventory().GetItemName(attackAction.GetWeaponId());
 		}
 		
-		eventData = theGame.xtFinishersMgr.eventMgr.CreateActionContextData(actionContext);
-		theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.REACTION_START_EVENT_ID, eventData);
-		actionContext = eventData.context;
+		theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.REACTION_START_EVENT_ID, CreateXTFinishersActionContextData(theGame.xtFinishersMgr.eventMgr, actionContext));
 		
 		// modXTFinishers BEGIN
 		if( actorVictim.IsAlive() && !actionContext.finisher.active )
@@ -1656,6 +1638,10 @@ class W3DamageManagerProcessor extends CObject
 					actorVictim.AddAbility( 'ForceFinisher', false );
 				
 				actorVictim.SignalGameplayEvent( 'ForceFinisher' );
+				
+				// modXTFinishers BEGIN
+				thePlayer.LoadActionContext(actionContext);
+				// modXTFinishers END
 			} 
 			else if ( weaponName == 'fists' && npcVictim )
 			{
@@ -1724,9 +1710,7 @@ class W3DamageManagerProcessor extends CObject
 		}
 		
 		// modXTFinishers BEGIN
-		eventData = theGame.xtFinishersMgr.eventMgr.CreateActionContextData(actionContext);
-		theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.REACTION_END_EVENT_ID, eventData);
-		actionContext = eventData.context;
+		theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.REACTION_END_EVENT_ID, CreateXTFinishersActionContextData(theGame.xtFinishersMgr.eventMgr, actionContext));
 		// modXTFinishers END
 	}
 	
@@ -2058,9 +2042,6 @@ class W3DamageManagerProcessor extends CObject
 		var dismembermentComp 	: CDismembermentComponent;
 		var specialWounds		: array< name >;
 		var useHitDirection		: bool;
-		// modXTFinishers BEGIN
-		var eventData : XTFinishersActionContextData;
-		// modXTFinishers END
 		
 		if(!actorVictim)
 			return;
@@ -2165,9 +2146,7 @@ class W3DamageManagerProcessor extends CObject
 			DropEquipmentFromDismember( usedWound, true, true );
 			
 			// modXTFinishers BEGIN
-			eventData = theGame.xtFinishersMgr.eventMgr.CreateActionContextData(actionContext);
-			theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.DISMEMBER_EVENT_ID, eventData);
-			actionContext = eventData.context;
+			theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.DISMEMBER_EVENT_ID, CreateXTFinishersActionContextData(theGame.xtFinishersMgr.eventMgr, actionContext));
 			
 			/*
 			if (attackAction) {	
@@ -2196,9 +2175,6 @@ class W3DamageManagerProcessor extends CObject
 		var wound				: name;
 		var i					: int;
 		var npcVictim			: CNewNPC;
-		// modXTFinishers BEGIN
-		var eventData : XTFinishersActionContextData;
-		// modXTFinishers END
 		
 		dismembermentComp = (CDismembermentComponent)(actorVictim.GetComponentByClassName( 'CDismembermentComponent' ));
 		if(!dismembermentComp)
@@ -2227,9 +2203,7 @@ class W3DamageManagerProcessor extends CObject
 		DropEquipmentFromDismember( wound, true, true );
 		
 		// modXTFinishers BEGIN
-		eventData = theGame.xtFinishersMgr.eventMgr.CreateActionContextData(actionContext);
-		theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.DISMEMBER_EVENT_ID, eventData);
-		actionContext = eventData.context;
+		theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.DISMEMBER_EVENT_ID, CreateXTFinishersActionContextData(theGame.xtFinishersMgr.eventMgr, actionContext));
 		
 		/*
 		if (attackAction) {		
