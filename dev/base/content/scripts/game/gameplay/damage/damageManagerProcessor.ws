@@ -58,7 +58,6 @@ class W3DamageManagerProcessor extends CObject
  		
  		// modXTFinishers BEGIN
 		actionContext = CreateXTFinishersActionContext(theGame.xtFinishersMgr, action);
-		thePlayer.LoadActionContext(actionContext);
 		
 		theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.ACTION_START_EVENT_ID, CreateXTFinishersActionContextData(theGame.xtFinishersMgr.eventMgr, actionContext));
 		// modXTFinishers END
@@ -1644,6 +1643,10 @@ class W3DamageManagerProcessor extends CObject
 					actorVictim.AddAbility( 'ForceFinisher', false );
 				
 				actorVictim.SignalGameplayEvent( 'ForceFinisher' );
+				
+				// modXTFinishers BEGIN
+				thePlayer.LoadActionContext(actionContext);
+				// modXTFinishers END
 			} 
 			else if ( weaponName == 'fists' && npcVictim )
 			{

@@ -11021,14 +11021,10 @@ statemachine abstract import class CR4Player extends CPlayer
 	}
 	
 	// modXTfinishers BEGIN
-	private var actionContext : XTFinishersActionContext;
+	public var actionContext : XTFinishersActionContext;
 	
 	public function LoadActionContext(context : XTFinishersActionContext) {
 		actionContext = context;
-	}
-	
-	public function GetActionContext() : XTFinishersActionContext {
-		return actionContext;
 	}
 	// modXTFinishers END
 	
