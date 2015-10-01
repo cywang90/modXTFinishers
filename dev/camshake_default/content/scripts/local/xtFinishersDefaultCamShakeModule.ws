@@ -1,4 +1,4 @@
-class XTFinishersDefaultCamShakeModule {
+class XTFinishersDefaultCamShakeModule extends XTFinishersObject {
 	public var params : XTFinishersDefaultCamShakeParams;
 	
 	public function Init() {
