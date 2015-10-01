@@ -40,7 +40,7 @@ class XTFinishersDefaultFinisherParams {
 	public const var FINISHER_CAM_CHANCE : float;
 		default FINISHER_CAM_CHANCE = 0.0;							// Chance to activate cinematic finisher camera when a finisher is triggered.
 	public const var FINISHER_CAM_CHANCE_LAST_ENEMY : float;
-		default FINISHER_CAM_CHANCE_LAST_ENEMY = 100.0;				// Chance to activate cinematic finisher camera when a finisher is triggered on the LAST enemy in combat.
+		default FINISHER_CAM_CHANCE_LAST_ENEMY = 0.0;				// Chance to activate cinematic finisher camera when a finisher is triggered on the LAST enemy in combat.
 	public const var FINISHER_CAM_REQUIRE_NAV_CHECK : bool;
 		default FINISHER_CAM_REQUIRE_NAV_CHECK = false;				// if TRUE -> cinematic finisher camera will not activate if there are obstacles (walls, cliffs, objects, etc.) near Geralt.
 	
