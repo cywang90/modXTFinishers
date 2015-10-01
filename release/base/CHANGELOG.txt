@@ -3,6 +3,31 @@ BASE eXTensible Finishers Changelog
 ===================================
 
 -----
+v2.02
+-----
+
+General
+-------
+- Moved script files for base code to content\scripts\local\base\
+- Moved script files for vanilla module to content\scripts\local\vanilla\
+
+API
+---
+- Most classes defined by eXTensible Finishers are now subclasses of XTFinishersObject.
+- Changed XTFinishersActionContext's data type from struct to class. As a result, changes made to action contexts are now persistent without needing to be copied from stack to stack.
+- Moved the constructors for the concrete subclasses of XTFinishersEventData out of XTFinishersEventManager. They are now global functions.
+- Action contexts are now only loaded into thePlayer when context.finisher.active == true.
+- Added constructors for XTFinishersSlowdownSession and XTFinishersSlowdownDelay.
+
+Features
+--------
+- Added the ability to set which finisher animation gets played when a finisher is triggered.
+
+Bug Fixes
+---------
+- Misc. minor bug fixes.
+
+-----
 v2.01
 -----
 
