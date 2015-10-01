@@ -1,4 +1,4 @@
-class XTFinishersVanillaModule {
+class XTFinishersVanillaModule extends XTFinishersObject {
 	public function InitFinisherComponents() {
 		theGame.xtFinishersMgr.queryMgr.LoadFinisherResponder(new XTFinishersVanillaFinisherQueryResponder in this);
 		theGame.xtFinishersMgr.queryMgr.LoadFinisherCamResponder(new XTFinishersVanillaFinisherCamQueryResponder in this);

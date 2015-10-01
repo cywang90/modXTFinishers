@@ -1,4 +1,4 @@
-class XTFinishersDefaultDismemberModule {
+class XTFinishersDefaultDismemberModule extends XTFinishersObject {
 	public var params : XTFinishersDefaultDismemberParams;
 	
 	public function Init() {

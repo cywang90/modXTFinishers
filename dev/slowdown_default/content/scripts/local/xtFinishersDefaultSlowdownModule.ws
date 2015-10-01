@@ -1,4 +1,4 @@
-class XTFinishersDefaultSlowdownModule {
+class XTFinishersDefaultSlowdownModule extends XTFinishersObject {
 	public var params : XTFinishersDefaultSlowdownParams;
 	
 	public function Init() {

@@ -1,4 +1,4 @@
-class XTFinishersDefaultFinisherModule {
+class XTFinishersDefaultFinisherModule extends XTFinishersObject {
 	public var params : XTFinishersDefaultFinisherParams;
 	
 	public function Init() {

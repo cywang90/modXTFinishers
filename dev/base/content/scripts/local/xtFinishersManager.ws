@@ -1,4 +1,4 @@
-class XTFinishersManager {
+class XTFinishersManager extends XTFinishersObject {
 	public var consts : XTFinishersConsts;
 	
 	public var queryMgr : XTFinishersQueryManager;

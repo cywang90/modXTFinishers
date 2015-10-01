@@ -8,7 +8,7 @@
 		- listener a is guaranteed to be called before listener b if and only if a.GetPriority() < b.GetPriority().
 		- if a.GetPriority() == b.GetPriority() is true, there is no guarantee which one will be called first.
 */
-class XTFinishersEventManager {
+class XTFinishersEventManager extends XTFinishersObject {
 	private var queues : array<XTFinishersPriorityListenerQueue>;
 	private var ids : array<string>;
 	
@@ -109,7 +109,7 @@ class XTFinishersEventManager {
 	}
 }
 
-class XTFinishersPriorityListenerQueue {
+class XTFinishersPriorityListenerQueue extends XTFinishersObject {
 	private var queue : array<XTFinishersPriorityListener>;
 	
 	public function Size() : int {
@@ -214,7 +214,7 @@ class XTFinishersPriorityListenerQueue {
 	}
 }
 
-abstract class XTFinishersPriorityListener {
+abstract class XTFinishersPriorityListener extends XTFinishersObject {
 	private var priority : int;
 	
 	public function Init(priorityArg : int) {
@@ -228,7 +228,7 @@ abstract class XTFinishersPriorityListener {
 	public function OnEventTriggered(id : string, data : XTFinishersEventData);
 }
 
-abstract class XTFinishersEventData {}
+abstract class XTFinishersEventData extends XTFinishersObject {}
 
 class XTFinishersActionContextData extends XTFinishersEventData {
 	public var context : XTFinishersActionContext;
