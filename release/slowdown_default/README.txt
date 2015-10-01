@@ -73,6 +73,10 @@ Configuration options provided by this module include:
 	- Options to define duration, slowdown factor, and delay of slow-motion sequences for each of the above conditions.
 	- Option to disable camera shake when a slow-motion sequence is triggered.
 	
+--------------
+UNINSTALLATION
+--------------
+	
 1. Delete the following folder from your <The Witcher 3 Path>\mods\ directory:
 
 		modXTFinishers\content\scripts\local\slowdown_default\
