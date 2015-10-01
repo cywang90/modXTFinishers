@@ -10,8 +10,8 @@ INSTALLATION
 
 This module requires the base eXTensible Finishers mod.
 
-1. Copy the "content" folder in the "modXTFinishers\finisher_default" directory into your "<The Witcher 3 Path>\mods\" directory. Accept any folder merge requests from your OS/file system.
-2. Open modXTFinishers\content\scripts\local\xtFinishersManager.ws ...
+1. Copy the "content" folder in the "modXTFinishers\slowdown_default" directory into your "<The Witcher 3 Path>\mods\" directory. Accept any folder merge requests from your OS/file system.
+2. Open modXTFinishers\content\scripts\local\base\xtFinishersManager.ws ...
 	a. Copy the following line into the file beneath where it says DEFINE MODULE VARS HERE:
 		
 		public var slowdownModule : XTFinishersDefaultSlowdownModule;
@@ -22,7 +22,7 @@ This module requires the base eXTensible Finishers mod.
 		slowdownModule = new XTFinishersDefaultSlowdownModule in this;
 		slowdownModule.Init();
 		
-3. Open modXTFinishers\content\scripts\local\xtFinishersConsts.ws ...
+3. Open modXTFinishers\content\scripts\local\base\xtFinishersConsts.ws ...
 	a. Copy the following lines into the file beneath where it says MODULE CONSTS GO HERE:
 		
 		public const var DEFAULT_SLOWDOWN_DISMEMBER_QUERY_DISPATCHER_PRIORITY : int;
@@ -40,7 +40,7 @@ CONFIGURATION
 
 All user-modifiable config options for this module is located in:
 	
-	modXTFinishers\content\scripts\local\xtFinishersDefaultSlowdownParams.ws
+	modXTFinishers\content\scripts\local\slowdown_default\xtFinishersDefaultSlowdownParams.ws
 	
 Descriptions of what the individual settings do can be found in the comments in the code.
 
@@ -73,12 +73,11 @@ Configuration options provided by this module include:
 	- Options to define duration, slowdown factor, and delay of slow-motion sequences for each of the above conditions.
 	- Option to disable camera shake when a slow-motion sequence is triggered.
 	
-1. Delete the following files from your <The Witcher 3 Path>\mods\ directory:
+1. Delete the following folder from your <The Witcher 3 Path>\mods\ directory:
 
-		modXTFinishers\content\scripts\local\xtFinishersDefaultSlowdownModule.ws
-		modXTFinishers\content\scripts\local\xtFinishersDefaultSlowdownParams.ws
+		modXTFinishers\content\scripts\local\slowdown_default\
 		
-2. Open modXTFinishers\content\scripts\local\xtFinishersManager.ws ...
+2. Open modXTFinishers\content\scripts\local\base\xtFinishersManager.ws ...
 	a. In the section marked "DEFINE MODULE VARS HERE", remove the following line:
 	
 		public var slowdownModule : XTFinishersDefaultSlowdownModule;
@@ -88,3 +87,15 @@ Configuration options provided by this module include:
 		// load camshake module
 		slowdownModule = new XTFinishersDefaultSlowdownModule in this;
 		slowdownModule.Init();
+		
+3. Open modXTFinishers\content\scripts\local\base\xtFinishersConsts.ws ...
+	a. In the section marked "MODULE CONSTS GO HERE", remove the following lines:
+		
+		public const var DEFAULT_SLOWDOWN_DISMEMBER_QUERY_DISPATCHER_PRIORITY : int;
+			default DEFAULT_SLOWDOWN_DISMEMBER_QUERY_DISPATCHER_PRIORITY = 0;
+		
+		public const var DEFAULT_SLOWDOWN_CRIT_QUERY_DISPATCHER_PRIORITY : int;
+			default DEFAULT_SLOWDOWN_CRIT_QUERY_DISPATCHER_PRIORITY = 0;
+	
+		public const var DEFAULT_SLOWDOWN_FINISHER_QUERY_DISPATCHER_PRIORITY : int;
+			default DEFAULT_SLOWDOWN_FINISHER_QUERY_DISPATCHER_PRIORITY = 10;
