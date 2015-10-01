@@ -34,9 +34,6 @@ class W3DamageManagerProcessor extends CObject
 		var arrStr : array<string>;
 		var ciriPlayer : W3ReplacerCiri;
 		var buffs : array<EEffectType>;
-		// modXTFinishers BEGIN
-		var effectsSnapshot : XTFinishersEffectsSnapshot;
-		// modXTFinishers END
 		
 		if(!act || !act.victim)
 			return;
@@ -112,9 +109,7 @@ class W3DamageManagerProcessor extends CObject
 			}
 		}
 		
-		// modXTFinishers BEGIN
-		ProcessActionReaction(isFrozen, wasAlive, effectsSnapshot);
-		// modXTFinishers END
+		ProcessActionReaction(isFrozen, wasAlive);
 		
 		if( ( action.DealsAnyDamage() || action.ProcessBuffsIfNoDamage() ) )
 			ProcessActionBuffs();
@@ -1530,7 +1525,7 @@ class W3DamageManagerProcessor extends CObject
 	
 	
 	
-	private function ProcessActionReaction(wasFrozen : bool, wasAlive : bool, effectsSnapshot : XTFinishersEffectsSnapshot)
+	private function ProcessActionReaction(wasFrozen : bool, wasAlive : bool)
 	{
 		var dismemberExplosion 			: bool;
 		var damageName 					: name;
