@@ -56,6 +56,7 @@ class XTFinishersDefaultSlowdownCritQueryDispatcher extends XTFinishersAbstractA
 		attackAction = (W3Action_Attack)context.action;
 		if ((CR4Player)context.action.attacker && attackAction && attackAction.IsActionMelee() && attackAction.IsCriticalHit()) {
 			context.slowdown.type = theGame.xtFinishersMgr.consts.SLOWDOWN_TYPE_CRIT;
+			theGame.xtFinishersMgr.queryMgr.FireSlowdownQuery(context);
 			
 			if (context.slowdown.active) {
 				if (context.slowdown.active && theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_DISABLE_CAMERA_SHAKE) {
