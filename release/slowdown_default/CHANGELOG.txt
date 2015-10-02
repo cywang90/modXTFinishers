@@ -3,6 +3,14 @@ MODULE slowdown_default Changelog
 =================================
 
 -----
+v1.02
+-----
+
+Bug Fixes
+---------
+- Slowdowns will now correctly trigger on critical hits. For real this time.
+
+-----
 v1.01
 -----
 
