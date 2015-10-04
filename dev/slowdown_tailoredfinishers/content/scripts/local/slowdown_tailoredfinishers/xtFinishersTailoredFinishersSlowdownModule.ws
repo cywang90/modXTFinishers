@@ -1,8 +1,8 @@
 class XTFinishersTailoredFinishersSlowdownModule extends XTFinishersDefaultSlowdownModule {
 	protected function GetNewSlowdownManagerInstance() : XTFinishersSlowdownManager {
-		var mgr : XTFinishersCustomFinisherSlowdownManager;
+		var mgr : XTFinishersTailoredFinishersSlowdownManager;
 		
-		mgr = new XTFinishersCustomFinisherSlowdownManager in this;
+		mgr = new XTFinishersTailoredFinishersSlowdownManager in this;
 		mgr.Init();
 		
 		return mgr;
