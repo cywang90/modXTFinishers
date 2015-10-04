@@ -1,4 +1,4 @@
-class XTFinishersCustomFinisherSlowdownModule extends XTFinishersDefaultSlowdownModule {
+class XTFinishersTailoredFinishersSlowdownModule extends XTFinishersDefaultSlowdownModule {
 	protected function GetNewSlowdownManagerInstance() : XTFinishersSlowdownManager {
 		var mgr : XTFinishersCustomFinisherSlowdownManager;
 		
@@ -9,7 +9,7 @@ class XTFinishersCustomFinisherSlowdownModule extends XTFinishersDefaultSlowdown
 	}
 }
 
-class XTFinishersCustomFinisherSlowdownManager extends XTFinishersDefaultSlowdownManager {
+class XTFinishersTailoredFinishersSlowdownManager extends XTFinishersDefaultSlowdownManager {
 	private var customSequenceDefs : array<XTFinishersSlowdownSequenceDef>;
 	
 	public function Init() {
