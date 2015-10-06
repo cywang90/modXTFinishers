@@ -4,36 +4,26 @@ class XTFinishersDefaultDismemberModule extends XTFinishersObject {
 	public function Init() {
 		params = new XTFinishersDefaultDismemberParams in this;
 		
-		theGame.xtFinishersMgr.queryMgr.LoadDismemberResponder(GetNewDismemberQueryResponderInstance());
-		
-		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.REACTION_START_EVENT_ID, GetNewDismemberQueryDispatcherInstance());
+		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.REACTION_START_EVENT_ID, GetNewDismemberHandlerInstance());
 	}
 	
-	protected function GetNewDismemberQueryResponderInstance() : XTFinishersDismemberQueryResponder {
-		return new XTFinishersDefaultDismemberQueryResponder in this;
-	}
-	
-	protected function GetNewDismemberQueryDispatcherInstance() : XTFinishersAbstractReactionStartEventListener {
-		return new XTFinishersDefaultDismemberQueryDispatcher in this;
+	protected function GetNewDismemberHandlerInstance() : XTFinishersAbstractReactionStartEventListener {
+		return new XTFinishersDefaultDismemberHandler in this;
 	}
 }
 
 // listeners
 
-class XTFinishersDefaultDismemberQueryDispatcher extends XTFinishersAbstractReactionStartEventListener {
+class XTFinishersDefaultDismemberHandler extends XTFinishersAbstractReactionStartEventListener {
 	public function GetPriority() : int {
 		return theGame.xtFinishersMgr.consts.DEFAULT_DISMEMBER_QUERY_DISPATCHER_PRIORITY;
 	}
 	
 	public function OnReactionStartTriggered(context : XTFinishersActionContext) {
-		theGame.xtFinishersMgr.queryMgr.FireDismemberQuery(context);
+		PreprocessDismember(context);
 	}
-}
-
-// responders
-
-class XTFinishersDefaultDismemberQueryResponder extends XTFinishersDismemberQueryResponder {
-	public function CanPerformDismember(context : XTFinishersActionContext) {
+	
+	protected function PreprocessDismember(context : XTFinishersActionContext) {
 		var playerAttacker		: CR4Player;
 		var actorAttacker		: CActor;
 		var actorVictim			: CActor;
