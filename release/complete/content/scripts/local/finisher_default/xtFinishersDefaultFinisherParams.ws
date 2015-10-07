@@ -40,7 +40,7 @@ class XTFinishersDefaultFinisherParams {
 	public const var FINISHER_CAM_CHANCE : float;
 		default FINISHER_CAM_CHANCE = 0.0;							// Chance to activate cinematic finisher camera when a finisher is triggered.
 	public const var FINISHER_CAM_CHANCE_LAST_ENEMY : float;
-		default FINISHER_CAM_CHANCE_LAST_ENEMY = 0.0;				// Chance to activate cinematic finisher camera when a finisher is triggered on the LAST enemy in combat.
+		default FINISHER_CAM_CHANCE_LAST_ENEMY = 100.0;				// Chance to activate cinematic finisher camera when a finisher is triggered on the LAST enemy in combat.
 	public const var FINISHER_CAM_REQUIRE_NAV_CHECK : bool;
 		default FINISHER_CAM_REQUIRE_NAV_CHECK = false;				// if TRUE -> cinematic finisher camera will not activate if there are obstacles (walls, cliffs, objects, etc.) near Geralt.
 	
@@ -82,15 +82,15 @@ class XTFinishersDefaultFinisherParams {
 		
 		// load allowed finisher animations (comment to disable, uncomment to enable)
 		
-		allowedLeftSideFinisherAnimNames.PushBack('man_finisher_02_lp');
-		allowedLeftSideFinisherAnimNames.PushBack('man_finisher_04_lp');
-		allowedLeftSideFinisherAnimNames.PushBack('man_finisher_06_lp');
-		allowedLeftSideFinisherAnimNames.PushBack('man_finisher_07_lp');
-		allowedLeftSideFinisherAnimNames.PushBack('man_finisher_08_lp');
+		allowedLeftSideFinisherAnimNames.PushBack(theGame.xtFinishersMgr.consts.FINISHER_STANCE_LEFT_HEAD_ONE);
+		allowedLeftSideFinisherAnimNames.PushBack(theGame.xtFinishersMgr.consts.FINISHER_STANCE_LEFT_HEAD_TWO);
+		allowedLeftSideFinisherAnimNames.PushBack(theGame.xtFinishersMgr.consts.FINISHER_STANCE_LEFT_NECK);
+		allowedLeftSideFinisherAnimNames.PushBack(theGame.xtFinishersMgr.consts.FINISHER_STANCE_LEFT_THRUST_ONE);
+		allowedLeftSideFinisherAnimNames.PushBack(theGame.xtFinishersMgr.consts.FINISHER_STANCE_LEFT_THRUST_TWO);
 		
-		allowedRightSideFinisherAnimNames.PushBack('man_finisher_01_rp');
-		allowedRightSideFinisherAnimNames.PushBack('man_finisher_03_rp');
-		allowedRightSideFinisherAnimNames.PushBack('man_finisher_05_rp');
+		allowedRightSideFinisherAnimNames.PushBack(theGame.xtFinishersMgr.consts.FINISHER_STANCE_RIGHT_HEAD);
+		allowedRightSideFinisherAnimNames.PushBack(theGame.xtFinishersMgr.consts.FINISHER_STANCE_RIGHT_THRUST_ONE);
+		allowedRightSideFinisherAnimNames.PushBack(theGame.xtFinishersMgr.consts.FINISHER_STANCE_RIGHT_THRUST_TWO);
 		
 		//========================
 		// DLC FINISHER ANIMATIONS
@@ -100,15 +100,15 @@ class XTFinishersDefaultFinisherParams {
 		
 		dlcFinishers = theGame.GetSyncAnimManager().dlcFinishersRightSide;
 		if (dlcFinishers.Size() > 0) {
-			allowedLeftSideFinisherAnimNames.PushBack('man_finisher_dlc_arm_lp');
-			allowedLeftSideFinisherAnimNames.PushBack('man_finisher_dlc_legs_lp');
-			allowedLeftSideFinisherAnimNames.PushBack('man_finisher_dlc_torso_lp');
+			allowedLeftSideFinisherAnimNames.PushBack(theGame.xtFinishersMgr.consts.FINISHER_DLC_STANCE_LEFT_ARM);
+			allowedLeftSideFinisherAnimNames.PushBack(theGame.xtFinishersMgr.consts.FINISHER_DLC_STANCE_LEFT_LEGS);
+			allowedLeftSideFinisherAnimNames.PushBack(theGame.xtFinishersMgr.consts.FINISHER_DLC_STANCE_LEFT_TORSO);
 			
-			allowedRightSideFinisherAnimNames.PushBack('man_finisher_dlc_arm_rp');
-			allowedRightSideFinisherAnimNames.PushBack('man_finisher_dlc_legs_rp');
-			allowedRightSideFinisherAnimNames.PushBack('man_finisher_dlc_torso_rp');
-			allowedRightSideFinisherAnimNames.PushBack('man_finisher_dlc_head_rp');
-			allowedRightSideFinisherAnimNames.PushBack('man_finisher_dlc_neck_rp');
+			allowedRightSideFinisherAnimNames.PushBack(theGame.xtFinishersMgr.consts.FINISHER_DLC_STANCE_RIGHT_ARM);
+			allowedRightSideFinisherAnimNames.PushBack(theGame.xtFinishersMgr.consts.FINISHER_DLC_STANCE_RIGHT_LEGS);
+			allowedRightSideFinisherAnimNames.PushBack(theGame.xtFinishersMgr.consts.FINISHER_DLC_STANCE_RIGHT_TORSO);
+			allowedRightSideFinisherAnimNames.PushBack(theGame.xtFinishersMgr.consts.FINISHER_DLC_STANCE_RIGHT_HEAD);
+			allowedRightSideFinisherAnimNames.PushBack(theGame.xtFinishersMgr.consts.FINISHER_DLC_STANCE_RIGHT_NECK);
 		}
 	}
 }

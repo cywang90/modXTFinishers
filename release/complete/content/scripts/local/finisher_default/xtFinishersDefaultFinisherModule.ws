@@ -1,144 +1,39 @@
 class XTFinishersDefaultFinisherModule extends XTFinishersObject {
+	public const var DEFAULT_FINISHER_QUERY_DISPATCHER_PRIORITY, DEFAULT_FINISHER_CAM_QUERY_DISPATCHER_PRIORITY : int;
+		default DEFAULT_FINISHER_QUERY_DISPATCHER_PRIORITY = 0;
+		default DEFAULT_FINISHER_CAM_QUERY_DISPATCHER_PRIORITY = 0;
+	
 	public var params : XTFinishersDefaultFinisherParams;
 	
 	public function Init() {
 		params = new XTFinishersDefaultFinisherParams in this;
 		params.Init();
 		
-		theGame.xtFinishersMgr.queryMgr.LoadFinisherResponder(GetNewFinisherQueryResponderInstance());
-		theGame.xtFinishersMgr.queryMgr.LoadFinisherCamResponder(GetNewFinisherCamQueryResponderInstance());
-		
-		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.REACTION_START_EVENT_ID, GetNewFinisherQueryDispatcherInstance());
-		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.FINISHER_EVENT_ID, GetNewFinisherCamQueryDispatcherInstance());
+		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.REACTION_START_EVENT_ID, GetNewFinisherHandlerInstance());
+		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.FINISHER_EVENT_ID, GetNewFinisherCamHandlerInstance());
 	}
 	
-	protected function GetNewFinisherQueryResponderInstance() : XTFinishersFinisherQueryResponder {
-		return new XTFinishersDefaultFinisherQueryResponder in this;
+	protected function GetNewFinisherHandlerInstance() : XTFinishersAbstractReactionStartEventListener {
+		return new XTFinishersDefaultFinisherHandler in this;
 	}
 	
-	protected function GetNewFinisherCamQueryResponderInstance() : XTFinishersFinisherCamQueryResponder {
-		return new XTFinishersDefaultFinisherCamQueryResponder in this;
-	}
-	
-	protected function GetNewFinisherQueryDispatcherInstance() : XTFinishersAbstractReactionStartEventListener {
-		return new XTFinishersDefaultFinisherQueryDispatcher in this;
-	}
-	
-	protected function GetNewFinisherCamQueryDispatcherInstance() : XTFinishersAbstractFinisherEventListener {
-		return new XTFinishersDefaultFinisherCamQueryDispatcher in this;
+	protected function GetNewFinisherCamHandlerInstance() : XTFinishersAbstractFinisherEventListener {
+		return new XTFinishersDefaultFinisherCamHandler in this;
 	}
 }
 
 // listeners
 
-class XTFinishersDefaultFinisherQueryDispatcher extends XTFinishersAbstractReactionStartEventListener {
+class XTFinishersDefaultFinisherHandler extends XTFinishersAbstractReactionStartEventListener {
 	public function GetPriority() : int {
-		return theGame.xtFinishersMgr.consts.DEFAULT_FINISHER_QUERY_DISPATCHER_PRIORITY;
+		return theGame.xtFinishersMgr.finisherModule.DEFAULT_FINISHER_QUERY_DISPATCHER_PRIORITY;
 	}
 	
 	public function OnReactionStartTriggered(context : XTFinishersActionContext) {
-		theGame.xtFinishersMgr.queryMgr.FireFinisherQuery(context);
-	}
-}
-
-class XTFinishersDefaultFinisherCamQueryDispatcher extends XTFinishersAbstractFinisherEventListener {
-	public function GetPriority() : int {
-		return theGame.xtFinishersMgr.consts.DEFAULT_FINISHER_CAM_QUERY_DISPATCHER_PRIORITY;
+		PreprocessFinisher(context);
 	}
 	
-	public function OnFinisherTriggered(context : XTFinishersActionContext) {
-		theGame.xtFinishersMgr.queryMgr.FireFinisherCamQuery(context);
-	}
-}
-
-// responders
-
-class XTFinishersDefaultFinisherQueryResponder extends XTFinishersFinisherQueryResponder {
-	protected function CanPerformAutoFinisher(context : XTFinishersActionContext) : bool {
-		var attackAction : W3Action_Attack;
-		var result : bool;
-		var hasEffect : bool;
-		var autoFinisherEffectTypes : array<EEffectType>;
-		var i : int;
-		
-		result = false;
-		attackAction = (W3Action_Attack)context.action;
-		
-		if (attackAction) {
-			if (attackAction.IsCriticalHit() && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_AUTO_CHANCE_CRIT) {
-				result = true;
-			} else if (SkillNameToEnum(attackAction.GetAttackTypeName()) == S_Sword_s02 && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_AUTO_CHANCE_REND) {
-				result = true;
-			} else if (thePlayer.IsLastEnemyKilled() && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_AUTO_CHANCE_LAST_ENEMY) {
-				result = true;
-			} else {
-				hasEffect = false;
-				autoFinisherEffectTypes = theGame.xtFinishersMgr.finisherModule.params.autoFinisherEffectTypes;
-				for (i = 0; i < autoFinisherEffectTypes.Size(); i += 1) {
-					hasEffect = context.effectsSnapshot.HasEffect(autoFinisherEffectTypes[i]);
-					if (hasEffect) {
-						break;
-					}
-				}
-				result = hasEffect && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_AUTO_CHANCE_EFFECTS;
-			}
-		}
-		
-		return result;
-	}
-	
-	protected function CanPerformInstantKillFinisher(context : XTFinishersActionContext) : bool {
-		var actorVictim : CActor;
-		var attackAction : W3Action_Attack;
-		var result : bool;
-		var hasEffect : bool;
-		var instantKillFinisherEffectTypes : array<EEffectType>;
-		var i : int;
-		
-		result = false;
-		actorVictim = (CActor)context.action.victim;
-		attackAction = (W3Action_Attack)context.action;
-		
-		if (actorVictim.IsHuman() && actorVictim.IsVulnerable() && !actorVictim.HasAbility('InstantKillImmune')) {
-			if (attackAction) {
-				if (attackAction.IsCriticalHit() && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_INSTANTKILL_CHANCE_CRIT) {
-					result = true;
-				} else if (thePlayer.IsLastEnemyKilled() && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_INSTANTKILL_CHANCE_LAST_ENEMY) {
-					result = true;
-				} else {
-					hasEffect = false;
-					instantKillFinisherEffectTypes = theGame.xtFinishersMgr.finisherModule.params.instantKillFinisherEffectTypes;
-					for (i = 0; i < instantKillFinisherEffectTypes.Size(); i += 1) {
-						hasEffect = context.effectsSnapshot.HasEffect(instantKillFinisherEffectTypes[i]);
-						if (hasEffect) {
-							break;
-						}
-					}
-					result = hasEffect && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_INSTANTKILL_CHANCE_EFFECTS;
-				}
-			}
-		}
-		
-		return result;
-	}
-	
-	protected function SelectFinisherAnimName(context : XTFinishersActionContext) : name {
-		var animNames : array<name>;
-		
-		if (thePlayer.forceFinisher && thePlayer.forceFinisherAnimName != '') {
-			return thePlayer.forceFinisherAnimName;
-		}
-		
-		if (thePlayer.GetCombatIdleStance() <= 0.f) {
-			animNames = theGame.xtFinishersMgr.finisherModule.params.allowedLeftSideFinisherAnimNames;
-		} else {
-			animNames = theGame.xtFinishersMgr.finisherModule.params.allowedRightSideFinisherAnimNames;
-		}
-		
-		return animNames[RandRange(animNames.Size(), 0)];
-	}
-	
-	public function CanPerformFinisher(context : XTFinishersActionContext) {
+	protected function PreprocessFinisher(context : XTFinishersActionContext) {
 		var actorVictim				: CActor;
 		var attackAction			: W3Action_Attack;
 		var finisherChance 			: float;
@@ -271,10 +166,102 @@ class XTFinishersDefaultFinisherQueryResponder extends XTFinishersFinisherQueryR
 			context.finisher.animName = SelectFinisherAnimName(context);
 		}
 	}
+	
+	protected function CanPerformAutoFinisher(context : XTFinishersActionContext) : bool {
+		var attackAction : W3Action_Attack;
+		var result : bool;
+		var hasEffect : bool;
+		var autoFinisherEffectTypes : array<EEffectType>;
+		var i : int;
+		
+		result = false;
+		attackAction = (W3Action_Attack)context.action;
+		
+		if (attackAction) {
+			if (attackAction.IsCriticalHit() && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_AUTO_CHANCE_CRIT) {
+				result = true;
+			} else if (SkillNameToEnum(attackAction.GetAttackTypeName()) == S_Sword_s02 && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_AUTO_CHANCE_REND) {
+				result = true;
+			} else if (thePlayer.IsLastEnemyKilled() && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_AUTO_CHANCE_LAST_ENEMY) {
+				result = true;
+			} else {
+				hasEffect = false;
+				autoFinisherEffectTypes = theGame.xtFinishersMgr.finisherModule.params.autoFinisherEffectTypes;
+				for (i = 0; i < autoFinisherEffectTypes.Size(); i += 1) {
+					hasEffect = context.effectsSnapshot.HasEffect(autoFinisherEffectTypes[i]);
+					if (hasEffect) {
+						break;
+					}
+				}
+				result = hasEffect && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_AUTO_CHANCE_EFFECTS;
+			}
+		}
+		
+		return result;
+	}
+	
+	protected function CanPerformInstantKillFinisher(context : XTFinishersActionContext) : bool {
+		var actorVictim : CActor;
+		var attackAction : W3Action_Attack;
+		var result : bool;
+		var hasEffect : bool;
+		var instantKillFinisherEffectTypes : array<EEffectType>;
+		var i : int;
+		
+		result = false;
+		actorVictim = (CActor)context.action.victim;
+		attackAction = (W3Action_Attack)context.action;
+		
+		if (actorVictim.IsHuman() && actorVictim.IsVulnerable() && !actorVictim.HasAbility('InstantKillImmune')) {
+			if (attackAction) {
+				if (attackAction.IsCriticalHit() && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_INSTANTKILL_CHANCE_CRIT) {
+					result = true;
+				} else if (thePlayer.IsLastEnemyKilled() && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_INSTANTKILL_CHANCE_LAST_ENEMY) {
+					result = true;
+				} else {
+					hasEffect = false;
+					instantKillFinisherEffectTypes = theGame.xtFinishersMgr.finisherModule.params.instantKillFinisherEffectTypes;
+					for (i = 0; i < instantKillFinisherEffectTypes.Size(); i += 1) {
+						hasEffect = context.effectsSnapshot.HasEffect(instantKillFinisherEffectTypes[i]);
+						if (hasEffect) {
+							break;
+						}
+					}
+					result = hasEffect && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_INSTANTKILL_CHANCE_EFFECTS;
+				}
+			}
+		}
+		
+		return result;
+	}
+	
+	protected function SelectFinisherAnimName(context : XTFinishersActionContext) : name {
+		var animNames : array<name>;
+		
+		if (thePlayer.forceFinisher && thePlayer.forceFinisherAnimName != '') {
+			return thePlayer.forceFinisherAnimName;
+		}
+		
+		if (thePlayer.GetCombatIdleStance() <= 0.f) {
+			animNames = theGame.xtFinishersMgr.finisherModule.params.allowedLeftSideFinisherAnimNames;
+		} else {
+			animNames = theGame.xtFinishersMgr.finisherModule.params.allowedRightSideFinisherAnimNames;
+		}
+		
+		return animNames[RandRange(animNames.Size(), 0)];
+	}
 }
 
-class XTFinishersDefaultFinisherCamQueryResponder extends XTFinishersFinisherCamQueryResponder {
-	public function CanPerformFinisherCam(context : XTFinishersActionContext) {
+class XTFinishersDefaultFinisherCamHandler extends XTFinishersAbstractFinisherEventListener {
+	public function GetPriority() : int {
+		return theGame.xtFinishersMgr.finisherModule.DEFAULT_FINISHER_CAM_QUERY_DISPATCHER_PRIORITY;
+	}
+	
+	public function OnFinisherTriggered(context : XTFinishersActionContext) {
+		PreprocessFinisherCam(context);
+	}
+	
+	protected function PreprocessFinisherCam(context : XTFinishersActionContext) {
 		var chance : float;
 		
 		if (thePlayer.IsLastEnemyKilled()) {

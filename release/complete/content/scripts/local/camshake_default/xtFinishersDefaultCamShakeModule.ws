@@ -1,4 +1,8 @@
 class XTFinishersDefaultCamShakeModule extends XTFinishersObject {
+	// action end
+	public const var DEFAULT_CAMSHAKE_HANDLER_PRIORITY : int;
+		default DEFAULT_CAMSHAKE_HANDLER_PRIORITY = 10;
+		
 	public var params : XTFinishersDefaultCamShakeParams;
 	
 	public function Init() {
@@ -16,10 +20,10 @@ class XTFinishersDefaultCamShakeModule extends XTFinishersObject {
 
 class XTFinishersDefaultCamShakeHandler extends XTFinishersAbstractActionEndEventListener {
 	public function GetPriority() : int {
-		return theGame.xtFinishersMgr.consts.DEFAULT_CAMSHAKE_HANDLER_PRIORITY;
+		return theGame.xtFinishersMgr.camshakeModule.DEFAULT_CAMSHAKE_HANDLER_PRIORITY;
 	}
 	
-	protected function ProcessNormalStrike(out context : XTFinishersActionContext) {
+	protected function PreprocessNormalStrike(out context : XTFinishersActionContext) {
 		var playerAttacker : CR4Player;
 		var attackAction : W3Action_Attack;
 		
@@ -53,7 +57,7 @@ class XTFinishersDefaultCamShakeHandler extends XTFinishersAbstractActionEndEven
 		}
 	}
 	
-	protected function ProcessCriticalHit(out context : XTFinishersActionContext) {
+	protected function PreprocessCriticalHit(out context : XTFinishersActionContext) {
 		var attackAction : W3Action_Attack;
 		var actorVictim : CActor;
 		
@@ -73,7 +77,7 @@ class XTFinishersDefaultCamShakeHandler extends XTFinishersAbstractActionEndEven
 		}
 	}
 	
-	protected function ProcessDismember(out context : XTFinishersActionContext) {
+	protected function PreprocessDismember(out context : XTFinishersActionContext) {
 		var actorAttacker : CActor;
 		
 		actorAttacker = (CActor)context.action.attacker;
@@ -88,8 +92,8 @@ class XTFinishersDefaultCamShakeHandler extends XTFinishersAbstractActionEndEven
 	}
 	
 	public function OnActionEndTriggered(out context : XTFinishersActionContext) {
-		ProcessNormalStrike(context);
-		ProcessCriticalHit(context);
-		ProcessDismember(context);
+		PreprocessNormalStrike(context);
+		PreprocessCriticalHit(context);
+		PreprocessDismember(context);
 	}
 }
