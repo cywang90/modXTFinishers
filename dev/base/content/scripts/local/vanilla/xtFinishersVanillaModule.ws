@@ -10,17 +10,12 @@ class XTFinishersVanillaModule extends XTFinishersObject {
 		default VANILLA_FINISHER_CAM_QUERY_DISPATCHER_PRIORITY = 0;
 		
 	public function InitFinisherComponents() {
-		theGame.xtFinishersMgr.queryMgr.LoadFinisherResponder(new XTFinishersVanillaFinisherQueryResponder in this);
-		theGame.xtFinishersMgr.queryMgr.LoadFinisherCamResponder(new XTFinishersVanillaFinisherCamQueryResponder in this);
-		
-		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.REACTION_START_EVENT_ID, new XTFinishersVanillaFinisherQueryDispatcher in this);
-		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.FINISHER_EVENT_ID, new XTFinishersVanillaFinisherCamQueryDispatcher in this);
+		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.REACTION_START_EVENT_ID, new XTFinishersVanillaFinisherHandler in this);
+		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.FINISHER_EVENT_ID, new XTFinishersVanillaFinisherCamHandler in this);
 	}
 	
 	public function InitDismemberComponents() {
-		theGame.xtFinishersMgr.queryMgr.LoadDismemberResponder(new XTFinishersVanillaDismemberQueryResponder in this);
-		
-		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.REACTION_START_EVENT_ID, new XTFinishersVanillaDismemberQueryDispatcher in this);
+		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.REACTION_START_EVENT_ID, new XTFinishersVanillaDismemberHandler in this);
 	}
 	
 	public function InitCamShakeComponents() {
@@ -30,160 +25,16 @@ class XTFinishersVanillaModule extends XTFinishersObject {
 
 // listeners
 
-class XTFinishersVanillaFinisherQueryDispatcher extends XTFinishersAbstractReactionStartEventListener {
+class XTFinishersVanillaFinisherHandler extends XTFinishersAbstractReactionStartEventListener {
 	public function GetPriority() : int {
 		return theGame.xtFinishersMgr.vanillaModule.VANILLA_FINISHER_QUERY_DISPATCHER_PRIORITY;
 	}
 	
 	public function OnReactionStartTriggered(context : XTFinishersActionContext) {
-		theGame.xtFinishersMgr.queryMgr.FireFinisherQuery(context);
-	}
-}
-
-class XTFinishersVanillaDismemberQueryDispatcher extends XTFinishersAbstractReactionStartEventListener {
-	public function GetPriority() : int {
-		return theGame.xtFinishersMgr.vanillaModule.VANILLA_DISMEMBER_QUERY_DISPATCHER_PRIORITY;
+		PreprocessFinisher(context);
 	}
 	
-	public function OnReactionStartTriggered(context : XTFinishersActionContext) {
-		theGame.xtFinishersMgr.queryMgr.FireDismemberQuery(context);
-	}
-}
-
-class XTFinishersVanillaFinisherCamQueryDispatcher extends XTFinishersAbstractFinisherEventListener {
-	public function GetPriority() : int {
-		return theGame.xtFinishersMgr.vanillaModule.VANILLA_FINISHER_CAM_QUERY_DISPATCHER_PRIORITY;
-	}
-	
-	public function OnFinisherTriggered(context : XTFinishersActionContext) {
-		theGame.xtFinishersMgr.queryMgr.FireFinisherCamQuery(context);
-	}
-}
-
-class XTFinishersVanillaCamShakeHandler extends XTFinishersAbstractActionEndEventListener {
-	public function GetPriority() : int {
-		return theGame.xtFinishersMgr.vanillaModule.VANILLA_CAMSHAKE_HANDLER_PRIORITY;
-	}
-	
-	protected function ProcessNormalStrike(context : XTFinishersActionContext) {
-		var playerAttacker : CR4Player;
-		var attackAction : W3Action_Attack;
-		
-		playerAttacker = (CR4Player)context.action.attacker;
-		attackAction = (W3Action_Attack)context.action;
-		
-		if (playerAttacker && attackAction && attackAction.IsActionMelee()) {
-			if (playerAttacker.IsLightAttack(attackAction.GetAttackName())) {
-				context.camShake.active = true;
-				context.camShake.strength = 0.1;
-				context.camShake.useExtraOpts = true;
-				context.camShake.epicenter = playerAttacker.GetWorldPosition();
-				context.camShake.maxDistance = 10;
-			} else if (SkillNameToEnum(attackAction.GetAttackTypeName()) == S_Sword_s02) {
-				context.camShake.active = true;
-				context.camShake.strength = thePlayer.GetSpecialAttackTimeRatio() / 3.333 + 0.2;
-				context.camShake.useExtraOpts = true;
-				context.camShake.epicenter = playerAttacker.GetWorldPosition();
-				context.camShake.maxDistance = 10;
-			} else if (playerAttacker.IsHeavyAttack(attackAction.GetAttackName())) {
-				context.camShake.active = true;
-				if (attackAction.IsParried()) {
-					context.camShake.strength = 0.2;
-				} else {
-					context.camShake.strength = 0.1;
-				}
-				context.camShake.useExtraOpts = true;
-				context.camShake.epicenter = playerAttacker.GetWorldPosition();
-				context.camShake.maxDistance = 10;
-			}
-		}
-	}
-	
-	protected function ProcessCriticalHit(context : XTFinishersActionContext) {
-		var attackAction : W3Action_Attack;
-		var actorVictim : CActor;
-		
-		attackAction = (W3Action_Attack)context.action;
-		actorVictim = (CActor)context.action.victim;
-		
-		if((CR4Player)context.action.attacker && attackAction && actorVictim && attackAction.IsCriticalHit() && context.action.DealtDamage() && !actorVictim.IsAlive()) {
-			context.camShake.active = true;
-			context.camShake.strength = 0.5;
-			context.camShake.useExtraOpts = false;
-		}
-	}
-	
-	protected function ProcessDismember(context : XTFinishersActionContext) {
-		var actorAttacker : CActor;
-		
-		actorAttacker = (CActor)context.action.attacker;
-		
-		if (context.dismember.active) {
-			context.camShake.active = true;
-			context.camShake.strength = 0.5;
-			context.camShake.useExtraOpts = true;
-			context.camShake.epicenter = actorAttacker.GetWorldPosition();
-			context.camShake.maxDistance = 10;
-		}
-	}
-	
-	public function OnActionEndTriggered(context : XTFinishersActionContext) {
-		ProcessNormalStrike(context);
-		ProcessCriticalHit(context);
-		ProcessDismember(context);
-	}
-}
-
-// responders
-
-class XTFinishersVanillaFinisherQueryResponder extends XTFinishersFinisherQueryResponder {
-	protected function CanPerformInstantKillFinisher(context : XTFinishersActionContext) : bool {
-		var actorVictim : CActor;
-		var attackAction : W3Action_Attack;
-		var hasEffect : bool;
-		var instantKillFinisherEffectTypes : array<EEffectType>;
-		var i : int;
-		
-		actorVictim = (CActor)context.action.victim;
-		attackAction = (W3Action_Attack)context.action;
-		
-		return attackAction && actorVictim.IsHuman() && actorVictim.IsVulnerable() && !actorVictim.HasAbility('InstantKillImmune')
-				&& (context.effectsSnapshot.HasEffect(EET_Confusion) || context.effectsSnapshot.HasEffect(EET_AxiiGuardMe));
-	}
-	
-	protected function SelectFinisherAnimName(context : XTFinishersActionContext) : name {
-		var syncAnimName 	: name;
-		var dlcFinishers : array<CR4FinisherDLC>;
-		var syncAnimsNames	: array<name>;
-		var size 			: int;
-		var i 				: int;
-		
-		if (thePlayer.forceFinisher && thePlayer.forceFinisherAnimName != '') {
-			return thePlayer.forceFinisherAnimName;
-		}
-		
-		if (thePlayer.GetCombatIdleStance() <= 0.f) {
-			syncAnimsNames.PushBack('man_finisher_02_lp');
-			syncAnimsNames.PushBack('man_finisher_04_lp');
-			syncAnimsNames.PushBack('man_finisher_06_lp');
-			syncAnimsNames.PushBack('man_finisher_07_lp');
-			syncAnimsNames.PushBack('man_finisher_08_lp');
-			dlcFinishers = theGame.GetSyncAnimManager().dlcFinishersLeftSide;
-		} else {
-			syncAnimsNames.PushBack('man_finisher_01_rp');
-			syncAnimsNames.PushBack('man_finisher_03_rp');
-			syncAnimsNames.PushBack('man_finisher_05_rp');
-			dlcFinishers = theGame.GetSyncAnimManager().dlcFinishersLeftSide;
-		}
-		size = dlcFinishers.Size();
-		for (i = 0; i < size; i += 1) {
-			syncAnimsNames.PushBack(dlcFinishers[i].finisherAnimName);
-		}
-			
-		return syncAnimsNames[RandRange(syncAnimsNames.Size(), 0)];
-	}
-	
-	public function CanPerformFinisher(context : XTFinishersActionContext) {
+	protected function PreprocessFinisher(context : XTFinishersActionContext) {
 		var actorVictim				: CActor;
 		var attackAction			: W3Action_Attack;
 		var finisherChance 			: float;
@@ -296,10 +147,64 @@ class XTFinishersVanillaFinisherQueryResponder extends XTFinishersFinisherQueryR
 			context.finisher.animName = SelectFinisherAnimName(context);
 		}
 	}
+	
+	protected function CanPerformInstantKillFinisher(context : XTFinishersActionContext) : bool {
+		var actorVictim : CActor;
+		var attackAction : W3Action_Attack;
+		var hasEffect : bool;
+		var instantKillFinisherEffectTypes : array<EEffectType>;
+		var i : int;
+		
+		actorVictim = (CActor)context.action.victim;
+		attackAction = (W3Action_Attack)context.action;
+		
+		return attackAction && actorVictim.IsHuman() && actorVictim.IsVulnerable() && !actorVictim.HasAbility('InstantKillImmune')
+				&& (context.effectsSnapshot.HasEffect(EET_Confusion) || context.effectsSnapshot.HasEffect(EET_AxiiGuardMe));
+	}
+	
+	protected function SelectFinisherAnimName(context : XTFinishersActionContext) : name {
+		var syncAnimName 	: name;
+		var dlcFinishers : array<CR4FinisherDLC>;
+		var syncAnimsNames	: array<name>;
+		var size 			: int;
+		var i 				: int;
+		
+		if (thePlayer.forceFinisher && thePlayer.forceFinisherAnimName != '') {
+			return thePlayer.forceFinisherAnimName;
+		}
+		
+		if (thePlayer.GetCombatIdleStance() <= 0.f) {
+			syncAnimsNames.PushBack('man_finisher_02_lp');
+			syncAnimsNames.PushBack('man_finisher_04_lp');
+			syncAnimsNames.PushBack('man_finisher_06_lp');
+			syncAnimsNames.PushBack('man_finisher_07_lp');
+			syncAnimsNames.PushBack('man_finisher_08_lp');
+			dlcFinishers = theGame.GetSyncAnimManager().dlcFinishersLeftSide;
+		} else {
+			syncAnimsNames.PushBack('man_finisher_01_rp');
+			syncAnimsNames.PushBack('man_finisher_03_rp');
+			syncAnimsNames.PushBack('man_finisher_05_rp');
+			dlcFinishers = theGame.GetSyncAnimManager().dlcFinishersLeftSide;
+		}
+		size = dlcFinishers.Size();
+		for (i = 0; i < size; i += 1) {
+			syncAnimsNames.PushBack(dlcFinishers[i].finisherAnimName);
+		}
+			
+		return syncAnimsNames[RandRange(syncAnimsNames.Size(), 0)];
+	}
 }
 
-class XTFinishersVanillaDismemberQueryResponder extends XTFinishersDismemberQueryResponder {
-	public function CanPerformDismember(context : XTFinishersActionContext) {
+class XTFinishersVanillaDismemberHandler extends XTFinishersAbstractReactionStartEventListener {
+	public function GetPriority() : int {
+		return theGame.xtFinishersMgr.vanillaModule.VANILLA_DISMEMBER_QUERY_DISPATCHER_PRIORITY;
+	}
+	
+	public function OnReactionStartTriggered(context : XTFinishersActionContext) {
+		PreprocessDismember(context);
+	}
+	
+	protected function PreprocessDismember(context : XTFinishersActionContext) {
 		var playerAttacker		: CR4Player;
 		var actorAttacker		: CActor;
 		var actorVictim			: CActor;
@@ -406,8 +311,90 @@ class XTFinishersVanillaDismemberQueryResponder extends XTFinishersDismemberQuer
 	}
 }
 
-class XTFinishersVanillaFinisherCamQueryResponder extends XTFinishersFinisherCamQueryResponder {
-	public function CanPerformFinisherCam(context : XTFinishersActionContext) {
+class XTFinishersVanillaFinisherCamHandler extends XTFinishersAbstractFinisherEventListener {
+	public function GetPriority() : int {
+		return theGame.xtFinishersMgr.vanillaModule.VANILLA_FINISHER_CAM_QUERY_DISPATCHER_PRIORITY;
+	}
+	
+	public function OnFinisherTriggered(context : XTFinishersActionContext) {
+		PreprocessFinisherCam(context);
+	}
+	
+	protected function PreprocessFinisherCam(context : XTFinishersActionContext) {
 		context.finisherCam.active = thePlayer.IsLastEnemyKilled() && theGame.GetWorld().NavigationCircleTest(thePlayer.GetWorldPosition(), 3.f);
+	}
+}
+
+class XTFinishersVanillaCamShakeHandler extends XTFinishersAbstractActionEndEventListener {
+	public function GetPriority() : int {
+		return theGame.xtFinishersMgr.vanillaModule.VANILLA_CAMSHAKE_HANDLER_PRIORITY;
+	}
+	
+	public function OnActionEndTriggered(context : XTFinishersActionContext) {
+		PreprocessNormalStrike(context);
+		PreprocessCriticalHit(context);
+		PreprocessDismember(context);
+	}
+	
+	protected function PreprocessNormalStrike(context : XTFinishersActionContext) {
+		var playerAttacker : CR4Player;
+		var attackAction : W3Action_Attack;
+		
+		playerAttacker = (CR4Player)context.action.attacker;
+		attackAction = (W3Action_Attack)context.action;
+		
+		if (playerAttacker && attackAction && attackAction.IsActionMelee()) {
+			if (playerAttacker.IsLightAttack(attackAction.GetAttackName())) {
+				context.camShake.active = true;
+				context.camShake.strength = 0.1;
+				context.camShake.useExtraOpts = true;
+				context.camShake.epicenter = playerAttacker.GetWorldPosition();
+				context.camShake.maxDistance = 10;
+			} else if (SkillNameToEnum(attackAction.GetAttackTypeName()) == S_Sword_s02) {
+				context.camShake.active = true;
+				context.camShake.strength = thePlayer.GetSpecialAttackTimeRatio() / 3.333 + 0.2;
+				context.camShake.useExtraOpts = true;
+				context.camShake.epicenter = playerAttacker.GetWorldPosition();
+				context.camShake.maxDistance = 10;
+			} else if (playerAttacker.IsHeavyAttack(attackAction.GetAttackName())) {
+				context.camShake.active = true;
+				if (attackAction.IsParried()) {
+					context.camShake.strength = 0.2;
+				} else {
+					context.camShake.strength = 0.1;
+				}
+				context.camShake.useExtraOpts = true;
+				context.camShake.epicenter = playerAttacker.GetWorldPosition();
+				context.camShake.maxDistance = 10;
+			}
+		}
+	}
+	
+	protected function PreprocessCriticalHit(context : XTFinishersActionContext) {
+		var attackAction : W3Action_Attack;
+		var actorVictim : CActor;
+		
+		attackAction = (W3Action_Attack)context.action;
+		actorVictim = (CActor)context.action.victim;
+		
+		if((CR4Player)context.action.attacker && attackAction && actorVictim && attackAction.IsCriticalHit() && context.action.DealtDamage() && !actorVictim.IsAlive()) {
+			context.camShake.active = true;
+			context.camShake.strength = 0.5;
+			context.camShake.useExtraOpts = false;
+		}
+	}
+	
+	protected function PreprocessDismember(context : XTFinishersActionContext) {
+		var actorAttacker : CActor;
+		
+		actorAttacker = (CActor)context.action.attacker;
+		
+		if (context.dismember.active) {
+			context.camShake.active = true;
+			context.camShake.strength = 0.5;
+			context.camShake.useExtraOpts = true;
+			context.camShake.epicenter = actorAttacker.GetWorldPosition();
+			context.camShake.maxDistance = 10;
+		}
 	}
 }
