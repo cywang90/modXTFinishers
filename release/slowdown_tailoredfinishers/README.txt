@@ -80,3 +80,11 @@ UNINSTALLATION
 		// load slowdown module
 		slowdownModule = new XTFinishersDefaultSlowdownModule in this;
 		slowdownModule.Init();
+		
+-----------
+PERMISSIONS
+-----------
+
+I give permission for anyone to use or modify the code contained in this mod. If you publish a work containing code from this mod, either in its original or an altered form, please give credit.
+
+Please do NOT redistribute this mod in its entire, unmodified form without my express consent.
