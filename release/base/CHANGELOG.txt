@@ -3,6 +3,24 @@ BASE eXTensible Finishers Changelog
 ===================================
 
 -----
+v2.03
+-----
+
+General
+-------
+- ***IMPORTANT*** This version breaks backwards compatibility with the following versions of the default modules:
+	- MODULE finisher_default v1.03 and older
+	- MODULE dismember_default v1.02 and older
+	- MODULE slowdown_default v1.02 and older
+	- MODULE camshake_default v1.01 and older
+
+API
+---
+- XTFinishersQueryManager and its associated classes are now considered deprecated.
+- Vanilla module no longer uses the XTFinishersQueryManager API.
+- Added const vars in XTFinishersConsts for finisher animation names.
+
+-----
 v2.02
 -----
 

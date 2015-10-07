@@ -1,0 +1,9 @@
+===========================================
+MODULE slowdown_tailoredfinishers Changelog
+===========================================
+
+-----
+v1.00
+-----
+
+Initial Release.

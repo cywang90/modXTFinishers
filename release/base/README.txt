@@ -4,6 +4,18 @@ BASE eXTensible Finishers README
 
 Author: aznricepuff
 
+-------
+VERSION
+-------
+
+This README is for v2.03.
+
+------------
+REQUIREMENTS
+------------
+
+- The Witcher 3: Wild Hunt Patch 1.08 (or hotfix)
+
 ------------
 INSTALLATION
 ------------

@@ -2,6 +2,36 @@
 eXTensible Finishers Changelog
 ==============================
 
+------------
+Release 2.04
+------------
+
+Includes
+--------
+BASE		eXTensible Finishers		v2.03
+MODULE		finisher_default			v1.04
+MODULE		dismember_default			v1.03
+MODULE		slowdown_default			v1.03
+MODULE		camshake_default			v1.02
+
+General
+-------
+- ALL
+	- ***IMPORTANT*** This release simplifies the installation/uninstallation process for modules. The new process is not 100% compatible with the old one, so please be aware of the following issues regarding compatibility:
+		- BASE eXTensible Finishers v2.03 is not compatible with any module with version numbers older than the ones included in this release.
+		- The latest versions of the default modules included in this release should be compatible with pre-v2.03 versions of BASE eXTensible Finishers.
+		- In any case it is highly recommended that if you wish to update any part of this mod from older versions to any version included in this release, you should update your entire installation (the base mod + any modules you have installed).
+- MODULE	finisher_default
+	- Changed the default value of FINISHER_CAM_CHANCE_LAST_ENEMY to 100.0 (100%), which is what it was prior to v1.03.
+
+API
+---
+- ALL
+	- XTFinishersQueryManager and its associated classes are now considered deprecated. Neither the vanilla module nor any of the default modules uses the XTFinishersQueryManager API anymore.
+	- All module-specific const vars have been moved from XTFinishersConsts into their corresponding module classes.
+- BASE		eXTensible Finishers
+	- Added const vars in XTFinishersConsts for finisher animation names.
+
 --------------
 Release 2.03.1
 --------------
@@ -25,7 +55,7 @@ Release 2.03
 
 Includes
 --------
-BASE		eXTensible Finishers			v2.02
+BASE		eXTensible Finishers		v2.02
 MODULE		finisher_default			v1.03
 MODULE		dismember_default			v1.02
 MODULE		slowdown_default			v1.01

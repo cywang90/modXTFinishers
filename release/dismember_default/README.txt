@@ -4,11 +4,24 @@ MODULE dismember_default README
 
 Author: aznricepuff
 
+-------
+VERSION
+-------
+
+This README is for v1.03.
+
+------------
+REQUIREMENTS
+------------
+
+- The Witcher 3: Wild Hunt Patch 1.08 (or hotfix)
+- BASE eXTensible Finishers v2.03 or later
+
 ------------
 INSTALLATION
 ------------
 
-This module requires the base eXTensible Finishers mod.
+This module requires the base eXTensible Finishers mod (BASE eXTensible Finishers v2.03 or later).
 
 1. Copy the "content" folder in the modXTFinishers\dismember_default directory located in the download package into your <The Witcher 3 Path>\mods\modXTFinishers directory. Accept any folder merge requests from your OS/file system.
 2. Open modXTFinishers\content\scripts\local\base\xtFinishersManager.ws ...
@@ -29,12 +42,6 @@ This module requires the base eXTensible Finishers mod.
 	   The line should look like this when you are done:
 	   
 		//vanillaModule.InitDismemberComponents();
-		
-3. Open modXTFinishers\content\scripts\local\base\xtFinishersConsts.ws ...
-	a. Copy the following lines into the file beneath where it says MODULE CONSTS GO HERE:
-		
-		public const var DEFAULT_DISMEMBER_QUERY_DISPATCHER_PRIORITY : int;
-			default DEFAULT_DISMEMBER_QUERY_DISPATCHER_PRIORITY = 10;
 
 -------------
 CONFIGURATION
@@ -88,16 +95,10 @@ UNINSTALLATION
 		dismemberModule = new XTFinishersDefaultDismemberModule in this;
 		dismemberModule.Init();
 		
-	c. If you wish to restore vanilla behavior for finishers, in the section marked "COMMENT LINES BELOW TO SELECTIVELY DISABLE VANILLA FUNCTIONALITY", uncomment the following line:
+	c. If you wish to restore vanilla behavior for dismemberments, in the section marked "COMMENT LINES BELOW TO SELECTIVELY DISABLE VANILLA FUNCTIONALITY", uncomment the following line:
 
 		//vanillaModule.InitDismemberComponents();
 		
 	   The line should look like this when you are done:
 	   
 		vanillaModule.InitDismemberComponents();
-		
-3. Open modXTFinishers\content\scripts\local\base\xtFinishersConsts.ws ...
-	a. In the section marked "MODULE CONSTS GO HERE", remove the following lines:
-		
-		public const var DEFAULT_DISMEMBER_QUERY_DISPATCHER_PRIORITY : int;
-			default DEFAULT_DISMEMBER_QUERY_DISPATCHER_PRIORITY = 10;
