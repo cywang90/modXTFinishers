@@ -1,4 +1,10 @@
 class XTFinishersDefaultSlowdownModule extends XTFinishersObject {
+	// dismember
+	public const var DEFAULT_SLOWDOWN_DISMEMBER_QUERY_DISPATCHER_PRIORITY, DEFAULT_SLOWDOWN_CRIT_QUERY_DISPATCHER_PRIORITY, DEFAULT_SLOWDOWN_FINISHER_QUERY_DISPATCHER_PRIORITY : int;
+		default DEFAULT_SLOWDOWN_DISMEMBER_QUERY_DISPATCHER_PRIORITY = 0;
+		default DEFAULT_SLOWDOWN_CRIT_QUERY_DISPATCHER_PRIORITY = 0;
+		default DEFAULT_SLOWDOWN_FINISHER_QUERY_DISPATCHER_PRIORITY = 10;
+		
 	public var params : XTFinishersDefaultSlowdownParams;
 	
 	public function Init() {
@@ -37,7 +43,7 @@ class XTFinishersDefaultSlowdownModule extends XTFinishersObject {
 
 class XTFinishersDefaultSlowdownCritHandler extends XTFinishersAbstractActionEndEventListener {
 	public function GetPriority() : int {
-		return theGame.xtFinishersMgr.consts.DEFAULT_SLOWDOWN_CRIT_QUERY_DISPATCHER_PRIORITY;
+		return theGame.xtFinishersMgr.slowdownModule.DEFAULT_SLOWDOWN_CRIT_QUERY_DISPATCHER_PRIORITY;
 	}
 	
 	public function OnActionEndTriggered(context : XTFinishersActionContext) {
@@ -83,7 +89,7 @@ class XTFinishersDefaultSlowdownCritHandler extends XTFinishersAbstractActionEnd
 
 class XTFinishersDefaultSlowdownFinisherHandler extends XTFinishersAbstractFinisherEventListener {
 	public function GetPriority() : int {
-		return theGame.xtFinishersMgr.consts.DEFAULT_SLOWDOWN_FINISHER_QUERY_DISPATCHER_PRIORITY;
+		return theGame.xtFinishersMgr.slowdownModule.DEFAULT_SLOWDOWN_FINISHER_QUERY_DISPATCHER_PRIORITY;
 	}
 	
 	public function OnFinisherTriggered(context : XTFinishersActionContext) {
@@ -128,7 +134,7 @@ class XTFinishersDefaultSlowdownFinisherHandler extends XTFinishersAbstractFinis
 
 class XTFinishersDefaultSlowdownDismemberHandler extends XTFinishersAbstractDismemberEventListener {
 	public function GetPriority() : int {
-		return theGame.xtFinishersMgr.consts.DEFAULT_SLOWDOWN_DISMEMBER_QUERY_DISPATCHER_PRIORITY;
+		return theGame.xtFinishersMgr.slowdownModule.DEFAULT_SLOWDOWN_DISMEMBER_QUERY_DISPATCHER_PRIORITY;
 	}
 	
 	public function OnDismemberTriggered(context : XTFinishersActionContext) {
