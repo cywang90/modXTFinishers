@@ -12,12 +12,33 @@ class XTFinishersTailoredFinishersSlowdownModule extends XTFinishersDefaultSlowd
 class XTFinishersTailoredFinishersSlowdownManager extends XTFinishersDefaultSlowdownManager {
 	private var customSequenceDefs : array<XTFinishersSlowdownSequenceDef>;
 	
+	private const var FINISHER_STANCE_LEFT_HEAD_ONE_INDEX, FINISHER_STANCE_LEFT_HEAD_TWO_INDEX, FINISHER_STANCE_LEFT_NECK_INDEX, FINISHER_STANCE_LEFT_THRUST_ONE_INDEX, FINISHER_STANCE_LEFT_THRUST_TWO_INDEX, FINISHER_STANCE_RIGHT_HEAD_INDEX, FINISHER_STANCE_RIGHT_THRUST_ONE_INDEX, FINISHER_STANCE_RIGHT_THRUST_TWO_INDEX : int;
+		default FINISHER_STANCE_LEFT_HEAD_ONE_INDEX = 0;
+		default FINISHER_STANCE_LEFT_HEAD_TWO_INDEX = 5;
+		default FINISHER_STANCE_LEFT_NECK_INDEX = 6;
+		default FINISHER_STANCE_LEFT_THRUST_ONE_INDEX = 2;
+		default FINISHER_STANCE_LEFT_THRUST_TWO_INDEX = 4;
+		default FINISHER_STANCE_RIGHT_HEAD_INDEX = 0;
+		default FINISHER_STANCE_RIGHT_THRUST_ONE_INDEX = 1;
+		default FINISHER_STANCE_RIGHT_THRUST_TWO_INDEX = 3;
+		
+	
+	private const var FINISHER_DLC_STANCE_LEFT_ARM_INDEX, FINISHER_DLC_STANCE_LEFT_LEGS_INDEX, FINISHER_DLC_STANCE_LEFT_TORSO_INDEX, FINISHER_DLC_STANCE_RIGHT_ARM_INDEX, FINISHER_DLC_STANCE_RIGHT_LEGS_INDEX, FINISHER_DLC_STANCE_RIGHT_TORSO_INDEX, FINISHER_DLC_STANCE_RIGHT_HEAD_INDEX, FINISHER_DLC_STANCE_RIGHT_NECK_INDEX : int;
+		default FINISHER_DLC_STANCE_LEFT_ARM_INDEX = 7;
+		default FINISHER_DLC_STANCE_LEFT_LEGS_INDEX = 8;
+		default FINISHER_DLC_STANCE_LEFT_TORSO_INDEX = 9;
+		default FINISHER_DLC_STANCE_RIGHT_ARM_INDEX = 7;
+		default FINISHER_DLC_STANCE_RIGHT_LEGS_INDEX = 8;
+		default FINISHER_DLC_STANCE_RIGHT_TORSO_INDEX = 9;
+		default FINISHER_DLC_STANCE_RIGHT_HEAD_INDEX = 10;
+		default FINISHER_DLC_STANCE_RIGHT_NECK_INDEX = 11;
+	
 	public function Init() {
 		var seqDef : XTFinishersSlowdownSequenceDef;
 		
 		super.Init();
 		
-		// man_finisher_01_rp
+		// 0: FINISHER_STANCE_LEFT_HEAD_ONE/FINISHER_STANCE_RIGHT_HEAD
 		seqDef = new XTFinishersSlowdownSequenceDef in this;
 		seqDef.AddSegment(CreateXTFinishersSlowdownDelay(this, 0.75));
 		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.1, 0.1));
@@ -25,15 +46,7 @@ class XTFinishersTailoredFinishersSlowdownManager extends XTFinishersDefaultSlow
 		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.1, 0.1));
 		customSequenceDefs.PushBack(seqDef);
 		
-		// man_finisher_02_lp
-		seqDef = new XTFinishersSlowdownSequenceDef in this;
-		seqDef.AddSegment(CreateXTFinishersSlowdownDelay(this, 0.75));
-		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.1, 0.1));
-		seqDef.AddSegment(CreateXTFinishersSlowdownDelay(this, 0.65));
-		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.1, 0.1));
-		customSequenceDefs.PushBack(seqDef);
-		
-		// man_finisher_03_rp
+		// 1: FINISHER_STANCE_RIGHT_THRUST_ONE
 		seqDef = new XTFinishersSlowdownSequenceDef in this;
 		seqDef.AddSegment(CreateXTFinishersSlowdownDelay(this, 0.85));
 		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.1, 0.1));
@@ -41,21 +54,13 @@ class XTFinishersTailoredFinishersSlowdownManager extends XTFinishersDefaultSlow
 		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.1, 0.1));
 		customSequenceDefs.PushBack(seqDef);
 		
-		// man_finisher_04_lp
+		// 2: FINISHER_STANCE_LEFT_THRUST_ONE
 		seqDef = new XTFinishersSlowdownSequenceDef in this;
 		seqDef.AddSegment(CreateXTFinishersSlowdownDelay(this, 0.85));
 		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.1, 0.1));
 		customSequenceDefs.PushBack(seqDef);
 		
-		// man_finisher_05_rp
-		seqDef = new XTFinishersSlowdownSequenceDef in this;
-		seqDef.AddSegment(CreateXTFinishersSlowdownDelay(this, 0.85));
-		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.1, 0.1));
-		seqDef.AddSegment(CreateXTFinishersSlowdownDelay(this, 0.75));
-		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.1, 0.1));
-		customSequenceDefs.PushBack(seqDef);
-		
-		// man_finisher_06_lp
+		// 3: FINISHER_STANCE_RIGHT_THRUST_TWO
 		seqDef = new XTFinishersSlowdownSequenceDef in this;
 		seqDef.AddSegment(CreateXTFinishersSlowdownDelay(this, 0.85));
 		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.1, 0.1));
@@ -63,7 +68,15 @@ class XTFinishersTailoredFinishersSlowdownManager extends XTFinishersDefaultSlow
 		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.1, 0.1));
 		customSequenceDefs.PushBack(seqDef);
 		
-		// man_finisher_07_lp
+		// 4: FINISHER_STANCE_LEFT_THRUST_TWO
+		seqDef = new XTFinishersSlowdownSequenceDef in this;
+		seqDef.AddSegment(CreateXTFinishersSlowdownDelay(this, 0.85));
+		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.1, 0.1));
+		seqDef.AddSegment(CreateXTFinishersSlowdownDelay(this, 0.75));
+		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.1, 0.1));
+		customSequenceDefs.PushBack(seqDef);
+		
+		// 5: FINISHER_STANCE_LEFT_HEAD_TWO
 		seqDef = new XTFinishersSlowdownSequenceDef in this;
 		seqDef.AddSegment(CreateXTFinishersSlowdownDelay(this, 0.85));
 		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.1, 0.1));
@@ -71,20 +84,20 @@ class XTFinishersTailoredFinishersSlowdownManager extends XTFinishersDefaultSlow
 		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.1, 0.1));
 		customSequenceDefs.PushBack(seqDef);
 		
-		// man_finisher_08_lp
+		// 6: FINISHER_STANCE_LEFT_NECK
 		seqDef = new XTFinishersSlowdownSequenceDef in this;
 		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.1, 0.1));
 		seqDef.AddSegment(CreateXTFinishersSlowdownDelay(this, 0.95));
 		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.1, 0.1));
 		customSequenceDefs.PushBack(seqDef);
 		
-		// man_finisher_dlc_arm_lp/rp
+		// 7: FINISHER_DLC_STANCE_LEFT_ARM/FINISHER_DLC_STANCE_RIGHT_ARM
 		seqDef = new XTFinishersSlowdownSequenceDef in this;
 		seqDef.AddSegment(CreateXTFinishersSlowdownDelay(this, 0.95));
 		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.2, 0.1));
 		customSequenceDefs.PushBack(seqDef);
 		
-		// man_finisher_dlc_legs_lp/rp
+		// 8: FINISHER_DLC_STANCE_LEFT_LEGS/FINISHER_DLC_STANCE_RIGHT_LEGS
 		seqDef = new XTFinishersSlowdownSequenceDef in this;
 		seqDef.AddSegment(CreateXTFinishersSlowdownDelay(this, 0.4));
 		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.05, 0.1));
@@ -92,7 +105,7 @@ class XTFinishersTailoredFinishersSlowdownManager extends XTFinishersDefaultSlow
 		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.1, 0.1));
 		customSequenceDefs.PushBack(seqDef);
 		
-		// man_finisher_dlc_torso_lp/rp
+		// 9: FINISHER_DLC_STANCE_LEFT_TORSO/FINISHER_DLC_STANCE_RIGHT_TORSO
 		seqDef = new XTFinishersSlowdownSequenceDef in this;
 		seqDef.AddSegment(CreateXTFinishersSlowdownDelay(this, 0.55));
 		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.15, 0.1));
@@ -100,7 +113,7 @@ class XTFinishersTailoredFinishersSlowdownManager extends XTFinishersDefaultSlow
 		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.1, 0.1));
 		customSequenceDefs.PushBack(seqDef);
 		
-		// man_finisher_dlc_head_rp
+		// 10: FINISHER_DLC_STANCE_RIGHT_HEAD
 		seqDef = new XTFinishersSlowdownSequenceDef in this;
 		seqDef.AddSegment(CreateXTFinishersSlowdownDelay(this, 0.85));
 		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.1, 0.1));
@@ -108,95 +121,95 @@ class XTFinishersTailoredFinishersSlowdownManager extends XTFinishersDefaultSlow
 		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.1, 0.1));
 		customSequenceDefs.PushBack(seqDef);
 		
-		// man_finisher_dlc_neck_rp
+		// 11: FINISHER_DLC_STANCE_RIGHT_NECK
 		seqDef = new XTFinishersSlowdownSequenceDef in this;
 		seqDef.AddSegment(CreateXTFinishersSlowdownDelay(this, 1.25));
 		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.1, 0.1));
 		customSequenceDefs.PushBack(seqDef);
 	}
 	
-	protected function GetFinisher01Sequence() : XTFinishersSlowdownSequenceDef {
-		return customSequenceDefs[0];
+	protected function GetFinisherStanceLeftHeadOneSequence() : XTFinishersSlowdownSequenceDef {
+		return customSequenceDefs[FINISHER_STANCE_LEFT_HEAD_ONE_INDEX];
 	}
 	
-	protected function GetFinisher02Sequence() : XTFinishersSlowdownSequenceDef {
-		return customSequenceDefs[1];
+	protected function GetFinisherStanceLeftHeadTwoSequence() : XTFinishersSlowdownSequenceDef {
+		return customSequenceDefs[FINISHER_STANCE_LEFT_HEAD_TWO_INDEX];
 	}
 	
-	protected function GetFinisher03Sequence() : XTFinishersSlowdownSequenceDef {
-		return customSequenceDefs[2];
+	protected function GetFinisherStanceLeftNeckSequence() : XTFinishersSlowdownSequenceDef {
+		return customSequenceDefs[FINISHER_STANCE_LEFT_NECK_INDEX];
 	}
 	
-	protected function GetFinisher04Sequence() : XTFinishersSlowdownSequenceDef {
-		return customSequenceDefs[3];
+	protected function GetFinisherStanceLeftThrustOneSequence() : XTFinishersSlowdownSequenceDef {
+		return customSequenceDefs[FINISHER_STANCE_LEFT_THRUST_ONE_INDEX];
 	}
 	
-	protected function GetFinisher05Sequence() : XTFinishersSlowdownSequenceDef {
-		return customSequenceDefs[4];
+	protected function GetFinisherStanceLeftThrustTwoSequence() : XTFinishersSlowdownSequenceDef {
+		return customSequenceDefs[FINISHER_STANCE_LEFT_THRUST_TWO_INDEX];
 	}
 	
-	protected function GetFinisher06Sequence() : XTFinishersSlowdownSequenceDef {
-		return customSequenceDefs[5];
+	protected function GetFinisherStanceRightHeadSequence() : XTFinishersSlowdownSequenceDef {
+		return customSequenceDefs[FINISHER_STANCE_RIGHT_HEAD_INDEX];
 	}
 	
-	protected function GetFinisher07Sequence() : XTFinishersSlowdownSequenceDef {
-		return customSequenceDefs[6];
+	protected function GetFinisherStanceRightThrustOneSequence() : XTFinishersSlowdownSequenceDef {
+		return customSequenceDefs[FINISHER_STANCE_RIGHT_THRUST_ONE_INDEX];
 	}
 	
-	protected function GetFinisher08Sequence() : XTFinishersSlowdownSequenceDef {
-		return customSequenceDefs[7];
+	protected function GetFinisherStanceRightThrustTwoSequence() : XTFinishersSlowdownSequenceDef {
+		return customSequenceDefs[FINISHER_STANCE_RIGHT_THRUST_TWO_INDEX];
 	}
 	
-	protected function GetDlcFinisherArmLeftSequence() : XTFinishersSlowdownSequenceDef {
-		return customSequenceDefs[8];
+	protected function GetFinisherDlcStanceLeftArmSequence() : XTFinishersSlowdownSequenceDef {
+		return customSequenceDefs[FINISHER_DLC_STANCE_LEFT_ARM_INDEX];
 	}
 	
-	protected function GetDlcFinisherArmRightSequence() : XTFinishersSlowdownSequenceDef {
-		return customSequenceDefs[8];
+	protected function GetFinisherDlcStanceLeftLegsSequence() : XTFinishersSlowdownSequenceDef {
+		return customSequenceDefs[FINISHER_DLC_STANCE_LEFT_LEGS_INDEX];
 	}
 	
-	protected function GetDlcFinisherLegsLeftSequence() : XTFinishersSlowdownSequenceDef {
-		return customSequenceDefs[9];
+	protected function GetFinisherDlcStanceLeftTorsoSequence() : XTFinishersSlowdownSequenceDef {
+		return customSequenceDefs[FINISHER_DLC_STANCE_LEFT_TORSO_INDEX];
 	}
 	
-	protected function GetDlcFinisherLegsRightSequence() : XTFinishersSlowdownSequenceDef {
-		return customSequenceDefs[9];
+	protected function GetFinisherDlcStanceRightArmSequence() : XTFinishersSlowdownSequenceDef {
+		return customSequenceDefs[FINISHER_DLC_STANCE_RIGHT_ARM_INDEX];
 	}
 	
-	protected function GetDlcFinisherTorsoLeftSequence() : XTFinishersSlowdownSequenceDef {
-		return customSequenceDefs[10];
+	protected function GetFinisherDlcStanceRightLegsSequence() : XTFinishersSlowdownSequenceDef {
+		return customSequenceDefs[FINISHER_DLC_STANCE_RIGHT_LEGS_INDEX];
 	}
 	
-	protected function GetDlcFinisherTorsoRightSequence() : XTFinishersSlowdownSequenceDef {
-		return customSequenceDefs[10];
+	protected function GetFinisherDlcStanceRightTorsoSequence() : XTFinishersSlowdownSequenceDef {
+		return customSequenceDefs[FINISHER_DLC_STANCE_RIGHT_TORSO_INDEX];
 	}
 	
-	protected function GetDlcFinisherHeadRightSequence() : XTFinishersSlowdownSequenceDef {
-		return customSequenceDefs[11];
+	protected function GetFinisherDlcStanceRightHeadSequence() : XTFinishersSlowdownSequenceDef {
+		return customSequenceDefs[FINISHER_DLC_STANCE_RIGHT_HEAD_INDEX];
 	}
 	
-	protected function GetDlcFinisherNeckRightSequence() : XTFinishersSlowdownSequenceDef {
-		return customSequenceDefs[12];
+	protected function GetFinisherDlcStanceRightNeckSequence() : XTFinishersSlowdownSequenceDef {
+		return customSequenceDefs[FINISHER_DLC_STANCE_RIGHT_NECK_INDEX];
 	}
 	
 	protected function GetFinisherSequence(context : XTFinishersActionContext) : XTFinishersSlowdownSequenceDef {
 		switch (context.finisher.animName) {
-		case 'man_finisher_01_rp' : 		return GetFinisher01Sequence();
-		case 'man_finisher_02_lp' : 		return GetFinisher02Sequence();
-		case 'man_finisher_03_rp' : 		return GetFinisher03Sequence();
-		case 'man_finisher_04_lp' : 		return GetFinisher04Sequence();
-		case 'man_finisher_05_rp' : 		return GetFinisher05Sequence();
-		case 'man_finisher_06_lp' : 		return GetFinisher06Sequence();
-		case 'man_finisher_07_lp' : 		return GetFinisher07Sequence();
-		case 'man_finisher_08_lp' : 		return GetFinisher08Sequence();
-		case 'man_finisher_dlc_arm_lp' : 	return GetDlcFinisherArmLeftSequence();
-		case 'man_finisher_dlc_arm_rp' :	return GetDlcFinisherArmRightSequence();
-		case 'man_finisher_dlc_legs_lp' :	return GetDlcFinisherLegsLeftSequence();
-		case 'man_finisher_dlc_legs_rp' :	return GetDlcFinisherLegsRightSequence();
-		case 'man_finisher_dlc_torso_lp' :	return GetDlcFinisherTorsoLeftSequence();
-		case 'man_finisher_dlc_torso_rp' :	return GetDlcFinisherTorsoRightSequence();
-		case 'man_finisher_dlc_head_rp' :	return GetDlcFinisherHeadRightSequence();
-		case 'man_finisher_dlc_neck_rp' :	return GetDlcFinisherNeckRightSequence();
+		case theGame.xtFinishersMgr.consts.FINISHER_STANCE_LEFT_HEAD_ONE : 		return GetFinisherStanceLeftHeadOneSequence();
+		case theGame.xtFinishersMgr.consts.FINISHER_STANCE_LEFT_HEAD_TWO : 		return GetFinisherStanceLeftHeadTwoSequence();
+		case theGame.xtFinishersMgr.consts.FINISHER_STANCE_LEFT_NECK : 			return GetFinisherStanceLeftNeckSequence();
+		case theGame.xtFinishersMgr.consts.FINISHER_STANCE_LEFT_THRUST_ONE : 	return GetFinisherStanceLeftThrustOneSequence();
+		case theGame.xtFinishersMgr.consts.FINISHER_STANCE_LEFT_THRUST_ONE : 	return GetFinisherStanceLeftThrustTwoSequence();
+		case theGame.xtFinishersMgr.consts.FINISHER_STANCE_RIGHT_HEAD : 		return GetFinisherStanceRightHeadSequence();
+		case theGame.xtFinishersMgr.consts.FINISHER_STANCE_RIGHT_THRUST_ONE : 	return GetFinisherStanceRightThrustOneSequence();
+		case theGame.xtFinishersMgr.consts.FINISHER_STANCE_RIGHT_THRUST_ONE : 	return GetFinisherStanceRightThrustTwoSequence();
+		case theGame.xtFinishersMgr.consts.FINISHER_DLC_STANCE_LEFT_ARM : 		return GetFinisherDlcStanceLeftArmSequence();
+		case theGame.xtFinishersMgr.consts.FINISHER_DLC_STANCE_LEFT_LEGS :		return GetFinisherDlcStanceLeftLegsSequence();
+		case theGame.xtFinishersMgr.consts.FINISHER_DLC_STANCE_LEFT_TORSO :		return GetFinisherDlcStanceLeftTorsoSequence();
+		case theGame.xtFinishersMgr.consts.FINISHER_DLC_STANCE_RIGHT_ARM :		return GetFinisherDlcStanceRightArmSequence();
+		case theGame.xtFinishersMgr.consts.FINISHER_DLC_STANCE_RIGHT_LEGS :		return GetFinisherDlcStanceRightLegsSequence();
+		case theGame.xtFinishersMgr.consts.FINISHER_DLC_STANCE_RIGHT_TORSO :	return GetFinisherDlcStanceRightTorsoSequence();
+		case theGame.xtFinishersMgr.consts.FINISHER_DLC_STANCE_RIGHT_HEAD :		return GetFinisherDlcStanceRightHeadSequence();
+		case theGame.xtFinishersMgr.consts.FINISHER_DLC_STANCE_RIGHT_NECK :		return GetFinisherDlcStanceRightNeckSequence();
 		}
 		return super.GetFinisherSequence(context);
 	}
