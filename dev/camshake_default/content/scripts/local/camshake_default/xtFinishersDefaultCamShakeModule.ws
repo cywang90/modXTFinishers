@@ -1,4 +1,8 @@
 class XTFinishersDefaultCamShakeModule extends XTFinishersObject {
+	// action end
+	public const var DEFAULT_CAMSHAKE_HANDLER_PRIORITY : int;
+		default DEFAULT_CAMSHAKE_HANDLER_PRIORITY = 10;
+		
 	public var params : XTFinishersDefaultCamShakeParams;
 	
 	public function Init() {
@@ -16,7 +20,7 @@ class XTFinishersDefaultCamShakeModule extends XTFinishersObject {
 
 class XTFinishersDefaultCamShakeHandler extends XTFinishersAbstractActionEndEventListener {
 	public function GetPriority() : int {
-		return theGame.xtFinishersMgr.consts.DEFAULT_CAMSHAKE_HANDLER_PRIORITY;
+		return theGame.xtFinishersMgr.camshakeModule.DEFAULT_CAMSHAKE_HANDLER_PRIORITY;
 	}
 	
 	protected function PreprocessNormalStrike(out context : XTFinishersActionContext) {

@@ -1,4 +1,14 @@
 class XTFinishersVanillaModule extends XTFinishersObject {
+	public const var VANILLA_FINISHER_QUERY_DISPATCHER_PRIORITY, VANILLA_DISMEMBER_QUERY_DISPATCHER_PRIORITY : int;
+		default VANILLA_FINISHER_QUERY_DISPATCHER_PRIORITY = 0;
+		default VANILLA_DISMEMBER_QUERY_DISPATCHER_PRIORITY = 10;
+		
+	public const var VANILLA_CAMSHAKE_HANDLER_PRIORITY : int;
+		default VANILLA_CAMSHAKE_HANDLER_PRIORITY = 0;
+	
+	public const var VANILLA_FINISHER_CAM_QUERY_DISPATCHER_PRIORITY : int;
+		default VANILLA_FINISHER_CAM_QUERY_DISPATCHER_PRIORITY = 0;
+		
 	public function InitFinisherComponents() {
 		theGame.xtFinishersMgr.queryMgr.LoadFinisherResponder(new XTFinishersVanillaFinisherQueryResponder in this);
 		theGame.xtFinishersMgr.queryMgr.LoadFinisherCamResponder(new XTFinishersVanillaFinisherCamQueryResponder in this);
@@ -22,7 +32,7 @@ class XTFinishersVanillaModule extends XTFinishersObject {
 
 class XTFinishersVanillaFinisherQueryDispatcher extends XTFinishersAbstractReactionStartEventListener {
 	public function GetPriority() : int {
-		return theGame.xtFinishersMgr.consts.VANILLA_FINISHER_QUERY_DISPATCHER_PRIORITY;
+		return theGame.xtFinishersMgr.vanillaModule.VANILLA_FINISHER_QUERY_DISPATCHER_PRIORITY;
 	}
 	
 	public function OnReactionStartTriggered(context : XTFinishersActionContext) {
@@ -32,7 +42,7 @@ class XTFinishersVanillaFinisherQueryDispatcher extends XTFinishersAbstractReact
 
 class XTFinishersVanillaDismemberQueryDispatcher extends XTFinishersAbstractReactionStartEventListener {
 	public function GetPriority() : int {
-		return theGame.xtFinishersMgr.consts.VANILLA_DISMEMBER_QUERY_DISPATCHER_PRIORITY;
+		return theGame.xtFinishersMgr.vanillaModule.VANILLA_DISMEMBER_QUERY_DISPATCHER_PRIORITY;
 	}
 	
 	public function OnReactionStartTriggered(context : XTFinishersActionContext) {
@@ -42,7 +52,7 @@ class XTFinishersVanillaDismemberQueryDispatcher extends XTFinishersAbstractReac
 
 class XTFinishersVanillaFinisherCamQueryDispatcher extends XTFinishersAbstractFinisherEventListener {
 	public function GetPriority() : int {
-		return theGame.xtFinishersMgr.consts.VANILLA_FINISHER_CAM_QUERY_DISPATCHER_PRIORITY;
+		return theGame.xtFinishersMgr.vanillaModule.VANILLA_FINISHER_CAM_QUERY_DISPATCHER_PRIORITY;
 	}
 	
 	public function OnFinisherTriggered(context : XTFinishersActionContext) {
@@ -52,7 +62,7 @@ class XTFinishersVanillaFinisherCamQueryDispatcher extends XTFinishersAbstractFi
 
 class XTFinishersVanillaCamShakeHandler extends XTFinishersAbstractActionEndEventListener {
 	public function GetPriority() : int {
-		return theGame.xtFinishersMgr.consts.VANILLA_CAMSHAKE_HANDLER_PRIORITY;
+		return theGame.xtFinishersMgr.vanillaModule.VANILLA_CAMSHAKE_HANDLER_PRIORITY;
 	}
 	
 	protected function ProcessNormalStrike(context : XTFinishersActionContext) {

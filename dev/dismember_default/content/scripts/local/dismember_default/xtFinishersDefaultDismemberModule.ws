@@ -1,4 +1,8 @@
 class XTFinishersDefaultDismemberModule extends XTFinishersObject {
+	// reaction start
+	public const var DEFAULT_DISMEMBER_QUERY_DISPATCHER_PRIORITY : int;
+		default DEFAULT_DISMEMBER_QUERY_DISPATCHER_PRIORITY = 10;
+		
 	public var params : XTFinishersDefaultDismemberParams;
 	
 	public function Init() {
@@ -16,7 +20,7 @@ class XTFinishersDefaultDismemberModule extends XTFinishersObject {
 
 class XTFinishersDefaultDismemberHandler extends XTFinishersAbstractReactionStartEventListener {
 	public function GetPriority() : int {
-		return theGame.xtFinishersMgr.consts.DEFAULT_DISMEMBER_QUERY_DISPATCHER_PRIORITY;
+		return theGame.xtFinishersMgr.dismemberModule.DEFAULT_DISMEMBER_QUERY_DISPATCHER_PRIORITY;
 	}
 	
 	public function OnReactionStartTriggered(context : XTFinishersActionContext) {

@@ -1,4 +1,8 @@
 class XTFinishersDefaultFinisherModule extends XTFinishersObject {
+	public const var DEFAULT_FINISHER_QUERY_DISPATCHER_PRIORITY, DEFAULT_FINISHER_CAM_QUERY_DISPATCHER_PRIORITY : int;
+		default DEFAULT_FINISHER_QUERY_DISPATCHER_PRIORITY = 0;
+		default DEFAULT_FINISHER_CAM_QUERY_DISPATCHER_PRIORITY = 0;
+	
 	public var params : XTFinishersDefaultFinisherParams;
 	
 	public function Init() {
@@ -22,7 +26,7 @@ class XTFinishersDefaultFinisherModule extends XTFinishersObject {
 
 class XTFinishersDefaultFinisherHandler extends XTFinishersAbstractReactionStartEventListener {
 	public function GetPriority() : int {
-		return theGame.xtFinishersMgr.consts.DEFAULT_FINISHER_QUERY_DISPATCHER_PRIORITY;
+		return theGame.xtFinishersMgr.finisherModule.DEFAULT_FINISHER_QUERY_DISPATCHER_PRIORITY;
 	}
 	
 	public function OnReactionStartTriggered(context : XTFinishersActionContext) {
@@ -250,7 +254,7 @@ class XTFinishersDefaultFinisherHandler extends XTFinishersAbstractReactionStart
 
 class XTFinishersDefaultFinisherCamHandler extends XTFinishersAbstractFinisherEventListener {
 	public function GetPriority() : int {
-		return theGame.xtFinishersMgr.consts.DEFAULT_FINISHER_CAM_QUERY_DISPATCHER_PRIORITY;
+		return theGame.xtFinishersMgr.finisherModule.DEFAULT_FINISHER_CAM_QUERY_DISPATCHER_PRIORITY;
 	}
 	
 	public function OnFinisherTriggered(context : XTFinishersActionContext) {
