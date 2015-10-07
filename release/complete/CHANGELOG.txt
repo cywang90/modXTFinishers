@@ -2,9 +2,9 @@
 eXTensible Finishers Changelog
 ==============================
 
-------------
-Release 2.04
-------------
+-----------------------
+Release 2.04 (15/10/06)
+-----------------------
 
 Includes
 --------
@@ -32,9 +32,9 @@ API
 - BASE		eXTensible Finishers
 	- Added const vars in XTFinishersConsts for finisher animation names.
 
---------------
-Release 2.03.1
---------------
+-------------------------
+Release 2.03.1 (15/10/02)
+-------------------------
 
 Includes
 --------
@@ -49,9 +49,9 @@ Bug Fixes
 - MODULE	slowdown_default
 	- Slowdowns will now correctly trigger on critical hits. For real this time.
 
-------------
-Release 2.03
-------------
+-----------------------
+Release 2.03 (15/10/01)
+-----------------------
 
 Includes
 --------
@@ -99,9 +99,9 @@ Bug Fixes
 - MODULE	slowdown_default
 	- Slowdowns will now correctly trigger on critical hits.
 
-------------
-Release 2.02
-------------
+-----------------------
+Release 2.02 (15/09/28)
+-----------------------
 
 Includes
 --------
@@ -124,9 +124,9 @@ Bug Fixes
 - MODULE	finisher_default:
 	- INSTANT-KILL finishers no longer always ignore aggro checks.
 
-------------
-Release 2.01
-------------
+-----------------------
+Release 2.01 (15/09/27)
+-----------------------
 
 Includes
 --------
@@ -145,9 +145,9 @@ Bug Fixes
 	- DISMEMBER_AUTO_STRONG is now a mutually exclusive condition with DISMEMBER_AUTO_REND (Rend attacks used to be eligible for both conditions).
 	- DISMEMBER_AUTO_FAST is now a mutually exclusive condition with DISMEMBER_AUTO_WHIRL (Whirl attacks used to be eligible for both conditions).
 
-------------
-Release 2.00
-------------
+-----------------------
+Release 2.00 (15/09/26)
+-----------------------
 
 Includes
 --------
@@ -187,8 +187,8 @@ Features
 - Added support for triggering slowdowns on critical hits.
 - Added expanded support for customizing camera-shake.
 
-------------
-Release 1.00
-------------
+-----------------------
+Release 1.00 (15/09/23)
+-----------------------
 
 Initial Release.

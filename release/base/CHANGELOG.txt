@@ -2,9 +2,9 @@
 BASE eXTensible Finishers Changelog
 ===================================
 
------
-v2.03
------
+----------------
+v2.03 (15/10/06)
+----------------
 
 General
 -------
@@ -20,9 +20,9 @@ API
 - Vanilla module no longer uses the XTFinishersQueryManager API.
 - Added const vars in XTFinishersConsts for finisher animation names.
 
------
-v2.02
------
+----------------
+v2.02 (15/10/01)
+----------------
 
 General
 -------
@@ -45,9 +45,9 @@ Bug Fixes
 ---------
 - Misc. minor bug fixes.
 
------
-v2.01
------
+----------------
+v2.01 (15/09/28)
+----------------
 
 Features
 --------
@@ -58,9 +58,9 @@ Bug Fixes
 - XTFinishersEventManager no longer incorrectly skips certain event listeners when FireEvent() is called.
 - Other minor fixes.
 
------
-v2.00
------
+----------------
+v2.00 (15/09/26)
+----------------
 
 API
 ---
@@ -90,8 +90,8 @@ Features
 --------
 - Mod code in existing script files now delimited with "// modXTFinishers BEGIN" and "// modXTFinishers END" to make identifying which lines were added/changed by the mod more obvious.
 
------
-v1.00
------
+----------------
+v1.00 (15/09/23)
+----------------
 
 Initial Release.

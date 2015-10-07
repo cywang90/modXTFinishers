@@ -2,9 +2,9 @@
 MODULE slowdown_default Changelog
 =================================
 
------
-v1.03
------
+----------------
+v1.03 (15/10/06)
+----------------
 
 General
 -------
@@ -15,17 +15,17 @@ API
 - All module-specific const vars have been moved from XTFinishersConsts into XTFinishersDefaultSlowdownModule.
 - No longer uses the XTFinishersQueryManager API.
 
------
-v1.02
------
+----------------
+v1.02 (15/10/02)
+----------------
 
 Bug Fixes
 ---------
 - Slowdowns will now correctly trigger on critical hits. For real this time.
 
------
-v1.01
------
+----------------
+v1.01 (15/10/01)
+----------------
 
 General
 -------
@@ -44,8 +44,8 @@ Bug Fixes
 ---------
 - Slowdowns will now correctly trigger on critical hits.
 
------
-v1.00
------
+----------------
+v1.00 (15/09/26)
+----------------
 
 Initial Release.
