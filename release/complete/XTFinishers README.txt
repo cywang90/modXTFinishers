@@ -4,6 +4,18 @@ eXTensible Finishers README
 
 Author: aznricepuff
 
+-------
+VERSION
+-------
+
+This README is for Release 2.04.
+
+------------
+REQUIREMENTS
+------------
+
+- The Witcher 3: Wild Hunt Patch 1.08 (or hotfix)
+
 ------------
 INSTALLATION
 ------------
@@ -113,6 +125,7 @@ Configuration options provided by this module include:
 	- Options to disable certain checks that often block finishers from triggering in the vanilla game:
 		- Geralt must not be under attack by enemies other than the target.
 		- Geralt must be clear of terrain/object obstacles within a certain distance.
+	- Options to choose which finisher animations the game is allowed to play.
 	- Options to define chance to trigger cinematic finishers.
 	- Options to disable certain checks that often block cinematic finishers from triggering in the vanilla game:
 		- Target must be the last enemy in combat.
