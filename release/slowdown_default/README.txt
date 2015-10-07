@@ -4,11 +4,24 @@ MODULE slowdown_default README
 
 Author: aznricepuff
 
+-------
+VERSION
+-------
+
+This README is for v1.03.
+
+------------
+REQUIREMENTS
+------------
+
+- The Witcher 3: Wild Hunt Patch 1.08 (or hotfix)
+- BASE eXTensible Finishers v2.03 or later
+
 ------------
 INSTALLATION
 ------------
 
-This module requires the base eXTensible Finishers mod.
+This module requires the base eXTensible Finishers mod (BASE eXTensible Finishers v2.03 or later).
 
 1. Copy the "content" folder in the modXTFinishers\slowdown_default directory located in the download package into your <The Witcher 3 Path>\mods\modXTFinishers directory. Accept any folder merge requests from your OS/file system.
 2. Open modXTFinishers\content\scripts\local\base\xtFinishersManager.ws ...
@@ -21,18 +34,6 @@ This module requires the base eXTensible Finishers mod.
 		// load slowdown module
 		slowdownModule = new XTFinishersDefaultSlowdownModule in this;
 		slowdownModule.Init();
-		
-3. Open modXTFinishers\content\scripts\local\base\xtFinishersConsts.ws ...
-	a. Copy the following lines into the file beneath where it says MODULE CONSTS GO HERE:
-		
-		public const var DEFAULT_SLOWDOWN_DISMEMBER_QUERY_DISPATCHER_PRIORITY : int;
-			default DEFAULT_SLOWDOWN_DISMEMBER_QUERY_DISPATCHER_PRIORITY = 0;
-		
-		public const var DEFAULT_SLOWDOWN_CRIT_QUERY_DISPATCHER_PRIORITY : int;
-			default DEFAULT_SLOWDOWN_CRIT_QUERY_DISPATCHER_PRIORITY = 0;
-	
-		public const var DEFAULT_SLOWDOWN_FINISHER_QUERY_DISPATCHER_PRIORITY : int;
-			default DEFAULT_SLOWDOWN_FINISHER_QUERY_DISPATCHER_PRIORITY = 10;
 
 -------------
 CONFIGURATION
@@ -92,14 +93,10 @@ UNINSTALLATION
 		slowdownModule = new XTFinishersDefaultSlowdownModule in this;
 		slowdownModule.Init();
 		
-3. Open modXTFinishers\content\scripts\local\base\xtFinishersConsts.ws ...
-	a. In the section marked "MODULE CONSTS GO HERE", remove the following lines:
-		
-		public const var DEFAULT_SLOWDOWN_DISMEMBER_QUERY_DISPATCHER_PRIORITY : int;
-			default DEFAULT_SLOWDOWN_DISMEMBER_QUERY_DISPATCHER_PRIORITY = 0;
-		
-		public const var DEFAULT_SLOWDOWN_CRIT_QUERY_DISPATCHER_PRIORITY : int;
-			default DEFAULT_SLOWDOWN_CRIT_QUERY_DISPATCHER_PRIORITY = 0;
-	
-		public const var DEFAULT_SLOWDOWN_FINISHER_QUERY_DISPATCHER_PRIORITY : int;
-			default DEFAULT_SLOWDOWN_FINISHER_QUERY_DISPATCHER_PRIORITY = 10;
+-----------
+PERMISSIONS
+-----------
+
+I give permission for anyone to use or modify the code contained in this mod. If you publish a work containing code from this mod, either in its original or an altered form, please give credit.
+
+Please do NOT redistribute this mod in its entire, unmodified form without my express consent.

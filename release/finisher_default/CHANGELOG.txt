@@ -2,9 +2,24 @@
 MODULE finisher_default Changelog
 =================================
 
------
-v1.03
------
+----------------
+v1.04 (15/10/06)
+----------------
+
+General
+-------
+- Simplified the installation/uninstallation process.
+- Changed the default value of FINISHER_CAM_CHANCE_LAST_ENEMY to 100.0 (100%), which is what it was prior to v1.03.
+
+API
+---
+- All module-specific const vars have been moved from XTFinishersConsts into XTFinishersDefaultFinisherModule.
+- No longer uses the XTFinishersQueryManager API.
+- All references to finisher animation names now use the new const vars in XTFinishersConsts (introduced in BASE eXTensible Finishers v2.03).
+
+----------------
+v1.03 (15/10/01)
+----------------
 
 General
 -------
@@ -18,24 +33,24 @@ Features
 --------
 - Added configuration options to choose which finisher animations are allowed to be played when a finisher is triggered.
 
------
-v1.02
------
+----------------
+v1.02 (15/09/28)
+----------------
 
 Bug Fixes
 ---------
 - INSTANT-KILL finishers no longer always ignore aggro checks.
 
------
-v1.01
------
+----------------
+v1.01 (15/09/27)
+----------------
 
 Bug Fixes
 ---------
 - Enemies with force finisher tags no longer always trigger INSTANT-KILL finishers.
 
------
-v1.00
------
+----------------
+v1.00 (15/09/26)
+----------------
 
 Initial Release.

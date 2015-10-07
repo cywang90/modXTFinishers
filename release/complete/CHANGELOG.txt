@@ -2,9 +2,39 @@
 eXTensible Finishers Changelog
 ==============================
 
---------------
-Release 2.03.1
---------------
+-----------------------
+Release 2.04 (15/10/06)
+-----------------------
+
+Includes
+--------
+BASE		eXTensible Finishers		v2.03
+MODULE		finisher_default			v1.04
+MODULE		dismember_default			v1.03
+MODULE		slowdown_default			v1.03
+MODULE		camshake_default			v1.02
+
+General
+-------
+- ALL
+	- ***IMPORTANT*** This release simplifies the installation/uninstallation process for modules. The new process is not 100% compatible with the old one, so please be aware of the following issues regarding compatibility:
+		- BASE eXTensible Finishers v2.03 is not compatible with any module with version numbers older than the ones included in this release.
+		- The latest versions of the default modules included in this release should be compatible with pre-v2.03 versions of BASE eXTensible Finishers.
+		- In any case it is highly recommended that if you wish to update any part of this mod from older versions to any version included in this release, you should update your entire installation (the base mod + any modules you have installed).
+- MODULE	finisher_default
+	- Changed the default value of FINISHER_CAM_CHANCE_LAST_ENEMY to 100.0 (100%), which is what it was prior to v1.03.
+
+API
+---
+- ALL
+	- XTFinishersQueryManager and its associated classes are now considered deprecated. Neither the vanilla module nor any of the default modules uses the XTFinishersQueryManager API anymore.
+	- All module-specific const vars have been moved from XTFinishersConsts into their corresponding module classes.
+- BASE		eXTensible Finishers
+	- Added const vars in XTFinishersConsts for finisher animation names.
+
+-------------------------
+Release 2.03.1 (15/10/02)
+-------------------------
 
 Includes
 --------
@@ -19,13 +49,13 @@ Bug Fixes
 - MODULE	slowdown_default
 	- Slowdowns will now correctly trigger on critical hits. For real this time.
 
-------------
-Release 2.03
-------------
+-----------------------
+Release 2.03 (15/10/01)
+-----------------------
 
 Includes
 --------
-BASE		eXTensible Finishers			v2.02
+BASE		eXTensible Finishers		v2.02
 MODULE		finisher_default			v1.03
 MODULE		dismember_default			v1.02
 MODULE		slowdown_default			v1.01
@@ -69,9 +99,9 @@ Bug Fixes
 - MODULE	slowdown_default
 	- Slowdowns will now correctly trigger on critical hits.
 
-------------
-Release 2.02
-------------
+-----------------------
+Release 2.02 (15/09/28)
+-----------------------
 
 Includes
 --------
@@ -94,9 +124,9 @@ Bug Fixes
 - MODULE	finisher_default:
 	- INSTANT-KILL finishers no longer always ignore aggro checks.
 
-------------
-Release 2.01
-------------
+-----------------------
+Release 2.01 (15/09/27)
+-----------------------
 
 Includes
 --------
@@ -115,9 +145,9 @@ Bug Fixes
 	- DISMEMBER_AUTO_STRONG is now a mutually exclusive condition with DISMEMBER_AUTO_REND (Rend attacks used to be eligible for both conditions).
 	- DISMEMBER_AUTO_FAST is now a mutually exclusive condition with DISMEMBER_AUTO_WHIRL (Whirl attacks used to be eligible for both conditions).
 
-------------
-Release 2.00
-------------
+-----------------------
+Release 2.00 (15/09/26)
+-----------------------
 
 Includes
 --------
@@ -157,8 +187,8 @@ Features
 - Added support for triggering slowdowns on critical hits.
 - Added expanded support for customizing camera-shake.
 
-------------
-Release 1.00
-------------
+-----------------------
+Release 1.00 (15/09/23)
+-----------------------
 
 Initial Release.

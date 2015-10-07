@@ -2,9 +2,22 @@
 MODULE camshake_default Changelog
 =================================
 
------
-v1.01
------
+----------------
+v1.02 (15/10/06)
+----------------
+
+General
+-------
+- Simplified the installation/uninstallation process.
+
+API
+---
+- All module-specific const vars have been moved from XTFinishersConsts into XTFinishersDefaultCamShakeModule.
+- No longer uses the XTFinishersQueryManager API.
+
+----------------
+v1.01 (15/10/01)
+----------------
 
 General
 -------
@@ -14,8 +27,8 @@ API
 ---
 - XTFinishersDefaultCamShakeModule.Init() now uses protected functions to initialize individual module components.
 
------
-v1.00
------
+----------------
+v1.00 (15/09/26)
+----------------
 
 Initial Release.

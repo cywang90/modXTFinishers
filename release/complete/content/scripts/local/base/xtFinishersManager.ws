@@ -5,7 +5,7 @@ class XTFinishersManager extends XTFinishersObject {
 	public var eventMgr : XTFinishersEventManager;
 	public var slowdownMgr : XTFinishersSlowdownManager;
 	
-	private var vanillaModule : XTFinishersVanillaModule;
+	public var vanillaModule : XTFinishersVanillaModule;
 	
 	//========================
 	// DEFINE MODULE VARS HERE
