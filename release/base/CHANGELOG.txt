@@ -2,6 +2,20 @@
 BASE eXTensible Finishers Changelog
 ===================================
 
+-----------------
+v3.0.0 (15/10/09)
+-----------------
+
+General
+-------
+- ***IMPORTANT*** This version brings this mod up to date with Patch 1.10. It is not compatible with Patch 1.08 or any earlier game patches. It also breaks backward compatibility with the following versions of the default modules:
+	- MODULE finisher_default v1.04 and older.
+	- MODULE dismember_default v1.03 and older.
+	
+API
+---
+- Added field in XTFinishersFinisherContext and XTFinishersDismemberContext to track debug (console-enabled) finishers and dismemberments, respectively.
+
 ----------------
 v2.03 (15/10/06)
 ----------------

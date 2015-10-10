@@ -2,6 +2,14 @@
 MODULE finisher_default Changelog
 =================================
 
+-----------------
+v2.0.0 (15/10/09)
+-----------------
+
+General
+-------
+- ***IMPORTANT*** This version brings this module up to date with Patch 1.10. It is not compatible with Patch 1.08 or any earlier game patches. It requires BASE eXTensible Finishers v3.0.0.
+
 ----------------
 v1.04 (15/10/06)
 ----------------

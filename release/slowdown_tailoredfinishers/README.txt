@@ -8,13 +8,13 @@ Author: aznricepuff
 VERSION
 -------
 
-This README is for v1.00.
+This README is for v2.0.0.
 
 ------------
 REQUIREMENTS
 ------------
 
-- The Witcher 3: Wild Hunt Patch 1.08 (or hotfix)
+- The Witcher 3: Wild Hunt Patch 1.08 or later
 - BASE eXTensible Finishers v2.03 or later
 - MODULE slowdown_default v1.03 or later
 

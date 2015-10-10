@@ -8,14 +8,14 @@ Author: aznricepuff
 VERSION
 -------
 
-This README is for v1.04.
+This README is for v2.0.0.
 
 ------------
 REQUIREMENTS
 ------------
 
-- The Witcher 3: Wild Hunt Patch 1.08 (or hotfix)
-- BASE eXTensible Finishers v2.03 or later
+- The Witcher 3: Wild Hunt Patch 1.10
+- BASE eXTensible Finishers v3.0.0 or later
 
 ------------
 INSTALLATION

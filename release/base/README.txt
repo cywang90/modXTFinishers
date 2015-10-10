@@ -8,13 +8,13 @@ Author: aznricepuff
 VERSION
 -------
 
-This README is for v2.03.
+This README is for v3.0.0.
 
 ------------
 REQUIREMENTS
 ------------
 
-- The Witcher 3: Wild Hunt Patch 1.08 (or hotfix)
+- The Witcher 3: Wild Hunt Patch 1.10
 
 ------------
 INSTALLATION

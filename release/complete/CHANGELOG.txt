@@ -2,6 +2,35 @@
 eXTensible Finishers Changelog
 ==============================
 
+---------------------
+Release 07 (15/10/09)
+---------------------
+
+Includes
+--------
+BASE		eXTensible Finishers		v3.0.0
+MODULE		finisher_default			v2.0.0
+MODULE		dismember_default			v2.0.0
+MODULE		slowdown_default			v2.0.0
+MODULE		camshake_default			v2.0.0
+
+General
+-------
+- ALL
+	- ***IMPORTANT*** This release brings all parts of the mod up to date with Patch 1.10. It is not compatible with Patch 1.08 or any earlier game patches. Please be aware of the following additional compatibility issues:
+		- BASE eXTensible Finishers v3.0.0 is not compatible with the following older module versions:
+			- MODULE finisher_default v1.04 and older.
+			- MODULE dismember_default v1.03 and older.
+		- MODULE finisher_default v2.0.0 is not compatible with BASE eXTensible Finishers v2.03 and older.
+		- MODULE dismember_default v2.0.0 is not compatible with BASE eXTensible Finishers v2.03 and older.
+		- In any case it is highly recommended that wish to update any part of this mod from older versions to any version included in this release, you should update your entire installation (the base mod + any modules you have installed).
+	- Starting with this release, releases will no longer be given version-like numbering. Instead, they will simply be numbered sequentially according to order of release. The base mod and modules will retain regular version numbering (now switched to the X.y.z format).
+	
+API
+---
+- BASE eXTensible Finishers
+	- Added field in XTFinishersFinisherContext and XTFinishersDismemberContext to track debug (console-enabled) finishers and dismemberments, respectively.
+
 -----------------------
 Release 2.04 (15/10/06)
 -----------------------
