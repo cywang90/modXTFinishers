@@ -1,9 +1,9 @@
-eXTensible Finishers Complete Package Release 2.04
+eXTensible Finishers Complete Package Release 07
 
 This package includes the following components:
 
-BASE		eXTensible Finishers 		v2.03
-MODULE		finisher_default 			v1.04
-MODULE		dismember_default 			v1.03
-MODULE		slowdown_default 			v1.03
-MODULE		camshake_default			v1.02
+BASE		eXTensible Finishers 		v3.0.0
+MODULE		finisher_default 			v2.0.0
+MODULE		dismember_default 			v2.0.0
+MODULE		slowdown_default 			v2.0.0
+MODULE		camshake_default			v2.0.0
