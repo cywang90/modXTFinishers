@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-enum EStaticCameraAnimState
+﻿enum EStaticCameraAnimState
 {
 	SCAS_Default,
 	SCAS_Collapsed,
@@ -10,7 +6,7 @@ enum EStaticCameraAnimState
 	SCAS_ShakeTower,
 }
 
-enum EStaticCameraGuiEffect 
+enum EStaticCameraGuiEffect //#B for kill ?
 {
 	SCGE_None = 0,
 	SCGE_Hole,
@@ -31,9 +27,9 @@ import class CStaticCamera extends CCamera
 	import final latent function RunAndWait( optional timeout : float ) : bool;
 }
 
-
-
-
+/////////////////////////////////////////////
+// Static Camera Area class
+/////////////////////////////////////////////
 
 class CStaticCameraArea extends CEntity
 {

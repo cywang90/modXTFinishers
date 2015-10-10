@@ -1,15 +1,16 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2012
+/** Author : Patryk Fiutowski, Andrzej Kwiatkowski
+/***********************************************************************/
 
 class CBTTask3StateAttack extends CBTTaskAttack
 {
 	var loopTime 						: float;
 	var endTaskWhenOwnerGoesPastTarget 	: bool;
+	var endLoopOnDistance				: bool;
+	var distanceToTarget				: float;
 	var stopRotatingWhenTargetIsBehind 	: bool;
 	var playFXOnLoopStart 				: name;
 	var playLoopFXInterval				: float;
@@ -43,7 +44,7 @@ class CBTTask3StateAttack extends CBTTaskAttack
 		if ( IsNameValid( playFXOnLoopStart ) && playLoopFXInterval <= 0 )
 			npc.PlayEffect( playFXOnLoopStart );
 		
-		
+		//Sleep(loopTime);
 		loopRes = Loop();
 		if ( loopRes )
 		{
@@ -86,12 +87,31 @@ class CBTTask3StateAttack extends CBTTaskAttack
 		var target						: CActor;
 		var targetPos					: Vector;
 		var npcPos						: Vector;
+		var dist						: float;
 		
 		
 		endTime = GetLocalTime() + loopTime;
 		playFX = IsNameValid( playFXOnLoopStart ) && playLoopFXInterval > 0;
 		
-		if ( endTaskWhenOwnerGoesPastTarget )
+		
+		if( endLoopOnDistance )
+		{
+			npc = GetNPC();
+			target = GetCombatTarget();
+			npcPos = npc.GetWorldPosition();
+			targetPos = target.GetWorldPosition();
+
+			dist = VecDistance2D( npcPos, targetPos );
+			
+			while( dist > distanceToTarget )
+			{
+				SleepOneFrame();
+				npcPos = npc.GetWorldPosition();
+				targetPos = target.GetWorldPosition();
+				dist = VecDistance2D( npcPos, targetPos );
+			}	
+		}
+		else if ( endTaskWhenOwnerGoesPastTarget )
 		{
 			npc = GetNPC();
 			target = GetCombatTarget();
@@ -132,7 +152,7 @@ class CBTTask3StateAttack extends CBTTaskAttack
 		}
 		
 		
-		
+		//GetNPC().WaitForBehaviorNodeDeactivation('AttackLoopEnd',loopTime);
 		return 0;
 	}
 	
@@ -143,11 +163,11 @@ class CBTTask3StateAttack extends CBTTaskAttack
 	
 	function OnGameplayEvent( eventName : name ) : bool
 	{
-		if ( stopRotatingWhenTargetIsBehind && eventName == 'RotateEventSync' )
+		if ( stopRotatingWhenTargetIsBehind && eventName == 'RotateEventSync' )// smart charge; do not rotate when target is behind you
 		{
 			if ( AbsF(NodeToNodeAngleDistance(GetCombatTarget(),GetActor())) < 90 )
 			{
-				return super.OnGameplayEvent( 'RotateEventStart' );
+				return super.OnGameplayEvent( 'RotateEventStart' );// just as we would start
 			}
 			else
 			{
@@ -166,17 +186,21 @@ class CBTTask3StateAttackDef extends CBTTaskAttackDef
 
 	editable var loopTime 						: float;
 	editable var endTaskWhenOwnerGoesPastTarget	: bool;
+	editable var endLoopOnDistance				: bool;
+	editable var distanceToTarget				: float;
 	editable var stopRotatingWhenTargetIsBehind : bool;
 	editable var playFXOnLoopStart				: name;
 	editable var playLoopFXInterval				: float;
 	
+	default distanceToTarget = 1.5;
 	default loopTime = 4.0;
 	default playLoopFXInterval = -1;
 	default stopRotatingWhenTargetIsBehind = false;
 }
 
-
-
+/**************************************************/
+/** 3StateAttackWithRotationAtTheEnd
+/**************************************************/
 class CBTTask3StateWithRot extends CBTTask3StateAttack
 {
 	var endLeft		: EAttackType;
@@ -210,8 +234,9 @@ class CBTTask3StateWithRotDef extends CBTTask3StateAttackDef
 	default endRight = EAT_Attack5;
 }
 
-
-
+/**************************************************/
+/** 3StateAttackWithDistanceDecisionAtTheEnd
+/**************************************************/
 class CBTTask3StateWithDist extends CBTTask3StateAttack
 {
 	var distance	: float;
@@ -248,8 +273,9 @@ class CBTTask3StateWithDistDef extends CBTTask3StateAttackDef
 	default endMore = EAT_Attack5;
 }
 
-
-
+/**************************************************/
+/** 3StateAttackWithDistanceAnRotationDecisionAtTheEnd
+/**************************************************/
 class CBTTask3StateWithDistAndRot extends CBTTask3StateAttack
 {
 	var distance	: float;
@@ -292,8 +318,9 @@ class CBTTask3StateWithDistAndRotDef extends CBTTask3StateAttackDef
 	hint distance = "if ( distToTarget >= distance ) then perform Rot attack";
 }
 
-
-
+/**************************************************/
+/** CBTTask3StateAddEffectAttack
+/**************************************************/
 class CBTTask3StateAddEffectAttack extends CBTTask3StateAttack
 {
 	public var applyEffectInRange	: float;
@@ -357,7 +384,22 @@ class CBTTask3StateAddEffectAttack extends CBTTask3StateAttack
 		
 		super.OnDeactivate();
 	}
-	
+	/*
+	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo ) : bool
+	{
+		if ( IsNameValid( activateOnEvent ) && animEventName == activateOnEvent && animEventType == AET_DurationStart )
+		{
+			activated = true;
+			return true;
+		}
+		else if ( IsNameValid( activateOnEvent ) && animEventName == activateOnEvent && animEventType == AET_DurationEnd )
+		{
+			activated = false;
+			return true;
+		}
+		return false;
+	}
+	*/
 	function ApplyEffect( b : bool )
 	{
 		var actor		: CActor = GetActor();

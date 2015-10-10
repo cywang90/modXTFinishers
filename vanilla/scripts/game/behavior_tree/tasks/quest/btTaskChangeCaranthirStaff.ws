@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskChangeCaranthirStaff extends IBehTreeTask
+﻿class CBTTaskChangeCaranthirStaff extends IBehTreeTask
 {
 	private var wasActivated		: bool;
 	private var startEffect			: bool;

@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CR4GuiSceneController
+﻿class CR4GuiSceneController
 {
 	private var _isEntitySpawning			: bool;				default _isEntitySpawning = false;
 
@@ -152,8 +148,15 @@ class CR4GuiSceneController
 	public function SetEntityItems( updateItems : bool )
 	{
 		var inventory : CInventoryComponent;
+		var enhancements : array< SGuiEnhancementInfo >;
+		var info : SGuiEnhancementInfo;
+		var enhancementNames : array< name >;
 		var items : array< name >;
 		var witcher : W3PlayerWitcher;
+		var i, j : int;
+		var itemsId : array< SItemUniqueId >;
+		var itemId : SItemUniqueId;
+		var itemName : name;
 
 		if ( _isEntitySpawning )
 		{
@@ -164,15 +167,29 @@ class CR4GuiSceneController
 			inventory = thePlayer.GetInventory();
 			if ( inventory )
 			{
-				inventory.GetHeldAndMountedItems( items );
+				inventory.GetHeldAndMountedItems( itemsId );
 				
 				witcher = (W3PlayerWitcher) thePlayer;
 				if ( witcher )
 				{
-					witcher.GetMountableItems( items );
+					witcher.GetMountableItems( itemsId );
 				}
+				for ( i = 0; i < itemsId.Size(); i += 1 )
+				{
+					itemId = itemsId[i];
+					itemName = inventory.GetItemName( itemId );
+					
+					items.PushBack( itemName );
 				
-				theGame.GetGuiManager().UpdateSceneEntityItems( items );
+					inventory.GetItemEnhancementItems( itemId, enhancementNames );
+					for ( j = 0; j < enhancementNames.Size(); j += 1 )
+					{
+						info.enhancedItem = itemName;
+						info.enhancement = enhancementNames[j];
+						enhancements.PushBack( info );
+					}
+				}
+				theGame.GetGuiManager().UpdateSceneEntityItems( items, enhancements );
 			}
 		}
 	}

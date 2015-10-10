@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © ?-2014
+/** Author : Wojciech Żerek, Tomek Kozera
+/***********************************************************************/
 
 enum EToxicCloudOperation
 {
@@ -18,7 +16,9 @@ import statemachine class W3ToxicCloud extends CGameplayEntity
 	editable var restorationTime	: float;
 	editable var settlingTime		: float;
 	editable var fxOnSettle			: name;
+	editable var fxOnSettleCluster 	: name;
 	editable var fxOnExplode		: name;
+	editable var fxOnExplodeCluster : name;
 	editable var bIsEnabled 		: bool;
 	editable var usePoisonBuffWithAnim : bool;
 	editable var cameraShakeRadius  : float;
@@ -29,20 +29,23 @@ import statemachine class W3ToxicCloud extends CGameplayEntity
 		default isEnvironment = true;
 		default burningChance = 1;
 
-	protected var chainedExplosion : bool;									
-	protected var entitiesInPoisonRange : array<CActor>;					
+	protected var chainedExplosion : bool;									//set to true if this entity ignites from another gas cloud explosion
+	protected var entitiesInPoisonRange : array<CActor>;					//entities being in poison/explosion range
 	protected saved var effectType : EEffectType;
 	private var poisonArea, explosionArea : CTriggerAreaComponent;
-	private var explodingTargetDamages : array<SRawDamage>;					
+	private var explodingTargetDamages : array<SRawDamage>;					//damage dealt when target killed with gas dies (exploding and dealing additional damage)
 	private var entitiesInExplosionRange : array<CGameplayEntity>;
-	private var isFromBomb : bool;											
-	private var buffParams : SCustomEffectParams;							
-	private var buffSpecParams : W3BuffDoTParams;							
+	private var isFromBomb : bool;											//set to true if gas is created from bomb
+	private var buffParams : SCustomEffectParams;							//cached params for poison buff
+	private var buffSpecParams : W3BuffDoTParams;							//cached special params for poison buff
+	private var isFromClusterBomb : bool;									//set to true if gas is created as a result of cluster bomb explosion
 	
 		default isFromBomb = false;
 		
 		hint restorationTime = "Time till cloud restores. If -1 will work only once";
 		hint burningChance = "Chance (0-1) that explosion will add BurningEffect on target";
+		hint fxOnSettleCluster = "Gas fx to be used with Cluster bombs";
+		hint fxOnExplodeCluster = "Explosion fx to be used with Cluster bombs";
 	
 	event OnSpawned( spawnData : SEntitySpawnData )
 	{
@@ -71,6 +74,16 @@ import statemachine class W3ToxicCloud extends CGameplayEntity
 	public function SetBurningChance(c : float)
 	{
 		burningChance = c;
+	}
+	
+	public function SetIsFromClusterBomb(b : bool)
+	{
+		isFromClusterBomb = b;
+	}
+	
+	public function IsFromClusterBomb() : bool
+	{
+		return isFromClusterBomb;
 	}
 	
 	public function SetFromBomb()
@@ -117,7 +130,7 @@ import statemachine class W3ToxicCloud extends CGameplayEntity
 		StopPoisonTimer();		
 		
 		StopAllEffects();
-		DestroyAfter(5);	
+		DestroyAfter(5);	//destroy when fx off, if dynamic
 	}
 	
 	timer function KeepTryingToDisable(dt : float, id : int)
@@ -140,7 +153,7 @@ import statemachine class W3ToxicCloud extends CGameplayEntity
 			GotoState('Disabled');
 	}
 	
-	
+	//might be NULL if trigger did not stream yet
 	public function GetPoisonAreaUnsafe() : CTriggerAreaComponent
 	{
 		if(!poisonArea)
@@ -149,7 +162,7 @@ import statemachine class W3ToxicCloud extends CGameplayEntity
 		return poisonArea;
 	}
 	
-	
+	//might be NULL if trigger did not stream yet
 	public function GetGasAreaUnsafe() : CTriggerAreaComponent
 	{
 		if(!explosionArea)
@@ -179,7 +192,7 @@ import statemachine class W3ToxicCloud extends CGameplayEntity
 		var ent : CEntity;
 		var expBolt : W3ExplosiveBolt;
 		
-		
+		//entity with fire - explode
 		ent = activator.GetEntity();
 		if(area == GetPoisonAreaUnsafe() && ent.HasTag(theGame.params.TAG_OPEN_FIRE) && GetCurrentStateName() == 'Armed')
 		{
@@ -205,7 +218,7 @@ import statemachine class W3ToxicCloud extends CGameplayEntity
 				
 				if(entitiesInPoisonRange.Size() == 1)
 				{
-					
+					//if buff params not set yet
 					if(buffParams.effectType == EET_Undefined)
 					{						
 						buffParams.effectType = effectType;
@@ -344,7 +357,7 @@ import statemachine class W3ToxicCloud extends CGameplayEntity
 	}
 }
 
-
+//-------------------------------------------------------------------- DISABLED ----------------------------------------------------------------------
 state Disabled in W3ToxicCloud
 {
 	event OnEnterState( prevStateName : name )
@@ -363,25 +376,30 @@ state Disabled in W3ToxicCloud
 	}
 }
 
-
+//-------------------------------------------------------------------- SETTLE ----------------------------------------------------------------------
 state Settle in W3ToxicCloud
 {
 	event OnEnterState( prevStateName : name )
 	{
-		parent.PlayEffectSingle(parent.fxOnSettle);
+		//gas cloud fx
+		if(parent.IsFromClusterBomb() && IsNameValid(parent.fxOnSettleCluster))
+			parent.PlayEffectSingle(parent.fxOnSettleCluster);
+		else
+			parent.PlayEffectSingle(parent.fxOnSettle);
+			
 		parent.chainedExplosion = false;
 		
-		BrokenEntryFunctionNamesCollision_W3ToxicCloud_Settle_Loop();
+		W3ToxicCloud_Settle_Loop();
 	}
 	
-	entry function BrokenEntryFunctionNamesCollision_W3ToxicCloud_Settle_Loop()
+	entry function W3ToxicCloud_Settle_Loop()
 	{
 		Sleep(parent.settlingTime + RandF());
 		parent.GotoState('Armed');
 	}
 }
 
-
+//-------------------------------------------------------------------- ARMED ----------------------------------------------------------------------
 state Armed in W3ToxicCloud
 {
 	private var isExploding : bool;
@@ -394,7 +412,7 @@ state Armed in W3ToxicCloud
 		
 		isExploding = false;
 
-		
+		//make cloud targetable again if Player is outside it's area
 		area = parent.GetPoisonAreaUnsafe();
 		area.SetEnabled(true);				
 		
@@ -403,12 +421,12 @@ state Armed in W3ToxicCloud
 		else
 			parent.SetCanBeTargeted( true );
 		
-		
-		
+		//check if there's a fire entity already in trigger
+		//due to performance we only check actors, there's no function to get entities
 		actors = parent.GetActorsInPoisonRange();
 		for(i=0; i<actors.Size(); i+=1)
 			if(actors[i].HasTag(theGame.params.TAG_OPEN_FIRE))
-				Explode(actors[i]);	
+				Explode(actors[i]);	//this will go to other state
 				
 		if(parent.IsActorInPoisonRange(thePlayer))
 		{
@@ -419,11 +437,11 @@ state Armed in W3ToxicCloud
 	event OnFireHit(source : CGameplayEntity)
 	{
 		if(isExploding)
-			return true;	
+			return true;	//already handling it at the moment
 			
 		parent.OnFireHit(source);
 		
-		
+		//chain explosion
 		if((W3ToxicCloud)source)
 			parent.chainedExplosion = true;
 		
@@ -440,14 +458,20 @@ state Armed in W3ToxicCloud
 	
 		isExploding = true;
 	
-		
+		//achievement
 		actor = (CActor)source;
 		if(actor && actor.HasBuff(EET_Burning) && parent.IsFromBomb())
 			theGame.GetGamerProfile().IncStat(ES_DragonsDreamTriggers);
 			
 		parent.StopAllEffects();
 		parent.StopPoisonTimer();
-		parent.PlayEffectSingle(parent.fxOnExplode);
+		
+		//explosion fx
+		if(parent.IsFromClusterBomb() && IsNameValid(parent.fxOnExplodeCluster))
+			parent.PlayEffectSingle(parent.fxOnExplodeCluster);
+		else
+			parent.PlayEffectSingle(parent.fxOnExplode);
+			
 		GCameraShake( 0.5, true, parent.GetWorldPosition(), parent.GetCamShakeRadius());
 				
 		entitiesInRange = parent.GetEntitiesInExplosionRange();
@@ -491,7 +515,7 @@ state Armed in W3ToxicCloud
 	}
 }
 
-
+//-------------------------------------------------------------------- WAIT ----------------------------------------------------------------------
 state Wait in W3ToxicCloud
 {
 	event OnEnterState( prevStateName : name )
@@ -499,10 +523,10 @@ state Wait in W3ToxicCloud
 		parent.SetCanBeTargeted( false );
 		parent.GetPoisonAreaUnsafe().SetEnabled(false);
 		parent.ClearEntitiesInPoisonRange();
-		BrokenEntryFunctionNamesCollision_W3ToxicCloud_Wait_Loop();
+		W3ToxicCloud_Wait_Loop();
 	}
 	
-	entry function BrokenEntryFunctionNamesCollision_W3ToxicCloud_Wait_Loop()
+	entry function W3ToxicCloud_Wait_Loop()
 	{			
 		if(parent.restorationTime < 0)
 		{

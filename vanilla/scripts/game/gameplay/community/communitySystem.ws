@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Exports for Community System
+/** Copyright © 2012-2013
+/***********************************************************************/
 
 import class CCommunitySystem extends IGameSystem
 {
@@ -17,7 +16,7 @@ import class CCommunitySystem extends IGameSystem
 	}
 };
 
-
+// Debug stuff
 
 import function DumpCommunityAgentsCPP();
 exec function DumpCommunityAgents()

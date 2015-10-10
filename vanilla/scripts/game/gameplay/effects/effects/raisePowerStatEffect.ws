@@ -1,14 +1,14 @@
-﻿/*
-Copyright © CD Projekt RED 2015
+﻿/***********************************************************************/
+/** Copyright © 2013
+/** Author : Tomasz Kozera
+/***********************************************************************/
+
+/*
+	Effect that raises power stat value (attack/spell power)
 */
-
-
-
-
-
 abstract class W3RaisePowerStatEffect extends CBaseGameplayEffect
 {
-	protected saved var stat : ECharacterPowerStats;		
+	protected saved var stat : ECharacterPowerStats;		//stat to increase
 	
 	default isPositive = true;
 	default isNeutral = false;

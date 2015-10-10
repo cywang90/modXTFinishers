@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBehTreeTaskPoseChangeMonitor extends IBehTreeTask
+﻿class CBehTreeTaskPoseChangeMonitor extends IBehTreeTask
 {
 	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo ) : bool
 	{

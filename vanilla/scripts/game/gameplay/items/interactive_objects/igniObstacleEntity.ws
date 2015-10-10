@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿//depreciated?
 
 statemachine class W3IgniObstacleEntity extends CInteractiveEntity
 {	

@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Copyright © 2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 class W3Effect_AdrenalineDrain extends CBaseGameplayEffect
 {
@@ -13,7 +12,7 @@ class W3Effect_AdrenalineDrain extends CBaseGameplayEffect
 	default isPositive = false;
 	default isNeutral = true;
 	default isNegative = false;
-		
+	
 	event OnEffectAdded(optional customParams : W3BuffCustomParams)
 	{
 		var witcher : W3PlayerWitcher;
@@ -33,16 +32,19 @@ class W3Effect_AdrenalineDrain extends CBaseGameplayEffect
 	event OnUpdate(dt : float)
 	{
 		var drainVal : float;
+		var buff : W3Effect_Toxicity;
 		
-		
-		if(target.IsInCombat())
+		//if entered combat again - remove effect
+		if(target.IsInCombat() && !target.HasBuff(EET_Runeword8))
 			isActive = false;
 			
 		drainVal = dt * (effectValue.valueAdditive + (target.GetStatMax(BCS_Focus) + effectValue.valueBase) * effectValue.valueMultiplicative);
 		((CR4Player)target).DrainFocus(drainVal);
 		
-		
-		if(target.GetStat(BCS_Focus) <= 0.001)
-			isActive = false;
+		//if all focus drained
+		if(target.GetStat(BCS_Focus) <= 0)
+		{
+			isActive = false;			
+		}
 	}
 }

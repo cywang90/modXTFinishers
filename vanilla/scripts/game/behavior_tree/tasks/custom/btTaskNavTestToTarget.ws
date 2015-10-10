@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskNavTestToTarget extends IBehTreeTask
+﻿class CBTTaskNavTestToTarget extends IBehTreeTask
 {
 	var useCombatTarget : bool;
 	

@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3Effect_WolfHour extends CBaseGameplayEffect
+﻿class W3Effect_WolfHour extends CBaseGameplayEffect
 {
 	default effectType = EET_WolfHour;
 	default isPositive = true;

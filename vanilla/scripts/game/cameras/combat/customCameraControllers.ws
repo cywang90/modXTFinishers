@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 import abstract class ICustomCameraBaseController
 {
 	import const var controllerName : name;
@@ -11,12 +7,12 @@ import abstract class ICustomCameraBaseController
 import abstract class ICustomCameraPivotPositionController extends ICustomCameraBaseController
 {
 	import var offsetZ : float;
-	
+	//import var pivotZSmoothTime : float;
 	
 	import final function Update( out currPosition : Vector, out currVelocity : Vector, timeDelta : float );
 	import final function SetDesiredPosition( position : Vector, optional mult : float );
 	
-	
+	// Reset whatever you want for scripted controllers
 	function Reset() {}
 }
 
@@ -42,7 +38,7 @@ import abstract class ICustomCameraPivotDistanceController extends ICustomCamera
 	import final function SetDesiredDistance( distance : float, optional mult : float );
 }
 
-
+//////////////////////////////////////////////
 
 
 import class CCustomCameraRopePPC extends ICustomCameraPivotPositionController
@@ -56,8 +52,8 @@ import class CCustomCameraBoatPPC extends CCustomCameraRopePPC
 }
 
 
-
-
+// SCRIPT CONTROLLERS INTERFACE
+//////////////////////////////////////////////
 
 import abstract class ICustomCameraScriptedPivotPositionController extends ICustomCameraPivotPositionController
 {
@@ -72,7 +68,7 @@ import abstract class ICustomCameraScriptedCurveSetPivotPositionController exten
 	import protected final function FindCurve( curveName : name ) : CCurve;
 }
 
-
+//////////////////////////////////////////////
 
 import abstract class ICustomCameraScriptedPivotRotationController extends ICustomCameraPivotRotationController
 {
@@ -93,7 +89,7 @@ import abstract class ICustomCameraScriptedCurveSetPivotRotationController exten
 	import protected final function FindCurve( curveName : name ) : CCurve;
 }
 
-
+//////////////////////////////////////////////
 
 import abstract class ICustomCameraScriptedPivotDistanceController extends ICustomCameraPivotDistanceController
 {
@@ -108,7 +104,7 @@ import abstract class ICustomCameraScriptedCurveSetPivotDistanceController exten
 	import protected final function FindCurve( curveName : name ) : CCurve;
 }
 
-
+//////////////////////////////////////////////
 
 import struct SCameraMovementData
 {
@@ -127,7 +123,7 @@ import struct SCameraMovementData
 
 import abstract class ICustomCameraScriptedPositionController extends ICustomCameraPositionController
 {
-	
+	// Update all controllers by default
 	protected function ControllerUpdate( out moveData : SCameraMovementData, timeDelta : float )
 	{
 		moveData.pivotPositionController.Update( moveData.pivotPositionValue, moveData.pivotPositionVelocity, timeDelta );
@@ -175,7 +171,7 @@ class CCameraParametersSet
 		var camera	: CCustomCamera = theGame.GetGameCamera();
 		var animation : SCameraAnimationDefinition;
 		
-		
+		// Position controller?
 		if( IsNameValid( pivotPositionControllerName ) && pivotPositionControllerName != camera.GetActivePivotPositionController().controllerName )
 		{
 			if( forcedBlend > 0.0f || pivotPositionControllerBlend > 0.0f )
@@ -200,19 +196,19 @@ class CCameraParametersSet
 			}
 		}
 		
-		
+		// Rotation controller?
 		if( IsNameValid( pivotRotationController ) && pivotRotationController != camera.GetActivePivotRotationController().controllerName )
 		{
 			camera.ChangePivotRotationController( pivotRotationController );
 		}
 		
-		
+		// Distance controller
 		if( IsNameValid( pivotDistanceController ) && pivotDistanceController != camera.GetActivePivotDistanceController().controllerName )
 		{
 			camera.ChangePivotDistanceController( pivotDistanceController );
 		}
 		
-		
+		// Animation
 		if( launchAnimation )
 		{
 			animation.animation = animationData.animation;
@@ -247,8 +243,7 @@ class CCameraParametersSet
 	}
 }
 
-class CCameraRotationControllerDrift extends ICustomCameraScriptedPivotRotationController
-{
-}
+//////////////////////////////////////////////
 
-
+// SCRIPT CONTROLLERS IMPLEMENTATION
+//////////////////////////////////////////////

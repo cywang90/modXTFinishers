@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTCondPlayerHasSwordInHand extends IBehTreeTask
+﻿class CBTCondPlayerHasSwordInHand extends IBehTreeTask
 {
 	function IsAvailable() : bool
 	{

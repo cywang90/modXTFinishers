@@ -1,10 +1,6 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-struct SSignProjectile
+﻿struct SSignProjectile
 {
-	
+	//editable var strength			: float;
 	editable var speed				: float;
 	
 	editable var flyEffect			: name;
@@ -27,7 +23,7 @@ abstract class W3SignProjectile extends CProjectileTrajectory
 	protected var hitEntities 	: array< CGameplayEntity >;
 	protected var attackRange 	: CAIAttackRange;
 		
-	protected var isReusable	: bool; 
+	protected var isReusable	: bool; // dont destroy projectile OnRangeHit, will be destroyed by its parent
 
 	public function ExtInit( signOwner : W3SignOwner, sign : ESkill, signEnt : W3SignEntity, optional reusable : bool )
 	{
@@ -62,13 +58,13 @@ abstract class W3SignProjectile extends CProjectileTrajectory
 		else
 			victim = NULL;
 			
-		
+		//if no target and not igni burning then skip collision
 		if ( (signSkill != S_Magic_s02) && (!victim || !victim.IsAlive()) )
 		{
 			return false;
 		}
 		
-		if ( wantedTarget && wantedTarget != victim )	
+		if ( wantedTarget && wantedTarget != victim )	//PFTODO: FIXME: shouldn't you hit everyone instead of passing through them until you reach your target? -TK
 			return false;
 
 		collisionNames.PushBack( 'Terrain' );
@@ -81,10 +77,10 @@ abstract class W3SignProjectile extends CProjectileTrajectory
 			return false;
 		}
 		
-		
+		// check attitude only for actors
 		if ( (CActor)victim && ShouldCheckAttitude() )
 		{
-			
+			//signs only target hostile and neutral characters
 			if( !IsRequiredAttitudeBetween(victim, caster, true, true) )
 			{
 				return false;
@@ -92,25 +88,25 @@ abstract class W3SignProjectile extends CProjectileTrajectory
 		}
 		
 		
-		
-		
+		// Process on hit
+		//if( dontIgnoreTargets )
 		{
 			LogChannel( 'Signs', "SignProjectile.OnProjectileCollision: <<" + this + ">> will process collision with <<" + victim + ">>");
 			
 			ProcessCollision( victim, pos, normal );
 			delete action;	
 
-			
+			//hit effect
 			if( projData.hitEffect != projData.flyEffect )
 			{
 				StopEffect( projData.flyEffect );
 				PlayEffect( projData.hitEffect );
 			}		
 			
-			
+			// how long projectile will last - mainly for playing effects
 			DestroyAfter( projData.lastingTime );
 		}
-		
+		//else do nothing, still not a hit, it's an ignored target
 	}
 	
 	public function SetAttackRange( ar : CAIAttackRange )
@@ -147,25 +143,25 @@ abstract class W3SignProjectile extends CProjectileTrajectory
 		for( i = 0; i < size; i += 1 )
 		{
 			e = entities[i];
-			
+			// if the entity is an actor or was already hit
 			if(hitEntities.Contains(e))			
 				continue;
 			
-			
+			// check attitude only for actors
 			if ( (CActor)e )
 			{
-				
+				//signs only target hostile and neutral characters
 				if( !IsRequiredAttitudeBetween(e, caster, true, true) )
 				{
 					continue;
 				}
 			}
 			
-			
+			//skip collision with other igni projectiles
 			if( (W3SignProjectile)e || (W3IgniEntity)e )
 				continue;
 			
-			
+			// Do not cast aard for boat
 			if( (W3AardProjectile)this && (W3Boat)e )
 				continue;
 			

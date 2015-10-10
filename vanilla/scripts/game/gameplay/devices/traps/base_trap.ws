@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2013
+/** Author : Ryan Pergent
+/***********************************************************************/
 enum ETrapOperation
 {
 	TO_Activate,
@@ -13,27 +12,27 @@ enum ETrapOperation
 
 class W3Trap extends W3MonsterClue
 {
-	
-	
-	
+	//>---------------------------------------------------------------------
+	// CONST
+	//----------------------------------------------------------------------
 	const var 		ARM_INTERACTION_COMPONENT_NAME		: string;
 	default ARM_INTERACTION_COMPONENT_NAME 				= "Arm";
 	
 	const var 		DISARM_INTERACTION_COMPONENT_NAME	: string;
 	default DISARM_INTERACTION_COMPONENT_NAME 			= "Disarm";
-	
-	
-	
+	//>---------------------------------------------------------------------
+	// Variables 
+	//----------------------------------------------------------------------
 	protected saved var 	m_IsActive					: bool;		default m_IsActive = false;
 	protected var 			m_Targets					: array<CNode>;
 	protected saved var		m_isArmed					: bool;    	default m_isArmed = true;
 	protected saved var   	m_wasSprung					: bool;		default m_wasSprung = false;
 	protected saved var 		m_isPlayingAnimation		: bool;
 		
-	
+	// editables	
 	private editable var activeByDefault				: bool;
-	
-	
+	//private editable var interactionAnim				: EPlayerExplorationAction;
+	//private editable var interactionAnimTime			: float;
 	private editable var factOnArm						: SFactParameters;
 	private editable var factOnDisarm					: SFactParameters;
 	private editable var factOnActivation				: SFactParameters;
@@ -63,8 +62,8 @@ class W3Trap extends W3MonsterClue
 	default soundOnArm = 'qu_item_disarm_trap';
 	default soundOnDisarm = 'qu_item_disarm_trap';
 	
-	
-	
+	//>---------------------------------------------------------------------
+	//----------------------------------------------------------------------
 	event OnSpawned( spawnData : SEntitySpawnData )
 	{
 		m_IsActive = false;
@@ -75,7 +74,7 @@ class W3Trap extends W3MonsterClue
 		}
 		
 		UpdateVisibility();
-		StructFacts();
+		StructFactsHack();
 		UpdateInteraction();
 		super.OnSpawned( spawnData );
 	}
@@ -123,7 +122,7 @@ class W3Trap extends W3MonsterClue
 	
 	event OnClueDetected()
 	{
-		
+		//if (!m_wasSprung) DO THIS DIFFERENTLY!!!
 		super.OnClueDetected();
 		UpdateInteraction();
 	}
@@ -133,8 +132,8 @@ class W3Trap extends W3MonsterClue
 		if (willActivateWhenHit) Activate();
 	}
 	
-	
-	
+	//>---------------------------------------------------------------------
+	//----------------------------------------------------------------------
 	public function Activate( optional _Target: CNode ):void
 	{
 		if( !m_IsActive )
@@ -171,8 +170,8 @@ class W3Trap extends W3MonsterClue
 		
 		DisableAllInteractions();
 	}
-	
-	
+	//>---------------------------------------------------------------------
+	//----------------------------------------------------------------------
 	public timer function Deactivate( optional _Delta : float, optional id : int):void
 	{
 		if( m_IsActive )
@@ -199,8 +198,8 @@ class W3Trap extends W3MonsterClue
 		
 		UpdateInteraction();
 	}
-	
-	
+	//>---------------------------------------------------------------------
+	//----------------------------------------------------------------------
 	public final function RemoveTarget( _Target : CNode )
 	{
 		m_Targets.Remove( _Target );
@@ -253,7 +252,7 @@ class W3Trap extends W3MonsterClue
 			{
 				armComp.SetEnabled( false );	
 				disarmComp.SetEnabled( true );
-				
+				//SetFocusModeVisibility( FMV_Clue );	
 			}
 			else
 			{
@@ -272,7 +271,7 @@ class W3Trap extends W3MonsterClue
 					}
 				}
 				disarmComp.SetEnabled( false );
-				
+				//SetFocusModeVisibility( FMV_Interactive );
 			}
 					
 		}
@@ -336,9 +335,9 @@ class W3Trap extends W3MonsterClue
 		}
 	}
 	
-	private function StructFacts()
+	private function StructFactsHack()
 	{
-		
+		//Structs sometimes break. This function is to ensure that values and validFor are never 0, as these are of cripplingly limited use when implementing: DZ
 		if ( factOnArm.ID != "" )
 		{
 			if (factOnArm.value == 0) factOnArm.value = 1;
@@ -365,7 +364,7 @@ class W3Trap extends W3MonsterClue
 	{
 		var i, size : int;
 		
-		
+		// todo check if locked on opening/closing?
 		if ( m_isArmed )
 		{
 			size = operations.Size();

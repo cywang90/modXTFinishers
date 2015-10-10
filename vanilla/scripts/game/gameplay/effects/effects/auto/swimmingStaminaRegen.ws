@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2012-2013
+/** Author : Patryk Fiutowski
+/***********************************************************************/
 
 class W3Effect_AutoSwimmingStaminaRegen extends W3AutoRegenEffect
 {

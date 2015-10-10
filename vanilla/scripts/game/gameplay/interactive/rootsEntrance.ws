@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3RootsEntrance extends CGameplayEntity
+﻿class W3RootsEntrance extends CGameplayEntity
 {
 	saved var isOpened : bool;
 	

@@ -1,11 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Copyright © 2012-2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
-
-
-
-
+// increases stamina regen
 class W3Potion_TawnyOwl extends W3RegenEffect
 {
 	default effectType = EET_TawnyOwl;
@@ -20,7 +18,7 @@ class W3Potion_TawnyOwl extends W3RegenEffect
 			timeActive += deltaTime;	
 			if( duration != -1 )
 			{
-				
+				//tick time only if it's not night
 				level = GetBuffLevel();				
 				currentHour = GameTimeHours(theGame.GetGameTime());
 				if(level < 3 || (currentHour > GetHourForDayPart(EDP_Dawn) && currentHour < GetHourForDayPart(EDP_Dusk)) )
@@ -35,11 +33,11 @@ class W3Potion_TawnyOwl extends W3RegenEffect
 					}
 					if(isPotionEffect && target == thePlayer && thePlayer.CanUseSkill(S_Alchemy_s03) && thePlayer.GetStat(BCS_Toxicity, true) > toxicityThreshold)
 					{
-						
+						//keep it going for as long as there is some toxicity left
 					}
 					else
 					{
-						isActive = false;		
+						isActive = false;		//this will be the last call
 					}
 				}
 			}

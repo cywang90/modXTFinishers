@@ -1,17 +1,13 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
-
-
-
-
-
-
-
+﻿//>--------------------------------------------------------------------------
+// W3SpawnEntityOnAnimEvent
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Extension of CScriptedComponent - spawns entities through Anim Events.
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Brad Lansford & Ryan Pergant - 18-April-2014
+// Copyright © 2014 CD Projekt RED
+//---------------------------------------------------------------------------
 class W3SpawnEntityOnAnimEvent extends CScriptedComponent
 {
 	editable var animEvent 		: name;
@@ -23,8 +19,8 @@ class W3SpawnEntityOnAnimEvent extends CScriptedComponent
 	hint entityName = "Resource Name";
 	
 	private var entityTemplate	: CEntityTemplate;
-	
-	
+	//>---------------------------------------------------------------
+	//----------------------------------------------------------------
 	event OnComponentAttached()
 	{
 		var l_actor : CActor;
@@ -42,14 +38,14 @@ class W3SpawnEntityOnAnimEvent extends CScriptedComponent
 	{
 		SpawnEntity();
 	}
-	
+	//Spawn Entity
 	function SpawnEntity()
 	{
 		var spawnPos 			: Vector;
 		var entity 				: CEntity;
 		var damageAreaEntity 	: CDamageAreaEntity;
 		
-		
+		// End if resource is NOT an Entity
 		if( !entityTemplate )
 		{
 			return;

@@ -1,21 +1,17 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
-
-
-
-
-
-
+﻿//----------------------------------------------------------------------
+// W3SlideToTargetComponent
+//----------------------------------------------------------------------
+//>---------------------------------------------------------------
+// Entity with this component will slide to a target vector or CNode at said speed
+//----------------------------------------------------------------
+// Copyright © 2014 CDProjektRed
+// Author : R.Pergent - 17-April-2014
+//----------------------------------------------------------------------
 class W3SlideToTargetComponent extends CSelfUpdatingComponent
 {
-	
-	
-	
+	//>---------------------------------------------------------------
+	// Variable
+	//----------------------------------------------------------------	
 	private editable var	speed 							: float;
 	private editable var	stopDistance					: float;
 	private editable var 	targetOffset					: Vector;
@@ -69,9 +65,9 @@ class W3SlideToTargetComponent extends CSelfUpdatingComponent
 	hint destroyDelayAtDestination 	= "When reaching the destination, destroy after this delay";
 	hint considerSuccesAfterDelay 	= "will be considered as having reached the position after this delay. -1 means infinite";
 	
-	
-	
-	
+	//>---------------------------------------------------------------
+	// SETTERS
+	//----------------------------------------------------------------
 	public function SetStopDistance			( _Distance : float ) 	{ stopDistance = _Distance; 			}
 	public function SetSpeed				( _Speed 	: float ) 	{ speed = _Speed; 						}
 	public function SetOffset				( _Offset 	: Vector )	{ targetOffset = _Offset; 				}
@@ -84,36 +80,41 @@ class W3SlideToTargetComponent extends CSelfUpdatingComponent
 	public function SetSuccessDelay			( _Delay 	: float ) 	{ considerSuccesAfterDelay = _Delay; 	}
 	public function SetStopEffect			( _Name 	: name )  	{ stopEffectAtDest = _Name; 			}
 	public function SetStayAboveNav			( _Stay 	: bool )  	{ stayAboveNavigableSpace = _Stay; 		}
-	
-	
+	//>---------------------------------------------------------------
+	//----------------------------------------------------------------
 	public function SetSpeedOscillation( _Min : float, _Max: float, _OscSpeed: float)
 	{
 		speedOscilation.min 	= _Min;
 		speedOscilation.max 	= _Max;
 		speedOscilationSpeed 	= _OscSpeed;
 	}
-	
-	
+	//>---------------------------------------------------------------
+	//----------------------------------------------------------------
 	public function SetNormalSpeedOscillation( _Min : float, _Max: float, _OscSpeed: float)
 	{
 		normalSpeedOscilation.min 	= _Min;
 		normalSpeedOscilation.max 	= _Max;
 		normalSpeedOscilationSpeed 	= _OscSpeed;
 	}
-	
-	
+	//>---------------------------------------------------------------
+	//----------------------------------------------------------------
 	public function SetVerticalOscillation( _Min : float, _Max: float, _OscSpeed: float)
 	{
 		verticalOscilation.min 	= _Min;
 		verticalOscilation.max 	= _Max;
 		verticalOscilationSpeed 	= _OscSpeed;
 	}
-	
-	
+	//>---------------------------------------------------------------
+	//----------------------------------------------------------------
 	event OnComponentAttached()
 	{
+		if( !theGame.IsActive())
+		{
+			return true;
+		}
+	
 		m_Entity 		= GetEntity();
-		m_CanSendEvent 	= true;
+		m_CanSendEvent 	= true;		
 		
 		m_TimeBeforeSuccess = considerSuccesAfterDelay;
 		
@@ -135,18 +136,18 @@ class W3SlideToTargetComponent extends CSelfUpdatingComponent
 		
 		StartTicking();
 	}
-	
-	
+	//>---------------------------------------------------------------
+	//----------------------------------------------------------------
 	private function Oscilliate( _Dt : float )
 	{
 		var l_epsilon : float;
 		
 		l_epsilon = 0.1f;
 		
-		
+		// Speed oscilation
 		if( speedOscilation.min != speedOscilation.max )
 		{
-			
+			// If they have the same sign and close enough
 			if( ( m_currentSpeedOsc / m_speedTarget ) > 0 && AbsF( AbsF( m_currentSpeedOsc ) - AbsF( m_speedTarget ) ) < l_epsilon )			
 			{
 				if( m_speedTarget == speedOscilation.min )
@@ -158,10 +159,10 @@ class W3SlideToTargetComponent extends CSelfUpdatingComponent
 			m_currentSpeedOsc = InterpConstTo_F( m_currentSpeedOsc, m_speedTarget, _Dt, speedOscilationSpeed );
 		}
 		
-		
+		// Normal speed oscilation
 		if( normalSpeedOscilation.min != normalSpeedOscilation.max )
 		{
-			
+			// If they have the same sign and close enough
 			if( ( m_currentNormalSpeedOsc / m_normalSpeedTarget ) > 0 && AbsF( AbsF( m_currentNormalSpeedOsc ) - AbsF( m_normalSpeedTarget ) ) < l_epsilon )
 			{
 				if( m_normalSpeedTarget == normalSpeedOscilation.min )
@@ -173,10 +174,10 @@ class W3SlideToTargetComponent extends CSelfUpdatingComponent
 			m_currentNormalSpeedOsc = InterpConstTo_F(  m_currentNormalSpeedOsc, m_normalSpeedTarget, _Dt, normalSpeedOscilationSpeed );
 		}
 		
-		
+		// Vertical oscilation
 		if( verticalOscilation.min != verticalOscilation.max )
 		{
-			
+			// If they have the same sign and close enough
 			if( ( m_currentVertOffest / m_verticalOffsetTarget ) > 0 && AbsF( AbsF( m_currentVertOffest ) - AbsF( m_verticalOffsetTarget ) ) < l_epsilon )
 			{
 				if( m_verticalOffsetTarget == verticalOscilation.min )
@@ -188,14 +189,17 @@ class W3SlideToTargetComponent extends CSelfUpdatingComponent
 			m_currentVertOffest = InterpConstTo_F( m_currentVertOffest, m_verticalOffsetTarget, _Dt, verticalOscilationSpeed );
 		}
 	}
-	
-	
+	//>---------------------------------------------------------------
+	//----------------------------------------------------------------
 	event OnComponentTick ( _Dt : float )
 	{
 		var l_pos, l_normal, l_normalToTarget, l_toTarget	: Vector;
 		var l_groundZ 	: float;
 		var l_direction	: float;
 		var l_targetPos	: Vector;
+		
+		if( !m_NodeTarget && m_VectorTarget == Vector( 0,0,0 ) )
+			return true;
 		
 		Oscilliate( _Dt);
 		
@@ -207,7 +211,7 @@ class W3SlideToTargetComponent extends CSelfUpdatingComponent
 			
 			if( speed != 0 || m_currentSpeedOsc != 0)
 			{
-				
+				// Fall back
 				if( m_IsFallingBack )
 				{
 					l_pos = InterpTo_V( l_pos, l_targetPos, _Dt, fallBackSpeed );
@@ -240,13 +244,13 @@ class W3SlideToTargetComponent extends CSelfUpdatingComponent
 					theGame.GetWorld().NavigationComputeZ( l_pos, l_pos.Z - 5, l_pos.Z + 5, l_groundZ );
 					l_pos.Z = l_groundZ;
 				}				
-				
+				// Do not move forward if it is not navigable
 				if( !theGame.GetWorld().NavigationCircleTest( l_pos, 0.5 ) )
 				{
 					l_pos = m_Entity.GetWorldPosition();
 				}
 			}
-			
+			// Heavier processing of ground position
 			else if( snapToGround )
 			{
 				if( theGame.GetWorld().NavigationComputeZ( l_pos, l_pos.Z - 5, l_pos.Z + 5, l_groundZ ) )
@@ -263,14 +267,14 @@ class W3SlideToTargetComponent extends CSelfUpdatingComponent
 		
 		if ( IsAtDestination() )		
 		{
-			
+			// Destruction
 			if( destroyDelayAtDestination >= 0 )
 			{
 				m_Entity.DestroyAfter( destroyDelayAtDestination );
 				destroyDelayAtDestination = -1;
 			}
 			
-			
+			// Effects
 			if ( IsNameValid ( stopEffectAtDest ) )
 			{
 				m_Entity.StopEffect( stopEffectAtDest );
@@ -282,7 +286,7 @@ class W3SlideToTargetComponent extends CSelfUpdatingComponent
 					m_Entity.PlayEffect( playEffectAtDest );
 				}
 			}
-			
+			// Gameplay events
 			if( m_CanSendEvent && IsNameValid( gameplayEventAtDestination ) )
 			{
 				if( triggerGPEventOnTarget && m_NodeTarget && ( CActor ) m_NodeTarget )
@@ -303,21 +307,21 @@ class W3SlideToTargetComponent extends CSelfUpdatingComponent
 		
 		m_TimeBeforeSuccess -= _Dt;
 	}
-	
-	
+	//>---------------------------------------------------------------
+	//----------------------------------------------------------------
 	public function SetTargetNode( _Target : CNode ) 
 	{
 		m_NodeTarget = _Target;
 	}	
-	
-	
+	//>---------------------------------------------------------------
+	//----------------------------------------------------------------
 	public function SetTargetVector( _Vector : Vector ) 
 	{
 		m_VectorTarget 	= _Vector;
 		m_NodeTarget 	= NULL;
 	}
-	
-	
+	//>---------------------------------------------------------------
+	//----------------------------------------------------------------
 	public function IsAtDestination() : bool
 	{		
 		if( !m_NodeTarget && m_VectorTarget == Vector( 0,0,0 ) ) 
@@ -330,8 +334,8 @@ class W3SlideToTargetComponent extends CSelfUpdatingComponent
 		
 		return GetDistanceToTarget() - stopDistance <= 0;
 	}
-	
-	
+	//>---------------------------------------------------------------
+	//----------------------------------------------------------------
 	public function GetTargetPosition() : Vector
 	{
 		var l_targetPos 	: Vector;
@@ -364,8 +368,8 @@ class W3SlideToTargetComponent extends CSelfUpdatingComponent
 		
 		return l_targetPos;
 	}	
-	
-	
+	//>---------------------------------------------------------------
+	//----------------------------------------------------------------
 	public function GetTimeLeftToDestination() : float
 	{
 		var l_timeLeft : float;		
@@ -373,8 +377,8 @@ class W3SlideToTargetComponent extends CSelfUpdatingComponent
 		l_timeLeft = MaxF( 0, GetDistanceToTarget() - stopDistance ) / speed;
 		return l_timeLeft;
 	}	
-	
-	
+	//>---------------------------------------------------------------
+	//----------------------------------------------------------------
 	public function GetDistanceToTarget() : float
 	{
 		var l_distance : float;

@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file - Main Menu
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author : Bartosz Bigaj
+/***********************************************************************/
 
 class CR4CommonMainMenu extends CR4MenuBase
 {
@@ -17,7 +16,7 @@ class CR4CommonMainMenu extends CR4MenuBase
 	
 	protected var currentMenuName : name;
 	
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{
 		var menuName : name;
 		var inGameConfigWrapper	: CInGameConfigWrapper;
@@ -27,12 +26,12 @@ class CR4CommonMainMenu extends CR4MenuBase
 		m_flashModule = GetMenuFlash();
 		theGame.GetGuiManager().OnEnteredMainMenu();
 		
+		//m_fxSetMovieData = m_flashModule.GetMemberFlashFunction( "SetMovieData" );
+		//m_fxSetMovieData.InvokeSelfOneArg(FlashArgString(GetCurrentBackgroundMovie()));
 		
+		//menuName = theGame.GetMenuToOpen();
 		
-		
-		
-		
-		
+		//if( menuName == '')
 		{
 			menuName = 'IngameMenu';
 		}
@@ -57,17 +56,25 @@ class CR4CommonMainMenu extends CR4MenuBase
 		SetupMenu();
 		OnRequestSubMenu( menuName, GetMenuInitData() );
 		
-		theGame.FadeInAsync(300); 
+		theGame.FadeInAsync(300); // 0.3 seconds
 		
 		theInput.StoreContext( 'MAIN_MENU_CONTEXT' );
 		
 		theGame.ReleaseNoSaveLock(theGame.deathSaveLockId);
 		
-		
+		// Every time we end up in main menu, update hud values in case hud is still loaded but profile has changed
 		updateHudConfigs();
 		
 		theSound.SoundEvent( "play_music_main_menu" );
-		theSound.SoundEvent( "mus_main_menu_theme" );
+		
+		if ( theGame.GetDLCManager().IsEP1Available() )
+		{
+			theSound.SoundEvent( "mus_main_menu_theme_ep1" );
+		}
+		else
+		{
+			theSound.SoundEvent( "mus_main_menu_theme" );
+		}
 	}
 	
 	private function updateHudConfigs():void
@@ -83,10 +90,10 @@ class CR4CommonMainMenu extends CR4MenuBase
 	
 	function GetCurrentBackgroundMovie() : string
 	{
-		return "mainmenu.usm"; 
+		return "mainmenu.usm"; // #B differ it depending on game advance
 	}
 	
-	event  OnClosingMenu()
+	event /* C++ */ OnClosingMenu()
 	{
 		if (m_configUICalled)
 		{
@@ -104,9 +111,17 @@ class CR4CommonMainMenu extends CR4MenuBase
 		currentMenuName = menuName;
 	}
 
-	
+	/*
+	enum EStandardSwipe
+	{
+		SWIPE_LEFT,
+		SWIPE_RIGHT,
+		SWIPE_DOWN,
+		SWIPE_UP
+	};
+	*/
 
-	event  OnSwipe( swipe : int )
+	event /* C++ */ OnSwipe( swipe : int )
 	{
 	}
 
@@ -125,10 +140,15 @@ class CR4CommonMainMenu extends CR4MenuBase
 	
 	private function SetupMenu() : void
 	{
+		/*var l_flashSubArray   : CScriptedFlashArray;
 		
+		l_flashSubArray = m_flashValueStorage.CreateTempFlashArray();
+		GetGFxMenuStruct(l_flashSubArray);
+		
+		m_flashValueStorage.SetFlashArray( "panel.main.setup", l_flashSubArray);*/
 	}
 
-	event  OnCloseMenu()
+	event /*flash*/ OnCloseMenu()
 	{
 		var menu			: CR4MenuBase;
 		
@@ -167,7 +187,7 @@ class CR4CommonMainMenu extends CR4MenuBase
 		
 			if( menu )
 			{
-				
+				//menu.CloseMenu();
 				menuToOpen = GetParentMenuName(currentMenuName);
 				if( menuToOpen )
 				{

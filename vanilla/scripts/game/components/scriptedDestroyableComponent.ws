@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 enum EScriptedDetroyableComponentState
 {
 	DC_Idle,
@@ -21,9 +17,9 @@ import abstract class CScriptedDestroyableComponent extends CRigidMeshComponent
 	
 	import final function GetDestroyWay() : EDestroyWay;
 	
+	//import final function GetDestroyOrderID() : int; 
 	
-	
-	
+	//For OnDistance destroys //Default to the Player
 	function GetDistanceToTargetValue() : float
 	{
 		return distanceValue; 
@@ -46,9 +42,9 @@ import abstract class CScriptedDestroyableComponent extends CRigidMeshComponent
 	
 	
 	
-	import function GetDestroyAtTime() : float; 
+	import function GetDestroyAtTime() : float; //For OnTime destroys
 	
-	import function GetDestroyTimeDuration() : float; 
+	import function GetDestroyTimeDuration() : float; //Time it takes until it will get 'destroyed'
 	
 	function IdleTick(time : float);
 	function PreDestroyTick(time : float);

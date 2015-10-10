@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3ConditionalTrigger extends CEntity
+﻿class W3ConditionalTrigger extends CEntity
 {
 	editable inlined var conditionClass : W3Condition;
 	editable inlined var effectorClasses : array< IPerformableAction >;
@@ -26,9 +22,9 @@ class W3ConditionalTrigger extends CEntity
 	}
 }
 
-
-
-
+// --------------------------------
+// ---------- CONDITIONS ----------
+// --------------------------------
 
 abstract class W3Condition
 {

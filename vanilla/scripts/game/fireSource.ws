@@ -1,10 +1,10 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/*********************************************************************************/
+/** Witcher Script file
+/*********************************************************************************/
+/** This class takes care of setting the player on fire when he plays with fire!
+/** Copyright © 2014 
+/** Author: Shadi Dadenji
+/*********************************************************************************/
 
 
 class W3FireSource extends CGameplayEntity

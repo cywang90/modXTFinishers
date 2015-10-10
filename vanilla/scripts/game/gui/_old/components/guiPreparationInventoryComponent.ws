@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-enum EPreporationItemType
+﻿enum EPreporationItemType
 {
 	PIT_Undefined,
 	PIT_Bomb,
@@ -36,7 +32,7 @@ class W3GuiPreparationInventoryComponent extends W3GuiPlayerInventoryComponent
 		var l_flashObject : CScriptedFlashObject;
 		var oilName : name;
 	
-		
+		// Silved sword oil slot
 		if (_inv.GetItemEquippedOnSlot(EES_SilverSword, weaponId))
 		{
 			oilName = _inv.GetOilNameOnSword(false);
@@ -48,7 +44,7 @@ class W3GuiPreparationInventoryComponent extends W3GuiPlayerInventoryComponent
 			}
 		}
 		
-		
+		// Steel sword oil slot
 		if (_inv.GetItemEquippedOnSlot(EES_SteelSword, weaponId))
 		{
 			oilName = _inv.GetOilNameOnSword(true);
@@ -61,7 +57,7 @@ class W3GuiPreparationInventoryComponent extends W3GuiPlayerInventoryComponent
 		}
 	}
 	
-	
+	// #J not ideal since it has to cover multiple classes worth of variables, but not much alternative considering there is no item to check
 	protected function FillItemInfoFromOilName(oilName:name, slotType : EEquipmentSlots, out flashObject : CScriptedFlashObject):void
 	{
 		flashObject.SetMemberFlashInt( "prepItemType", PIT_Oil );
@@ -69,14 +65,14 @@ class W3GuiPreparationInventoryComponent extends W3GuiPlayerInventoryComponent
 		flashObject.SetMemberFlashString( "dropDownLabel", GetPrepCategoryLabel(PIT_Oil) );
 		flashObject.SetMemberFlashInt( "equipped", slotType );
 		flashObject.SetMemberFlashInt( "id", -1 );
-		flashObject.SetMemberFlashInt( "quantity", 1 ); 
+		flashObject.SetMemberFlashInt( "quantity", 1 ); // #J TODO may want to use this value for charges.
 		flashObject.SetMemberFlashString( "iconPath",  _inv.GetItemIconPathByName(oilName) );
 		flashObject.SetMemberFlashInt( "gridPosition", 0 );
 		flashObject.SetMemberFlashInt( "gridSize", 1 );
 		flashObject.SetMemberFlashInt( "slotType", slotType );
 		flashObject.SetMemberFlashBool( "isNew", false );
 		flashObject.SetMemberFlashBool( "isOilApplied", false );
-		flashObject.SetMemberFlashInt( "quality", 1 ); 
+		flashObject.SetMemberFlashInt( "quality", 1 ); // #J TODO kinda shit since the quality functions all require itemId (which i don't have!)
 		flashObject.SetMemberFlashInt( "socketsCount", 0 );
 		flashObject.SetMemberFlashInt( "socketsUsedCount", 0 );
 	}
@@ -144,7 +140,7 @@ class W3GuiPreparationInventoryComponent extends W3GuiPlayerInventoryComponent
 			return PIT_Undefined;
 	}
 	
-	
+	// Dummy invisible item, we need it to display empty category
 	public function AddDummyCategoryItem(item : SItemUniqueId, out flashObject : CScriptedFlashObject, out flashArray : CScriptedFlashArray) : void
 	{
 		var l_flashObject		: CScriptedFlashObject;
@@ -177,7 +173,7 @@ class W3GuiPreparationInventoryComponent extends W3GuiPlayerInventoryComponent
 		}
 	}
 	
-	protected function GetPrepCategoryLabel( targetCategory : EPreporationItemType):string 
+	protected function GetPrepCategoryLabel( targetCategory : EPreporationItemType):string // #B TODO here is better to GetLocStringByKeyExt("item_category_petard") and send already localized string
 	{
 		switch (targetCategory)
 		{
@@ -191,7 +187,7 @@ class W3GuiPreparationInventoryComponent extends W3GuiPlayerInventoryComponent
 				return "[[item_category_oil]]";
 				break;
 			case PIT_Mutagen:
-				return "[[panel_preparation_mutagens_sublist_name]]"; 
+				return "[[panel_preparation_mutagens_sublist_name]]"; // #B ??
 				break;
 		}
 		return "";

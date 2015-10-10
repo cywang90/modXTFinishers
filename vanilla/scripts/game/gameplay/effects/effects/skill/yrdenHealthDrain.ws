@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 class W3Effect_YrdenHealthDrain extends W3DamageOverTimeEffect
 {
@@ -18,13 +16,13 @@ class W3Effect_YrdenHealthDrain extends W3DamageOverTimeEffect
 	{
 		super.OnEffectAdded(customParams);
 		
-		hitFxDelay = 0.9 + RandF() / 5;	
+		hitFxDelay = 0.9 + RandF() / 5;	//0.9-1.1
 		
-		
+		//recalc value
 		SetEffectValue();
 	}
 	
-	
+	//@Overrides parent - effectValue depends on skill only
 	protected function SetEffectValue()
 	{
 		effectValue = thePlayer.GetSkillAttributeValue(S_Magic_s11, 'direct_damage_per_sec', false, true) * thePlayer.GetSkillLevel(S_Magic_s11);
@@ -37,7 +35,7 @@ class W3Effect_YrdenHealthDrain extends W3DamageOverTimeEffect
 		hitFxDelay -= dt;
 		if(hitFxDelay <= 0)
 		{
-			hitFxDelay = 0.9 + RandF() / 5;	
+			hitFxDelay = 0.9 + RandF() / 5;	//0.9-1.1
 			target.PlayEffect('yrden_shock');
 		}
 	}

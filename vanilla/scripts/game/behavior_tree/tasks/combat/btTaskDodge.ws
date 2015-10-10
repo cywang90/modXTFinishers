@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2012
+/** Author : Patryk Fiutowski
+/***********************************************************************/
 
 class CBTTaskDodge extends CBTTaskPlayAnimationEventDecorator
 {
@@ -45,7 +44,7 @@ class CBTTaskDodge extends CBTTaskPlayAnimationEventDecorator
 		{
 			Time2Dodge = false;
 		}
-		else if ( !super.IsAvailable() ) 
+		else if ( !super.IsAvailable() ) // checkstats
 		{
 			Time2Dodge = false;
 		}
@@ -275,7 +274,27 @@ class CBTTaskDodge extends CBTTaskPlayAnimationEventDecorator
 	}
 	
 	
-	
+	/*
+	function OnGameplayEvent( eventName : name ) : bool
+	{
+		var npc 							: CNewNPC = GetNPC();
+		var movementAdjustor 				: CMovementAdjustor = npc.GetMovingAgentComponent().GetMovementAdjustor();
+		var ticket 							: SMovementAdjustmentRequestTicket = movementAdjustor.GetRequest( 'RotateEvent' );
+		var victimToProjectileImpactAngle 	: float;
+		
+		if ( rotateOnRotateEvent )
+		{
+			if ( eventName == 'RotateEventStart')
+			{
+				victimToProjectileImpactAngle = -AngleDistance( VecHeading(  ownerPosition - npc.GetWorldPosition()  ), npc.GetHeading() );
+				npc.RotateTo( ticket, victimToProjectileImpactAngle );
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	*/
 }
 
 class CBTTaskDodgeDef extends CBTTaskPlayAnimationEventDecoratorDef
@@ -357,7 +376,7 @@ class CBTTaskCombatStyleDodgeDef extends CBTTaskDodgeDef
 
 
 
-
+////////////Circular dodge
 class CBTTaskCircularDodge extends CBTTaskDodge
 {
 	var angle : float;
@@ -368,8 +387,11 @@ class CBTTaskCircularDodge extends CBTTaskDodge
 		var npc : CNewNPC = GetNPC();
 		var target : CActor = npc.GetTarget();
 		var dodgeChance : int;
-		
-		
+		//just to be sure
+		/*if( !Time2Dodge )
+		{
+			return false;
+		}*/
 		
 		switch (dodgeType)
 		{
@@ -384,7 +406,7 @@ class CBTTaskCircularDodge extends CBTTaskDodge
 		}
 		
 		npc.slideTarget = target;
-		
+		//npc.ActionRotateToAsync(target.GetWorldPosition());
 		
 		if (RandRange(100) < dodgeChance)
 		{
@@ -432,8 +454,8 @@ class CBTTaskCircularDodge extends CBTTaskDodge
 		targetHeading.Z = heading.Z;
 		targetHeading.W = heading.W;
 		
-		
-		
+		//npc.slideTarget = target;
+		//npc.ActionRotateToAsync( targetHeading );
 		
 		npc.ActionSlideToWithHeadingAsync(npc.GetWorldPosition(), VecHeading(targetHeading) ,0.01);
 		
@@ -448,7 +470,7 @@ class CBTTaskCircularDodge extends CBTTaskDodge
 		{
 			target = npc.GetTarget();
 			npc.SetRotationAdjustmentRotateTo( target );
-			npc.slideTarget = target; 
+			npc.slideTarget = target; // TODO change to SlideTowards
 			return true;
 		}
 		

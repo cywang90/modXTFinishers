@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskBiesCharge extends CBTTask3StateAttack
+﻿class CBTTaskBiesCharge extends CBTTask3StateAttack
 {
 	var endStuck 				: EAttackType;
 	var endHit 					: EAttackType;

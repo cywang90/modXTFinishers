@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3EntitySpawner extends W3UsableEntity
+﻿class W3EntitySpawner extends W3UsableEntity
 {
 	editable var entityTemplate			: CEntityTemplate;
 	editable var appearanceAfterSpawn	: name;

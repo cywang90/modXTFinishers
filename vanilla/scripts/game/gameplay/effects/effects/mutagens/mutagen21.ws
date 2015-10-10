@@ -1,16 +1,14 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : 
+/***********************************************************************/
 
 class W3Mutagen21_Effect extends W3Mutagen_Effect
 {
 	default effectType = EET_Mutagen21;
 	
-	
-	
+	//TODO
+	//default dontAddAbilityOnTarget = 
 	
 	public final function Heal()
 	{

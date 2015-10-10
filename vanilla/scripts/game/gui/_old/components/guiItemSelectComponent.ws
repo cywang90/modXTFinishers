@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3GuiItemSelectComponent extends W3GuiPlayerInventoryComponent
+﻿class W3GuiItemSelectComponent extends W3GuiPlayerInventoryComponent
 {	
 	protected var _filterData:W3ItemSelectMenuInitData;
 

@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskSorceressAttacksBoid extends CBTTaskMagicMeleeAttack
+﻿class CBTTaskSorceressAttacksBoid extends CBTTaskMagicMeleeAttack
 {
 	var attackAngle : float;
 	var attackDist	: float;

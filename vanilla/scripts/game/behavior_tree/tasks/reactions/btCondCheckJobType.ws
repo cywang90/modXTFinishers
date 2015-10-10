@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTCondCheckJobType extends IBehTreeTask
+﻿class CBTCondCheckJobType extends IBehTreeTask
 {
 	public var jobType : EJobTreeType;
 	

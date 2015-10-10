@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-struct SMenuTab
+﻿struct SMenuTab
 {
 	var MenuName   : name;
 	var MenuLabel  : string;
@@ -10,7 +6,7 @@ struct SMenuTab
 	var Enabled    : bool;
 	var Restricted : bool;
 	var ParentMenu : name;
-	var MenuState  : name; 
+	var MenuState  : name; // Optional parametr to define different states of the one menu
 };
 
 class CR4CommonMenu extends CR4MenuBase
@@ -53,7 +49,7 @@ class CR4CommonMenu extends CR4MenuBase
 	public var m_contextManager  	: W3ContextManager;
 	public var m_mode_meditation 	: bool; default m_mode_meditation = false;
 	public var m_had_meditation		: bool; default m_had_meditation = false;
-	private var noSaveLock			: int;		
+	private var noSaveLock			: int;		//save lock ID
 	
 	private var isCiri : bool;
 	
@@ -67,7 +63,15 @@ class CR4CommonMenu extends CR4MenuBase
 	protected var meditationHotkey:EInputKey;
 	protected var craftingHotkey:EInputKey;
 	
-	event  OnConfigUI()
+	// NPC components
+	protected var isInNpcContext:bool;
+	protected var isEnchantingAvailable:bool;
+	protected var isShopAvailable:bool;
+	protected var isRepairAvailable:bool;
+	protected var isCraftingAvailable:bool;
+	protected var isAlchemyAvailable:bool;
+	
+	event /*flash*/ OnConfigUI()
 	{
 		var stateName   : name;
 		var menuName    : name;
@@ -97,7 +101,9 @@ class CR4CommonMenu extends CR4MenuBase
 		menuName = theGame.GetMenuToOpen();
 		shouldSkipHub = menuName != '';
 		
-		if( CheckCraftingComponent() || CheckRepairPanelEnabled() || CheckShopPanelEnabled() )
+		CheckNpcTags();
+		
+		if( isInNpcContext )
 		{
 			theGame.GameplayFactsAdd("shopMode", 1);
 		}
@@ -162,9 +168,9 @@ class CR4CommonMenu extends CR4MenuBase
 			shouldSkipHub = true;
 			DefineMenuItem('InventoryMenu', "panel_title_stash");
 		}
-		else if( CheckCraftingComponent() || CheckRepairPanelEnabled() || CheckShopPanelEnabled() )
+		else if( isInNpcContext )
 		{
-			AddMerchantTagIfMissing();
+			AddMerchantTagIfMissing_HACK();
 			
 			DefineSceneMenuStructure();
 		}	
@@ -178,13 +184,13 @@ class CR4CommonMenu extends CR4MenuBase
 			
 			if (menuName == 'MapMenu' && initMapData && ( initMapData.GetTriggeredExitEntity() || initMapData.GetUsedFastTravelEntity() ) )
 			{
-				
+				// if map was opened because of entering border area or interacting fast travel point, disable all tabs except map
 
 				SetSingleMenuTabEnabled( 'MapMenu' );
 				m_hubEnabled = false;
 			}
 			
-			
+			// #Y for test; remove horse inventory subtab from inventory later
 			else if (menuName == 'InventoryMenu' && stateName == 'SingleHorseInventory')
 			{
 				stateName = 'HorseInventory';
@@ -195,7 +201,17 @@ class CR4CommonMenu extends CR4MenuBase
 				SetMenuTabeEnable( 'MapMenu',	false, 'GlobalMap' );
 			}
 			
-			
+			/*else
+			{
+				SetMenuTabeEnable('MeditationClockMenu', false);
+				
+				// #Y refact this
+				if (menuName == 'MeditationClockMenu')
+				{
+					SetMeditationMode();
+					SetMenuTabeEnable('MeditationClockMenu', true);
+				}	
+			}*/
 		}
 		DisableNotAllowedTabs();
 		UpdateTabs();
@@ -211,7 +227,7 @@ class CR4CommonMenu extends CR4MenuBase
 			{
 				menuName = 'MapMenu';
 				stateName = 'GlobalMap';
-				
+				//menuName = GetFirstChildMenuName(menuName);	
 			}
 		}
 		else if (menuName == 'MeditationClockMenu')
@@ -224,12 +240,12 @@ class CR4CommonMenu extends CR4MenuBase
 			m_hubEnabled = false;
 			m_fxSetPlayerDefailsVis.InvokeSelfOneArg(FlashArgBool(false));
 			
-			
-			
-			
+			//#J Talked to Kanik, we don't want the map disabled ever when playing as Ciri.
+			//if (thePlayer.IsActionAllowed( EIAB_OpenMap )) // Don't force open map if its disabled 
+			//{
 				shouldSkipHub = true;
 				m_fxSelectTab.InvokeSelfTwoArgs(FlashArgUInt(NameToFlashUInt('MapMenu')), FlashArgString('GlobalMap'));
-			
+			//}
 		}
 		else
 		{
@@ -241,7 +257,7 @@ class CR4CommonMenu extends CR4MenuBase
 			m_fxEnterCurrentTab.InvokeSelf();
 		}
 		
-		theInput.StoreContext( 'EMPTY_CONTEXT' );
+		theInput.StoreContext( 'EMPTY_CONTEXT' );// @ TODO UI //#B #Y move to base class and add bool switch variable
 		
 		m_contextManager = new W3ContextManager in this;
 		m_contextManager.Init(this);
@@ -250,13 +266,13 @@ class CR4CommonMenu extends CR4MenuBase
 		
 		if (theInput.LastUsedPCInput())
 		{
-			theGame.MoveMouseTo(0.475, 0.48); 
+			theGame.MoveMouseTo(0.475, 0.48); // Center cursor on map icon
 		}
 	}
 	
 	protected function GetSavedDataMenuName() : name
 	{
-		return theGame.GetMenuToOpen(); 
+		return theGame.GetMenuToOpen(); //#B JournalParent etc
 	}
 	
 	function SaveStateData()
@@ -342,7 +358,7 @@ class CR4CommonMenu extends CR4MenuBase
 		return parentMenuName;
 	}	
 	
-	event  OnClosingMenu()
+	event /* C++ */ OnClosingMenu()
 	{	
 		var menuInitData : W3MenuInitData;
 		var fastForward : CGameFastForwardSystem;
@@ -360,11 +376,11 @@ class CR4CommonMenu extends CR4MenuBase
 				waitt.RequestWaitStop();
 		}
 		
-		
+		//m_guiManager.UpdateUISavedData( 'GlossaryParent', UISavedData.openedCategories, MenuName );
 		menuInitData = (W3MenuInitData)GetMenuInitData();
 		if (menuInitData)
 		{
-			
+			// delete init data if applicable
 			delete menuInitData;
 		}
 		if (m_contextManager)
@@ -374,7 +390,7 @@ class CR4CommonMenu extends CR4MenuBase
 		
 		StopMeditation();
 		
-		
+		// force close fast forward in case its still processing
 		fastForward = theGame.GetFastForwardSystem();
 		fastForward.RequestFastForwardShutdown( true );
 		
@@ -389,15 +405,15 @@ class CR4CommonMenu extends CR4MenuBase
 				
 		theGame.ReleaseNoSaveLock(noSaveLock);
 		
-		
+		//because when CommonMenu is closing we don't know if it's because a) it's closing OR b) it's opening submenu
 		theGame.GameplayFactsAdd("closingHubMenu",1);
 		
 		m_guiManager.RequestMouseCursor(false);
 		
 		super.OnClosingMenu();		
 		
-		
-		theGame.FadeOutAsync( 0 ); 
+		// TTP 112590
+		theGame.FadeOutAsync( 0 ); // apparently FadeInAsync doesn't work without setting a blackscreen first
 		theGame.FadeInAsync( 0.2 );
 	}
 	
@@ -409,10 +425,10 @@ class CR4CommonMenu extends CR4MenuBase
 	public function SwitchToSubMenu( MenuName : name, MenuState : string)
 	{
 		m_fxSelectTab.InvokeSelfTwoArgs(FlashArgUInt(NameToFlashUInt(MenuName)), FlashArgString(MenuState));
-		m_fxEnterCurrentTab.InvokeSelf(); 
+		m_fxEnterCurrentTab.InvokeSelf(); // Currently doesn't have any adverse effects when called an already in a tab.
 	}
 	
-	event  OnHideChildMenu()
+	event /* flash */ OnHideChildMenu()
 	{
 		var childMenu : CR4MenuBase;
 		
@@ -436,7 +452,7 @@ class CR4CommonMenu extends CR4MenuBase
 		}
 	}
 	
-	event  OnRequestMenu( MenuName : name, MenuState : string)
+	event /* flash */ OnRequestMenu( MenuName : name, MenuState : string)
 	{	
 		var menuInitData   : W3MenuInitData;
 		var currentSubMenu : CR4MenuBase;
@@ -448,7 +464,7 @@ class CR4CommonMenu extends CR4MenuBase
 		if (menuInitData)
 		{
 			ignoreSaveData = menuInitData.ignoreSaveSystem;
-			
+			// #Y Ignore only first menu opening
 			menuInitData.ignoreSaveSystem = false;
 		}
 		if( currentSubMenu && currentSubMenu.GetMenuName() == MenuName )
@@ -462,13 +478,13 @@ class CR4CommonMenu extends CR4MenuBase
 			UISavedData.openedCategories.Clear();
 			if( MenuState != "" )
 			{
-				UISavedData.openedCategories.PushBack( GetPanelStateName(MenuState) );
+				UISavedData.openedCategories.PushBack( HaxGetPanelStateName(MenuState) );
 			}
 			m_guiManager.UpdateUISavedData( parentMenuName, UISavedData.openedCategories, MenuName, UISavedData.selectedModule );
 				
 			if( MenuState != "" )
 			{
-				currentSubMenu.SetMenuState(GetPanelStateName(MenuState));
+				currentSubMenu.SetMenuState(HaxGetPanelStateName(MenuState));
 				OnPlaySoundEvent( "gui_global_submenu_whoosh" );
 			}
 		}
@@ -491,20 +507,20 @@ class CR4CommonMenu extends CR4MenuBase
 				{
 					MenuName = GetSavedMenuFromParentName( parentMenuName );
 				}
-				if( MenuName == parentMenuName )
+				if( MenuName == parentMenuName )// #B FIRST CALL
 				{
 					MenuName = GetFirstChildMenuName( parentMenuName );
 				}
 			}
 			
-			
-			
-				
-			
+			//if( !ignoreSaveData && UISavedData.openedCategories.Size() > 0 )
+			//{
+				//MenuState = UISavedData.openedCategories[0];
+			//}
 			
 			if( menuInitData )
 			{
-				menuInitData.setDefaultState(GetPanelStateName(MenuState));
+				menuInitData.setDefaultState(HaxGetPanelStateName(MenuState));
 				m_lastMenuName = MenuName;
 				RequestSubMenu( MenuName, menuInitData );
 			}
@@ -513,7 +529,7 @@ class CR4CommonMenu extends CR4MenuBase
 				if( !GetMenuInitData() && MenuState != "" && MenuState != "None" )
 				{
 					menuInitData = new W3MenuInitData in this;
-					menuInitData.setDefaultState(GetPanelStateName(MenuState));
+					menuInitData.setDefaultState(HaxGetPanelStateName(MenuState));
 					m_lastMenuName = MenuName;
 					RequestSubMenu( MenuName, menuInitData );
 				}
@@ -525,13 +541,13 @@ class CR4CommonMenu extends CR4MenuBase
 			}
 			
 			m_fxLockOpenTabNavigation.InvokeSelfOneArg(FlashArgBool(true));
-			
+			//inform tutorial handler that fast menu was closed (since we're opening some other panel)
 			theGame.GetTutorialSystem().uiHandler.OnClosingMenu(GetMenuName());
 			
 			UISavedData.openedCategories.Clear();
 			if( MenuState != "" && MenuState != "None" )
 			{				
-				UISavedData.openedCategories.PushBack( GetPanelStateName(MenuState) );
+				UISavedData.openedCategories.PushBack( HaxGetPanelStateName(MenuState) );
 			}
 			
 			if( MenuName != parentMenuName ) 
@@ -550,7 +566,7 @@ class CR4CommonMenu extends CR4MenuBase
 		m_fxOnChildMenuConfigured.InvokeSelf();
 	}
 
-	function GetPanelStateName( stateName : string ) : name
+	function HaxGetPanelStateName( stateName : string ) : name
 	{
 		switch(stateName)
 		{
@@ -570,32 +586,42 @@ class CR4CommonMenu extends CR4MenuBase
 				return 'Repair';
 			case "Disassemble" :
 				return 'Disassemble';
+			case "AddSockets":
+				return 'AddSockets';
 		}
 		return '';
 	}
 
-	
+	/*
+	enum EStandardSwipe
+	{
+		SWIPE_LEFT,
+		SWIPE_RIGHT,
+		SWIPE_DOWN,
+		SWIPE_UP
+	};
+	*/
 
-	event  OnSwipe( swipe : int )
+	event /* C++ */ OnSwipe( swipe : int )
 	{
 		var subMenu : CR4MenuBase;
 
 		LogChannel( 'Gui', "CR4CommonMenu::OnSwipe " + swipe );
 
-		if ( swipe == 0 ) 
+		if ( swipe == 0 ) // #B SWIPE_LEFT
 		{
-			
+			// select prev tab
 			GoPriorMenu();
 		}
-		else if ( swipe == 1 ) 
+		else if ( swipe == 1 ) // #B SWIPE_RIGHT
 		{
-			
+			// select next tab
 			GoNextMenu();
 		}
-		else if ( swipe == 3 ) 
+		else if ( swipe == 3 ) // #B SWIPE_UP
 		{
-			
-			
+			// that's a bit tricky, we should simple fire CloseMenu()
+			// but until closing routines are simplified we need to do it this way
 			subMenu = (CR4MenuBase)GetSubMenu();
 			if ( subMenu )
 			{
@@ -604,7 +630,7 @@ class CR4CommonMenu extends CR4MenuBase
 		}
 	}
 	
-	event  OnInputHandled(NavCode:string, KeyCode:int, ActionId:int)
+	event /*flash*/ OnInputHandled(NavCode:string, KeyCode:int, ActionId:int)
 	{
 		LogChannel('GFX', "OnInputHandled, NavCode: "+NavCode+"; actionId: "+ActionId);
 		if (m_contextManager && !m_contextInputBlocked)
@@ -624,7 +650,7 @@ class CR4CommonMenu extends CR4MenuBase
 		SetupMenu();
 	}
 	
-	
+	// #Y Maybe we can define menu structure in some ini/cvs file?
 	private function DefineMenuStructure() : void
 	{
 		var curMenuItem 	: SMenuTab;
@@ -633,38 +659,41 @@ class CR4CommonMenu extends CR4MenuBase
 		m_menuData.Clear();
 		if (!isCiri)
 		{
-			DefineMenuItem('GlossaryParent', "panel_title_glossary"); 
+			DefineMenuItem('GlossaryParent', "panel_title_glossary"); // #B need to more here, probably changes in commonMenu.swf are needed
 				DefineMenuItem('GlossaryBestiaryMenu', "panel_title_glossary_bestiary",'GlossaryParent');
-				
-				
+				//DefineMenuItem('AlchemyMenu', "panel_title_alchemy", 'GlossaryParent');
+				//DefineMenuItem('GlossaryStorybookMenu', "panel_title_glossary_storybook",'GlossaryParent');
 				DefineMenuItem('GlossaryTutorialsMenu', "panel_title_glossary_tutorials",'GlossaryParent');
 				DefineMenuItem('GlossaryEncyclopediaMenu', "panel_title_glossary_dictionary",'GlossaryParent');
 				DefineMenuItem('CraftingMenu', "panel_title_crafting", 'GlossaryParent');
 				
 			DefineMenuItem('AlchemyMenu', "panel_title_alchemy", '');
 			
-			
+			//DefineMenuItem('InventoryParent', "panel_inventory");
 			DefineMenuItem('InventoryMenu', "panel_inventory", '', 'CharacterInventory');
 		}
 		
-		
+		//DefineMenuItem('MapParent', "panel_title_map");
 		DefineMenuItem('MapMenu', "panel_title_fullmap", '', 'GlobalMap');
-			
-			
+			//DefineMenuItem('MapMenu', "panel_title_fasttravel", 'MapParent', 'FastTravel');
+			//DefineMenuItem('MapMenu', "panel_title_active_quests", 'MapParent', 'Objectives');
 		
 		if (!isCiri)
 		{
 			DefineMenuItem('JournalQuestMenu', "panel_title_journal_quest", '');
-			
+			/*DefineMenuItem('JournalParent', "panel_title_journal");
+				DefineMenuItem('JournalQuestMenu', "panel_title_journal_quest",'JournalParent');
+				DefineMenuItem('JournalMonsterHuntingMenu', "panel_title_journal_monsterhunting",'JournalParent');
+				DefineMenuItem('JournalTreasureHuntingMenu', "panel_title_journal_treasurehunting",'JournalParent');*/
 				
 			DefineMenuItem('CharacterMenu', "panel_title_character", '');
 			
 			DefineMenuItem('MeditationClockMenu', "panel_title_meditation", '');
-				
-				
-				
-				
-				
+				//DefineMenuItem('MeditationClockMenu', "panel_title_clock", 'MeditationParent');
+				//DefineMenuItem('AlchemyMenu', "panel_title_alchemy", 'MeditationParent');
+				//DefineMenuItem('PreparationMenu', "panel_title_preparation", 'MeditationParent');
+				//DefineMenuItem('CharacterMenu', "panel_title_character", 'MeditationParent');
+				//DefineMenuItem('CharacterPerksMenu', "panel_title_character", 'MeditationParent');
 		}
 			
 			
@@ -681,7 +710,7 @@ class CR4CommonMenu extends CR4MenuBase
 		{
 			SetMenuTabeEnable( 'JournalQuestMenu',		false );
 		}
-		if( !thePlayer.IsActionAllowed( EIAB_OpenMap ) && !isCiri) 
+		if( !thePlayer.IsActionAllowed( EIAB_OpenMap ) && !isCiri) // #J talked with Kanik, map should never be disabled when ciri yet sometimes wierdly is
 		{
 			SetMenuTabeEnable( 'MapMenu', false, 'GlobalMap' );
 		}
@@ -705,7 +734,7 @@ class CR4CommonMenu extends CR4MenuBase
 		{
 			SetMenuTabeEnable( 'MeditationClockMenu',	false );				
 		}
-		
+		//SetMenuTabeEnable( 'MeditationParent',	false );
 	}
 	
 	public function ActionBlockStateChange(action:EInputActionBlock, blocked:bool) : void
@@ -765,7 +794,7 @@ class CR4CommonMenu extends CR4MenuBase
 		m_fxUpdateTabEnabled.InvokeSelfThreeArgs(FlashArgUInt(NameToFlashUInt(tabName)), FlashArgString(subTabName), FlashArgBool(!blocked));
 	}
 	
-	private function CheckTutorialRestrictions():void 
+	private function CheckTutorialRestrictions():void // @TODO UI refactoring & discussion 
 	{
 		var allowedMenus:array<name>;
 		var tutorialMgr : CR4TutorialSystem;
@@ -793,15 +822,15 @@ class CR4CommonMenu extends CR4MenuBase
 		var curMenuSubItems : SMenuTab;
 		
 		m_menuData.Clear();
-		if( CheckShopPanelEnabled() )
+		if( isShopAvailable )
 		{
 			DefineMenuItem('InventoryMenu', "panel_title_shop");
 		}
-		if ( CheckAlchemyPanelEnabled() )
+		if ( isAlchemyAvailable )
 		{
 			DefineMenuItem('AlchemyMenu', "panel_title_alchemy", '');
 		}
-		if( CheckCraftingComponent() )
+		if( isCraftingAvailable )
 		{
 			DefineMenuItem('CraftingParent', "panel_title_crafting");
 			DefineMenuItem('CraftingMenu', "panel_title_crafting", 'CraftingParent');
@@ -809,6 +838,12 @@ class CR4CommonMenu extends CR4MenuBase
 			DefineMenuItem('BlacksmithMenu', "panel_title_blacksmith_repair", 'CraftingParent', 'Repair');
 			DefineMenuItem('BlacksmithMenu', "panel_title_blacksmith_sockets", 'CraftingParent', 'Sockets');
 			DefineMenuItem('BlacksmithMenu', "panel_title_blacksmith_disassamble", 'CraftingParent', 'Disassemble');
+		}
+		if ( isEnchantingAvailable )
+		{
+			DefineMenuItem('EnchantingParent', "panel_title_enchanting");
+			DefineMenuItem('EnchantingMenu', "panel_title_enchanting" ,'EnchantingParent');
+			DefineMenuItem('BlacksmithMenu', "panel_title_blacksmith_add_sockets", 'EnchantingParent', 'AddSockets');
 		}
 	}
 	
@@ -831,7 +866,7 @@ class CR4CommonMenu extends CR4MenuBase
 		return l_entity;
 	}
 	
-	private function AddMerchantTagIfMissing():void 
+	private function AddMerchantTagIfMissing_HACK():void // Can't believe were using tags for this but too late to change safetly
 	{
 		var l_entity : W3MerchantNPC;
 		var shopInventory : CInventoryComponent;
@@ -848,74 +883,54 @@ class CR4CommonMenu extends CR4MenuBase
 		}
 	}
 	
-	private function CheckCraftingComponent() : bool
+	private function CheckNpcTags():void
 	{
 		var l_npc : W3MerchantNPC;
+		var l_entity : CGameplayEntity;
 		var l_component : W3CraftsmanComponent;
-		
-		l_npc = (W3MerchantNPC)GetInitGameplayEntity();
-		if( l_npc )
-		{
-			l_component = (W3CraftsmanComponent)l_npc.GetComponentByClassName('W3CraftsmanComponent');
-			if( l_component )
-			{
-				if( !l_npc.IsCraftingDisabled() )
-				{
-					return true;
-				}
-			}
-		}
-		return false;
-	}	
-	
-	private function CheckRepairPanelEnabled() : bool
-	{
-		var l_entity : CGameplayEntity;
-		
-		l_entity = (CGameplayEntity)GetInitGameplayEntity();
-		if( l_entity )
-		{
-			if( l_entity.HasTag('Armorer') || l_entity.HasTag('Blacksmith') )
-			{
-				return true;
-			}
-		}
-		return false;
-	}	
-
-	private function CheckAlchemyPanelEnabled() : bool
-	{
-		var l_entity : CGameplayEntity;
 		var invComponent : CInventoryComponent;
 		
 		l_entity = (CGameplayEntity)GetInitGameplayEntity();
-		if( l_entity )
-		{
-			invComponent = l_entity.GetInventory();
-
-			if ( invComponent.HasTag('type_herbalist') || invComponent.HasTag('type_alchemist') )
-			{
-				return true;
-			}
-		}
-		return false;
-	}	
-	
-	private function CheckShopPanelEnabled() : bool
-	{
-		var l_entity : CGameplayEntity;
 		
-		l_entity = (CGameplayEntity)GetInitGameplayEntity();
 		if( l_entity )
 		{
-			if( l_entity.HasTag('Merchant') )
+			isInNpcContext = true;
+			
+			isCraftingAvailable = false;
+			
+			l_npc = (W3MerchantNPC)l_entity;
+			if (l_npc && !l_npc.IsCraftingDisabled() )
 			{
-				return true;
+				l_component = (W3CraftsmanComponent)l_npc.GetComponentByClassName('W3CraftsmanComponent');
+				if ( l_component)
+				{
+					isCraftingAvailable = true;
+				}
 			}
+			
+			isRepairAvailable = l_entity.HasTag('Armorer') || l_entity.HasTag('Blacksmith');
+			isEnchantingAvailable = l_entity.HasTag('type_enchanter');
+			
+			invComponent = l_entity.GetInventory();
+			
+			if (invComponent)
+			{
+				isShopAvailable = isShopAvailable || invComponent.HasTag('Merchant');
+				isAlchemyAvailable = isAlchemyAvailable || invComponent.HasTag('type_herbalist') || invComponent.HasTag('type_alchemist');
+				isEnchantingAvailable = isEnchantingAvailable || invComponent.HasTag('type_enchanter');
+			}
+			
+			isShopAvailable = isShopAvailable || l_entity.HasTag('Merchant') || isRepairAvailable || isEnchantingAvailable;
+			
+			// #Y ENCHANT_TEMP
+			// isEnchantingAvailable = true;
 		}
-		return false;
+		else
+		{
+			isInNpcContext = false;
+		}
 	}
-
+	
 	private function DefineMenuItem(itemName:name, itemLabel:string, optional parentMenuItem:name, optional menuState:name) : void
 	{
 		var newMenuItem 	: SMenuTab;
@@ -960,7 +975,7 @@ class CR4CommonMenu extends CR4MenuBase
 				l_flashObject = m_flashValueStorage.CreateTempFlashObject();
 				GetGFxMenuItem(CurDataItem, l_flashObject);
 				
-				
+				// Look for childs
 				l_flashSubArray = m_flashValueStorage.CreateTempFlashArray();
 				for (j = 0; j < m_menuData.Size(); j+=1)
 				{
@@ -992,7 +1007,7 @@ class CR4CommonMenu extends CR4MenuBase
 		GFxObjectData.SetMemberFlashString("state", MenuItemData.MenuState);
 	}
 	
-	
+	// Hmmm..
 	private function UpdateTabs()
 	{
 		UpdatePlayerOrens();
@@ -1055,7 +1070,7 @@ class CR4CommonMenu extends CR4MenuBase
 
 	public function ShowBackground(value:bool) : void
 	{
-		m_flashValueStorage.SetFlashBool( "panel.main.background.shows", value); 
+		m_flashValueStorage.SetFlashBool( "panel.main.background.shows", value); // #B change to function !!!
 	}
 	
 	public function UpdatePlayerOrens()
@@ -1148,16 +1163,22 @@ class CR4CommonMenu extends CR4MenuBase
 		}
 	}
 	
-	event  OnFailedCreateMenu()
+	event /*C++*/ OnFailedCreateMenu()
 	{
-		
-		
+		// Can't actually do this due to the fact that were iterating through the event list when this function is called so adding to it will cause problems
+		/*if (m_lastMenuName == 'CharacterMenu') // Only try again once to avoid infinite recursion
+		{
+			RequestSubMenu( m_lastMenuName, GetMenuInitData());
+			m_lastMenuName = '';
+		}
+		else
+		{*/
 			m_fxSubMenuClosed.InvokeSelf();
 			m_GFxBindings.Clear();
 			m_defaultBindings.Clear();
 			m_contextBindings.Clear();
 			UpdateInputFeedback();
-		
+		//}
 	}
 
 	function ChildRequestCloseMenu()
@@ -1267,16 +1288,16 @@ class CR4CommonMenu extends CR4MenuBase
 		
 		currentSubMenu = (CR4MenuBase)GetSubMenu();
 		
-		
+		// To disable selection sounds in menu hub when its hidden
 		if (soundName != "gui_global_highlight" || !currentSubMenu)
 		{
 			super.OnPlaySoundEvent( soundName );
 		}
 	}
 	
-	event  OnOpenSubPanel(menuName:name)
+	event /*flash*/ OnOpenSubPanel(menuName:name)
 	{
-		
+		//selecting second level of common menu panel
 		if(theGame.GetTutorialSystem() && theGame.GetTutorialSystem().IsRunning())
 		{
 			theGame.GetTutorialSystem().uiHandler.OnClosingMenu(GetMenuName());
@@ -1286,9 +1307,9 @@ class CR4CommonMenu extends CR4MenuBase
 		LogChannel( 'Gui', "OnOpenSubPanel " + menuName );
 	}
 	
-	event  OnCloseSubPanel(menuName:name)
+	event /*flash*/ OnCloseSubPanel(menuName:name)
 	{
-		
+		//selecting second level of common menu panel
 		if(theGame.GetTutorialSystem() && theGame.GetTutorialSystem().IsRunning())
 		{
 			theGame.GetTutorialSystem().uiHandler.OnClosingMenu(menuName);
@@ -1298,21 +1319,24 @@ class CR4CommonMenu extends CR4MenuBase
 		LogChannel( 'Gui', "OnCloseSubPanel");
 	}
 	
-	event  OnControllerChanged(isGamepad:bool)
+	event /*flash*/ OnControllerChanged(isGamepad:bool)
 	{
-		
+		// deprecated
 	}
 	
-	
+	/*
+		Meditation
+		TODO: Remove this logic from commonMenu
+	*/
 	public function SetMeditationMode(value:bool):void
 	{	
 		if (m_mode_meditation != value)
 		{
 			m_mode_meditation = value;
 			
+			//m_fxSetMeditationBackgroundMode.InvokeSelfOneArg(FlashArgBool(value)); // Uncomment to enable rendering in meditation
 			
-			
-			
+			//SetRenderGameWorldOverride(value); // Uncomment to enable rendering in meditation
 			
 			if (m_mode_meditation)
 			{
@@ -1348,7 +1372,7 @@ class CR4CommonMenu extends CR4MenuBase
 		}
 	}
 	
-	
+	// HUB INFOS
 		
 	private function SendLastItemInfoData() : void
 	{
@@ -1423,7 +1447,8 @@ class CR4CommonMenu extends CR4MenuBase
 		
 		_inv = thePlayer.GetInventory();
 		m_guiManager = theGame.GetGuiManager();
-		if( !CheckCraftingComponent() && !CheckRepairPanelEnabled() && !CheckShopPanelEnabled() )
+		
+		if( !isCraftingAvailable && !isRepairAvailable && !isShopAvailable )
 		{
 			newestItems = m_guiManager.GetNewestItems();
 		}
@@ -1441,7 +1466,7 @@ class CR4CommonMenu extends CR4MenuBase
 				StructGFx.PushBackFlashObject(l_flashObject);
 			}
 		}
-		m_fxSetShopInventory.InvokeSelfOneArg(FlashArgBool( CheckShopPanelEnabled() || CheckCraftingComponent() ));
+		m_fxSetShopInventory.InvokeSelfOneArg(FlashArgBool( isShopAvailable || isCraftingAvailable ));
 	}
 	
 	private function GetTrackedQuestGFxMenuStruct( out StructGFx : CScriptedFlashArray ) : void
@@ -1596,7 +1621,7 @@ class CR4CommonMenu extends CR4MenuBase
 		SendQuestsInfoData();
 		SendSkillsInfoData();
 		SendLastItemInfoData();
-		if( !fromAs ) 
+		if( !fromAs ) // #B doesn't change between opening and close 
 		{
 			SendGlossaryInfoData(); 
 			SendAlchemyInfoData();
@@ -1757,8 +1782,8 @@ class CR4CommonMenu extends CR4MenuBase
 	}
 	
 	
-	
-	event  OnHotkeyTriggered(keyCode:EInputKey)
+	// #J Not the coolest solution but safest/fastest for such a last second change
+	event /*flash*/ OnHotkeyTriggered(keyCode:EInputKey)
 	{
 		var childMenu : CR4MenuBase;
 		var invMenu : CR4InventoryMenu;
@@ -1775,7 +1800,7 @@ class CR4CommonMenu extends CR4MenuBase
 		
 		if (childMenu && !IsLockedInHub() && !IsLockedInMenu())
 		{
-			if (keyCode == inventoryHotkey)
+			if (keyCode == inventoryHotkey && theGame.GameplayFactsQuerySum("shopMode") == 0)
 			{
 				invMenu = (CR4InventoryMenu)childMenu;
 				if (invMenu)

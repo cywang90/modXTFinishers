@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3GuiRepairInventoryComponent extends W3GuiBaseInventoryComponent
+﻿class W3GuiRepairInventoryComponent extends W3GuiBaseInventoryComponent
 {	
 	public var merchantInv  : CInventoryComponent;
 	public var masteryLevel : int;
@@ -10,7 +6,7 @@ class W3GuiRepairInventoryComponent extends W3GuiBaseInventoryComponent
 	public var repairArmors : bool;
 	
 	
-	public  function SetInventoryFlashObjectForItem( item : SItemUniqueId, out flashObject : CScriptedFlashObject) : void
+	public /* override */ function SetInventoryFlashObjectForItem( item : SItemUniqueId, out flashObject : CScriptedFlashObject) : void
 	{
 		var durabilityValue	: string;
 		var costOfService	: int;
@@ -118,11 +114,11 @@ class W3GuiRepairInventoryComponent extends W3GuiBaseInventoryComponent
 		if(( repairArmors && _inv.IsItemAnyArmor( item ))
 		|| repairSwords && ( _inv.IsItemSteelSwordUsableByPlayer( item ) || _inv.IsItemSilverSwordUsableByPlayer( item ) || _inv.IsItemSecondaryWeapon(item) ) )
 		{
-			
-			
-			
-			
-			
+			// MAS - Removed on Kanik request.
+			//if( _inv.GetItemQuality(item) <= masteryLevel )
+			//{
+			//	return true;
+			//}
 			return true;
 		}
 		return false;

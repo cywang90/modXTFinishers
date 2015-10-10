@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 class TaskManageCapsuleCollision extends IBehTreeTask
 {
 	var collision				: bool;
@@ -13,8 +9,8 @@ class TaskManageCapsuleCollision extends IBehTreeTask
 	var switchVulnerability		: bool;
 	var effectLinkedToCollision	: name;
 	
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function OnActivate() : EBTNodeStatus
 	{
 		if ( overrideForThisTaskOnly )
@@ -28,8 +24,8 @@ class TaskManageCapsuleCollision extends IBehTreeTask
 			
 		return BTNS_Active;
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function OnDeactivate()
 	{
 		if ( overrideForThisTaskOnly  )
@@ -41,8 +37,8 @@ class TaskManageCapsuleCollision extends IBehTreeTask
 			EnableCol( collision );
 		}
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo ) : bool
 	{		
 		if( !onAnimEvent ) return false;
@@ -67,8 +63,8 @@ class TaskManageCapsuleCollision extends IBehTreeTask
 		return true;
 	}
 		
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	private function EnableCol( _Enable : bool )
 	{
 		var l_npc : CNewNPC = GetNPC();
@@ -84,7 +80,7 @@ class TaskManageCapsuleCollision extends IBehTreeTask
 			{
 				l_npc.SetImmortalityMode( AIM_Invulnerable, AIC_Combat );
 			}
-			
+			//GetNPC().GetVisualDebug().AddText( 'invulnerability', GetNPC().GetImmortalityMode(), Vector(0,0,1) );
 		}
 		
 		if( IsNameValid( effectLinkedToCollision ) )

@@ -1,11 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
-
+﻿// CExplorationStateInteraction
+//------------------------------------------------------------------------------------------------------------------
+// Eduard Lopez Plans	( 10/12/2013 )	 
+//------------------------------------------------------------------------------------------------------------------
 
 enum ExplorationInteractionType
 {
@@ -14,26 +10,26 @@ enum ExplorationInteractionType
 	EIT_Ledge	= 2,
 };
 
-
-
+//>-----------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------
 class CExplorationStateInteraction extends CExplorationStateAbstract
 {	
 	private				var	explorationType			: ExplorationInteractionType;
-	
+	//private editable	var	enabled					: bool;			default	enabled					= true; 
 	public	editable	var	autointeract			: bool;			default	autointeract			= false;
 	private editable	var	safetyTimeToExit		: float;		default safetyTimeToExit		= 0.15f;
 	private	editable	var	useAutomaticExploration	: bool;			default	useAutomaticExploration	= false;
 	private	editable	var	allowOnDiving			: bool;			default	allowOnDiving			= true;
 	
-	
+	// Time
 	private	editable	var	timeBeforeExploring		: float;		default	timeBeforeExploring		= 1.5f;
 	
-	
+	// Ladder
 	private	editable	var	ladderCheckSides		: bool;			default	ladderCheckSides		= false;
 	private	editable	var	ladderImpulseBack		: float;		default	ladderImpulseBack		= 1.0f;
 	private	editable	var	ladderRangeFreeOfNPCs	: float;		default	ladderRangeFreeOfNPCs	= 1.5f;
 	
-	
+	// Camera
 	protected editable inlined	var	cameraSetClimb	: CCameraParametersSet;	
 	private editable	var	cameraOffsetBack		: float;		default	cameraOffsetBack		= 0.25f;
 	private editable	var	cameraOffsetUp			: float;		default	cameraOffsetUp			= 0.0f;
@@ -45,16 +41,16 @@ class CExplorationStateInteraction extends CExplorationStateAbstract
 	private 			var	camPosOriginal			: Vector;
 	private 			var	camInitialized			: bool;
 	
+	// IK
+	//private editable	var	feetIKCooldownTotal		: float;		default	feetIKCooldownTotal		= 1.5f;
+	//private 			var	feetIKCooldownCur		: float;
 	
-	
-	
-	
-	
+	// Items
 	private				var cachedWeapon			: EPlayerWeapon;
 	private  saved		var restoreUsableItemLAtEnd : bool;
 	
 	
-	
+	//---------------------------------------------------------------------------------
 	private function InitializeSpecific( _Exploration : CExplorationStateManager )
 	{	
 		if( !IsNameValid( m_StateNameN ) )
@@ -66,17 +62,17 @@ class CExplorationStateInteraction extends CExplorationStateAbstract
 		m_InputContextE		= EGCI_JumpClimb; 
 		m_HolsterIsFastB	= true;
 		
-		
+		//feetIKCooldownCur	= 0.0f;
 		
 		SetCanSave( false );
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	private function AddDefaultStateChangesSpecific()
 	{
 	}
 
-	
+	//---------------------------------------------------------------------------------
 	function StateWantsToEnter() : bool
 	{
 		var stateTime				: float;
@@ -102,7 +98,7 @@ class CExplorationStateInteraction extends CExplorationStateAbstract
 		return false;
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	function StateCanEnter( curStateName : name ) : bool
 	{	
 		if( !thePlayer.IsActionAllowed( EIAB_Explorations ) )
@@ -117,12 +113,14 @@ class CExplorationStateInteraction extends CExplorationStateAbstract
 		{
 			return true;
 		}
-		
+		//return thePlayer.IsActionAllowed( EIAB_Explorations ) && thePlayer.IsActionAllowed( EIAB_Movement );
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	private function StateEnterSpecific( prevStateName : name )	
 	{
+		thePlayer.OnRangedForceHolster( true, true, false );
+	
 		if( m_ExplorationO.m_SharedDataO.GetCurentExplorationType() == ET_Ladder )
 		{
 			explorationType	= EIT_Ladder;
@@ -136,7 +134,7 @@ class CExplorationStateInteraction extends CExplorationStateAbstract
 			explorationType	= EIT_Ledge;
 		}
 		
-		
+		// Stop movement from jump if any
 		m_ExplorationO.m_OwnerMAC.GetMovementAdjustor().CancelByName( 'turnOnJump' );
 		
 		if( !m_ExplorationO.m_SharedDataO.HasValidExploration() )
@@ -147,10 +145,10 @@ class CExplorationStateInteraction extends CExplorationStateAbstract
 		
 		camInitialized	= false;
 		
-		
+		//kill sheath sword timer
 		thePlayer.RemoveTimer( 'DelayedSheathSword' );
 		
-		
+		// Hide items and block weapon
 		if ( thePlayer.IsHoldingItemInLHand() )
 		{			
 			thePlayer.OnUseSelectedItem ( true );
@@ -162,21 +160,21 @@ class CExplorationStateInteraction extends CExplorationStateAbstract
 		}
 		cachedWeapon = thePlayer.GetCurrentMeleeWeaponType();
 		
-		
+		// Camera
 		thePlayer.EnableRunCamera( false );
 		
-		
+		// Actions
 		AddActionsToBlock();
 		BlockActions();
 		
-		
+		// Disable IK
 		m_ExplorationO.m_OwnerMAC.SetEnabledFeetIK( false );
 		
-		
+		//Abort all signs
 		thePlayer.AbortSign();		
 	}	
 	
-	
+	//---------------------------------------------------------------------------------
 	protected function AddActionsToBlock()
 	{
 		super.AddActionsToBlock();
@@ -188,18 +186,18 @@ class CExplorationStateInteraction extends CExplorationStateAbstract
 		}
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	private function AddAnimEventCallbacks()
 	{
 		m_ExplorationO.m_OwnerE.AddAnimEventCallback( 'AnimEndAUX', 'OnAnimEvent_SubstateManager' );
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	private function StartExploring( exploration : SExplorationQueryToken )
 	{
+		//thePlayer.SetBIsCombatActionAllowed( false );
 		
-		
-		
+		// Holster crossbow if we use hands
 		if( exploration.usesHands )
 		{
 			thePlayer.OnRangedForceHolster();
@@ -210,16 +208,23 @@ class CExplorationStateInteraction extends CExplorationStateAbstract
 			LogExplorationToken( "Token sent to cpp. " + m_ExplorationO.m_SharedDataO.GetExplorationTokenDescription( exploration ) );
 		}
 		
-		
+		// force go to state
 		((CPlayerStateTraverseExploration)thePlayer.GetState('TraverseExploration')).SetExploration( exploration );
 		thePlayer.GotoState('TraverseExploration');
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	function StateChangePrecheck( )	: name
 	{	
-		
-		
+		// At the moment we'll exit the state when the exploration state is set again
+		/*if( m_ExplorationO.CanChangeBetwenStates( GetStateName(), 'PrepareJump' ) )
+		{
+			if( m_ExplorationO.GetStateTimeF() >= m_TimeSafetyEndF )
+			{
+				return 'Idle';
+			}
+		}
+		*/
 		
 		if( m_ExplorationO.GetStateTimeF() > safetyTimeToExit && thePlayer.GetCurrentStateName() != 'TraverseExploration' )
 		{
@@ -229,7 +234,7 @@ class CExplorationStateInteraction extends CExplorationStateAbstract
 		return super.StateChangePrecheck();
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	protected function StateUpdateSpecific( _Dt : float )
 	{
 		if( explorationType == EIT_Ladder )
@@ -239,7 +244,7 @@ class CExplorationStateInteraction extends CExplorationStateAbstract
 		}
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	private function StateExitSpecific( nextStateName : name )
 	{		
 		thePlayer.ActionCancelAll();
@@ -252,7 +257,7 @@ class CExplorationStateInteraction extends CExplorationStateAbstract
 				thePlayer.OnEquipMeleeWeapon( cachedWeapon, true );
 		}
 		
-		if( explorationType	== EIT_Ladder ) 
+		if( explorationType	== EIT_Ladder ) // &&nextStateName == 'StartFalling' || nextStateName == 'Jump' )
 		{
 			m_ExplorationO.m_MoverO.SetVelocity( -m_ExplorationO.m_OwnerE.GetWorldForward() * ladderImpulseBack );			
 			m_ExplorationO.m_SharedDataO.m_CanFallSetVelocityB	= false;
@@ -265,39 +270,57 @@ class CExplorationStateInteraction extends CExplorationStateAbstract
 			thePlayer.OnUseSelectedItem ();
 		}
 		
-		
+		//feetIKCooldownCur	= feetIKCooldownTotal;
 		m_ExplorationO.m_OwnerMAC.SetEnabledFeetIK( true, 0.1f );
 		thePlayer.ReapplyCriticalBuff();
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	private function RemoveAnimEventCallbacks()
 	{
 		m_ExplorationO.m_OwnerE.RemoveAnimEventCallback( 'AnimEndAUX' );
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	function ReactToLoseGround() : bool
 	{
 		return true;
 	}
 	
-	
-	function ReactToBeingHit() : bool
-	{		
+	//---------------------------------------------------------------------------------
+	function ReactToBeingHit( optional damageAction : W3DamageAction ) : bool
+	{
+		var curHealth : float;
+		var maxHealth : float;
+
+		// Start falling if damage dealt from toxicity causes player's health to drop below 2.5%
+		if( GetParent() == (CObject)thePlayer )
+		{
+			curHealth = thePlayer.GetHealth();
+			maxHealth = thePlayer.GetMaxHealth();
+			if( maxHealth != -1 && curHealth / maxHealth <= 0.025f )
+			{
+				SetReadyToChangeTo( 'StartFalling' );
+				return false;
+			}
+		}
 		
-		SetReadyToChangeTo( 'StartFalling' );
+		// Do not quit exploration if damage is given by toxicity effect
+		if( !( damageAction && (W3Effect_Toxicity)damageAction.causer ) )
+		{				
+			SetReadyToChangeTo( 'StartFalling' );
+		}
 		
 		return false;
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	function CanInteract( ) :bool
 	{		
 		return false;
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
 		if( animEventName == 'AnimEndAUX' )
@@ -306,7 +329,7 @@ class CExplorationStateInteraction extends CExplorationStateAbstract
 		}
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	public function GetCameraSet( out cameraSet : CCameraParametersSet) : bool
 	{
 		if( explorationType == EIT_Boat || explorationType == EIT_Ledge )
@@ -319,7 +342,7 @@ class CExplorationStateInteraction extends CExplorationStateAbstract
 		return super.GetCameraSet( cameraSet );
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	public function CameraChangesRotationController() : bool
 	{
 		if( explorationType == EIT_Boat || explorationType == EIT_Ledge  )
@@ -335,7 +358,7 @@ class CExplorationStateInteraction extends CExplorationStateAbstract
 		return super.CameraChangesRotationController();
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	private function WantsToExploreStatics( tryingToInteractClimb, tryingToInteractLadder : bool ) : bool
 	{
 		var exploration				: SExplorationQueryToken;
@@ -346,25 +369,25 @@ class CExplorationStateInteraction extends CExplorationStateAbstract
 		var ladderInteraction		: W3LadderInteraction;
 		
 		
-		
+		// Trying to interact
 		if( !autointeract && !tryingToInteractClimb && !tryingToInteractLadder )
 		{
 			return false;
 		}		
 		
-		
+		// Disabled from diving
 		if( !allowOnDiving && thePlayer.IsDiving() )
 		{
 			return false;
 		}
 		
-		
+		// InteractClimb is only for swimming
 		if( !autointeract && !tryingToInteractLadder && m_ExplorationO.GetStateCur() != 'Swim' )
 		{
 			return false;
 		}
 		
-		
+		// Interaction locking ladder?
 		interactionComponent	= theGame.GetInteractionsManager().GetActiveInteraction();
 		if( interactionComponent )
 		{
@@ -375,7 +398,7 @@ class CExplorationStateInteraction extends CExplorationStateAbstract
 			}
 		}
 		
-		
+		// Direction
 		inputVector		= m_ExplorationO.m_InputO.GetMovementOnPlaneV();
 		if( tryingToInteractClimb  || tryingToInteractLadder )
 		{
@@ -387,14 +410,14 @@ class CExplorationStateInteraction extends CExplorationStateAbstract
 		}
 		
 		
-		
+		// Automatic transitions
 		if( !tryingToInteractClimb && !tryingToInteractLadder )
 		{
+			// Some interactions are automatic on run
+			queryContext.forAutoTraverseSmall	= false; // !thePlayer.GetIsRunning(); // No autotraverse small for now
 			
-			queryContext.forAutoTraverseSmall	= false; 
-			
-			
-			queryContext.forAutoTraverseBig		= thePlayer.GetIsRunning(); 
+			// Some other on sprint
+			queryContext.forAutoTraverseBig		= thePlayer.GetIsRunning(); // thePlayer.GetIsSprinting();
 			if( queryContext.forAutoTraverseBig )
 			{
 				if( !m_ExplorationO.m_InputO.IsModuleConsiderable() )
@@ -405,7 +428,7 @@ class CExplorationStateInteraction extends CExplorationStateAbstract
 		}
 		
 		
-		
+		// Try to Interact
 		if( tryingToInteractClimb || tryingToInteractLadder || queryContext.forAutoTraverseSmall || queryContext.forAutoTraverseBig )
 		{			
 			if( m_ExplorationO.m_InputO.IsModuleConsiderable() || queryContext.forAutoTraverseSmall || queryContext.forAutoTraverseBig  )
@@ -414,17 +437,17 @@ class CExplorationStateInteraction extends CExplorationStateAbstract
 				queryContext.laddersOnly	= false;
 			}
 			
-			
+			// New climb mode allows for exploration interaction only with ladders or in case of swimming
 			if( !tryingToInteractClimb )
 			{
 				queryContext.laddersOnly	= true;
 			}
 			
-			
+			// Get the exploration!
 			exploration = theGame.QueryExplorationSync( m_ExplorationO.m_OwnerE, queryContext );
 			if ( exploration.valid )
 			{
-				
+				// Ladder input check
 				if( exploration.type == ET_Ladder )
 				{
 					if( !autointeract && !tryingToInteractLadder )
@@ -432,13 +455,13 @@ class CExplorationStateInteraction extends CExplorationStateAbstract
 						return false;
 					}
 					
-					
+					// Proper input for ladder
 					if( !tryingToInteractLadder && !queryContext.forAutoTraverseSmall && !queryContext.forAutoTraverseBig )
 					{
 						return false;
 					}
 					
-					
+					// Can go to it?
 					if( IsLadderInUse( exploration ) )
 					{
 						return false;
@@ -462,7 +485,7 @@ class CExplorationStateInteraction extends CExplorationStateAbstract
 		return false;
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	private function WantsToExploreBoat( tryingToInteractClimb : bool ) : bool
 	{
 		var exploration 		: SExplorationQueryToken;
@@ -478,7 +501,7 @@ class CExplorationStateInteraction extends CExplorationStateAbstract
 			return false;
 		}
 		
-		
+		// Are we in the proper state to enter boat?
 		if( m_ExplorationO.GetStateCur() != 'Swim' )
 		{
 			return false;
@@ -486,15 +509,15 @@ class CExplorationStateInteraction extends CExplorationStateAbstract
 		
 		inputVector			= m_ExplorationO.m_InputO.GetMovementOnPlaneV();
 		
-		
+		// Get exploration from closest boat vehicle
 		vehicleComponent	= thePlayer.FindTheNearestVehicle( 3.0f, false );
 		if( !vehicleComponent )
 		{
 			return false;
 		}
 		
-		
-		
+		// Find out if boat is drowning or is under water
+		// If thats true do not process interaction
 		if( !vehicleComponent.CanUseBoardingExploration() )
 		{
 			return false;
@@ -512,19 +535,19 @@ class CExplorationStateInteraction extends CExplorationStateAbstract
 			return false;
 		}
 		
-		
+		// Not apropriate type
 		if( exploration.type != ET_Boat_Enter_From_Beach && exploration.type != ET_Ledge )
 		{
 			return false;
 		}
 		
-		
+		// Too far
 		if( VecDistanceSquared2D( exploration.pointOnEdge, m_ExplorationO.m_OwnerE.GetWorldPosition() ) >= 1.0f )
 		{
 			return false;
 		}
 		
-		
+		// Is it in the way?
 		direction		= exploration.pointOnEdge - m_ExplorationO.m_OwnerE.GetWorldPosition();
 		inputVector		= m_ExplorationO.m_InputO.GetMovementOnPlaneNormalizedV();
 		
@@ -539,7 +562,7 @@ class CExplorationStateInteraction extends CExplorationStateAbstract
 	}
 	
 	
-	
+	//---------------------------------------------------------------------------------
 	private function IsLadderInUse( exploration : SExplorationQueryToken ) : bool
 	{
 		var npcsArround	: array<CActor>;

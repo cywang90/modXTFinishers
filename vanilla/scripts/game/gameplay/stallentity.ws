@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file - Container controll class
+/***********************************************************************/
+/** Copyright © 2012 CDProjektRed
+/** Author : MKan
+/***********************************************************************/
 
 class W3StallEntity extends CGameplayEntity
 {

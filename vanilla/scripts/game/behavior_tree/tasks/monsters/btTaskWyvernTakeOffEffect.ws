@@ -1,9 +1,5 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿// copyrajt orajt
+// W. Żerek
 
 class CBTTaskWyvernTakeOffEffect extends CBTTaskPlayAnimationEventDecorator
 {
@@ -32,7 +28,7 @@ class CBTTaskWyvernTakeOffEffect extends CBTTaskPlayAnimationEventDecorator
 				
 				if ( dist <= effectRange*effectRange && angle <= effectAngle )
 				{
-					
+					//FIXME - there is no reason to use damage action - there is no damage, just do AddBuff()
 					action = new W3DamageAction in this;			
 					action.Initialize( (CGameplayEntity)npc, (CGameplayEntity)target, (CGameplayEntity)npc, npc+"'s dust attack", EHRT_None, CPS_AttackPower, false, false, false, false);
 					action.SetHitAnimationPlayType(EAHA_ForceNo);

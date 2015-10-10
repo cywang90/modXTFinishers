@@ -1,17 +1,13 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
-
-
-
-
-
-
-
+﻿//>--------------------------------------------------------------------------
+// BTTaskManageMistForm
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Monsters ability used by foglings.
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Andrzej Kwiatkowski - 05-August-2014
+// Copyright © 2014 CD Projekt RED
+//---------------------------------------------------------------------------
 class BTTaskManageMistForm extends CBTTaskPlayAnimationEventDecorator
 {
 	public var manageMistFormOnAnimEvents		: bool;
@@ -31,8 +27,8 @@ class BTTaskManageMistForm extends CBTTaskPlayAnimationEventDecorator
 	public var previousAppearanceName			: name;
 	
 	
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function OnActivate() : EBTNodeStatus
 	{
 		var npc : CNewNPC = GetNPC();
@@ -134,14 +130,14 @@ class BTTaskManageMistForm extends CBTTaskPlayAnimationEventDecorator
 			if ( animEventName == 'Appear' )
 			{
 				DisableMistForm( true );
-				
+				//owner.SetImmortalityMode( AIM_None, AIC_Combat );
 				
 				return true;
 			}
 			else if ( animEventName == 'Disappear' || animEventName == 'Vanish' )
 			{
 				DisableMistForm( false );
-				
+				//owner.SetImmortalityMode( AIM_Invulnerable, AIC_Combat );
 				
 				return true;
 			}
@@ -150,8 +146,8 @@ class BTTaskManageMistForm extends CBTTaskPlayAnimationEventDecorator
 	}
 };
 
-
-
+//>----------------------------------------------------------------------
+//-----------------------------------------------------------------------
 class BTTaskManageMistFormDef extends CBTTaskPlayAnimationEventDecoratorDef
 {
 	default instanceClass = 'BTTaskManageMistForm';

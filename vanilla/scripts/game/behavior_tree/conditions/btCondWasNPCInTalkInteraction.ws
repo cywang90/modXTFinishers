@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class BTCondWasNPCInTalkInteraction extends IBehTreeTask
+﻿class BTCondWasNPCInTalkInteraction extends IBehTreeTask
 {
 	function IsAvailable() : bool
 	{

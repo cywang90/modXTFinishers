@@ -1,15 +1,11 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CR4HudModuleWatermark extends CR4HudModuleBase
+﻿class CR4HudModuleWatermark extends CR4HudModuleBase
 {
-	 event OnConfigUI()
+	/* flash */ event OnConfigUI()
 	{
 		m_anchorName = "mcAnchorWatermark";
 		super.OnConfigUI();
 
-		
+		//ShowElement(false);
 	}
 }
 

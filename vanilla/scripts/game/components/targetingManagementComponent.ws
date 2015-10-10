@@ -1,21 +1,17 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
-
-
-
-
-
-
+﻿//----------------------------------------------------------------------
+// W3PostFXOnGroundComponent
+//----------------------------------------------------------------------
+//>---------------------------------------------------------------
+// Component to manage differents targeting offsets
+//----------------------------------------------------------------
+// Copyright © 2014 CDProjektRed
+// Author : R.Pergent - 08-October-2014
+//----------------------------------------------------------------------
 class W3TargetingManagementComponent extends CSelfUpdatingComponent
 {
-	
-	
-	
+	//>---------------------------------------------------------------
+	// Variable
+	//----------------------------------------------------------------	
 	private editable var aimVector 					: Vector;
 	private editable var iconOffset 				: Vector;
 	
@@ -28,8 +24,8 @@ class W3TargetingManagementComponent extends CSelfUpdatingComponent
 	private var m_LastUpdate			: float;
 	
 	default updatePosition = true;
-	
-	
+	//>---------------------------------------------------------------
+	//----------------------------------------------------------------
 	event OnComponentAttached()
 	{
 		UpdateVectors();
@@ -39,8 +35,8 @@ class W3TargetingManagementComponent extends CSelfUpdatingComponent
 			StartTicking();
 		}
 	}
-	
-	
+	//>---------------------------------------------------------------
+	//----------------------------------------------------------------
 	private final function UpdateVectors()
 	{
 		var l_gameplayEnt 		: CGameplayEntity;
@@ -72,8 +68,8 @@ class W3TargetingManagementComponent extends CSelfUpdatingComponent
 			if( iconOffset != Vector( 0,0,0 ) ) l_gameplayEnt.iconOffset = iconOffset;
 		}
 	}
-	
-	
+	//>---------------------------------------------------------------
+	//----------------------------------------------------------------
 	event OnComponentTick( _Dt : float )
 	{		
 		var l_distanceFromPlayer 	: float;

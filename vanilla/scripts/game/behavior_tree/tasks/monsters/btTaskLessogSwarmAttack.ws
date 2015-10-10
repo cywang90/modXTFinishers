@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2013
+/** Author : Andrzej Kwiatkowski
+/***********************************************************************/
 
 class CBTTaskLeshyBirdAttack extends CBTTaskSwarm
 {
@@ -113,13 +112,13 @@ class CBTTaskLeshyBirdAttack extends CBTTaskSwarm
 			projRot = npc.GetWorldRotation();
 			projectile = (W3LeshyBirdProjectile)theGame.CreateEntity( projEntity, projPos, projRot );
 			projectile.Init( npc );
-			projectile.ShootProjectileAtPosition( 0, 8,  npc.GetTarget().GetBoneWorldPosition( 'torso' ), attackRange );
+			projectile.ShootProjectileAtPosition( 0, 8, /*10,*/ npc.GetTarget().GetBoneWorldPosition( 'torso' ), attackRange );
 			
 			if ( dodgeable )
 			{
 				distanceToTarget = VecDistance( npc.GetWorldPosition(), target.GetWorldPosition() );		
 				
-				
+				// used to dodge projectile before it hits
 				projectileFlightTime = distanceToTarget / 8;
 				target.SignalGameplayEventParamFloat('Time2DodgeProjectile', projectileFlightTime );
 			}

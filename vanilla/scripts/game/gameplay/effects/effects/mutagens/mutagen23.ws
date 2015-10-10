@@ -1,11 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
-
-
-
-
+//assumes dawn and dusk won't be at 0:00
 class W3Mutagen23_Effect extends W3Mutagen_Effect
 {
 	default effectType = EET_Mutagen23;
@@ -45,14 +43,14 @@ class W3Mutagen23_Effect extends W3Mutagen_Effect
 		{			
 			shrineBuffs = GetMinorShrineBuffs();
 			
-			
+			//select only from buffs player doesn't already have
 			for(i=shrineBuffs.Size()-1; i>=0; i-=1)
 			{
 				if(target.HasBuff(shrineBuffs[i]))
 					shrineBuffs.Erase(i);
 			}
 			
-			
+			//if he has all pick random
 			if(shrineBuffs.Size() == 0)
 				shrineBuffs = GetMinorShrineBuffs();
 			

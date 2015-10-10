@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3FlammableAreaTrigger extends W3EffectAreaTrigger
+﻿class W3FlammableAreaTrigger extends W3EffectAreaTrigger
 {
 	public editable var activeFor : float;
 	public editable var fxOnExplosion : name;

@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 class W3DragonsDream extends W3Petard
 {
@@ -22,6 +20,7 @@ class W3DragonsDream extends W3Petard
 			gasEntity.SetBurningChance(CalculateAttributeValue(GetOwner().GetInventory().GetItemAttributeValue(itemId, 'burning_chance')));
 			gasEntity.SetExplodingTargetDamages(GetExplodingTargetDamages());
 			gasEntity.SetFromBomb();
+			gasEntity.SetIsFromClusterBomb(isCluster);
 		}
 	}
 	
@@ -49,7 +48,7 @@ class W3DragonsDream extends W3Petard
 		return ret;
 	}
 	
-	
+	//Loads info about damage types and values for exploding target (level 3 special effect)
 	private function GetExplodingTargetDamages() : array<SRawDamage>
 	{
 		var dmg : SRawDamage;

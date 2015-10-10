@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3SE_SetAppearanceOnEntity extends W3SwitchEvent
+﻿class W3SE_SetAppearanceOnEntity extends W3SwitchEvent
 {
 	editable var entityHandle : EntityHandle;
 	editable var appearanceName : string;

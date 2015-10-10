@@ -1,16 +1,12 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-enum EInterpCurveMode
+﻿enum EInterpCurveMode
 {
-	
+	//
 	CIM_Constant,
-	
+	// straight line between two keypoints.
 	CIM_Linear,
-	
+	// A cubic-hermite curve between two keypoints, uses arrive/leave tangents.
 	CIM_CurveAuto,
-	
+	// 
 	CIM_CurveBreak,
 };
 

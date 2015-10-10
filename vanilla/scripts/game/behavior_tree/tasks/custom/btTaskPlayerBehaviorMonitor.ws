@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿// custom AI stuff for fight with philippa
 
 class CBTTaskPlayerBehaviorMonitor extends IBehTreeTask
 {
@@ -30,12 +26,12 @@ class CBTTaskPlayerBehaviorMonitor extends IBehTreeTask
 			}
 			else if( thePlayer.IsInCombatAction() )
 			{
-				if( thePlayer.GetBehaviorVariable( 'combatActionType' ) == 0.0 || 
-					thePlayer.GetBehaviorVariable( 'combatActionType' ) == 1.0 || 
-					thePlayer.GetBehaviorVariable( 'combatActionType' ) == 2.0 || 
-					thePlayer.GetBehaviorVariable( 'combatActionType' ) == 3.0 || 
-					thePlayer.GetBehaviorVariable( 'combatActionType' ) == 7.0 || 
-					thePlayer.GetBehaviorVariable( 'combatActionType' ) == 6.0 )  
+				if( thePlayer.GetBehaviorVariable( 'combatActionType' ) == 0.0 || // attack
+					thePlayer.GetBehaviorVariable( 'combatActionType' ) == 1.0 || // special attack
+					thePlayer.GetBehaviorVariable( 'combatActionType' ) == 2.0 || // dodge
+					thePlayer.GetBehaviorVariable( 'combatActionType' ) == 3.0 || // dodge
+					thePlayer.GetBehaviorVariable( 'combatActionType' ) == 7.0 || // dodge
+					thePlayer.GetBehaviorVariable( 'combatActionType' ) == 6.0 )  // sign
 				{
 					sendEvent = true;
 				}

@@ -1,11 +1,17 @@
-﻿/*
-Copyright © CD Projekt RED 2015
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Play sound event
+/***********************************************************************/
+/*
+enum ENPCType
+{
+	ENT_AdultMale,
+	ENT_AdultFemale,
+	ENT_ChildMale,	
+	ENT_ChildFemale
+}
 */
-
-
-
-
-
 
 class CBTTaskPlayScreamSound extends IBehTreeTask
 {

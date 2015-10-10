@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-statemachine class CGateEntity extends W3LockableEntity
+﻿statemachine class CGateEntity extends W3LockableEntity
 {
 	private saved var currState : name;
 	private var speedModifier : float;
@@ -43,7 +39,7 @@ statemachine class CGateEntity extends W3LockableEntity
 		
 		if( currState == 'Closed' )
 			{
-				
+				//RigidMesh is always in closed position, so do nothing.
 				EnableDeniedArea( true );
 			}
 			else
@@ -92,7 +88,7 @@ statemachine class CGateEntity extends W3LockableEntity
 	
 	public function PlayGateSounds()
 	{
-		if( runTime * speedModifier >= 2.0 ) 
+		if( runTime * speedModifier >= 2.0 ) // runTime * speedModifier - time of entire animation
 		{
 			SoundEvent( startSound );
 			AddTimer( 'StopGateSounds', runTime * speedModifier - 1.0, false );

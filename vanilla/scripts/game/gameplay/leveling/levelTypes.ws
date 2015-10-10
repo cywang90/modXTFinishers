@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2012
+/** Author : Rafal Jarczeswki, Tomasz Kozera
+/***********************************************************************/
 
 enum ESpendablePointType
 {

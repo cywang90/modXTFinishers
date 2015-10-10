@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2015
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 abstract class W3Effect_Shrine extends CBaseGameplayEffect
 {

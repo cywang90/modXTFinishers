@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3UnlimitedDivingArea extends CEntity
+﻿class W3UnlimitedDivingArea extends CEntity
 {
 	event OnAreaEnter( area : CTriggerAreaComponent, activator : CComponent )
 	{

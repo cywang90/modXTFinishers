@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-abstract class IBehTreePlayerTaskDefinition extends IBehTreeTaskDefinition
+﻿abstract class IBehTreePlayerTaskDefinition extends IBehTreeTaskDefinition
 {
 };
 
@@ -26,7 +22,7 @@ class CBTTaskPlayerActionDecorator extends IBehTreeTask
 		return BTNS_Active;
 	}
 	
-	
+	//not very elegant solution but i don't know how to make it better without big changes to contexts
 	latent function Main() : EBTNodeStatus
 	{
 		while( true )
@@ -70,7 +66,10 @@ class CBTTaskPlayerActionDecorator extends IBehTreeTask
 		if( IsNameValid( contextName ) )
 		{
 			theInput.SetContext( contextName );
-			
+			/*if( contextName == 'Horse' && theInput.GetActionValue( 'Sprint' ) == 1 )
+			{
+				((W3HorseComponentStateExploration)thePlayer.GetUsedHorseComponent().GetState( 'Exploration' )).GallopPressed();
+			}*/
 		}
 	}
 	

@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3GuiPreparationPotionsAndBombsInventoryComponent extends W3GuiPlayerInventoryComponent
+﻿class W3GuiPreparationPotionsAndBombsInventoryComponent extends W3GuiPlayerInventoryComponent
 {	
 	protected function ShouldShowItem( item : SItemUniqueId ):bool
 	{
@@ -10,7 +6,7 @@ class W3GuiPreparationPotionsAndBombsInventoryComponent extends W3GuiPlayerInven
 		var itemName : name;
 		itemName = _inv.GetItemName(item);
 		
-		if( _inv.IsItemQuickslotItem(item) ) 
+		if( _inv.IsItemQuickslotItem(item) ) // #B shuld be isPetards or isBombs
 		{
 			bShow = true;
 		}

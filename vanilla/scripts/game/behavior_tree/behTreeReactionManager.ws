@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-import class CBehTreeReactionManager extends CObject
+﻿import class CBehTreeReactionManager extends CObject
 {
 		
 	import final function CreateReactionEvent( invoker : CEntity, eventName : CName, lifetime : float, distanceRange : float, broadcastInterval : float, recipientCount : int, optional skipInvoker : bool, optional setActionTargetOnBroadcast : bool ) : bool;
@@ -47,7 +43,7 @@ import class CBehTreeReactionManager extends CObject
 		}
 	}
 	
-	
+	//@REACTION ( invoker , eventName , lifetime , distanceRange , broadcastInterval , recipientCount , skipInvoker , setActionTargetOnBroadcast )
 	public function CreateReactionEventIfPossible( invoker : CEntity, eventName : CName, lifetime : float, distanceRange : float, broadcastInterval : float, recipientCount : int, skipInvoker : bool, optional setActionTargetOnBroadcast : bool, optional customCenter : Vector )
 	{
 		var suppressed : bool;

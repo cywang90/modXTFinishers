@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Copyright © 2013
+/** Author : Andrzej Kwiatkowski
+/***********************************************************************/
 
 class W3GameZoneTrigger extends CEntity
 {
@@ -22,7 +21,7 @@ class W3GameZoneTrigger extends CEntity
 			tags = this.GetTags();
 			if ( tags.Size() > 0 )
 			{
-				
+				//FIXME URGENT - ALWAYS USES TAGS[0] ONLY
 				for ( i = 0; i < tags.Size(); i+=1 )
 				{
 					zoneName = tags[i];

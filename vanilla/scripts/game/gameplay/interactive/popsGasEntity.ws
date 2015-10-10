@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CPopsGasEntity extends CInteractiveEntity
+﻿class CPopsGasEntity extends CInteractiveEntity
 {
 	editable var restorationTime	: float;
 	editable var settlingTime		: float;
@@ -80,7 +76,7 @@ class CPopsGasEntity extends CInteractiveEntity
 					buffParams.effectType = EET_PoisonCritical;
 					buffParams.creator = this;
 					buffParams.duration = 1.0;
-					
+					//buffParams.effectValue = poisonDamage;
 					buffParams.sourceName = "PopsGasAffliction";
 				}
 				AddTimer( 'PoisonVictim', 0.1, true );

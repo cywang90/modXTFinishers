@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class BTCondHitCounter extends IBehTreeTask
+﻿class BTCondHitCounter extends IBehTreeTask
 {
 	var value : float;
 	var operator : EOperator;

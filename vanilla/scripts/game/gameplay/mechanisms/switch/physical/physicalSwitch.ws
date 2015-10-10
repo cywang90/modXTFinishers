@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2012
+/** Author : Tomasz Kozera
+/***********************************************************************/
 
 enum PhysicalSwitchAnimationType
 {
@@ -27,14 +26,14 @@ abstract class W3PhysicalSwitch extends W3Switch
 	{		
 		if ( showActorAnimation )
 		{
-			
+			//display anims for actor & switch depending on type, must be synced
 		}
 		else
 		{
-			
+			//just the switch animation depending on type
 		}
 		
-		
+		//activate events
 		super.ActivateEvents( events );
 	}
 	

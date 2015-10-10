@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Task Despawn
+/***********************************************************************/
+/** Copyright © 2013
+/** Author : Andrzej Kwiatkowski
+/***********************************************************************/
 
 class CBTTaskDespawn extends IBehTreeTask
 {
@@ -38,7 +37,7 @@ class CBTTaskDespawn extends IBehTreeTask
 		
 		if( disappearfxName != emptyName )
 		{
-			
+			//npc.bCanBeStrafed = false;
 			npc.PlayEffect( disappearfxName );
 		}
 		return BTNS_Active;

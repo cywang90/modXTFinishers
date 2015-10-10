@@ -1,12 +1,11 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2014
+/** Author : R.Pergent - 15-February-2014
+/***********************************************************************/
+//>----------------------------------------------------------------------
+//-----------------------------------------------------------------------
 class BTCondWaterDepth extends IBehTreeTask
 {
 	var checkedActor 	: EStatOwner;
@@ -14,8 +13,8 @@ class BTCondWaterDepth extends IBehTreeTask
 	var operator 		: EOperator;
 	var frontalOffset	: float;
 	
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function IsAvailable() : bool
 	{
 		var l_actor		: CActor	= GetNPC();
@@ -48,14 +47,14 @@ class BTCondWaterDepth extends IBehTreeTask
 		}
 	}
 }
-
-
+//>----------------------------------------------------------------------
+//-----------------------------------------------------------------------
 class BTCondWaterDepthDef extends IBehTreeConditionalTaskDefinition
 {
 	default instanceClass = 'BTCondWaterDepth';
-	
-	
-	
+	//>----------------------------------------------------------------------
+	// VARIABLE
+	//-----------------------------------------------------------------------
 	editable var checkedActor 	: EStatOwner;
 	editable var value 			: float;
 	editable var operator 		: EOperator;

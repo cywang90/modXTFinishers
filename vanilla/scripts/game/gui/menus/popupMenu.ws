@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file - Layer for displaying popups/tooltips
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author : Yaroslav Getsevich
+/***********************************************************************/
 
 class CR4MenuPopup extends CR4OverlayMenu
 {
@@ -14,7 +13,7 @@ class CR4MenuPopup extends CR4OverlayMenu
 	private var m_HideTutorial 		: bool;
 	private var m_fxSetBarValueSFF	: CScriptedFlashFunction;
 
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{
 		m_initialized = false;
 		
@@ -63,10 +62,10 @@ class CR4MenuPopup extends CR4OverlayMenu
 		m_initialized = true;
 	}
 	
+	// #Y We don't update common input feedback during popup
+	function /*override*/ SetButtons(){}
 	
-	function  SetButtons(){}
-	
-	event  OnSetQuantity(QuantityValue : int) 
+	event /*flash*/ OnSetQuantity(QuantityValue : int) // #B OnSetSliderValue :P
 	{
 		var quantityData : SliderPopupData;
 		
@@ -77,7 +76,7 @@ class CR4MenuPopup extends CR4OverlayMenu
 		}
 	}
 
-	event  OnContextActionChange(navCode:string, autoExec:bool)
+	event /*flash*/ OnContextActionChange(navCode:string, autoExec:bool)
 	{
 		var contextMenuData : W3ContextMenu;
 		
@@ -87,17 +86,17 @@ class CR4MenuPopup extends CR4OverlayMenu
 			contextMenuData.curActionNavCode = navCode;
 			if (autoExec)
 			{
-				contextMenuData.OnUserFeedback("enter-gamepad_A"); 
+				contextMenuData.OnUserFeedback("enter-gamepad_A"); // #Y TODO: Remove hardcode
 			}
 		}
 	}
 	
-	event  OnInputHandled(NavCode:string, KeyCode:int, ActionId:int)
+	event /*flash*/ OnInputHandled(NavCode:string, KeyCode:int, ActionId:int)
 	{
 		m_DataObject.OnUserFeedback(NavCode);
 	}
 	
-	event  OnClosingMenu()
+	event /* C++ */ OnClosingMenu()
 	{
 		var commonMenuRef : CR4CommonMenu;
 		commonMenuRef = theGame.GetGuiManager().GetCommonMenu();
@@ -169,7 +168,7 @@ class CR4MenuPopup extends CR4OverlayMenu
 	}
 	
 	
-	
+	//-------------- RTT ----------------------
 	
 	private var rttItemLoaded : bool;
 	private var itemRotation  : EulerAngles;
@@ -189,7 +188,7 @@ class CR4MenuPopup extends CR4OverlayMenu
 		m_flashValueStorage.SetFlashBool( "render.to.texture.texture.visible", false);
 	}
 	
-	protected  function UpdateSceneEntityFromCreatureDataComponent( entity : CEntity )
+	protected /* override */ function UpdateSceneEntityFromCreatureDataComponent( entity : CEntity )
 	{
 		super.UpdateSceneEntityFromCreatureDataComponent(entity);
 		
@@ -245,19 +244,19 @@ class CR4MenuPopup extends CR4OverlayMenu
 		guiSceneController.SetEntityTransform(itemPosition, itemRotation, itemScale);
 	}
 	
-	event  OnGuiSceneEntitySpawned(entity : CEntity)
+	event /* C++ */ OnGuiSceneEntitySpawned(entity : CEntity)
 	{		
 		UpdateItemScale();
 		UpdateSceneEntityFromCreatureDataComponent( entity );
 		Event_OnGuiSceneEntitySpawned();
 	}
 	
-	event  OnRotateItemRight()
+	event /* flash */ OnRotateItemRight()
 	{
 		RotateItem(-10);
 	}
 	
-	event  OnRotateItemLeft()
+	event /* flash */ OnRotateItemLeft()
 	{
 		RotateItem(10);
 	}

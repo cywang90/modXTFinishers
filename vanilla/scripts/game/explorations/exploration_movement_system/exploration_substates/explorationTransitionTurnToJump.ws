@@ -1,21 +1,17 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿// CxplorationTransitionTurnToJump
+//------------------------------------------------------------------------------------------------------------------
+// Eduard Lopez Plans	( 20/10/2014 )	 
+//------------------------------------------------------------------------------------------------------------------
 
 
-
-
-
-
-
-
+//>-----------------------------------------------------------------------------------------------------------------
 class CxplorationTransitionTurnToJump extends CExplorationStateTransitionAbstract
 {
 	private editable	var	timeToExit		: float;		default	timeToExit		= 0.3f;
 	private editable	var	angleToTrigger	: float;		default	angleToTrigger	= 100.0f;
 	
 	
-	
+	//---------------------------------------------------------------------------------
 	private function InitializeSpecific( _Exploration : CExplorationStateManager )
 	{	
 		if( !IsNameValid( m_StateNameN ) )
@@ -32,21 +28,21 @@ class CxplorationTransitionTurnToJump extends CExplorationStateTransitionAbstrac
 		}
 		
 		m_StateTypeE		= EST_Idle;
-		
+		//m_HolsterIsFastB	= true;
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	protected function AddActionsToBlock()
 	{
 		AddActionToBlock( EIAB_CallHorse );
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	private function AddDefaultStateChangesSpecific()
 	{
 	}
 
-	
+	//---------------------------------------------------------------------------------
 	function StateCanEnter( curStateName : name ) : bool
 	{	
 		var angle	: float;
@@ -66,19 +62,19 @@ class CxplorationTransitionTurnToJump extends CExplorationStateTransitionAbstrac
 		return true;
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	function StateWantsToEnter() : bool
 	{	
 		return false;
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	private function StateEnterSpecific( prevStateName : name )	
 	{	
 		BlockActions();
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	function StateChangePrecheck( )	: name
 	{
 		if( m_ExplorationO.GetStateTimeF() >= timeToExit )
@@ -89,30 +85,30 @@ class CxplorationTransitionTurnToJump extends CExplorationStateTransitionAbstrac
 		return super.StateChangePrecheck();
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	protected function StateUpdateSpecific( _Dt : float )
 	{
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	private function StateExitSpecific( nextStateName : name )
 	{
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	function ReactToLoseGround() : bool
 	{
 		return true;
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	function ReactToHitGround() : bool
 	{	
 		return true;
 	}
 	
-	
-	
+	//---------------------------------------------------------------------------------
+	//---------------------------------------------------------------------------------
 	function CanInteract( ) :bool
 	{		
 		return false;

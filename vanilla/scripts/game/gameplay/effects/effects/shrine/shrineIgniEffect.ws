@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2013
+/** Author : Wojciech Żerek
+/***********************************************************************/
 
 class W3Effect_ShrineIgni extends W3Effect_Shrine
 {

@@ -1,29 +1,25 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
-
-
-
-
-
-
-
+﻿//>--------------------------------------------------------------------------
+// BTTaskForceHitReaction
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Force a specific type of hit reaction on hit
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// R.Pergent - 24-May-2014
+// Copyright © 2014 CD Projekt RED
+//---------------------------------------------------------------------------
 class BTTaskForceHitReaction extends IBehTreeTask
 {
-	
-	
-	
+	//>--------------------------------------------------------------------------
+	// VARIABLES
+	//---------------------------------------------------------------------------
 	var hitReactionType			: EHitReactionType;
 	var hitReactionSide			: EHitReactionSide;
 	var hitReactionDirection	: EHitReactionDirection;
 	var hitSwingType			: EAttackSwingType;
 	var hitSwingDirection		: EAttackSwingDirection;
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function OnActivate() : EBTNodeStatus
 	{
 		var l_npc	: CNewNPC = GetNPC();
@@ -38,14 +34,14 @@ class BTTaskForceHitReaction extends IBehTreeTask
 	}
 	
 }
-
-
+//>--------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 class BTTaskForceHitReactionDef extends IBehTreeTaskDefinition
 {
 	default instanceClass = 'BTTaskForceHitReaction';
-	
-	
-	
+	//>--------------------------------------------------------------------------
+	// VARIABLES
+	//---------------------------------------------------------------------------
 	editable inlined var hitReactionType		: CBTEnumHitReactionType;
 	editable inlined var hitReactionSide		: CBTEnumHitReactionSide;
 	editable inlined var hitReactionDirection	: CBTEnumHitReactionDirection;

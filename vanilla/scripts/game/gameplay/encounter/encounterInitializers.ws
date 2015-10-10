@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 import abstract class ISpawnTreeInitializer extends CObject
 {
 };
@@ -33,8 +29,8 @@ import abstract class ISpawnTreeScriptedInitializer extends ISpawnTreeInitialize
 
 import abstract class ISpawnTreeInitializerAI extends ISpawnTreeInitializer
 {
-	
-	import protected var dynamicTreeParameterName : name;		
+	//editable inlined var ai : CAITree;						// each non-abstract subclass should define such property for ai 
+	import protected var dynamicTreeParameterName : name;		// property name of value that holds tree that can be used to dynamically reload tree
 	function Init()
 	{
 	}
@@ -167,7 +163,7 @@ import class ISpawnTreeInitializerCommunityAI extends ISpawnTreeInitializerAI
 		
 		super.Init();
 		
-		
+		// redefinition 1: community idle behavior
 		idleAI = new CAICommunityRedefinitionParameters in this;
 		idleAI.OnCreated();
 		workIdle = new CAINpcWorkIdle in this;
@@ -176,14 +172,14 @@ import class ISpawnTreeInitializerCommunityAI extends ISpawnTreeInitializerAI
 		
 		workIdle.actionPointSelector = new CCommunityActionPointSelector in workIdle;
 		
-		
+		// redefinition 2: community guard behavior
 		combatAI = new CAICombatDecoratorRedefinitionParameters in this;
 		combatAI.OnCreated();
 		combatAI.combatDecorator = new CAICombatDecoratorCommunity in this;
 		combatAI.combatDecorator.OnCreated();
 		combatAI.OnManualRuntimeCreation();
 		
-		
+		// assing multiple redefinitions
 		newAi = new CAIMultiRedefinitionParameters in this;
 		newAi.OnCreated();
 		newAi.subParams.Resize( 2 );
@@ -508,38 +504,61 @@ class ISpawnTreeSetLootInitializer extends ISpawnTreeScriptedInitializer
 
 class ISpawnTreeAddItemInitializer extends ISpawnTreeScriptedInitializer
 {
-	editable var items				: array <SItemExt>;
-	editable var randomize			: bool; default randomize = false;
-	editable var equip				: bool;
-	
-	
-	var inventory 					: CInventoryComponent;
-	var i							: int;
-	var rand 						: int;
-	var randRange					: int;
+	editable var items	 : array <SItemExt>;
+	editable var randomize	 : bool; default randomize = false;
+	editable var equip	 : bool;
+	editable var checkIfItemsAlreadyAdded : bool; default checkIfItemsAlreadyAdded = true;
+
+
+	var inventory : CInventoryComponent;
+	var i	 : int;
+	var rand : int;
+	var randRange	 : int;
 	var itemsIDs : array<SItemUniqueId>;
-	
+	var possesedItemsCount	 : int;
+	var itemsToAddCount	 : int;
+
 	function Init( actor : CActor ) : bool
 	{
 		var itemToEquipID : SItemUniqueId;
-		
+
 		inventory = actor.GetInventory();
-		
+
 		if ( randomize )
 		{
 			randRange = items.Size();
-			
+
 			rand = RandRange (randRange );
-		
-			itemsIDs =  inventory.AddAnItem( items[rand].itemName.itemName, items[rand].quantity );
-			itemToEquipID = itemsIDs[0];
+				
+			if ( checkIfItemsAlreadyAdded )
+			{
+				possesedItemsCount = inventory.GetItemQuantityByName ( items[rand].itemName.itemName );
+			}
+			
+			itemsToAddCount = items[rand].quantity - possesedItemsCount;
+			
+			if ( itemsToAddCount > 0 )
+			{
+				itemsIDs =  inventory.AddAnItem( items[rand].itemName.itemName, items[rand].quantity );
+				itemToEquipID = itemsIDs[rand];
+			}
 			
 		}
 		else
 		{
 			for ( i=0; i < items.Size(); i+=1 )
 			{
-				itemsIDs = inventory.AddAnItem( items[i].itemName.itemName, items[i].quantity );
+				if ( checkIfItemsAlreadyAdded )
+				{
+					possesedItemsCount = inventory.GetItemQuantityByName ( items[i].itemName.itemName );
+				}
+				
+				itemsToAddCount = items[i].quantity - possesedItemsCount;
+				
+				if ( itemsToAddCount > 0 )
+				{
+					itemsIDs = inventory.AddAnItem( items[i].itemName.itemName, items[i].quantity );
+				}
 			}
 			itemToEquipID = itemsIDs[0];
 			

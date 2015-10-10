@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2015
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 class W3Effect_SnowstormQ403 extends W3Effect_Snowstorm
 {
@@ -13,7 +11,7 @@ class W3Effect_SnowstormQ403 extends W3Effect_Snowstorm
 	{
 		var temp : bool;
 		
-		
+		//hack usesCam - we want to use different camera fx INSTEAD of base one
 		temp = usesCam;
 		usesCam = false;
 		super.StopEffects();
@@ -27,7 +25,7 @@ class W3Effect_SnowstormQ403 extends W3Effect_Snowstorm
 	{
 		var temp : bool;
 		
-		
+		//hack usesCam - we want to use different camera fx INSTEAD of base one
 		temp = usesCam;
 		usesCam = false;
 		super.PlayEffects();

@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿//-------------------------------------------------------------------  ENTITY  --------------------------------------------------------------------------
 statemachine class W3BeehiveStandingEntity extends W3AnimatedContainer
 {
 	editable var damageVal : SAbilityAttributeValue;
@@ -21,9 +17,9 @@ statemachine class W3BeehiveStandingEntity extends W3AnimatedContainer
 	
 	event OnItemGiven(data : SItemChangedData)
 	{
-		
-		
-		
+		//This gets called when entity is created to add items from template to the object.
+		//We only want to agitate when it was due to players action so I set flag when player interacts.
+		//As a result if we're here and flag is false it means that player never interacted with it so it's coming from spawn (actually even before OnSpawned() is called).
 		if(wasInteracted)
 			GotoState('Agitated');
 		
@@ -65,10 +61,10 @@ statemachine class W3BeehiveStandingEntity extends W3AnimatedContainer
 	}
 }
 
-
+//-------------------------------------------------------------------  IDLE  --------------------------------------------------------------------------
 state Idle in W3BeehiveStandingEntity {}
 
-
+//-------------------------------------------------------------------  AGITATED  --------------------------------------------------------------------------
 state Agitated in W3BeehiveStandingEntity
 {
 	event OnEnterState( prevStateName : name )
@@ -78,15 +74,15 @@ state Agitated in W3BeehiveStandingEntity
 		parent.PlayEffect('bee_cloud');
 		parent.GetComponentByClassName('CTriggerAreaComponent').SetEnabled(true);
 		
-		
+		//spawn moving bees
 		entityTemplate = (CEntityTemplate)LoadResource('bees');		
 		if ( entityTemplate )
 			theGame.CreateEntity( entityTemplate, parent.GetWorldPosition());
 		
-		BrokenEntryFunctionNamesCollision_W3BeehiveStandingEntity_Agitated_Loop();
+		W3BeehiveStandingEntity_Agitated_Loop();
 	}
 	
-	entry function BrokenEntryFunctionNamesCollision_W3BeehiveStandingEntity_Agitated_Loop()
+	entry function W3BeehiveStandingEntity_Agitated_Loop()
 	{
 		var i : int;
 		var actors : array<CActor>;

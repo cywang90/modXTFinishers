@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3KillTrigger extends CEntity
+﻿class W3KillTrigger extends CEntity
 {
 	private var postponedTillOnGroundMPAC 	: array<CMovingPhysicalAgentComponent>;	
 	editable var postponeTillOnGround 		: bool;
@@ -35,7 +31,7 @@ class W3KillTrigger extends CEntity
 		}
 	}
 	
-	
+	//handles postponed kills
 	timer function PostponedKills(dt : float, id : int)
 	{
 		var i : int;
@@ -77,8 +73,8 @@ class W3KillTrigger extends CEntity
 		
 		if(postponeTillOnGround)
 		{
-			
-			
+			//If actor left trigger we remove it from array and not kill it (to avoid weird things like death in the middle of cutscene). If this happens
+			// then someone has to fix size of their trigger.
 			actor = (CActor)activator.GetEntity();
 			
 			if ( actor)

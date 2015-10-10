@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-abstract class CBehTreeHLTaskCombatBase extends IBehTreeTask
+﻿abstract class CBehTreeHLTaskCombatBase extends IBehTreeTask
 {
 	var wasHit : bool;
 	default wasHit = false;
@@ -51,7 +47,7 @@ class CBehTreeHLTaskCombat extends CBehTreeHLTaskCombatBase
 	function OnDeactivate()
 	{
 		SetIsInCombat( false );
-		
+		//theGame.GetBehTreeReactionManager().RemoveReactionEvent( owner, 'FightNearbyAction' );
 	}
 	
 	function OnListenedGameplayEvent( eventName : CName ) : bool

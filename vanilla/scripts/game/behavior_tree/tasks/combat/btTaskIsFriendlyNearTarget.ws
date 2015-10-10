@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskIsFriendlyNearTarget extends IBehTreeTask
+﻿class CBTTaskIsFriendlyNearTarget extends IBehTreeTask
 {
 	var useCombatTarget : bool;
 	var considerOwnerAsFriendly : bool;
@@ -59,9 +55,9 @@ class CBTTaskIsFriendlyNearTargetDef extends IBehTreeConditionalTaskDefinition
 	default radius = 4.f;
 }
 
-
-
-
+//////////////////////////////////////////////////////////////////////////////////////
+// C-C-Combo Node!!!!
+//////////////////////////////////////////////////////////////////////////////////////
 class CBTTaskIsHostileAndNoFriendlyNearTarget extends IBehTreeTask
 {
 	public var useCombatTarget 			: bool;

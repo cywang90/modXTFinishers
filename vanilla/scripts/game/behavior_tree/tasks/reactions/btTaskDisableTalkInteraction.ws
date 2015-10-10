@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskDisableTalkInteraction extends IBehTreeTask
+﻿class CBTTaskDisableTalkInteraction extends IBehTreeTask
 {
 	function OnActivate() : EBTNodeStatus
 	{

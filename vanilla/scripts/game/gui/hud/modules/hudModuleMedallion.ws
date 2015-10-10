@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CR4HudModuleMedallion extends CR4HudModuleBase 
+﻿class CR4HudModuleMedallion extends CR4HudModuleBase // #B Deprecated
 {	
 	private var		m_fxSetFocusPointsSFF			: CScriptedFlashFunction;
 	private var		m_fxSetVitalitySFF				: CScriptedFlashFunction;
@@ -24,7 +20,7 @@ class CR4HudModuleMedallion extends CR4HudModuleBase
 		m_medallionThreshold = 4.0;
 	}
 
-	 event OnConfigUI()
+	/* flash */ event OnConfigUI()
 	{		
 		var flashModule : CScriptedFlashSprite;
 
@@ -36,7 +32,7 @@ class CR4HudModuleMedallion extends CR4HudModuleBase
 		m_fxSetMedallionActiveSFF		= flashModule.GetMemberFlashFunction( "setMedallionActive" );
 		m_fxSetMedallionThresholdSFF	= flashModule.GetMemberFlashFunction( "setMedallionThreshold" );
 
-		
+		//ShowElement( true );
 	}
 
 	event OnTick( timeDelta : float )

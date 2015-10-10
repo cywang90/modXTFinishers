@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Encounter System Conditions
+/** Copyright © 2013
+/***********************************************************************/
 
 import abstract class ISpawnCondition extends IScriptable
 {
@@ -13,8 +12,8 @@ import abstract class ISpawnCondition extends IScriptable
 
 import abstract class ISpawnScriptCondition extends ISpawnCondition
 {
-	
-	
+	// README: when defining custom conditions, extend this class, override the function 
+	// below and fill it with custom condition logic, return true if condition met
 	function TestCondition( encounter : CEncounter ) : bool
 	{
 		return true;

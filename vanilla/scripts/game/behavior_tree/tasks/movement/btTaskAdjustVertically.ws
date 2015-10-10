@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskAdjustVertically extends IBehTreeTask
+﻿class CBTTaskAdjustVertically extends IBehTreeTask
 {
 	var maxSlidingSpeed : float; 
 	
@@ -14,7 +10,7 @@ class CBTTaskAdjustVertically extends IBehTreeTask
 		var movementAdjustor	: CMovementAdjustor;
 		var traceStartPos, traceEndPos, traceEffect, normal, groundLevel, pos : Vector;
 		
-		
+		// find ground level
 		npcPos = npc.GetWorldPosition();
 		traceStartPos = npcPos;
 		traceEndPos = npcPos;

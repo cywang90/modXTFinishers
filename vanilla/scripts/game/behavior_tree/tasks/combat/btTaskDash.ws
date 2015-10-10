@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2012
+/** Author : Andrzej Kwiatkowski
+/***********************************************************************/
 
 class CBTTaskDash extends CBTTaskPlayAnimationEventDecorator
 {
@@ -70,7 +69,7 @@ class CBTTaskDash extends CBTTaskPlayAnimationEventDecorator
 	{
 		var npc : CNewNPC = GetNPC();
 		
-		
+		//npc.GetStat('','');
 		dashChance	= (int)(100*CalculateAttributeValue(npc.GetAttributeValue('dash_movement_chance')));
 	}
 	

@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 class CBTTaskGuardChange extends IBehTreeTask
 {
 	var raiseGuardChance 	: int;
@@ -53,7 +49,15 @@ class CBTTaskGuardChange extends IBehTreeTask
 	{
 		var npc : CNewNPC = GetNPC();
 		
-		
+		/*
+		if ( !GetNPC().HasStaminaToParry('attack_heavy') )	//different stamina costs are for light/heavy attacks so we assume the worst case scenario
+		{
+			if ( npc.IsGuarded() )
+			{
+				npc.LowerGuard();
+			}
+			return;
+		}*/
 		
 		
 		if ( lastChange + frequency >= GetLocalTime() )

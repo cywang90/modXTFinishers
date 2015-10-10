@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2012
+/** Author : Andrzej Kwiatkowski
+/***********************************************************************/
 
 class CBTTaskLeshyRootAttack extends CBTTaskAttack
 {
@@ -30,8 +29,14 @@ class CBTTaskLeshyRootAttack extends CBTTaskAttack
 		{
 			return BTNS_Failed;
 		}
-		
-		
+		/*
+		while ( !projectile.Expired() )
+		{
+			GCameraShake(0.1, true, projectile.GetWorldPosition(), 30.0f);
+			Sleep(0.2);
+		}
+		*/
+		//Sleep(loopTime);
 		loopRes = Loop();
 		
 		npc.SetBehaviorVariable( 'AttackEnd', 1.0 );
@@ -102,13 +107,13 @@ class CBTTaskLeshyRootAttack extends CBTTaskAttack
 		if ( distanceToTarget < attackRange )
 			attackRange = distanceToTarget;
 		
-		projectile.ShootProjectileAtPosition( 0, 20,  targetPos, attackRange );
+		projectile.ShootProjectileAtPosition( 0, 20, /*10,*/ targetPos, attackRange );
 		
 		if ( dodgeable )
 		{
 			distanceToTarget = VecDistance( npc.GetWorldPosition(), target.GetWorldPosition() );		
 			
-			
+			// used to dodge projectile before it hits
 			projectileFlightTime = distanceToTarget / 20;
 			target.SignalGameplayEventParamFloat('Time2DodgeBomb', projectileFlightTime );
 		}

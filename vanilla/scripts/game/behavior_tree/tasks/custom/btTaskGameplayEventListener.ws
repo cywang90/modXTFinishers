@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class BTTaskGameplayEventListener extends IBehTreeTask
+﻿class BTTaskGameplayEventListener extends IBehTreeTask
 {
 	public var validFor 		: float;
 	public var activeFor 		: float;

@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file - monster hunt enemy class
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author : Danisz Markiewicz
+/***********************************************************************/
 
 class W3MonsterHuntNPC extends CNewNPC
 {

@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTCondIsReactionTargetInCombat extends IBehTreeTask
+﻿class CBTCondIsReactionTargetInCombat extends IBehTreeTask
 {
 	function IsAvailable() : bool
 	{

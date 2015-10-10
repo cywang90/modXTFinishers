@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTCondCleanShot extends IBehTreeTask
+﻿class CBTCondCleanShot extends IBehTreeTask
 {	
 	var doStaticTraceOnNavTestFailure : bool;
 	var useCombatTarget : bool;
@@ -44,7 +40,7 @@ class CBTCondCleanShot extends IBehTreeTask
 		return theGame.GetWorld().NavigationLineTest( ownerPos, targetPos, 1.5, false, true );
 	}
 	
-	function StaticTrace() : bool 
+	function StaticTrace() : bool // RETURNS TRUE IF THERE'S NOTHING IN THE WAY
 	{
 		var traceStartPos, traceEndPos, traceEffect, normal : Vector;
 		var targetEntity : CGameplayEntity;
@@ -83,7 +79,7 @@ class CBTCondCleanShot extends IBehTreeTask
 			traceEndPos = targetPos;
 		}
 		
-		
+		//thePlayer.GetVisualDebug().AddArrow( 'arrow', traceStartPos, traceEndPos, 1.f, 0.2f, 0.2f, true, Color(0,255,255), true, 5.f );
 		
 		if( theGame.GetWorld().StaticTrace( traceStartPos, traceEndPos, traceEffect, normal ) )
 		{

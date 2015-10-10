@@ -1,15 +1,14 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Encounter System
+/** Copyright © 2010-2014
+/***********************************************************************/
+// Ł. Szczepankowski
 
-
-
-
-
-
-
-
-
+/////////////////////////////////////////////
+// EncounterDataManager class
+/////////////////////////////////////////////
 
 struct CreatureCounterDef
 {
@@ -50,7 +49,7 @@ class CEncounterDataManager extends IScriptable
 	
 	
 
-
+/////////////////// global/////////////////////////	
 	public function ProcessFullRespawn ()
 	{
 		if ( resetOnFullRespawn )
@@ -95,7 +94,7 @@ class CEncounterDataManager extends IScriptable
 	
 	
 	
-	
+	//////////////////// tasks///////////////////
 	public function AddOwnerTask ( _task : SOwnerEncounterTaskParams )
 	{
 		_task.setTime = theGame.GetGameTime();
@@ -189,7 +188,7 @@ class CEncounterDataManager extends IScriptable
 		return false;
 	}
 	
-	
+	///////////// creatures groups managing //////////////
 	public function DisableCreaturesGroup ( groupName : name, sourceName : name )
 	{
 		var i : int;
@@ -321,7 +320,7 @@ class CEncounterDataManager extends IScriptable
 	}
 	
 	
-	
+	/////////////////by entry ////////////////
 	
 	public function AddLostCreatureByEntry ( entryName : name )
 	{
@@ -567,7 +566,7 @@ class CEncounterDataManager extends IScriptable
 		return creatureEntry;
 		
 	}
-	
+	//////////////// by number ////////////
 	public function AddKilledCreature ()
 	{
 		killedCreatures +=1;

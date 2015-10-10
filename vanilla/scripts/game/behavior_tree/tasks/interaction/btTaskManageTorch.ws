@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskDrawItem extends IBehTreeTask
+﻿class CBTTaskDrawItem extends IBehTreeTask
 {
 	var owner : CNewNPC;
 	var inventory : CInventoryComponent;

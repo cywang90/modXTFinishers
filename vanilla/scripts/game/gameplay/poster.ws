@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿//Right now class is empty poster class handels all functionalities
 statemachine class W3Signboard  extends W3Poster
 {
 }
@@ -90,7 +86,7 @@ statemachine class W3Poster extends CGameplayEntity
 	function OnEndedObservingPoster()
 	{
 		thePlayer.RemoveActivePoster();
-		
+		//spawnedCamera.timeout	= blendOutTime + 1.0f;
 		spawnedCamera.Stop();
 		AddTimer( 'RestoreGameplay', blendOutTime, false, , , true );
 	}

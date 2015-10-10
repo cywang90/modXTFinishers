@@ -1,16 +1,15 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2014
+/** Author : R.Pergent - 13-February-2014
+/***********************************************************************/
 
 class CBTTaskWraithManageDoppelgangers extends IBehTreeTask
 {
-	
-	
-	
+	//>----------------------------------------------------------------------
+	// VARIABLES
+	//-----------------------------------------------------------------------
 	public var killDoppelgangersAtDeath 		: bool;
 	public var killDoppelgangersAfterTime		: float;
 	public var splitEffectEntityTemplate		: CEntityTemplate;
@@ -23,8 +22,8 @@ class CBTTaskWraithManageDoppelgangers extends IBehTreeTask
 	private var m_HealthPercToReach				: float;
 	private var m_MergingStarted 				: bool;
 	
-	
-	
+	//>----------------------------------------------------------------------
+	//>----------------------------------------------------------------------
 	latent function Main() : EBTNodeStatus
 	{	
 		var l_summonerComponent : W3SummonerComponent;
@@ -57,8 +56,8 @@ class CBTTaskWraithManageDoppelgangers extends IBehTreeTask
 		
 		return BTNS_Active;
 	}	
-	
-	
+	//>----------------------------------------------------------------------
+	//>----------------------------------------------------------------------
 	function UpdateDoppelGangersHealth()
 	{
 		var l_summonerComponent : W3SummonerComponent;
@@ -92,8 +91,8 @@ class CBTTaskWraithManageDoppelgangers extends IBehTreeTask
 			}
 		}
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//>----------------------------------------------------------------------
 	function OnGameplayEvent( eventName : CName ) : bool
 	{
 		var l_deadDoppel	 	: CActor;
@@ -134,7 +133,7 @@ class CBTTaskWraithManageDoppelgangers extends IBehTreeTask
 			
 			l_deadDoppel.DestroyAfter(1);
 			
-			
+			// In case this event is received after the StartMerge event
 			if( m_MergingStarted )
 			{
 				Merge();
@@ -157,8 +156,8 @@ class CBTTaskWraithManageDoppelgangers extends IBehTreeTask
 		}
 		return false;
 	}	
-	
-	
+	//>----------------------------------------------------------------------
+	//>----------------------------------------------------------------------
 	private function Merge()
 	{
 		var i : int;
@@ -177,8 +176,8 @@ class CBTTaskWraithManageDoppelgangers extends IBehTreeTask
 		
 		m_MergingStarted = true;
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//>----------------------------------------------------------------------
 	private function DestroySplitEntities()
 	{
 		var i : int;
@@ -190,21 +189,21 @@ class CBTTaskWraithManageDoppelgangers extends IBehTreeTask
 		}
 	}
 	
-	
-	
+	//>----------------------------------------------------------------------
+	//>----------------------------------------------------------------------
 	function OnActivate() : EBTNodeStatus
 	{			
 		return BTNS_Active;
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function OnDeactivate()
 	{
 		DestroySplitEntities();
 		m_MergingStarted = false;
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	private function StopDoppelgangers( optional Kill : bool)
 	{
 		var l_summonerComponent : W3SummonerComponent;
@@ -235,14 +234,14 @@ class CBTTaskWraithManageDoppelgangers extends IBehTreeTask
 		}
 	}
 }
-
-
+//>----------------------------------------------------------------------
+//-----------------------------------------------------------------------
 class CBTTaskWraithManageDoppelgangersDef extends IBehTreeTaskDefinition
 {	
 	default instanceClass = 'CBTTaskWraithManageDoppelgangers';
-	
-	
-	
+	//>----------------------------------------------------------------------
+	// VARIABLES
+	//-----------------------------------------------------------------------
 	editable var killDoppelgangersAtDeath 	: bool;
 	editable var killDoppelgangersAfterTime	: float;
 	editable var splitEffectEntityTemplate	: CEntityTemplate;

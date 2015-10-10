@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskEquipItem extends IBehTreeTask
+﻿class CBTTaskEquipItem extends IBehTreeTask
 {
 	var itemCategory : name;
 	
@@ -21,10 +17,10 @@ class CBTTaskEquipItem extends IBehTreeTask
 		if( itemIds.Size() == 0 )
 		{
 			LogAssert(false, "CBTTaskEquipItem.IsAvailable: actor <<" + npc + ">> has no weapons at all, cannot equip");			
-			return false;	
+			return false;	//no weapons at all
 		}
 		
-		
+		//already equipped
 		for(i=0; i<itemIds.Size(); i+=1)
 			if(inv.IsItemHeld(itemIds[i]))
 				return true;

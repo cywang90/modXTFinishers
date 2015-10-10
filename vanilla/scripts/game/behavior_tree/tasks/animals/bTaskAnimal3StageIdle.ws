@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTask3StageIdle extends IBehTreeTask
+﻿class CBTTask3StageIdle extends IBehTreeTask
 {
 	editable var minTime : float;
 	editable var maxTime : float;

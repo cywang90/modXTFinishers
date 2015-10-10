@@ -1,10 +1,6 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CR4HudModuleTest extends CR4HudModuleBase
+﻿class CR4HudModuleTest extends CR4HudModuleBase
 {	
-	 event OnConfigUI()
+	/* flash */ event OnConfigUI()
 	{
 		super.OnConfigUI();
 

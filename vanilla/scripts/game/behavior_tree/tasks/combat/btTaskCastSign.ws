@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************
+/***********************************************************************/
 
 abstract class CBTTaskCastSign extends CBTTaskAttack
 {
@@ -28,7 +26,7 @@ abstract class CBTTaskCastSign extends CBTTaskAttack
 
 	function OnActivate() : EBTNodeStatus
 	{
-		
+		// create and initialize sign owner
 		signOwner = new W3SignOwnerBTTaskCastSign in this;
 		signOwner.Init( GetActor(), this );
 		
@@ -37,7 +35,7 @@ abstract class CBTTaskCastSign extends CBTTaskAttack
 	
 	latent function Main() : EBTNodeStatus
 	{
-		
+		// create sign entity
 		entityTemplate = (CEntityTemplate)LoadResourceAsync(resourceName);	
 		if ( entityTemplate )
 		{
@@ -48,7 +46,7 @@ abstract class CBTTaskCastSign extends CBTTaskAttack
 		SetupSignType();		
 		GetActor().SetBehaviorVariable( 'signType',(int)signType);
 
-		
+		// if created -> initialize it with owner
 		if ( signEntity )
 		{
 			signEntity.Init( signOwner, NULL );
@@ -122,9 +120,9 @@ abstract class CBTTaskCastSignDef extends CBTTaskPlayAnimationEventDecoratorDef
 {
 };
 
-
-
-
+/////////////////////////////////////////////////
+//Aard
+/////////////////////////////////////////////////
 class CBTTaskCastAard extends CBTTaskCastSign
 {
 	function IsAvailable() : bool
@@ -149,9 +147,9 @@ class CBTTaskCastAardDef extends CBTTaskCastSignDef
 	default instanceClass = 'CBTTaskCastAard';
 };
 
-
-
-
+/////////////////////////////////////////////////
+//Igni
+/////////////////////////////////////////////////
 class CBTTaskCastIgni extends CBTTaskCastSign
 {
 	function IsAvailable() : bool
@@ -176,9 +174,9 @@ class CBTTaskCastIgniDef extends CBTTaskCastSignDef
 	default instanceClass = 'CBTTaskCastIgni';
 };
 
-
-
-
+/////////////////////////////////////////////////
+//Quen
+/////////////////////////////////////////////////
 class CBTTaskCastQuen extends CBTTaskCastSign
 {
 	public var completeAfterHit 				: bool;
@@ -270,8 +268,8 @@ class CBTTaskCastQuen extends CBTTaskCastSign
 	{
 		if( signEntity )
 		{
-			
-			
+			//signEntity.CreateAttachment( GetActor(), 'quen_shield' );
+			//signEntity.Teleport( GetActor().GetWorldPosition() );
 			if( alternateFireMode )
 				signEntity.SetAlternateCast( S_Magic_s04 );
 			signEntity.OnStarted();
@@ -302,7 +300,14 @@ class CBTTaskCastQuen extends CBTTaskCastSign
 			((CActor)data.attacker).AddEffectCustom( params );
 		}
 		
-		
+		/*
+		action = new W3DamageAction in this;
+		action.Initialize( GetActor(), data.attacker, signEntity, 'quen', EHRT_None, CPS_SpellPower, false,false,true,false, 'hit_shock' );
+		action.AddEffectInfo(EET_Stagger, 0.1f);
+		if ( (W3DamageAction)data && ((W3DamageAction)data).IsActionMelee() )
+			theGame.damageMgr.ProcessAction( action );
+		delete action;
+		*/
 	}
 	
 	function OnGameplayEvent( eventName : name ) : bool
@@ -341,7 +346,7 @@ class CBTTaskCastQuen extends CBTTaskCastSign
 	private var playEffectTimeStamp : float;
 	function PlayHitEffect( optional data : CDamageData )
 	{
-		
+		//var pos : Vector;
 		var rot : EulerAngles;
 		var localTime : float;
 		
@@ -350,17 +355,17 @@ class CBTTaskCastQuen extends CBTTaskCastSign
 		if ( playEffectTimeStamp + 0.4 >= localTime )
 			return;
 		
-		
+		//do not use bone index. use slot position !!
 		if ( data )
 		{
-			
+			//pos = MatrixGetTranslation( data.victim.GetBoneWorldMatrixByIndex( ownerBoneIndex ) );
 			
 			rot = VecToRotation ( data.attacker.GetWorldPosition() - data.victim.GetWorldPosition() );
 			rot.Yaw -= 90;
 		}
 		else
 		{
-			
+			//default rotation
 			rot.Pitch += 90;
 		}
 		
@@ -368,7 +373,7 @@ class CBTTaskCastQuen extends CBTTaskCastSign
 		if(hitEntity)
 		{
 			hitEntity.CreateAttachment( GetActor(), 'quen_sphere' );
-			
+			//hitEntity.TeleportWithRotation( pos, rot );
 			hitEntity.PlayEffect('quen_rebound_sphere');
 		}
 		

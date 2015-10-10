@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2013
+/** Author : Andrzej Kwiatkowski, Quest team
+/***********************************************************************/
 
 enum ETriggeredDamageType
 {
@@ -58,7 +57,7 @@ class W3DamageAreaTrigger extends CEntity
 	default isEnabled	 = true;
 	default useDamageFromXML = 'root_ground_damage_area';
 	
-	
+	// ---------------------------------------------------------------------------------
 	event OnAreaEnter( area : CTriggerAreaComponent, activator : CComponent )
 	{	
 		if( ( FactsQuerySum( immunityFact ) > 0 ) && ( activator.GetEntity() == thePlayer ) )
@@ -80,7 +79,7 @@ class W3DamageAreaTrigger extends CEntity
 		}
 	}
 	
-	
+	// ---------------------------------------------------------------------------------
 	event OnAreaExit( area : CTriggerAreaComponent, activator : CComponent )
 	{
 		if ( isEnabled)
@@ -227,9 +226,9 @@ class W3DamageAreaTrigger extends CEntity
 	
 	function PreAttack()
 	{
-		
+		//var victim : CActor;
 		var rot : EulerAngles;
-		
+		//var dummyGameplayEntity : CGameplayEntity;
 		
 		victim = (CActor)affectedEntity;
 		pos = victim.GetWorldPosition();
@@ -301,7 +300,7 @@ class W3DamageAreaTrigger extends CEntity
 		var dm 			: CDefinitionsManagerAccessor = theGame.GetDefinitionsManager();
 		var dmg_max, dmg_min : SAbilityAttributeValue;
 		
-		
+		//victim = (CActor)affectedEntity;
 		containExcludedtag = false;
 		
 		if( IsNameValid( useDamageFromXML ) )

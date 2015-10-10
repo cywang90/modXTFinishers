@@ -1,15 +1,14 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
- 
-
-
+﻿ /***********************************************************************/
+/** Witcher Script file - Illusionary Obstacle 
+/***********************************************************************/
+/** Copyright © 2013 CDProjektRed
+/** Author : Ryan Pergent
+/***********************************************************************/
 class W3IllusionSpawner extends CGameplayEntity
 {
-	
-	
-	
+	//>---------------------------------------------------------------------
+	// VARIABLES
+	//----------------------------------------------------------------------
 	private editable var m_illusionTemplate		: CEntityTemplate;
 	editable var m_factOnDispelOverride			: string;
 	private var l_illusion 						: CEntity;
@@ -20,8 +19,8 @@ class W3IllusionSpawner extends CGameplayEntity
 	editable var spawnedObstacleTags			: array<name>;
 	
 	private saved var m_wasDestroyed			: bool;
-	
-	
+	//>---------------------------------------------------------------------
+	//----------------------------------------------------------------------
 	event OnSpawned( spawnData : SEntitySpawnData )
 	{
 		if ( !m_wasDestroyed )
@@ -29,8 +28,8 @@ class W3IllusionSpawner extends CGameplayEntity
 			SpawnIllusion();
 		}
 	}
-	
-	
+	//>---------------------------------------------------------------------
+	//----------------------------------------------------------------------
 	public function SpawnIllusion()
 	{
 		var i : int;

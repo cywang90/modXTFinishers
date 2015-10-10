@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Copyright © 2012 CD Projekt RED
+/** Author : Patryk Fiutowski, Andrzej Kwiatkowski
+/***********************************************************************/
 
 class CBTTaskHitReactionDecorator extends CBTTaskPlayAnimationEventDecorator
 {
@@ -41,7 +40,7 @@ class CBTTaskHitReactionDecorator extends CBTTaskPlayAnimationEventDecorator
 		InitializeReactionDataStorage();
 		reactionDataStorage.ChangeAttitudeIfNeeded( npc, (CActor)lastAttacker );
 		
-		if (  CheckGuardOrCounter() )
+		if ( CheckGuardOrCounter() && ( !increaseHitCounterOnlyOnMeleeDmg || damageIsMelee ) )
 		{
 			npc.DisableHitAnimFor(0.1);
 			npc.SetIsInHitAnim(false);
@@ -51,7 +50,17 @@ class CBTTaskHitReactionDecorator extends CBTTaskPlayAnimationEventDecorator
 		return BTNS_Active;
 	}
 	
-	
+	/*latent function Main() : EBTNodeStatus
+	{
+		hitCounter = 0;
+		
+		while ( isActive )
+		{
+			
+			SleepOneFrame();
+		}
+		return BTNS_Active;
+	}*/
 	
 	function OnDeactivate()
 	{
@@ -89,6 +98,14 @@ class CBTTaskHitReactionDecorator extends CBTTaskPlayAnimationEventDecorator
 	{
 		var npc : CNewNPC = GetNPC();
 		var hitCounter : int;
+		
+		if( npc.HasTag( 'olgierd_gpl' ) )
+		{
+			if( AbsF( NodeToNodeAngleDistance( thePlayer, npc ) ) > 90 )
+			{
+				return false;
+			}
+		}
 		
 		hitCounter = npc.GetHitCounter();
 		if ( hitCounter >= hitsToRaiseGuard && npc.CanGuard() )
@@ -135,10 +152,10 @@ class CBTTaskHitReactionDecorator extends CBTTaskPlayAnimationEventDecorator
 			lastAttacker = damageData.attacker;
 			
 			if ( !npc.IsInFistFightMiniGame() && (CActor)lastAttacker )
-				theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( lastAttacker, 'CombatNearbyAction', 5.f, 10.f, 999.0f, -1, true); 
+				theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( lastAttacker, 'CombatNearbyAction', 5.f, 10.f, 999.0f, -1, true); //reactionSystemSearch
 			
 			rotateNode = GetRotateNode();
-			
+			//if ( isActive && ( !increaseHitCounterOnlyOnMeleeDmg || (increaseHitCounterOnlyOnMeleeDmg && damageIsMelee) ) )
 			if ( !increaseHitCounterOnlyOnMeleeDmg || (increaseHitCounterOnlyOnMeleeDmg && damageIsMelee) )
 				npc.IncHitCounter();			
 			
@@ -151,7 +168,7 @@ class CBTTaskHitReactionDecorator extends CBTTaskPlayAnimationEventDecorator
 			}
 			
 			
-			
+			//this node is decorated with ProlongHLCombat meaning that if event will return true combat will be activated
 			if ( damageData.hitReactionAnimRequested  )
 				return true;
 			else
@@ -166,6 +183,11 @@ class CBTTaskHitReactionDecorator extends CBTTaskPlayAnimationEventDecorator
 			else
 				npc.DisableHitAnimFor(0.1);
 		}
+		else if ( eventName == 'CounterExecuted' )
+		{
+			npc.ResetHitCounter( 0, 0 );
+		}
+		
 		return false;
 	}
 	
@@ -192,7 +214,12 @@ class CBTTaskHitReactionDecorator extends CBTTaskPlayAnimationEventDecorator
 	
 	function GetRotateNode() : CNode
 	{
-		
+		/*
+		if ( (CNode)damageData.causer )
+			return (CNode)damageData.causer;
+		else if ( damageData.attacker )
+			return damageData.attacker;
+		*/
 		if ( lastAttacker )
 			return lastAttacker;
 		
@@ -209,7 +236,27 @@ class CBTTaskHitReactionDecorator extends CBTTaskPlayAnimationEventDecorator
 		
 		player = thePlayer;
 		
-		
+		/*if ( animEventName == 'ScaleTranslation' && GetCombatTarget() == player )
+		{
+			owner = GetNPC();
+			movementAdjustor = owner.GetMovingAgentComponent().GetMovementAdjustor();
+			ticket = movementAdjustor.GetRequest( 'ScaleTranslation' );
+			
+			if ( animEventType == AET_DurationStart )
+			{
+				movementAdjustor.CancelByName( 'ScaleTranslation' );
+				ticket = movementAdjustor.CreateNewRequest( 'ScaleTranslation' );
+				movementAdjustor.BindToEventAnimInfo( ticket, animInfo );
+				movementAdjustor.MaxLocationAdjustmentSpeed( ticket, 1000000 );
+				movementAdjustor.ScaleAnimation( ticket );
+				cachedPos = owner.GetWorldPosition();
+				owner.SetIsTranslationScaled( true );
+			}
+			else if ( animEventType == AET_DurationEnd )
+				owner.SetIsTranslationScaled( false );
+			
+			movementAdjustor.SlideTo( ticket, VecNormalize( VecFromHeading( owner.GetHeading() + 180 ) ) * player.GetHitReactTransScale() + cachedPos );
+		}*/
 		return super.OnAnimEvent(animEventName,animEventType,animInfo);
 	}
 	
@@ -244,11 +291,12 @@ class CBTTaskHitReactionDecoratorDef extends CBTTaskPlayAnimationEventDecoratorD
 		super.InitializeEvents();
 		listenToGameplayEvents.PushBack( 'CriticalState' );
 		listenToGameplayEvents.PushBack( 'BeingHit' );
+		listenToGameplayEvents.PushBack( 'CounterExecuted' );
 	}
 }
 
-
-
+////////////////////////////////////////////////////
+// CBTCondBeingHit
 class CBTCondBeingHit extends IBehTreeTask
 {	
 	var timeOnLastHit 	: float;
@@ -296,8 +344,8 @@ class CBTCondBeingHitDef extends IBehTreeConditionalTaskDefinition
 }
 
 
-
-
+////////////////////////////////////////////////////
+// CBTCompleteOnHit
 class CBTCompleteOnHit extends IBehTreeTask
 {	
 	public var onlyIfCanPlayHitAnim : bool;

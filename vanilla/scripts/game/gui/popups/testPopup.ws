@@ -1,20 +1,16 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CR4TestPopup extends CR4Popup
+﻿class CR4TestPopup extends CR4Popup
 {
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{	
 		LogChannel( 'TestPopup', "OnConfigUI" );
 	}
 	
-	event  OnClosingPopup()
+	event /*C++*/ OnClosingPopup()
 	{
 		LogChannel( 'TestPopup', "OnClosingPopup" );
 	}
 
-	event  OnClosePopup()
+	event /*flash*/ OnClosePopup()
 	{
 		ClosePopup();
 		LogChannel( 'TestPopup', "OnClosePopup" );

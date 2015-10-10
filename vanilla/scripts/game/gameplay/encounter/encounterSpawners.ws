@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 
 import abstract class ISpawnTreeSpawnerInitializer extends ISpawnTreeInitializer
 {
@@ -33,9 +29,9 @@ import struct CSpawnTreeActionPointSpawner
 	import var categories : array< name >;
 };
 
-
-
-
+// Do not change order of the enumaration! Always append new ones at the end.
+// Changing order will change the values in spawn trees.
+// You may rename the elements if needed.
 enum EEncounterSpawnGroup
 {
 	ESG_Quest,

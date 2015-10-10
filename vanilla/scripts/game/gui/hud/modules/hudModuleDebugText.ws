@@ -1,14 +1,10 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CR4HudModuleDebugText extends CR4HudModuleBase
+﻿class CR4HudModuleDebugText extends CR4HudModuleBase
 {
 	public var bCurrentShowState : bool;		default bCurrentShowState = false;
 	public var bShouldShowElement : bool;		default bShouldShowElement = false;
 	public var bOpenDebugText : bool;			default bOpenDebugText = false;
 
-	event  OnConfigUI()
+	event /* flash */ OnConfigUI()
 	{
 		super.OnConfigUI();
 

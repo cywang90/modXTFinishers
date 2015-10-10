@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2012
+/** Author : Patryk Fiutowski
+/***********************************************************************/
 
 class CBTTaskSearchForThrowable extends IBehTreeTask
 {
@@ -37,7 +36,7 @@ class CBTTaskSearchForThrowable extends IBehTreeTask
 		findTime = 0.f;
 		activate = false;
 		physicalComponent = NULL;
-		
+		//??
 	}
 	
 	function OnGameplayEvent( eventName : name ) : bool

@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-import class IBehTreeValueEnum extends IScriptable
+﻿import class IBehTreeValueEnum extends IScriptable
 {
 	import editable var varName : name;
 };

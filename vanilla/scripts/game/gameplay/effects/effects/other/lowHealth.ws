@@ -1,11 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Copyright © 2012-2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
-
-
-
-
+// low health red screen overlay
 class W3Effect_LowHealth extends CBaseGameplayEffect
 {
 	default effectType = EET_LowHealth;

@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-import class CBoidPointOfInterestComponent extends CComponent
+﻿import class CBoidPointOfInterestComponent extends CComponent
 {
 	import function Disable( disable : bool );
 };
@@ -30,7 +26,7 @@ class CFoodBoidPointOfInterest  extends CBoidPointOfInterestComponentScript
 	function OnUsed(count : int, deltaTime : float)
 	{			
 		useCounter += deltaTime * count;
-		
+		// if one boid uses the food for expirationTime sec, despawn/deactivate the entity :
 		if ( useCounter > expirationTime )
 		{
 			entity = this.GetEntity();
@@ -52,7 +48,7 @@ class CFoodBoidPointOfInterest  extends CBoidPointOfInterestComponentScript
 			else
 			{
 				entity.GetComponentByClassName( 'CFoodBoidPointOfInterest' ).SetEnabled( false );
-				
+				//this.GetEntity().Destroy();
 			}
 		}
 	}

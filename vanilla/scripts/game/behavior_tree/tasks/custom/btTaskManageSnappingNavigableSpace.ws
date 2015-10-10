@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 class BTTaskManageSnappingNavigableSpace extends IBehTreeTask
 {
 	var snap						: bool;

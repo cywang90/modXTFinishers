@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-struct Runeword
+﻿struct Runeword
 {
 	var wordName : name;
 	var runes : array<name>;

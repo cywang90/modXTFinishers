@@ -1,9 +1,5 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿// CBTTaskWasInCriticalState
+// copyrajt orajt - W. Żerek
 
 class CBTTaskWasInCriticalState extends IBehTreeTask
 {

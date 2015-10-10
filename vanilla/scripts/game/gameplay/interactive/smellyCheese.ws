@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Authors : Danisz Markiewicz
+/***********************************************************************/
 
 class W3SmellyCheese extends W3AirDrainEntity
 {
@@ -22,13 +20,13 @@ class W3SmellyCheese extends W3AirDrainEntity
 		{
 			PlayEffect(aardedEffectName);
 			GetComponent('CheeseSmell').SetEnabled(false);
-			
+			//GetComponent('CheeseSmellSmall').SetEnabled(true);
 		}
 		else
 		{
 			PlayEffect(smellEffectName);
 			GetComponent('CheeseSmell').SetEnabled(true);
-			
+			//GetComponent('CheeseSmellSmall').SetEnabled(false);	
 		}
 	}
 	
@@ -41,7 +39,7 @@ class W3SmellyCheese extends W3AirDrainEntity
 			StopEffect(smellEffectName);
 			PlayEffect(aardedEffectName);
 			GetComponent('CheeseSmell').SetEnabled(false);
-			
+			//GetComponent('CheeseSmellSmall').SetEnabled(true);
 			
 			deactivated = true;
 			
@@ -66,7 +64,7 @@ class W3SmellyCheese extends W3AirDrainEntity
 	timer function ReactivateLogic( delta : float , id : int)
 	{
 		GetComponent('CheeseSmell').SetEnabled(true);
-		
+		//GetComponent('CheeseSmellSmall').SetEnabled(false);
 		
 		deactivated = false;
 	}

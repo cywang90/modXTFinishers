@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file - glossary bestiary
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author :		 Bartosz Bigaj
+/***********************************************************************/
 
 class CR4GlossaryBestiaryMenu extends CR4ListBaseMenu
 {	
@@ -19,7 +18,7 @@ class CR4GlossaryBestiaryMenu extends CR4ListBaseMenu
 	private var m_fxSetText				: CScriptedFlashFunction;
 	private var m_fxSetImage			: CScriptedFlashFunction;
 	
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{	
 		var i							: int;
 		var tempCreatures				: array<CJournalBase>;
@@ -57,7 +56,7 @@ class CR4GlossaryBestiaryMenu extends CR4ListBaseMenu
 		SelectCurrentModule();
 	}
 	
-	event  OnGuiSceneEntitySpawned(entity : CEntity)
+	event /* C++ */ OnGuiSceneEntitySpawned(entity : CEntity)
 	{
 		UpdateSceneEntityFromCreatureDataComponent( entity );
 
@@ -66,12 +65,12 @@ class CR4GlossaryBestiaryMenu extends CR4ListBaseMenu
 		UpdateItemsFromEntity(entity);
 	}
 	
-	event  OnGuiSceneEntityDestroyed()
+	event /* C++ */ OnGuiSceneEntityDestroyed()
 	{
 		Event_OnGuiSceneEntityDestroyed();
 	}
 	
-	event   OnEntrySelected( tag : name ) 
+	event /*flash*/ /*override*/ OnEntrySelected( tag : name ) // #B common
 	{
 		if (tag != '')
 		{
@@ -91,22 +90,22 @@ class CR4GlossaryBestiaryMenu extends CR4ListBaseMenu
 		var creature : CJournalCreature;
 		var templatepath : string;
 		
-		
+		// #B could add description for creatures group here !!!
 		creature = (CJournalCreature)m_journalManager.GetEntryByTag( entryName );
 		
 		if(creature)
 		{
 			templatepath = creature.GetEntityTemplateFilename();
-			
-			
+			//if (templatepath == "")
+			//{
 				ShowRenderToTexture("");
 				templatepath = thePlayer.ProcessGlossaryImageOverride( creature.GetImage(), entryName );
 				m_fxSetImage.InvokeSelfOneArg(FlashArgString(templatepath));
-			
-			
-			
-			
-			
+			//}
+			//else
+			//{
+			//	ShowRenderToTexture(templatepath);
+			//}
 		}
 		else
 		{
@@ -139,7 +138,7 @@ class CR4GlossaryBestiaryMenu extends CR4ListBaseMenu
 		{	
 			l_creature = allCreatures[i];
 			
-			l_creatureGroup = (CJournalCreatureGroup)m_journalManager.GetEntryByGuid( l_creature.parentGuid );
+			l_creatureGroup = (CJournalCreatureGroup)m_journalManager.GetEntryByGuid( l_creature.GetLinkedParentGUID() );
 			l_GroupTitle = GetLocStringById( l_creatureGroup.GetNameStringId() );	
 			l_CategoryTag = l_creatureGroup.GetUniqueScriptTag();
 			
@@ -175,8 +174,8 @@ class CR4GlossaryBestiaryMenu extends CR4ListBaseMenu
 		}
 	}
 
-    
-	function GetDescription( currentCreature : CJournalCreature ) : string 
+    // #J copied to preparationMenu.ws, try to keep both same or merge into common codebase
+	function GetDescription( currentCreature : CJournalCreature ) : string // #B todo
 	{
 		var i : int;
 		var currentIndex:int;
@@ -204,7 +203,7 @@ class CR4GlossaryBestiaryMenu extends CR4ListBaseMenu
 			description = (CJournalCreatureDescriptionEntry)descriptionsGroup.GetChild(i);
 			if( m_journalManager.GetEntryStatus(description) == JS_Active )
 			{
-				
+				// Fun sorting ensues
 				currentJournalDescriptionText.stringKey = description.GetDescriptionStringId();
 				currentJournalDescriptionText.order = description.GetOrder();
 				currentJournalDescriptionText.groupOrder = descriptionsGroup.GetOrder();
@@ -256,7 +255,7 @@ class CR4GlossaryBestiaryMenu extends CR4ListBaseMenu
 		var description : string;
 		var title : string;
 		
-		
+		// #B could add description for creatures group here !!!
 		l_creature = (CJournalCreature)m_journalManager.GetEntryByTag( entryName );
 		description = GetDescription( l_creature );
 		title = GetLocStringById( l_creature.GetNameStringId());	
@@ -272,7 +271,7 @@ class CR4GlossaryBestiaryMenu extends CR4ListBaseMenu
 		var l_creatureParams : SJournalCreatureParams;
 		var l_creatureEntityTemplateFilename : string;
 		
-		
+		// #J Unplugging to instead show recommended items instead of loot drop.... May end up wanting both, but for now...
 		
 		l_creature = (CJournalCreature)m_journalManager.GetEntryByTag( tag );
 		
@@ -346,7 +345,7 @@ class CR4GlossaryBestiaryMenu extends CR4ListBaseMenu
 				curIconPath = dm.GetItemIconPath( curName );
 			}
 			l_flashObject = m_flashValueStorage.CreateTempFlashObject("red.game.witcher3.menus.common.ItemDataStub");
-			l_flashObject.SetMemberFlashInt( "id", i + 1 ); 
+			l_flashObject.SetMemberFlashInt( "id", i + 1 ); // ERRR
 			l_flashObject.SetMemberFlashInt( "quantity", 1 );
 			l_flashObject.SetMemberFlashString( "iconPath",  curIconPath);
 			l_flashObject.SetMemberFlashInt( "gridPosition", i );
@@ -394,10 +393,10 @@ class CR4GlossaryBestiaryMenu extends CR4ListBaseMenu
 		}
 	}
 	
-	event OnGetItemData(item : int, compareItemType : int) 
+	event OnGetItemData(item : int, compareItemType : int) // #B in that case item is ID !!!
 	{
-		
-		
+		//var compareItemStats	: array<SAttributeTooltip>;
+		//var itemStats 			: array<SAttributeTooltip>;
 		var itemName 			: string;
 		var category			: name;
 		var typeStr				: string;
@@ -444,8 +443,8 @@ class CR4GlossaryBestiaryMenu extends CR4ListBaseMenu
 	
 	function PlayOpenSoundEvent()
 	{
-		
-		
+		// Common Menu takes care of this for us
+		//OnPlaySoundEvent("gui_global_panel_open");	
 	}
 }
 

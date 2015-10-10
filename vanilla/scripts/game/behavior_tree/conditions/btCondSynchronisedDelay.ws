@@ -1,23 +1,19 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
-
-
-
-
-
-
-
-
+﻿//>--------------------------------------------------------------------------
+// BTCondSynchronisedDelay
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Wait for the end of a delay common to all NPC.
+// usage example: Execute an action only if no one executed it since a certain delay
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// R.Pergent - 18-March-2014
+// Copyright © 2014 CD Projekt RED
+//---------------------------------------------------------------------------
 class BTCondSynchronisedDelay extends IBehTreeTask
 {
-	
-	
-	
+	//>--------------------------------------------------------------------------
+	// VARIABLES
+	//---------------------------------------------------------------------------
 	public var syncEventName				: name;
 	public var delay 						: float;
 	public var skipInvoker					: bool;
@@ -28,11 +24,11 @@ class BTCondSynchronisedDelay extends IBehTreeTask
 	public var isAvailableUntilFirstEvent	: bool;
 	public var personalSync					: bool;
 	
-	
+	// privates
 	private saved var m_eventReceivedTime	: float;
 	
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function IsAvailable() : bool
 	{
 		if( isAvailableUntilFirstEvent && m_eventReceivedTime == 0 )
@@ -47,8 +43,8 @@ class BTCondSynchronisedDelay extends IBehTreeTask
 		
 		return false;
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function OnActivate() : EBTNodeStatus
 	{
 		if( triggerEventOnActivate )
@@ -56,15 +52,15 @@ class BTCondSynchronisedDelay extends IBehTreeTask
 		
 		return BTNS_Active;
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function OnDeactivate()
 	{		
 		if( triggerEventOnDeactivate )
 			TriggerEvent();
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function OnCompletion( _Success : bool )
 	{
 		if( _Success && triggerEventOnSuccess )
@@ -77,8 +73,8 @@ class BTCondSynchronisedDelay extends IBehTreeTask
 		}
 	}
 	
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function OnListenedGameplayEvent( _EventName : name ) : bool
 	{
 		var npc : CNewNPC = GetNPC();
@@ -87,8 +83,8 @@ class BTCondSynchronisedDelay extends IBehTreeTask
 		return false;
 	}
 	
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function TriggerEvent()
 	{
 		var l_actor : CActor = GetActor();
@@ -102,13 +98,13 @@ class BTCondSynchronisedDelay extends IBehTreeTask
 		}
 	}
 }
-
-
+//>----------------------------------------------------------------------
+//-----------------------------------------------------------------------
 class BTCondSynchronisedDelayDef extends IBehTreeConditionalTaskDefinition
 {
 	default instanceClass = 'BTCondSynchronisedDelay';
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	editable var delay 						: float;
 	editable var syncEventName 				: CBehTreeValCName;
 	editable var skipInvoker				: bool;
@@ -124,8 +120,8 @@ class BTCondSynchronisedDelayDef extends IBehTreeConditionalTaskDefinition
 	hint skipInvoker		= "Signal invoker doesn't receive the event";
 	hint personalSync		= "Only me will receive the synchronisation event";
 	
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function OnSpawn( taskGen : IBehTreeTask )
 	{
 		var task : BTCondSynchronisedDelay;

@@ -1,18 +1,14 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CR4HudModuleAnchors extends CR4HudModuleBase
+﻿class CR4HudModuleAnchors extends CR4HudModuleBase
 {
-	
-	
-	
+	//>-----------------------------------------------------------------------------------------------------------------
+	// VARIABLES
+	//------------------------------------------------------------------------------------------------------------------
 	private	var m_fxUpdateAnchorsPositions			: CScriptedFlashFunction;
 	private	var m_fxUpdateAnchorsAspectRatio		: CScriptedFlashFunction;
 	
-	
-	
-	 event OnConfigUI()
+	//>-----------------------------------------------------------------------------------------------------------------	
+	//------------------------------------------------------------------------------------------------------------------
+	/* flash */ event OnConfigUI()
 	{
 		var flashModule : CScriptedFlashSprite;
 		var hud : CR4ScriptedHud;

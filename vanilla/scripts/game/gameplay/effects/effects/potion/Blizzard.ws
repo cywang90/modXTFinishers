@@ -1,13 +1,11 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2012
+/** Author : Tomasz Kozera
+/***********************************************************************/
 
 class W3Potion_Blizzard extends CBaseGameplayEffect
 {
-	private saved var slowdownCauserIds : array<int>;		
+	private saved var slowdownCauserIds : array<int>;		//we need to track IDs of sources that affect the game speed to properly remove them when they cumulate
 	private var slowdownFactor : float;
 	private var currentSlowMoDuration : float;
 	private const var SLOW_MO_DURATION : float;

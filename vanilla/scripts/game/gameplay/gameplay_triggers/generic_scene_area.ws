@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2009-2014
+/** Author : Danisz Markiewicz
+/***********************************************************************/
 
 struct genericSceneDefinition
 { 	
@@ -35,7 +33,7 @@ class W3GenericSceneArea extends CGameplayEntity
 
 	event OnAreaEnter( area : CTriggerAreaComponent, activator : CComponent )
 	{
-		
+		// Just be sure that only player can trigger it
 		if ( activator.GetEntity() != thePlayer )
 		{
 			return false;
@@ -46,7 +44,7 @@ class W3GenericSceneArea extends CGameplayEntity
 	
 	event OnAreaExit( area : CTriggerAreaComponent, activator : CComponent )
 	{	
-		
+		// Just be sure that only player can trigger it
 		if ( activator.GetEntity() != thePlayer )
 		{
 			return false;
@@ -55,7 +53,7 @@ class W3GenericSceneArea extends CGameplayEntity
 		RemoveTimer( 'PlaySceneTimer' );
 	}	
 	
-	
+	//Search for all potential scene speakers around the player
 	private function SearchForSceneSpeakers()	: array<CNewNPC>
 	{
 		var entities    : array<CGameplayEntity>;
@@ -83,7 +81,7 @@ class W3GenericSceneArea extends CGameplayEntity
 		return returnNPCs;
 	}
 	
-	
+	//Check if NPCs group is allowed as scene speaker
 	private function GetIsNPCGroupValid( target : CNewNPC ) : bool
 	{ 
 		var npcGroup : ENPCGroupType;
@@ -114,7 +112,7 @@ class W3GenericSceneArea extends CGameplayEntity
 		return true;
 	}
 	
-	
+	//Check if NPC is asleep and should speak
 	private function GetIsTargetAsleep( target : CNewNPC ) : bool
 	{
 		var atWork : bool;
@@ -141,7 +139,7 @@ class W3GenericSceneArea extends CGameplayEntity
 		
 	}
 
-	
+	//Search for valid scenes for provided voicetag
 	private function GetValidScenes( npcVoiceTag : name ) : array<genericSceneDefinition>
 	{
 		var i : int;
@@ -159,7 +157,7 @@ class W3GenericSceneArea extends CGameplayEntity
 		return matchingScenes;
 	}
 	
-	
+	//Timer function for scene playing
 	timer function PlaySceneTimer( time : float , id : int )
 	{
 		var isGeralt : bool;
@@ -206,7 +204,7 @@ class W3GenericSceneArea extends CGameplayEntity
 		}
 	}
 	
-	
+	//Safeguard to check if the area really should still be active or not
 	private function CheckAreaValidity() : bool
 	{
 		var comp : CTriggerAreaComponent;
@@ -227,7 +225,7 @@ class W3GenericSceneArea extends CGameplayEntity
 		
 	}
 	
-	
+	//Modifies current scene delay timer and activates it
 	function RestartSceneTimer( optional delay : float )
 	{
 		if( currentSceneDelay != delay && delay != 0)
@@ -238,7 +236,7 @@ class W3GenericSceneArea extends CGameplayEntity
 		AddTimer( 'PlaySceneTimer', currentSceneDelay, false );
 	}
 	
-	
+	//Selects actors and scenes for playing base on provided set of scenes
 	function TryToPlayScene(): bool
 	{
 		var speakers : array<CNewNPC>;

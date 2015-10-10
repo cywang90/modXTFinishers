@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class BTCondFightStage extends IBehTreeTask
+﻿class BTCondFightStage extends IBehTreeTask
 {
 	var currentFightStageIs : ENPCFightStage;
 	

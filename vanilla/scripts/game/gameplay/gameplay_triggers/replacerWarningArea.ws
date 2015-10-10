@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3ReplacerWarningArea extends CEntity
+﻿class W3ReplacerWarningArea extends CEntity
 {
 	editable var messageKey : string;
 	editable var messageInterval : float;
@@ -53,8 +49,8 @@ class W3ReplacerWarningArea extends CEntity
 	
 	timer function ShowMessage( dt : float , id : int)
 	{
-		
-		
+		//No message if player is not a replacer.
+		//Player can dynamically switch forth and back between geralt and replacers so we need to check it each time
 		if( !((W3Replacer)thePlayer) )
 			return;
 			

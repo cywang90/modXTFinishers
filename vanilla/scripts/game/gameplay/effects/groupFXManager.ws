@@ -1,11 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Copyright © 2012-2014
+/** Author : Jakub Rokosz
+/***********************************************************************/
 
-
-
-
-
+//class to manage random physical impulses affecting falling ice in q501 eredin
 
 class CGroupFXManager extends CGameplayEntity
 {

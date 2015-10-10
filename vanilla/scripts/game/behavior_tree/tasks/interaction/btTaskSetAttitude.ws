@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿//PF
 
 class CBTTaskSetAttitude extends IBehTreeTask
 {
@@ -43,7 +39,7 @@ class CBTTaskSetAttitude extends IBehTreeTask
 		
 		
 		if ( sender == thePlayer )
-			return true;
+			return true;//for breakpoint
 		
 		return true;
 	}

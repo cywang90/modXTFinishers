@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file - Layer for displaying Loot Popu[
+/***********************************************************************/
+/** Copyright © 2015 CDProjektRed
+/** Author : Jason Slama
+/***********************************************************************/
 
 class W3LootPopupData extends CObject
 {
@@ -23,7 +22,7 @@ class CR4LootPopup extends CR4PopupBase
 	private var safeLock 				: int;							default safeLock = -1;
 	private var inputContextSet			: bool; 						default inputContextSet = false;
 	
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{
 		var lootPopupData : W3LootPopupData;
 		var targetSize : float;
@@ -47,7 +46,7 @@ class CR4LootPopup extends CR4PopupBase
 			theInput.StoreContext( 'EMPTY_CONTEXT' );
 			inputContextSet = true;
 			
-			
+			//MakeModal(true); Makes life harder for no reason
 			
 			theSound.SoundEvent("gui_loot_popup_open");
 			
@@ -81,7 +80,7 @@ class CR4LootPopup extends CR4PopupBase
 		m_fxSetWindowScale = m_flashModule.GetMemberFlashFunction( "SetWindowScale" );
 	}
 	
-	event  OnClosingPopup()
+	event /* C++ */ OnClosingPopup()
 	{
 		theSound.SoundEvent("gui_loot_popup_close");
 		super.OnClosingPopup();
@@ -94,7 +93,7 @@ class CR4LootPopup extends CR4PopupBase
 		theGame.ForceUIAnalog(false);
 
 		SignalContainerClosedEvent();
-		
+		//tutorial
 		
 		if(ShouldProcessTutorial('TutorialLootWindow'))
 		{
@@ -114,7 +113,7 @@ class CR4LootPopup extends CR4PopupBase
 		if (inputContextSet && currentContext != 'EMPTY_CONTEXT')
 		{
 			theInput.RestoreContext(currentContext, true);
-			if (theInput.GetContext() == 'EMPTY_CONTEXT') 
+			if (theInput.GetContext() == 'EMPTY_CONTEXT') //#J a context was pushed over empty context. We need to remove it
 			{
 				theInput.RestoreContext('EMPTY_CONTEXT', true);
 			}
@@ -160,7 +159,7 @@ class CR4LootPopup extends CR4PopupBase
 		
 		l_containerInv.GetAllItems( l_allItems );
 		
-		
+		//remove items that shouldn't be shown		
 		for(i=l_allItems.Size()-1; i>=0; i-=1)
 			if( l_containerInv.ItemHasTag(l_allItems[i], theGame.params.TAG_DONT_SHOW ) && !l_containerInv.ItemHasTag(l_allItems[i], 'Lootable' ) )
 				l_allItems.Erase(i);
@@ -184,17 +183,17 @@ class CR4LootPopup extends CR4PopupBase
 
 			if(l_containerInv.IsItemSingletonItem(l_item))
 			{
-				l_itemQuantity = thePlayer.inv.SingletonItemGetAmmo(l_item); 
+				l_itemQuantity = thePlayer.inv.SingletonItemGetAmmo(l_item); // #B SINGLETON ITEM CHECK !!!
 			}
 			else
 			{
 				l_itemQuantity = l_containerInv.GetItemQuantity( l_item );
 			}
-			
-			
+			// Pop-up does not display a Price.
+			//l_itemPrice = l_containerInv.GetItemPrice( l_item );
 			l_itemIconPath	= l_containerInv.GetItemIconPathByUniqueID( l_item );
 			
-			if( l_containerInv.ItemHasTag(l_item, 'Quest') || l_containerInv.IsItemIngredient(l_item) || l_containerInv.IsItemAlchemyItem(l_item) ) 
+			if( l_containerInv.ItemHasTag(l_item, 'Quest') || l_containerInv.IsItemIngredient(l_item) || l_containerInv.IsItemAlchemyItem(l_item) ) // #B item weight check
 			{
 				l_weight = 0;
 			}
@@ -220,7 +219,7 @@ class CR4LootPopup extends CR4PopupBase
 			l_containerInv.GetItemTags(l_item,l_itemTags);
 			GetWitcherPlayer().GetItemEquippedOnSlot(GetSlotForItem(l_containerInv.GetItemCategory(l_item),l_itemTags, true), l_compareItem);
 			
-			if( l_containerInv.GetItemName(l_item) != GetWitcherPlayer().GetInventory().GetItemName(l_compareItem) ) 
+			if( l_containerInv.GetItemName(l_item) != GetWitcherPlayer().GetInventory().GetItemName(l_compareItem) ) // #B by name because they could be in different inventoryComponents, and then they have different id
 			{
 				GetWitcherPlayer().GetInventory().GetItemStats(l_compareItem, l_compareItemStats);
 			}
@@ -270,7 +269,7 @@ class CR4LootPopup extends CR4PopupBase
 			l_flashObject.SetMemberFlashString("name",itemStats[i].attributeName);
 			l_flashObject.SetMemberFlashString("color",itemStats[i].attributeColor);
 			
-			
+			//HERE, WE'RE COMPARING STATS AGAINST POSSIBLE OVERLAPS WITH A POSSIBLY EQUIPPED SIMILAR ITEM IN ORDER TO SHOW BENEFIT DIFFERENCE
 			for( j = 0; j < compareItemStats.Size(); j += 1 )
 			{
 				if( itemStats[j].attributeName == compareItemStats[i].attributeName )
@@ -278,24 +277,24 @@ class CR4LootPopup extends CR4PopupBase
 					nDifference = itemStats[j].value - compareItemStats[i].value;
 					percentDiff = AbsF(nDifference/itemStats[j].value);
 					
-					
+					//better
 					if(nDifference > 0)
 					{
-						if(percentDiff < 0.25) 
+						if(percentDiff < 0.25) //1 arrow
 							strDifference = "better";
-						else if(percentDiff > 0.75) 
+						else if(percentDiff > 0.75) //3 arrows
 							strDifference = "wayBetter";
-						else						
+						else						//2 arrows
 							strDifference = "reallyBetter";
 					}
-					
+					//worse
 					else if(nDifference < 0)
 					{
-						if(percentDiff < 0.25) 
+						if(percentDiff < 0.25) //1 arrow
 							strDifference = "worse";
-						else if(percentDiff > 0.75) 
+						else if(percentDiff > 0.75) //3 arrows
 							strDifference = "wayWorse";
-						else						
+						else						//2 arrows
 							strDifference = "reallyWorse";					
 					}
 					break;					
@@ -326,14 +325,14 @@ class CR4LootPopup extends CR4PopupBase
 		return GetItemRarityDescriptionFromInt(itemQuality);
 	}
 	
-	event  OnPopupTakeAllItems( ) : void
+	event /*flash*/ OnPopupTakeAllItems( ) : void
 	{
 		SignalStealingReactionEvent();
 		TakeAllAction();
 		OnCloseLootWindow();
 	}
 	
-	event  OnPopupTakeItem( Id : int ) : void
+	event /*flash*/ OnPopupTakeItem( Id : int ) : void
 	{
 		var containerInv 		: CInventoryComponent;
 		var playerInv 			: CInventoryComponent;
@@ -403,12 +402,12 @@ class CR4LootPopup extends CR4PopupBase
 		}
 	}
 	
-	event  OnCloseLootWindow()
+	event /*flash*/ OnCloseLootWindow()
 	{
 		ClosePopup();
 	}
 	
-	
+	// -------------------------------------------------------------------------------	
 	function TakeAllAction() : void
 	{
 		_container.TakeAllItems();
@@ -427,7 +426,7 @@ class CR4LootPopup extends CR4PopupBase
 			
 		theGame.CreateNoSaveLock("Stealing",safeLock,true);
 		
-		theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( thePlayer, 'LootingAction', -1, 10.0f, -1.f, -1, true); 
+		theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( thePlayer, 'LootingAction', -1, 10.0f, -1.f, -1, true); //reactionSystemSearch
 	}
 	
 	protected function SignalStealingReactionEvent()
@@ -435,7 +434,7 @@ class CR4LootPopup extends CR4PopupBase
 		if ( _container.disableStealing || _container.HasQuestItem() || (W3Herb)_container || (W3ActorRemains)_container )
 			return;
 		
-		theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( thePlayer, 'StealingAction', -1, 10.0f, -1.f, -1, true); 
+		theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( thePlayer, 'StealingAction', -1, 10.0f, -1.f, -1, true); //reactionSystemSearch
 	}
 	
 	protected function SignalContainerClosedEvent()
@@ -445,7 +444,7 @@ class CR4LootPopup extends CR4PopupBase
 		if ( _container.disableStealing || _container.HasQuestItem() || (W3Herb)_container || (W3ActorRemains)_container )
 			return;
 			
-		theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( thePlayer, 'ContainerClosed', 10, 15.0f, -1.f, -1, true); 
+		theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( thePlayer, 'ContainerClosed', 10, 15.0f, -1.f, -1, true); //reactionSystemSearch
 	}
 }
 

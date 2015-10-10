@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 class CBTTaskShouldUseReactionOneLiners extends IBehTreeTask
 {
 	function IsAvailable() : bool

@@ -1,11 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Copyright © 2012-2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
-
-
-
-
+// instant vitality gain, level 3 given immortal for few secs
 class W3Potion_WhiteRaffardDecoction extends CBaseGameplayEffect
 {
 	default effectType = EET_WhiteRaffardDecoction;

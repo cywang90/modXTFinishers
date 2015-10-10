@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskStopBeingScared extends IBehTreeTask
+﻿class CBTTaskStopBeingScared extends IBehTreeTask
 {
 	function OnDeactivate()
 	{

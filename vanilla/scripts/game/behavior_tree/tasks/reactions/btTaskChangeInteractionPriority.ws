@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskChangeInteractionPriority extends IBehTreeTask
+﻿class CBTTaskChangeInteractionPriority extends IBehTreeTask
 {
 	private var previousInteractionPriority : EInteractionPriority;
 	

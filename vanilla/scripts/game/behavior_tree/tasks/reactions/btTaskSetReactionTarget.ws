@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskSetReactionTarget extends IBehTreeTask
+﻿class CBTTaskSetReactionTarget extends IBehTreeTask
 {
 	var useCombatTarget : bool;
 	function OnActivate() : EBTNodeStatus

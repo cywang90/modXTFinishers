@@ -1,23 +1,22 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file - Loading StoryBook Screen
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author : Bartosz Bigaj
+/***********************************************************************/
 
 class CR4LoadingMenu extends CR4MenuBase
 {
-	
-	
-	
-	
+	//private var m_fxSetMovieData : CScriptedFlashFunction;
+	//private var m_fxEnableSkip : CScriptedFlashFunction;
+	//private var m_fxSetWorldBackground : CScriptedFlashFunction;
+	//protected var m_journalManager		: CWitcherJournalManager;
 	private var guiManager : CR4GuiManager;
 	
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{
-		
-		
+		//var initData : W3MenuInitData;
+		//var initData2 : IScriptable;
 		theInput.StoreContext( 'EMPTY_CONTEXT' );
 		
 		super.OnConfigUI();
@@ -26,12 +25,12 @@ class CR4LoadingMenu extends CR4MenuBase
 		MakeModal(true);
 	}
 
-	event  OnCloseMenu()
+	event /*flash*/ OnCloseMenu()
 	{
 		CloseMenu();
 	}	
 	
-	event  OnClosingMenu()
+	event /* C++ */ OnClosingMenu()
 	{
 		theInput.RestoreContext( 'EMPTY_CONTEXT', true );
 	}

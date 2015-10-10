@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿///////////// Import  ///////////////////////////
 import abstract class CActionPointSelector extends IScriptable
 {
 };
@@ -45,11 +41,11 @@ import class CHorseParkingActionPointSelector extends CActionPointSelector
 	import var radius : float;
 };
 
+//////////////////////////////////////////////
 
+///////////// AI TREES ///////////////////////
 
-
-
-
+//////////////////////////////////////////////
 
 
 class CAIPCBase extends CAIBaseTree
@@ -58,7 +54,7 @@ class CAIPCBase extends CAIBaseTree
 };
 
 
-
+// CAINpcBase
 class CAINpcBase extends CAIBaseTree
 {
 	default aiTreeName = "resdef:ai\npc_base";
@@ -72,7 +68,7 @@ class CAINpcBase extends CAIBaseTree
 	}
 };
 
-
+// CAINpcDefaults
 class CAINpcDefaults extends CAIDefaults
 {	
 	editable inlined var npcGroupType 					: CAINPCGroupTypeRedefinition;
@@ -97,7 +93,7 @@ class CAINpcDefaults extends CAIDefaults
 	}
 };
 
-
+// CAINpcRiderBase
 class CAINpcRiderBase extends CAIBaseTree
 {
 	default aiTreeName = "resdef:ai\npc_rider_base";
@@ -112,12 +108,12 @@ class CAINpcRiderBase extends CAIBaseTree
 };
  
 
-
+// CAINpcRiderDefaults
 class CAINpcRiderDefaults extends CAIDefaults
 {	
 	editable inlined var npcGroupType 		: CAINPCGroupTypeRedefinition;
-	editable inlined var combatTree 		: CAINpcCombat;		  
-	editable inlined var riderCombatTree 	: CAINpcRiderCombat;  
+	editable inlined var combatTree 		: CAINpcCombat;		  // the standard combat tree in the combat decorator
+	editable inlined var riderCombatTree 	: CAINpcRiderCombat;  // the rider combat tree in the combat decorator
 	editable inlined var idleTree 			: CAIIdleTree;
 	editable inlined var riderIdleTree 		: CAINpcIdleHorseRider;
 	editable inlined var deathTree	 		: CAIDeathTree;
@@ -135,23 +131,23 @@ class CAINpcRiderDefaults extends CAIDefaults
 		combatTree.OnCreated();
 		riderCombatTree = new CAINpcRiderCombat in this;
 		riderCombatTree.OnCreated();
-		
-		
-		
+		// cannot define default idle tree for now :
+		//idleTree 		= null;
+		//riderIdleTree = null;
 		
 		deathTree = new CAINpcDeath in this;
 		deathTree.OnCreated();
-		
-		
-		
-		
+		// reactionTree = new  CAICommonerReactionsTree in this;
+		// reactionTree.OnCreated();
+		//horseRideTree = new CAINpcHorseRiding in this;
+		//horseRideTree.OnCreated();
 	}
 };
 
+//-------------------------------------------------------------------------------------------------------------------
 
-
-
-
+////////////////////////////////////////////////////////////
+// CAINpcCombat
 class CAINpcRiderCombat extends CAICombatTree
 {
 	default aiTreeName = "resdef:ai\combat/npc_rider_combat";
@@ -165,7 +161,7 @@ class CAINpcRiderCombat extends CAICombatTree
 	}
 }
 
-
+// CAINpcCombatParams
 class CAINpcRiderCombatParams extends CAICombatParameters
 {
 	editable var reachabilityTolerance : float;
@@ -178,38 +174,38 @@ class CAINpcRiderCombatParams extends CAICombatParameters
 	}
 }
 
-
-
+////////////////////////////////////////////////////////
+// CAINpcCombatDecoratorCommunity
 class CAICombatDecoratorCommunity extends CAICombatDecoratorTree
 {
 	default aiTreeName = "resdef:ai\npc_guard_encounter_combat";
 };
 
-
-
+/////////////////////////////////////////////////////
+// CAINpcCombatDecoratorEncounter
 class CAICombatDecoratorGeneric extends CAICombatDecoratorTree
 {
 	default aiTreeName = "resdef:ai\npc_guard_encounter_combat";
 };
 
 
-
-
+////////////////////////////////////////////////////////
+// CAINpcRiderCombatDecoratorCommunity
 class CAIRiderCombatDecoratorSimple extends CAICombatDecoratorTree
 {
 	default aiTreeName = "resdef:ai\npc_rider_simple_combat";
 };
 
-
-
+/////////////////////////////////////////////////////
+// CAINpcRiderCombatDecoratorEncounter
 class CAIRiderCombatDecoratorGeneric extends CAICombatDecoratorGeneric 
 {
 	default aiTreeName = "resdef:ai\npc_rider_guard_encounter_combat";
 };
 
 
-
-
+///////////////////////////////////////////////
+// CAINpcIdle
 abstract class CAINpcIdle extends CAIIdleTree
 {
 	editable inlined var params : CAINpcIdleParams;
@@ -220,14 +216,14 @@ abstract class CAINpcIdle extends CAIIdleTree
 		params.OnCreated();
 	}
 };
-
+// CAINpcIdleParams
 class CAINpcIdleParams extends CAIIdleParameters
 {
 
 };
 
-
-
+///////////////////////////////////////////////
+// CAIRiderIdle
 abstract class CAIRiderIdle extends CAINpcIdle
 {
 	function Init()
@@ -237,14 +233,14 @@ abstract class CAIRiderIdle extends CAINpcIdle
 	}
 };
 
-
+// CAINpcIdleParams
 class CAIRiderIdleParams extends CAINpcIdleParams
 {
 
 };
 
-
-
+////////////////////////////////////////////////
+// CAINpcActiveIdle
 class CAINpcActiveIdle extends CAIIdleTree
 {
 	default aiTreeName = "resdef:ai\idle/npc_active_idle";
@@ -263,7 +259,7 @@ class CAINpcActiveIdle extends CAIIdleTree
 		params.OnCreated();
 	}
 };
-
+// CAINpcActiveIdleParams
 class CAINpcActiveIdleParams extends CAIIdleParameters
 {
 	editable inlined var wanderTree 		: CAIWanderTree;
@@ -278,21 +274,21 @@ class CAINpcActiveIdleParams extends CAIIdleParameters
 		workTree.InitWander();
 	}
 };
-
-
+/////////////////////////////////////////////////////
+// CAIWanderWithHistory
 class CAIWanderWithHistory extends CAIWanderTree
 {
 	default aiTreeName = "resdef:ai\idle/npc_wander_history";
 
 	editable inlined var params : CAINpcHistoryWanderParams;
 	
+	// TODO: Something is fucked up with deserialization order! Can't auto refactor this shit
+	//editable var wanderMoveSpeed 	: float;
+	//editable var wanderMoveType 	: EMoveType;
+	//editable var wanderPointsGroupTag : CName;
 	
-	
-	
-	
-	
-	
-	
+	//default wanderMoveSpeed = 1.0;
+	//default wanderMoveType = MT_Walk;
 	
 	function Init()
 	{
@@ -300,26 +296,26 @@ class CAIWanderWithHistory extends CAIWanderTree
 		params.OnCreated();
 	}
 };
-
+// CAINpcWanderParams
 class CAINpcWanderParams extends CAIWanderParameters
 {
 };
 
-
+// CAINpcTaggedWanderParams
 class CAINpcTaggedWanderParams extends CAINpcWanderParams
 {
 	editable var wanderPointsGroupTag : CName;
 };
 
-
+// CAINpcHistoryWanderParams
 class CAINpcHistoryWanderParams extends CAINpcTaggedWanderParams
 {
 	editable var rightSideMovement : bool;
 
 	default rightSideMovement = true;
 };
-
-
+////////////////////////////////////////////////////////////////////////
+// CAIWanderRandom
 class CAIWanderRandom extends CAIWanderTree
 {
 	default aiTreeName = "resdef:ai\idle/npc_wander_random";
@@ -332,13 +328,13 @@ class CAIWanderRandom extends CAIWanderTree
 		params.OnCreated();
 	}
 };
-
+// CAINpcRandomWanderParams
 class CAINpcRandomWanderParams extends CAINpcTaggedWanderParams
 {
 };
 
 
-
+// CAILeadPackWander
 class CAILeadPackWander extends CAIDynamicWander
 {
 	public editable var leaderRegroupEvent	: name;
@@ -357,8 +353,8 @@ class CAILeadPackWander extends CAIDynamicWander
 	}
 };
 
-
-
+///////////////////////////////////////////////////////
+// CAIDynamicWander
 class CAIDynamicWander extends CAIWanderTree
 {
 	default aiTreeName = "resdef:ai\idle/dynamic_wander";
@@ -398,7 +394,7 @@ class CAIDynamicWander extends CAIWanderTree
 		return false;
 	}
 }
-
+// CAIDynamicWanderParams
 class CAIDynamicWanderParams extends CAINpcWanderParams
 {
 	editable var dynamicWanderArea 			: EntityHandle;
@@ -416,14 +412,14 @@ class CAIDynamicWanderParams extends CAINpcWanderParams
 		super.Init();
 	}
 }
-
-
+///////////////////////////////////////////////////////
+// CAISirenDynamicSirenWander
 class CAIAmphibiousDynamicWander extends CAIDynamicWander
 {
 	default aiTreeName = "resdef:ai\idle/dynamic_amphibious_wander";
 }
-
-
+///////////////////////////////////////////////////////
+// CAIDynamicFlyingWander
 class CAIDynamicFlyingWander extends CAISubTree
 {
 	default aiTreeName = "resdef:ai\idle/dynamic_flying_wander";
@@ -451,8 +447,8 @@ class CAIDynamicFlyingWander extends CAISubTree
 	default proximityToForceTakeOff			= 60;
 	default distanceFromPlayerToLand		= 70;
 }
-
-
+///////////////////////////////////////////////////////
+// CAISirenDynamicSirenWander
 class CAISirenDynamicWander extends CAISubTree
 {
 	default aiTreeName = "resdef:ai\idle/dynamic_siren_wander";
@@ -479,8 +475,8 @@ class CAISirenDynamicWander extends CAISubTree
 	default proximityToForceTakeOff		= 70;
 	default distanceFromPlayerToLand	= 70;
 }
-
-
+///////////////////////////////////////////////////////
+// Follow
 class CAIFollowPartyMemeberTree extends CAIIdleTree
 {
 	default aiTreeName = "resdef:ai\idle/npc_walk_side_by_side_party";
@@ -494,8 +490,8 @@ class CAIFollowPartyMemeberTree extends CAIIdleTree
 }
 
 
-
-
+///////////////////////////////////////////////////////
+// Follow side-by-side
 class CAIFollowPartyMemberSideBySideTree extends CAIFollowPartyMemeberTree
 {
 	editable var useCustomSteeringGraph : bool;
@@ -514,15 +510,15 @@ class CAIFollowPartyMemberSideBySideTree extends CAIFollowPartyMemeberTree
 };
 
 
-
-
+/////////////////////////////////////////////////////////////////////
+// CAIPatrol
 class CAIPatrol extends CAIWanderTree
 {
 	default aiTreeName = "resdef:ai\idle/npc_patrol";
 };
 
-
-
+//////////////////////////////////////////////////////
+// CAINpcWork
 class CAINpcWork extends CAISubTree
 {
 	default aiTreeName = "resdef:ai\idle/npc_work";
@@ -530,7 +526,7 @@ class CAINpcWork extends CAISubTree
 	editable inlined var actionPointSelector 	: CActionPointSelector;
 	editable var spawnToWork					: bool;
 
-	
+	// legacy
 	var params : CAINpcWorkParams;
 	function Init()
 	{
@@ -543,14 +539,14 @@ class CAINpcWork extends CAISubTree
 		actionPointSelector = new CWanderActionPointSelector in this;
 	}
 };
-
+// OBSOLATE CAINpcWorkParams
 class CAINpcWorkParams extends CAISubTreeParameters
 {
 	editable inlined var actionPointSelector 	: CActionPointSelector;
 	editable var spawnToWork					: bool;
 }
-
-
+/////////////////////////////////////////////////////////
+// CAINpcWorkIdle
 class CAINpcWorkIdle extends CAIIdleTree
 {
 	default aiTreeName = "resdef:ai\idle/npc_work_idle";
@@ -568,7 +564,7 @@ class CAINpcWorkIdle extends CAIIdleTree
 		actionPointSelector = selector;
 	}
 };
-
+// CAINpcWorkIdleParams
 class CAINpcWorkIdleParams extends CAIIdleParameters
 {
 	editable inlined var actionPointSelector 	: CActionPointSelector;
@@ -576,8 +572,8 @@ class CAINpcWorkIdleParams extends CAIIdleParameters
 	
 	default actionPointMoveType = MT_Walk;
 }
-
-
+/////////////////////////////////////////////////////////
+// CAINpcBoxCarry
 class CAINpcBoxCarry extends CAINpcIdle
 {
 	default aiTreeName = "resdef:ai\idle\custom\npc_idle_box";
@@ -588,7 +584,7 @@ class CAINpcBoxCarry extends CAINpcIdle
 		params.OnCreated();
 	}
 };
-
+// CAINpcBoxCarryParams
 class CAINpcBoxCarryParams extends CAINpcIdleParams
 {
 	editable var workCarryItemTemplate : CEntityTemplate;
@@ -596,13 +592,13 @@ class CAINpcBoxCarryParams extends CAINpcIdleParams
 	editable var workCarryDropPoint : name;
 };
 
-
+/////////////////////////////////////////////////////////
 abstract class IAIIdleFormationTree extends CAIIdleTree
 {
 	editable var formation : CFormation;
 };
 
-
+// CAIFollowLeaderTree extends CAIIdleTree
 class CAIFollowLeaderTree extends IAIIdleFormationTree
 {
 	default aiTreeName = "resdef:ai\idle/follow_leader";
@@ -615,8 +611,8 @@ class CAIFollowLeaderParameters extends CAIIdleParameters
 	editable var leaderName : name;
 	editable var formation : CFormation;
 };
-
-
+/////////////////////////////////////////////////////////
+// CAILeadFormationTree
 class CAILeadFormationTree extends IAIIdleFormationTree
 {
 	default aiTreeName = "resdef:ai\idle/formation_lead";
@@ -652,8 +648,8 @@ class CAIIdleSpontanousFormationTree extends IAIIdleFormationTree
 
 
 
-
-
+/////////////////////////////////////////////////////////
+// CAINpcIdleHorseRider
 class CAINpcIdleHorseRider extends CAIRiderIdle
 {
 	default aiTreeName = "resdef:ai\idle/npc_idle_horserider";
@@ -664,13 +660,13 @@ class CAINpcIdleHorseRider extends CAIRiderIdle
 		params.OnCreated();
 	}
 };
-
+// CAINpcIdleHorseRiderParams
 class CAINpcIdleHorseRiderParams extends CAIRiderIdleParams
 {
 };
 
-
-
+//////////////////////////////////////////////////
+// CAINpcDeath 
 class CAINpcDeath extends CAIDeathTree
 {
 	default aiTreeName = "resdef:ai\death/death";
@@ -683,7 +679,7 @@ class CAINpcDeath extends CAIDeathTree
 		params.OnCreated();
 	}
 };
-
+// CAINpcDeathParams
 class CAINpcDeathParams extends CAIDeathParameters
 {
 	editable var createReactionEvent			: name;
@@ -692,6 +688,7 @@ class CAINpcDeathParams extends CAIDeathParameters
 	editable var playFXOnDeactivate				: name;
 	editable var stopFXOnActivate				: name;
 	editable var stopFXOnDeactivate				: name;
+	editable var playSFXOnActivate 				: name;
 	editable var setAppearanceTo 				: name;
 	editable var changeAppearanceAfter 			: float;
 	editable var disableAgony 					: bool;
@@ -700,8 +697,6 @@ class CAINpcDeathParams extends CAIDeathParameters
 	editable var disableCollisionOnAnim			: bool;
 	editable var disableCollisionOnAnimDelay	: float;
 	editable var destroyAfterAnimDelay 			: float;
-	editable var spawnEntityAtDeath				: bool;
-	editable var entityToSpawn					: name;
 	
 	default destroyAfterAnimDelay = -1;
 	default createReactionEvent			= 'NPCDeath';
@@ -716,8 +711,8 @@ class CAINpcDeathParams extends CAIDeathParameters
 };
 
 
-
-
+//////////////////////////////////////////////////
+// CAINpcUnconsciousTree 
 class CAINpcUnconsciousTree extends CAIDeathTree
 {
 	default aiTreeName = "resdef:ai\death/unconscious";
@@ -729,7 +724,7 @@ class CAINpcUnconsciousTree extends CAIDeathTree
 		params.OnCreated();
 	}
 };
-
+// CAINpcUnconsciousParams
 class CAINpcUnconsciousParams extends CAIDeathParameters
 {
 	editable var unconsciousDuration : float;
@@ -739,8 +734,8 @@ class CAINpcUnconsciousParams extends CAIDeathParameters
 	default unconsciousGetUpDist = 30.0;
 };
 
-
-
+//////////////////////////////////////////////////
+// CAIDefeated 
 class CAIDefeated extends CAIDeathTree
 {
 	default aiTreeName = "resdef:ai\death/defeated";
@@ -752,7 +747,7 @@ class CAIDefeated extends CAIDeathTree
 		params.OnCreated();
 	}
 };
-
+// CAIDefeatedParams
 class CAIDefeatedParams extends CAIDeathParameters
 {
 	editable inlined var localDeathTree 	: CAIDeathTree;
@@ -765,25 +760,33 @@ class CAIDefeatedParams extends CAIDeathParameters
 		unconsciousTree.OnCreated();
 	}
 };
+/*
+//////////////////////////////////////////////////////
+// CAINpcHorseRiding
+class CAINpcHorseRiding extends CAICustomMainTree
+{
+	default aiTreeName = "resdef:ai\npc_ridehorse";
+};
 
+*/
 
-
-
-
-
+//////////////////////////////////////////////////////////////////////
+//Custom @CombatStyles
+//////////////////////////////////////////////////////////////////////
+// CAINpcStyleHjalmarParams
 class CAINpcStyleHjalmarParams extends CAINpcStyleOneHandedSwordParams
 {
 };
 
-
+// CAINpcStyleMountedParams
 class CAINpcStyleMountedParams extends CAINpcCombatStyleParams
 {
 };
 
-
-
-
-
+/////////////////////////////////////////////////////////////
+//
+/////////////////////////////////////////////////////////////
+// CAINpcCriticalState
 class CAINpcCriticalState extends CAICombatActionTree
 {
 	default aiTreeName = "resdef:ai\npc_critical_state";
@@ -796,13 +799,13 @@ class CAINpcCriticalState extends CAICombatActionTree
 		params.OnCreated();
 	}
 };
-
+// CAINpcCriticalStateParams
 class CAINpcCriticalStateParams extends CAICombatActionParameters
 {
 	editable var FinisherAnim : name;
 };
-
-
+/////////////////////////////////////////////////////////////
+// CAINpcCriticalStateFlying
 class CAINpcCriticalStateFlying extends CAICombatActionTree
 {
 	default aiTreeName = "resdef:ai\npc_critical_state_flying";
@@ -816,35 +819,35 @@ class CAINpcCriticalStateFlying extends CAICombatActionTree
 	}
 };
 
+///////////////////////Sub Trees///////////////////////////////
 
-
-
-
+/////////////////////////////////////////////////////////
+// CAIMountHorse
 class CAIMountHorse extends CAIRidingSubTree
 {
 	default aiTreeName = "resdef:ai\horse_riding/mount_horse";
 };
 
-
-
+/////////////////////////////////////////////////////////
+// CAIDismountHorse
 class CAIDismountHorse extends CAIRidingSubTree
 {
 	default aiTreeName = "resdef:ai\horse_riding/dismount_horse";
 };
 
 
+///////////////// FLEE /////////////////////////////////
 
-
-
-
+////////////////////////////////////////////////////////
+// CAIGenericFlee
 class CAIGenericFlee extends CAIFleeTree
 {
 	default aiTreeName = "resdef:ai\reactions\generic_flee";
 };
 
 
-
-
+///////////////////////////////////////////////////////
+// CGoatDynamicWander
 class CGoatDynamicWander extends CAIDynamicWander
 {	
 	function Init()
@@ -858,8 +861,8 @@ class CGoatDynamicWander extends CAIDynamicWander
 	}
 }
 
-
-
+///////////////////////////////////////////////////////
+// CCatDynamicWander
 class CCatDynamicWander extends CAIDynamicWander
 {	
 	function Init()
@@ -873,8 +876,8 @@ class CCatDynamicWander extends CAIDynamicWander
 	}
 }
 
-
-
+///////////////////////////////////////////////////////
+// CRoosterDynamicWander
 class CRoosterDynamicWander extends CAIDynamicWander
 {	
 	function Init()
@@ -901,8 +904,8 @@ class CRamDynamicWander extends CAIDynamicWander
 	}
 }
 
-
-
+///////////////////////////////////////////////////////
+// CGooseDynamicWander
 class CGooseDynamicWander extends CAIDynamicWander
 {	
 	function Init()
@@ -916,8 +919,8 @@ class CGooseDynamicWander extends CAIDynamicWander
 	}
 }
 
-
-
+///////////////////////////////////////////////////////
+// CSheepDynamicWander
 class CSheepDynamicWander extends CAIDynamicWander
 {	
 	function Init()
@@ -931,8 +934,8 @@ class CSheepDynamicWander extends CAIDynamicWander
 	}
 }
 
-
-
+///////////////////////////////////////////////////////
+// CPigDynamicWander
 class CPigDynamicWander extends CAIDynamicWander
 {	
 	function Init()
@@ -947,8 +950,8 @@ class CPigDynamicWander extends CAIDynamicWander
 	}
 }
 
-
-
+///////////////////////////////////////////////////////
+// CCowDynamicWander
 class CCowDynamicWander extends CAIDynamicWander
 {	
 	function Init()
@@ -962,8 +965,8 @@ class CCowDynamicWander extends CAIDynamicWander
 	}
 }
 
-
-
+///////////////////////////////////////////////////////
+// CDogDynamicWander
 class CDogDynamicWander extends CAIDynamicWander
 {	
 	function Init()
@@ -977,8 +980,8 @@ class CDogDynamicWander extends CAIDynamicWander
 	}
 }
 
-
-
+///////////////////////////////////////////////////////
+// CDeerDynamicWander
 class CDeerDynamicWander extends CAIDynamicWander
 {	
 	function Init()
@@ -994,8 +997,8 @@ class CDeerDynamicWander extends CAIDynamicWander
 }
 
 
-
-
+///////////////////////////////////////////////////////
+// CHareDynamicWander
 class CHareDynamicWander extends CAIDynamicWander
 {	
 	function Init()
@@ -1008,8 +1011,8 @@ class CHareDynamicWander extends CAIDynamicWander
 		wanderMoveType				= MT_Walk;
 	}
 }
-
-
+///////////////////////////////////////////////////////
+// CTamedHorseDynamicWander
 class CTamedHorseDynamicWander extends CAIDynamicWander
 {	
 	function Init()
@@ -1018,8 +1021,8 @@ class CTamedHorseDynamicWander extends CAIDynamicWander
 		wanderMoveType				= MT_Walk;
 	}
 }
-
-
+///////////////////////////////////////////////////////
+// CWildHorseDynamicWander
 class CWildHorseDynamicWander extends CAIDynamicWander
 {	
 	function Init()

@@ -1,13 +1,11 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 class W3Potion_VitalityRegen extends W3RegenEffect
 {
-	protected var combatRegen, nonCombatRegen : SAbilityAttributeValue;			
+	protected var combatRegen, nonCombatRegen : SAbilityAttributeValue;			//effectValues for combat and non-combat
 	protected var playerTarget : CR4Player;
 
 	public function CacheSettings()
@@ -20,7 +18,7 @@ class W3Potion_VitalityRegen extends W3RegenEffect
 							
 		super.CacheSettings();
 		
-		
+		//find which stat we're regenerating - regenstat set in child classes but let's make sure
 		if(regenStat == CRS_Vitality)
 		{
 			dm = theGame.GetDefinitionsManager();

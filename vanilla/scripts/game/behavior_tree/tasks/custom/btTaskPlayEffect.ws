@@ -1,11 +1,8 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskPlayEffect extends IBehTreeTask
+﻿class CBTTaskPlayEffect extends IBehTreeTask
 {
 	var effectName 				: CName;
 	var owner 					: CNewNPC;
+	var onWeaponItem 	 		: bool;
 	var turnOff 				: bool;
 	var connectEffectWithTarget : bool;
 	var onAnimEvent				: name;
@@ -46,7 +43,7 @@ class CBTTaskPlayEffect extends IBehTreeTask
 	
 	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo ) : bool
 	{
-		if ( IsNameValid( onAnimEvent ) && animEventName == onAnimEvent && animEventType == AET_DurationStart )
+		if ( IsNameValid( onAnimEvent ) && animEventName == onAnimEvent )
 		{
 			ProcessEffect();
 			return true;
@@ -66,19 +63,45 @@ class CBTTaskPlayEffect extends IBehTreeTask
 	
 	function ProcessEffect()
 	{
+		var itemIds : array<SItemUniqueId>;
+		var inv : CInventoryComponent;
+		var i : int;
+		
 		owner = GetNPC();
 		
-		if ( turnOff == true )
+		if ( onWeaponItem )
 		{
-			owner.StopEffect ( effectName ) ;
-		}
-		else if ( connectEffectWithTarget )
-		{
-			owner.PlayEffect ( effectName, GetCombatTarget() );
+			inv = owner.GetInventory();
+			itemIds = inv.GetAllWeapons();
+			
+			for(i=0; i<itemIds.Size(); i+=1)
+			{
+				if ( turnOff )
+				{
+					if(inv.IsItemHeld(itemIds[i]))
+						inv.StopItemEffect( itemIds[i], effectName );
+				}
+				else
+				{
+					if(inv.IsItemHeld(itemIds[i]))
+						inv.PlayItemEffect( itemIds[i], effectName );
+				}
+			}
 		}
 		else
 		{
-			owner.PlayEffect ( effectName ) ;
+			if ( turnOff )
+			{
+				owner.StopEffect ( effectName ) ;
+			}
+			else if ( connectEffectWithTarget )
+			{
+				owner.PlayEffect ( effectName, GetCombatTarget() );
+			}
+			else
+			{
+				owner.PlayEffect ( effectName ) ;
+			}
 		}
 	}
 }
@@ -87,6 +110,7 @@ class CBTTaskPlayEffectDef extends IBehTreeTaskDefinition
 	default instanceClass = 'CBTTaskPlayEffect';
 
 	editable var effectName 				: CBehTreeValCName;
+	editable var onWeaponItem 				: bool;
 	editable var turnOff 					: bool;
 	editable var connectEffectWithTarget 	: bool;
 	editable var onAnimEvent				: name;

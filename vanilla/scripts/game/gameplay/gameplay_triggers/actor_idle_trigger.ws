@@ -1,14 +1,13 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2012
+/** Author : Andrzej Kwiatkowski
+/***********************************************************************/
 
 class W3ActorIdleTrigger extends CEntity
 {
-	protected var affectedActor : CActor;			
+	protected var affectedActor : CActor;			//FIXME URGENT - overriden if more than 1 actor enters area - is it by design? There's no comment on that
 	editable var affectedEntityTag : name;
 	
 	event OnAreaEnter( area : CTriggerAreaComponent, activator : CComponent )

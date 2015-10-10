@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2012
+/** Author : Patryk Fiutowski, Andrzej Kwiatkowski
+/***********************************************************************/
 
 class CBTTaskTaunt extends CBTTaskPlayAnimationEventDecorator
 {
@@ -18,6 +17,7 @@ class CBTTaskTaunt extends CBTTaskPlayAnimationEventDecorator
 	
 	function IsAvailable() : bool
 	{
+		InitializeCombatDataStorage();
 		timeStamp = combatDataStorage.GetTauntTimeStamp();
 		if ( tauntDelay > 0 && timeStamp > 0 && ( timeStamp + tauntDelay > GetLocalTime() ) )
 		{
@@ -36,6 +36,7 @@ class CBTTaskTaunt extends CBTTaskPlayAnimationEventDecorator
 
 	function OnActivate() : EBTNodeStatus
 	{
+		InitializeCombatDataStorage();
 		GetNPC().SetBehaviorVariable( 'TauntType', (int)tauntType );
 		combatDataStorage.SetIsTaunting( true, GetLocalTime() );
 		return super.OnActivate();

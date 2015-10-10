@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2014
+/** Author : Dennis Zoetebier
+/***********************************************************************/
 
 class W3SE_ManageClue extends W3SwitchEvent
 {
@@ -28,7 +27,7 @@ class W3SE_ManageClue extends W3SwitchEvent
 		
 		activator  = ( CActor )node;
 		
-		
+		// If we get entities by handle, handle them.
 		if (clueHandle.Size() > 0)
 		{
 			for( i = 0; i < clueHandle.Size(); i += 1 )
@@ -54,7 +53,7 @@ class W3SE_ManageClue extends W3SwitchEvent
 			}
 		}
 		
-		
+		// If we get entities by tag, handle them.
 		if (clueTag)
 		{
 			theGame.GetEntitiesByTag( clueTag, entities );

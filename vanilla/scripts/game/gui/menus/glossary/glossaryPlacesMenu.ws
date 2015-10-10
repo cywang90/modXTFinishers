@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file - glossary places
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author :		 Bartosz Bigaj
+/***********************************************************************/
 
 class CR4GlossaryPlacesMenu extends CR4ListBaseMenu
 {	
@@ -14,7 +13,7 @@ class CR4GlossaryPlacesMenu extends CR4ListBaseMenu
 	
 	var allEntries						: array<CJournalPlaceGroup>;
 	
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{	
 		var i							: int;
 		var tempEntries					: array<CJournalBase>;
@@ -160,7 +159,7 @@ class CR4GlossaryPlacesMenu extends CR4ListBaseMenu
 		var description : string;
 		var title : string;
 		
-		
+		// #B could add description for creatures group here !!!
 		l_entry = (CJournalPlace)m_journalManager.GetEntryByTag( entryName );
 		description = GetDescription( l_entry );
 		title = GetLocStringById( l_entry.GetNameStringId());	

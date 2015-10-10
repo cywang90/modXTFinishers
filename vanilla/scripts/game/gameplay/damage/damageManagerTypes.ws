@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿// final calculated damage to deal, after resistances etc.
 import struct SProcessedDamage
 {
 	import var vitalityDamage	: Float;
@@ -11,14 +7,14 @@ import struct SProcessedDamage
 	import var staminaDamage	: Float;
 };
 
-
+// Raw (unprocessed) damage struct - type and value
 struct SRawDamage
 {
 	editable var dmgType : name;
 	editable var dmgVal	: Float;
 };
 
-
+// Returns true if provided damage type deals essence damage
 function DamageHitsEssence(damageName : name) : bool
 {
 	switch(damageName)
@@ -34,7 +30,7 @@ function DamageHitsEssence(damageName : name) : bool
 	}
 }
 
-
+// Returns true if provided damage type deals vitality damage
 function DamageHitsVitality(damageName : name) : bool
 {
 	switch(damageName)
@@ -47,20 +43,20 @@ function DamageHitsVitality(damageName : name) : bool
 	}
 }
 
-
+// Returns true if provided damage type deals morale damage
 function DamageHitsMorale(damageName : name) : bool
 {
-	
+	//return DamageHitsVitality( damageName ) || damageName == theGame.params.DAMAGE_NAME_MORALE;
 	return damageName == theGame.params.DAMAGE_NAME_MORALE;
 }
 
-
+// Returns true if provided damage type deals stamina damage
 function DamageHitsStamina(damageName : name) : bool
 {
 	return damageName == theGame.params.DAMAGE_NAME_STAMINA;
 }
 
-
+// Returns the attribute name that holds damage data. The name differs based on attack type
 function GetBasicAttackDamageAttributeName(attackType : name, damageName : name) : name
 {
 	if( DamageHitsVitality(damageName) )

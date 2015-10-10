@@ -1,25 +1,21 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
-
-
-
-
-
-
-
+﻿//>--------------------------------------------------------------------------
+// BTCondSubmersionLevel
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Check how deep in water the Actor is
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// R.Pergent - 30-September-2014
+// Copyright © 2014 CD Projekt RED
+//---------------------------------------------------------------------------
 class BTCondSubmersionLevel extends IBehTreeTask
 {
 	var checkedActor 	: EStatOwner;
 	var value 			: float;
 	var operator 		: EOperator;
 	
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function IsAvailable() : bool
 	{
 		var l_actor			: CActor	= GetNPC();
@@ -52,14 +48,14 @@ class BTCondSubmersionLevel extends IBehTreeTask
 		}
 	}
 }
-
-
+//>----------------------------------------------------------------------
+//-----------------------------------------------------------------------
 class BTCondSubmersionLevelDef extends IBehTreeConditionalTaskDefinition
 {
 	default instanceClass = 'BTCondSubmersionLevel';
-	
-	
-	
+	//>----------------------------------------------------------------------
+	// VARIABLE
+	//-----------------------------------------------------------------------
 	editable var checkedActor 	: EStatOwner;
 	editable var value 			: float;
 	editable var operator 		: EOperator;

@@ -1,9 +1,5 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿
+// Used for horse paperdoll
 
 class W3GuiHorseInventoryComponent extends W3GuiBaseInventoryComponent
 {

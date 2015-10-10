@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-import abstract class IBehTreeOnSpawnEffector extends IBehTreeObjectDefinition
+﻿import abstract class IBehTreeOnSpawnEffector extends IBehTreeObjectDefinition
 {
 	function Run()
 	{
@@ -31,7 +27,7 @@ class SpawnOnHorseEffector extends IBehTreeOnSpawnEffector
 		
 		if ( !horseEntity )
 		{
-			
+			//LogAssert
 			return;
 		}
 		
@@ -39,7 +35,7 @@ class SpawnOnHorseEffector extends IBehTreeOnSpawnEffector
 		
 		if ( !horseComponent )
 		{
-			
+			//LogAssert
 			return;
 		}
 		

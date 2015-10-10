@@ -1,11 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
-
-
-
-
+//Area used to show that the player is entering a new location. On first enter there is a reward given to the player.
 class W3LocationArea extends CGameplayEntity
 {
 	editable var locationNameKey : name;

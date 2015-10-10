@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2012
+/** Author : Patryk Fiutowski
+/***********************************************************************/
 
 class CBehTreeTaskRequiredItems extends IBehTreeTask
 {
@@ -228,7 +227,7 @@ class CBehTreeTaskRequiredItems extends IBehTreeTask
 		
 		combatDataStorage.SetProcessingItems(false);
 		
-		
+		//while for ranged weapons
 		if ( LeftItemType == 'bow' )
 		{
 			while ( isActive )
@@ -305,11 +304,6 @@ class CBehTreeTaskRequiredItems extends IBehTreeTask
 	
 	function PutBoltInHand()
 	{
-		if ( bolt )
-		{
-			return;
-		}
-
 		bolt = (W3ArrowProjectile)theGame.CreateEntity( projEntity, GetActor().GetWorldPosition());
 		bolt.CreateAttachment( GetActor(), 'l_weapon' );
 	}
@@ -364,9 +358,9 @@ class CBehTreeTaskRequiredItemsDef extends IBehTreeTaskDefinition
 {
 	default instanceClass = 'CBehTreeTaskRequiredItems';
 
-	
+	//editable var LeftItemName : CName;
 	editable var LeftItemType : CBehTreeValCName;
-	
+	//editable var RightItemName : CName;
 	editable inlined var RightItemType : CBehTreeValCName;
 	
 	editable var chooseSilverIfPossible : CBehTreeValBool;
@@ -381,8 +375,8 @@ class CBehTreeTaskRequiredItemsDef extends IBehTreeTaskDefinition
 	}
 }
 
-
-
+//////////////////////////////////////////////////////////////////////////////////////////////
+//sheath weapons
 class CBehTreeTaskSheathWeapons extends IBehTreeTask
 {
 	protected var storageHandler : CAIStorageHandler;
@@ -410,19 +404,19 @@ class CBehTreeTaskSheathWeapons extends IBehTreeTask
 		if ( !processLeftItem || !processRightItem )
 		{
 			inventory = GetActor().GetInventory();
-			
+			//check LeftItem
 			itemID = inventory.GetItemFromSlot( 'l_weapon' );
 			
 			if ( inventory.IsItemWeapon(itemID) )
 				processLeftItem = true;
 				
-				
+				//check RightItem
 			itemID = inventory.GetItemFromSlot( 'r_weapon' );
 			if ( inventory.IsItemWeapon(itemID) )
 				processRightItem = true;
 		}
 		
-		
+		//process items if necessary
 		if ( processLeftItem && processRightItem )
 		{
 			GetActor().SetRequiredItems('None','None');
@@ -472,8 +466,8 @@ class CBehTreeTaskSheathWeaponsDef extends IBehTreeTaskDefinition
 }
 
 
-
-
+//////////////////////////////////////////////////////////////////////////////
+//CBehTreeTaskConditionalSheathWeapons
 class CBehTreeTaskConditionalSheathWeapons extends CBehTreeTaskSheathWeapons
 {
 	protected var reactionDataStorage 	: CAIStorageReactionData;

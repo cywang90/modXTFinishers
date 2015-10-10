@@ -1,27 +1,23 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
-
-
-
-
-
-
-
+﻿//>--------------------------------------------------------------------------
+// BTCondIsInGuardArea
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Task description
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// R.Pergent - DD-Month-2014
+// Copyright © 2014 CD Projekt RED
+//---------------------------------------------------------------------------
 class BTCondIsInGuardArea extends IBehTreeTask
 {
-	
-	
-	
+	//>----------------------------------------------------------------------
+	// VARIABLES
+	//-----------------------------------------------------------------------	
 	public var position				: ETargetName;
 	public var namedTarget			: name;
 	public var valueToReturnIfNoGA	: bool;
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	final function IsAvailable() : bool
 	{
 		var l_guardArea : CAreaComponent;
@@ -39,8 +35,8 @@ class BTCondIsInGuardArea extends IBehTreeTask
 			
 		return false;
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	private final function GetTargetPos( _TargetName : ETargetName ) : Vector
 	{
 		var l_pos 		: Vector;
@@ -68,12 +64,12 @@ class BTCondIsInGuardArea extends IBehTreeTask
 }
 
 
-
-
+//>----------------------------------------------------------------------
+//-----------------------------------------------------------------------
 class BTCondIsInGuardAreaDef extends IBehTreeTaskDefinition
 {
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	default instanceClass = 'BTCondIsInGuardArea';
 	
 	private editable var position				: ETargetName;

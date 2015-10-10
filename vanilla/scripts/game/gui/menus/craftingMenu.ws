@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file - alchemy
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author :		 Bartosz Bigaj
+/***********************************************************************/
 class CR4CraftingMenu extends CR4ListBaseMenu
 {	
 	private var m_definitionsManager	: CDefinitionsManagerAccessor;
@@ -22,6 +21,7 @@ class CR4CraftingMenu extends CR4ListBaseMenu
 	private var m_fxHideContent	 		: CScriptedFlashFunction;
 	private var m_fxSetFilters			: CScriptedFlashFunction;
 	private var m_fxSetPinnedRecipe		: CScriptedFlashFunction;
+	private var m_fxSetMerchantCheck	: CScriptedFlashFunction;
 	
 	default bCouldCraft 			= false;
 	
@@ -31,7 +31,7 @@ class CR4CraftingMenu extends CR4ListBaseMenu
 	
 	var itemsQuantity 						: array< int >;
 	
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{	
 		var commonMenu 				: CR4CommonMenu;
 		var l_obj		 			: IScriptable;
@@ -62,7 +62,7 @@ class CR4CraftingMenu extends CR4ListBaseMenu
 		}
 		_craftsmanComponent = (W3CraftsmanComponent)l_npc.GetComponentByClassName('W3CraftsmanComponent');
 		
-		
+		//call tutorial event again - it needs initialized _craftsmanComponent
 		if(theGame.GetTutorialSystem() && theGame.GetTutorialSystem().IsRunning())		
 		{
 			theGame.GetTutorialSystem().uiHandler.OnOpeningMenu(GetMenuName());
@@ -77,6 +77,7 @@ class CR4CraftingMenu extends CR4ListBaseMenu
 		m_fxHideContent = m_flashModule.GetMemberFlashFunction("hideContent");
 		m_fxSetFilters = m_flashModule.GetMemberFlashFunction("SetFiltersValue");
 		m_fxSetPinnedRecipe = m_flashModule.GetMemberFlashFunction("setPinnedRecipe");
+		m_fxSetMerchantCheck = m_flashModule.GetMemberFlashFunction("setMerchantTypeCheck");
 		
 		l_craftingFilters = theGame.GetGuiManager().GetCraftingFilters();
 		m_fxSetFilters.InvokeSelfSixArgs(FlashArgString(GetLocStringByKeyExt("gui_panel_filter_has_ingredients")), FlashArgBool(l_craftingFilters.showCraftable), 
@@ -97,17 +98,17 @@ class CR4CraftingMenu extends CR4ListBaseMenu
 		
 		PopulateData();
 		
-		
+		//SelectCurrentModule(); // #Y List should be always selected by default
 		SelectFirstModule();
 	}
 
-	event  OnClosingMenu()
+	event /* C++ */ OnClosingMenu()
 	{
 		super.OnClosingMenu();
 		theGame.GetGuiManager().SetLastOpenedCommonMenuName( GetMenuName() );
 	}
 
-	event  OnCloseMenu() 
+	event /*flash*/ OnCloseMenu() //#B
 	{
 		var commonMenu : CR4CommonMenu;
 		
@@ -117,44 +118,44 @@ class CR4CraftingMenu extends CR4ListBaseMenu
 			commonMenu.ChildRequestCloseMenu();
 		}
 		
-		theSound.SoundEvent( 'gui_global_quit' ); 
+		theSound.SoundEvent( 'gui_global_quit' ); // #B sound - quit - find better place
 		CloseMenu();
 	}
 
-	event  OnEntryRead( tag : name )
+	event /*flash*/ OnEntryRead( tag : name )
 	{
-		
-		
-		
+		//var journalEntry : CJournalBase;
+		//journalEntry = m_journalManager.GetEntryByTag( tag );
+		//m_journalManager.SetEntryUnread( journalEntry, false );
 	}
 	
-	event  OnStartCrafting()
+	event /*flash*/ OnStartCrafting()
 	{
 		OnPlaySoundEvent("gui_crafting_craft_item");
 	}
 	
-	event  OnCraftItem( tag : name )
+	event /*flash*/ OnCraftItem( tag : name )
 	{
 		CreateItem(tag);
 	}
 	
-	event  OnEntryPress( tag : name )
+	event /*flash*/ OnEntryPress( tag : name )
 	{
-		
+		//CreateItem(tag);
 	}
 	
-	event  OnCraftingFiltersChanged( showHasIngre : bool, showMissingIngre : bool, showAlreadyCrafted : bool )
+	event /*flash*/ OnCraftingFiltersChanged( showHasIngre : bool, showMissingIngre : bool, showAlreadyCrafted : bool )
 	{
 		theGame.GetGuiManager().SetCraftingFilters(showHasIngre, showMissingIngre, showAlreadyCrafted);
 	}
 	
-	event  OnEmptyCheckListCloseFailed()
+	event /*flash*/ OnEmptyCheckListCloseFailed()
 	{
 		showNotification(GetLocStringByKeyExt("gui_missing_filter_error"));
 		OnPlaySoundEvent("gui_global_denied");
 	}
 	
-	event  OnChangePinnedRecipe( tag : name )
+	event /*flash*/ OnChangePinnedRecipe( tag : name )
 	{
 		if (tag != '')
 		{
@@ -163,7 +164,7 @@ class CR4CraftingMenu extends CR4ListBaseMenu
 		theGame.GetGuiManager().SetPinnedCraftingRecipe(tag);
 	}
 
-	event   OnEntrySelected( tag : name ) 
+	event /*flash*/ /*override*/ OnEntrySelected( tag : name ) // #B common
 	{
 		if (tag != '')
 		{
@@ -178,7 +179,7 @@ class CR4CraftingMenu extends CR4ListBaseMenu
 		}
 	}
 	
-	event  OnShowCraftedItemTooltip( tag : name )
+	event /*flash*/ OnShowCraftedItemTooltip( tag : name )
 	{
 	}
 	
@@ -190,7 +191,7 @@ class CR4CraftingMenu extends CR4ListBaseMenu
 		var actualSchematic : SCraftingSchematic;
 		
 		result = ECE_CookNotAllowed;
-	
+		
 		if( bCouldCraft )
 		{
 			result = m_craftingManager.Craft( schematic, item );
@@ -248,8 +249,43 @@ class CR4CraftingMenu extends CR4ListBaseMenu
 		var l_IsNew					: bool;
 		var canCraftResult			: ECraftingException;
 		
+		//for cookable count
+		var cookableType			: name;
+		var cookable				: SCraftable;
+		var cookables				: array<SCraftable>;
+		var exists					: bool;
+		var j, cookableCount		: int;
+
 		l_DataFlashArray = m_flashValueStorage.CreateTempFlashArray();
 		length = m_schematicList.Size();
+		
+		//count cookable items
+		for(i=0; i<length; i+=1)
+		{
+			if(m_craftingManager.CanCraftSchematic(m_schematicList[i], bCouldCraft) == ECE_NoException && m_craftingManager.GetSchematic(m_schematicList[i],schematic))
+			{
+				exists = false;
+				cookableType = m_definitionsManager.GetItemCategory( schematic.craftedItemName );
+				
+				for(j=0; j<cookables.Size(); j+=1)
+				{
+					if(cookables[j].type == cookableType)
+					{
+						cookables[j].cnt += 1;
+						exists = true;
+						break;
+					}					
+				}
+				
+				if(!exists)
+				{
+					cookable.type = cookableType;
+					cookable.cnt = 1;
+					cookables.PushBack(cookable);
+				}				
+			}
+		}
+		
 		
 		for( i = 0; i < length; i+= 1 )
 		{	
@@ -258,23 +294,43 @@ class CR4CraftingMenu extends CR4ListBaseMenu
 			if(	m_craftingManager.GetSchematic(schematicName,schematic) )
 			{
 				l_GroupTag = m_definitionsManager.GetItemCategory( schematic.craftedItemName );
-				l_GroupTitle = GetLocStringByKeyExt(  "item_category_"+l_GroupTag  );	
+				l_GroupTitle = GetLocStringByKeyExt(  "item_category_" + l_GroupTag  );
 			
-				l_Title = GetLocStringByKeyExt( m_definitionsManager.GetItemLocalisationKeyName( schematic.schemName ) ) ;	
+				l_Title = GetLocStringByKeyExt( m_definitionsManager.GetItemLocalisationKeyName( schematic.craftedItemName ) ) ;	
 				l_IconPath = m_definitionsManager.GetItemIconPath(schematic.craftedItemName);
 				l_IsNew	= false;
 				l_Tag = schematic.schemName;
 			
+				//add amount of cookable items after group name, e.g. "Bombs (3)"
+				cookableCount = 0;
+				for(j=0; j<cookables.Size(); j+=1)
+				{
+					if(cookables[j].type == l_GroupTag)
+					{
+						cookableCount = cookables[j].cnt;
+						break;
+					}
+				}
+			
 				l_DataFlashObject = m_flashValueStorage.CreateTempFlashObject();
+				
+				if(cookableCount > 0)
+				{
+					l_DataFlashObject.SetMemberFlashString(  "categoryPostfix", " (" + cookableCount + ")" );
+				}
+				else
+				{
+					l_DataFlashObject.SetMemberFlashString(  "categoryPostfix", "" );
+				}
 			
 				l_DataFlashObject.SetMemberFlashUInt(  "tag", NameToFlashUInt(l_Tag) );
 				l_DataFlashObject.SetMemberFlashString(  "dropDownLabel", l_GroupTitle );
 				l_DataFlashObject.SetMemberFlashUInt(  "dropDownTag",  NameToFlashUInt(l_GroupTag) );
-				l_DataFlashObject.SetMemberFlashBool(  "dropDownOpened", true ); 
+				l_DataFlashObject.SetMemberFlashBool(  "dropDownOpened", true ); // IsCategoryOpened( l_GroupTag )
 				l_DataFlashObject.SetMemberFlashString(  "dropDownIcon", "icons/monsters/ICO_MonsterDefault.png" );
 				
 				l_DataFlashObject.SetMemberFlashBool( "isNew", l_IsNew );
-				
+				//l_DataFlashObject.SetMemberFlashBool( "selected", (l_Tag == currentTag) );			
 				l_DataFlashObject.SetMemberFlashString(  "label", l_Title );
 				l_DataFlashObject.SetMemberFlashString(  "iconPath", l_IconPath );
 				
@@ -292,19 +348,19 @@ class CR4CraftingMenu extends CR4ListBaseMenu
 				l_DataFlashObject.SetMemberFlashBool( "isSchematic", true );
 				l_DataFlashObject.SetMemberFlashInt( "canCookStatus", canCraftResult);
 				
-				
-				
-				
-				
+				//if it's a wrong craftsman type we'll push all schematics at the bottom of the list for better navigation
+				//if(canCraftResult == ECE_WrongCraftsmanType)
+				//	wrongCraftsmanItems.PushBack(l_DataFlashObject);
+				//else
 					l_DataFlashArray.PushBackFlashObject(l_DataFlashObject); 
 			}
 		}
 		
-		
-		
-		
-		
-		
+		//get non-craftable items due to wrong craftsman type
+		//for(i=0; i<wrongCraftsmanItems.Size(); i+=1)
+		//{
+		//	l_DataFlashArray.PushBackFlashObject(wrongCraftsmanItems[i]);
+		//}
 		
 		if( l_DataFlashArray.GetLength() > 0 )
 		{
@@ -325,14 +381,14 @@ class CR4CraftingMenu extends CR4ListBaseMenu
 		m_flashValueStorage.SetFlashObject("crafting.merchant.info", l_merchantData);
 	}
 
-	function  UpdateDescription( tag : name )
+	function /*override*/ UpdateDescription( tag : name )
 	{
 		var description : string;
 		var title : string;
-		
+		//var id : int;
 		var schematic : SCraftingSchematic;
 		
-		
+		//id = FindSchematicID(tag);
 		m_craftingManager.GetSchematic(tag,schematic);
 		
 		title = GetLocStringByKeyExt(m_definitionsManager.GetItemLocalisationKeyName(schematic.craftedItemName));	
@@ -347,7 +403,7 @@ class CR4CraftingMenu extends CR4ListBaseMenu
 		m_flashValueStorage.SetFlashString(DATA_BINDING_NAME_DESCRIPTION+".text",description);	
 	}	
 	
-	function  UpdateItems( tag : name )
+	function /*override*/ UpdateItems( tag : name )
 	{
 		var itemsFlashArray			: CScriptedFlashArray;
 		var i : int;
@@ -387,7 +443,10 @@ class CR4CraftingMenu extends CR4ListBaseMenu
 		var levelColor			: string;
 		var crafterRequirements : string;
 		var rarity				: int;
-		var canCraftResult		: ECraftingException;		
+		var enhancementSlots	: int;
+		var canCraftResult		: ECraftingException;
+		var wrongCraftsmanLevel : bool;
+		var wrongCraftsmanType  : bool;
 		
 		m_craftingManager.GetSchematic(tag, schematic);
 		itemName = schematic.craftedItemName;
@@ -403,15 +462,22 @@ class CR4CraftingMenu extends CR4ListBaseMenu
 		
 		crafterRequirements = GetLocStringByKeyExt( CraftsmanTypeToLocalizationKey( schematic.requiredCraftsmanType ) );
 		
+		wrongCraftsmanLevel = false;
+		wrongCraftsmanType = false;
 		if (bCouldCraft)
 		{
 			if(canCraftResult == ECE_TooLowCraftsmanLevel)
 			{
 				levelColor = "<font color='#E34040'>";
+				wrongCraftsmanLevel = true;
 			}
 			else
 			{
 				levelColor = "<font color='#949494'>";
+			}
+			if (canCraftResult == ECE_WrongCraftsmanType)
+			{
+				wrongCraftsmanType = true;
 			}
 			crafterRequirements += (" / " + levelColor + GetLocStringByKeyExt( CraftsmanLevelToLocalizationKey( schematic.requiredCraftsmanLevel ) ) + "</font>" );
 		}
@@ -420,12 +486,14 @@ class CR4CraftingMenu extends CR4ListBaseMenu
 			crafterRequirements += (" / " + GetLocStringByKeyExt( CraftsmanLevelToLocalizationKey( schematic.requiredCraftsmanLevel ) ) );
 		}
 		
+		m_fxSetMerchantCheck.InvokeSelfTwoArgs(FlashArgBool(wrongCraftsmanLevel), FlashArgBool(wrongCraftsmanType));
 		
 		crafterDesc = l_DataFlashObject.GetMemberFlashString("itemDescription");
 		l_DataFlashObject.SetMemberFlashString("crafterRequirements", crafterRequirements);
 		l_DataFlashObject.SetMemberFlashString("itemDescription", crafterDesc);
 		
 		rarity = l_DataFlashObject.GetMemberFlashInt("rarityId");
+		enhancementSlots = l_DataFlashObject.GetMemberFlashInt("enhancementSlots");
 		
 		m_flashValueStorage.SetFlashObject("blacksmithing.menu.crafted.item.tooltip", l_DataFlashObject);
 		
@@ -461,10 +529,10 @@ class CR4CraftingMenu extends CR4ListBaseMenu
 			priceStr = "";
 		}
 		
-		m_fxSetCraftedItem.InvokeSelfSevenArgs(FlashArgUInt(NameToFlashUInt(schematic.schemName)), FlashArgString(itemNameLoc), FlashArgString(imgPath), FlashArgBool(canCraft), FlashArgInt(gridSize), FlashArgString(priceStr), FlashArgInt(rarity));
+		m_fxSetCraftedItem.InvokeSelfEightArgs(FlashArgUInt(NameToFlashUInt(schematic.schemName)), FlashArgString(itemNameLoc), FlashArgString(imgPath), FlashArgBool(canCraft), FlashArgInt(gridSize), FlashArgString(priceStr), FlashArgInt(rarity), FlashArgInt(enhancementSlots));
 	}
 	
-	public  function FillItemInformation(flashObject : CScriptedFlashObject, index:int) : void
+	public /*override*/ function FillItemInformation(flashObject : CScriptedFlashObject, index:int) : void
 	{	
 		super.FillItemInformation(flashObject, index);
 		
@@ -478,7 +546,7 @@ class CR4CraftingMenu extends CR4ListBaseMenu
 	
 	function PlayOpenSoundEvent()
 	{
-		
-		
+		// Common Menu takes care of this for us
+		//OnPlaySoundEvent("gui_global_panel_open");	
 	}
 }

@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Copyright © 2013 CD Projekt RED
+/** Author : Patryk Fiutowski, Andrzej Kwiatkowski
+/***********************************************************************/
 
 class CBTTaskIfTargetHasEffect extends IBehTreeTask
 {
@@ -47,8 +46,9 @@ class CBTTaskIfTargetHasEffectDef extends IBehTreeTaskDefinition
 	default useCombatTarget = true;
 };
 
-
-
+/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
 
 class CBTTaskIfTargetHasEffects extends IBehTreeTask
 {
@@ -102,8 +102,9 @@ class CBTTaskIfTargetHasEffectsDef extends IBehTreeTaskDefinition
 };
 
 
-
-
+/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
 
 class CBTTaskHasEffects extends IBehTreeTask
 {

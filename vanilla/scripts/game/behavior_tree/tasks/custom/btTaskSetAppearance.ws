@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Copyright © 2013 CD Projekt RED
+/** Author : Andrzej Kwiatkowski
+/***********************************************************************/
 
 class CBTTaskSetAppearance extends IBehTreeTask
 {
@@ -12,6 +11,7 @@ class CBTTaskSetAppearance extends IBehTreeTask
 	var previousAppearance 	: name;
 	var onActivate			: bool;
 	var onDeactivate		: bool;
+	var onSuccess 			: bool;
 	var onAnimEvent			: bool;
 	var overrideForTask		: bool;
 	var eventName			: name;
@@ -46,6 +46,14 @@ class CBTTaskSetAppearance extends IBehTreeTask
 		}
 	}
 	
+	function OnCompletion( success : bool )
+	{
+		var actor : CActor = GetActor();
+		
+		if ( onSuccess && success )
+			actor.SetAppearance( appearanceName );
+	}
+	
 	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo ) : bool
 	{
 		var actor : CActor = GetActor();
@@ -70,6 +78,7 @@ class CBTTaskSetAppearanceDef extends IBehTreeTaskDefinition
 	editable var appearanceName		: name;
 	editable var onActivate			: bool;
 	editable var onDeactivate		: bool;
+	editable var onSuccess 			: bool;
 	editable var onAnimEvent		: bool;
 	editable var overrideForTask	: bool;
 	editable var eventName			: name;

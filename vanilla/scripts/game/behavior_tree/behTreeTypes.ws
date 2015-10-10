@@ -1,8 +1,15 @@
 ﻿/*
-Copyright © CD Projekt RED 2015
+enum EBTNodeStatus
+{
+	BTNS_Invalid,
+	BTNS_New,
+	BTNS_Active,
+	BTNS_Failed,
+	BTNS_Completed,
+	BTNS_Aborted,
+	BTNS_RepeatTree,	
+};
 */
-
-
 
 class W3BehTreeValNameArray extends IScriptable
 {

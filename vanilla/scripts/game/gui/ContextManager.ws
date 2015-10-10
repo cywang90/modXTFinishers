@@ -1,16 +1,12 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3UIContext extends CObject
+﻿class W3UIContext extends CObject
 {
-	
+	// current context bindings
 	protected var m_inputBindings : array<SKeyBinding>;	
-	
+	// context bindings for context menu
 	protected var m_contextBindings : array<SKeyBinding>;
 	protected var m_managerRef    : W3ContextManager;
 
-	
+	// virtual
 	public function HandleUserFeedback(keyName:string) {}
 	
 	public function Deactivate() 
@@ -64,7 +60,9 @@ class W3UIContext extends CObject
 	}	
 }
 
-
+/*
+	MANAGER
+*/
 
 class W3ContextManager extends CObject
 {
@@ -87,7 +85,7 @@ class W3ContextManager extends CObject
 	{
 		if (m_currentContext)
 		{
-			m_currentContext.HandleUserFeedback(navCode); 
+			m_currentContext.HandleUserFeedback(navCode); // + actionId
 		}
 	}
 	

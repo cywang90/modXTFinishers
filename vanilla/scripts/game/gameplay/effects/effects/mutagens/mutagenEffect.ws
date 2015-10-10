@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2015
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 abstract class W3Mutagen_Effect extends CBaseGameplayEffect
 {
@@ -17,9 +15,11 @@ abstract class W3Mutagen_Effect extends CBaseGameplayEffect
 	event OnEffectAdded(optional customParams : W3BuffCustomParams)
 	{
 		var mutParams : W3MutagenBuffCustomParams;
+		var witcher : W3PlayerWitcher;
 		
-		
-		if(target != GetWitcherPlayer())
+		//only works for Geralt
+		witcher = GetWitcherPlayer();
+		if(target != witcher)
 		{
 			isActive = false;
 			return false;
@@ -31,18 +31,37 @@ abstract class W3Mutagen_Effect extends CBaseGameplayEffect
 		if(mutParams)
 		{
 			toxicityOffset = mutParams.toxicityOffset;
-			GetWitcherPlayer().AddToxicityOffset(toxicityOffset);
+			witcher.AddToxicityOffset(toxicityOffset);
 		}
 		else
 		{
 			toxicityOffset = 0;
 		}
+		
+		if(witcher.CanUseSkill(S_Alchemy_s13))
+		{
+			witcher.AddAbilityMultiple(witcher.GetSkillAbilityName(S_Alchemy_s13), witcher.GetSkillLevel(S_Alchemy_s13));
+		}
 	}
 	
 	event OnEffectRemoved()
 	{
-		GetWitcherPlayer().RemoveToxicityOffset(toxicityOffset);
+		var witcher : W3PlayerWitcher;
+		
+		witcher = GetWitcherPlayer();
+		witcher.RemoveToxicityOffset(toxicityOffset);
+		
+		if(witcher.CanUseSkill(S_Alchemy_s13))
+		{
+			witcher.RemoveAbilityMultiple(witcher.GetSkillAbilityName(S_Alchemy_s13), witcher.GetSkillLevel(S_Alchemy_s13));
+		}
+		
 		super.OnEffectRemoved();
+	}
+	
+	public final function GetToxicityOffset() : float
+	{
+		return toxicityOffset;
 	}
 }
 

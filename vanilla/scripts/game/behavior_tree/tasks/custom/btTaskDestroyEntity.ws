@@ -1,10 +1,10 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskDestroyEntity extends IBehTreeTask
+﻿class CBTTaskDestroyEntity extends IBehTreeTask
 {
 	var entityTag : name;
+	var effectName	: name;
+	var playEffect	: bool;
+	
+	default playEffect = false;
 	
 	function OnActivate() : EBTNodeStatus
 	{
@@ -24,6 +24,10 @@ class CBTTaskDestroyEntity extends IBehTreeTask
 			
 		if( entity )
 		{
+			if( playEffect )
+			{
+				entity.PlayEffect('effectName');
+			}
 			entity.Destroy();
 		}
 	}
@@ -33,4 +37,6 @@ class CBTTaskDestroyEntityDef extends IBehTreeTaskDefinition
 {
 	default instanceClass = 'CBTTaskDestroyEntity';
 	editable var entityTag : name;
+	editable var effectName	: name;
+	editable var playEffect	: bool;
 };

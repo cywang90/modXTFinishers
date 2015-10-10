@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 class W3Effect_OverEncumbered extends CBaseGameplayEffect
 {
@@ -30,7 +28,7 @@ class W3Effect_OverEncumbered extends CBaseGameplayEffect
 		
 		((CR4Player)target).BlockAction( EIAB_RunAndSprint, 'OverEncumbered', true );
 		
-		
+		//ShowHudMessage();
 	}
 	
 	event OnEffectRemoved()
@@ -44,8 +42,21 @@ class W3Effect_OverEncumbered extends CBaseGameplayEffect
 	{
 		super.OnUpdate(dt);
 		
-		
+		/*timeSinceLastMessage += dt;
+		if(timeSinceLastMessage >= OVERWEIGHT_MESSAGE_DELAY && !target.GetUsedVehicle())
+		{
+			ShowHudMessage();			
+		}*/
 	}
 	
-	
+	/*private final function ShowHudMessage()
+	{
+		//it's not that important so if something is shown then don't add this to queue
+		if(thePlayer.GetHudMessagesSize() == 0)
+		{
+			thePlayer.DisplayHudMessage(GetLocStringByKeyExt("panel_hud_message_overweight"));
+		}
+		
+		timeSinceLastMessage = 0;
+	}*/
 }

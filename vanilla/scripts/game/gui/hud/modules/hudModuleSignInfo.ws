@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CR4HudModuleSignInfo extends CR4HudModuleBase 
+﻿class CR4HudModuleSignInfo extends CR4HudModuleBase // #B deprecated - for remove
 {
 	private var _iconName : string;
 	private var _CurrentSelectedSign : ESignType;
@@ -10,7 +6,7 @@ class CR4HudModuleSignInfo extends CR4HudModuleBase
 	private var m_fxEnableSFF : CScriptedFlashFunction;
 
 
-	 event OnConfigUI()
+	/* flash */ event OnConfigUI()
 	{
 		var flashModule : CScriptedFlashSprite;
 		

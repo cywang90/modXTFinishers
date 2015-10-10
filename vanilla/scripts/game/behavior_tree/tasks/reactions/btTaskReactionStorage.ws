@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskReactionStorage extends IBehTreeTask
+﻿class CBTTaskReactionStorage extends IBehTreeTask
 {
 	protected var storageHandler 		: CAIStorageHandler;
 	protected var reactionDataStorage 	: CAIStorageReactionData;
@@ -72,8 +68,8 @@ class CBTTaskReactionStorageDef extends IBehTreeReactionTaskDefinition
 	editable var reset			: bool;
 }
 
-
-
+/////////////////////////////////////////////////////////
+// CBehTreeTaskCombatStorageCleanup
 class CBehTreeTaskReactionStorageCleanup extends IBehTreeTask
 {
 	protected var storageHandler 		: CAIStorageHandler;

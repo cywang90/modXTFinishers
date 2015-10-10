@@ -1,14 +1,15 @@
-﻿/*
-Copyright © CD Projekt RED 2015
+﻿/***********************************************************************/
+/** Copyright © 2012-2014
+/** Author : ?, Tomek Kozera
+/***********************************************************************/
+
+/*
+	When using proximity make sure to set proximity activation range smaller than the blast range. In other case 
+	if a group of enemies enters the trigger only the first in line would get hit - we don't want that.
 */
-
-
-
-
-
 class W3Petard extends CThrowable
 {
-	
+	//-----------------------------   EDITABLES  -----------------------------------------
 	protected editable var cameraShakeStrMin 				: float;
 	protected editable var cameraShakeStrMax 				: float;
 	protected editable var cameraShakeRange 				: float;
@@ -33,24 +34,24 @@ class W3Petard extends CThrowable
 		hint clusterFX = "Name of FX to play when bomb cleaves into clusters";
 		hint friendlyFire = "If set then the one who created bomb explosion will also be affected by it";
 	
+	//-----------------------------   NON - EDITABLES  -----------------------------------------
+	private const var FX_TRAIL 						: name;						//name of trail fx
+	private const var FX_CLUSTER 					: name;						//name of cluster cleave-explosion fx
 	
-	private const var FX_TRAIL 						: name;						
-	private const var FX_CLUSTER 					: name;						
-	
-	protected var itemName							: name;						
-	private var targetPos 							: Vector;					
-	private var isProximity							: bool;						
-	private var isInWater							: bool;						
-	private var isInDeepWater  						: bool;						
-	private var isStuck								: bool;						
-	private var isCluster							: bool;						
-	private var justPlayingFXs						: array<name>;				
-	protected var loopDuration						: float;					
-	protected var snapCollisionGroupNames 			: array<name>;				
-	protected var stopCollisions					: bool;						
-	protected var previousTargets					: array<CGameplayEntity>;	
-	protected var targetsSinceLastCheck				: array<CGameplayEntity>;	
-	private var	wasInTutorialTrigger				: bool;						
+	protected var itemName							: name;						//thrown petard's item name
+	private var targetPos 							: Vector;					//vector of target, need to store it as the projectiles must be released with 1-frame delay (entity attaching)
+	private var isProximity							: bool;						//if true then the bomb will work in proximity mode
+	private var isInWater							: bool;						//set if bomb is in water
+	private var isInDeepWater  						: bool;						//set when bomb is in 'deep water' (>1m)
+	private var isStuck								: bool;						//set to true when proximity bomb has stuck onto something
+	protected var isCluster							: bool;						//set to true if given instance is from cluster skill
+	private var justPlayingFXs						: array<name>;				//set after petard is processed but still plays fx - holds array of names of FX played
+	protected var loopDuration						: float;					//duration of loop effect
+	protected var snapCollisionGroupNames 			: array<name>;				//array of collision group names to use when snapping FXs
+	protected var stopCollisions					: bool;						//set after collision is processed to stop further collision events
+	protected var previousTargets					: array<CGameplayEntity>;	//array of targets hit in previous tick
+	protected var targetsSinceLastCheck				: array<CGameplayEntity>;	//array of targets found in current tick - updates ONLY when the loop updates!
+	private var	wasInTutorialTrigger				: bool;						//needed for aim mode tutorial
 	
 		default isStuck = false;
 		default isCluster = false;
@@ -62,9 +63,9 @@ class W3Petard extends CThrowable
 		default FX_CLUSTER = 'fx_cluster_cleave';
 		default dodgeable = true;
 		
-	
-	
-	
+	//////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////  THROWING  /////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////
 	event OnDestroyed()
 	{
 		ProcessPetardDestruction();
@@ -89,14 +90,14 @@ class W3Petard extends CThrowable
 					if (!GetOwner().HasBuff(EET_Hypnotized) && (orientationTarget == OT_Camera || orientationTarget == OT_CameraOffset) )
 						throwPos = theCamera.GetCameraDirection() * 8 + GetOwner().GetWorldPosition();
 					else
-						throwPos = GetOwner().GetWorldForward() * 8 + GetOwner().GetWorldPosition();		
+						throwPos = GetOwner().GetWorldForward() * 8 + GetOwner().GetWorldPosition();		//else 8m in front of the player						
 				}
 			}			
 			else
 			{
 				slideTargetActor = (CActor)( GetOwner().slideTarget );
 			
-				
+				// Throw at target's pelvis, if not found then at target in general. If no target or has hypnotize throw 8m in front of character
 				if( GetOwner().slideTarget && !GetOwner().HasBuff(EET_Hypnotized) &&
 					( !slideTargetActor || ( slideTargetActor && GetAttitudeBetween(GetOwner(), GetOwner().slideTarget) == AIA_Hostile ) ) )
 				{
@@ -113,7 +114,7 @@ class W3Petard extends CThrowable
 					if (!GetOwner().HasBuff(EET_Hypnotized) && (orientationTarget == OT_Camera || orientationTarget == OT_CameraOffset) )
 						throwPos = theCamera.GetCameraDirection() * 8 + GetOwner().GetWorldPosition();
 					else
-						throwPos = GetOwner().GetWorldForward() * 8 + GetOwner().GetWorldPosition();		
+						throwPos = GetOwner().GetWorldForward() * 8 + GetOwner().GetWorldPosition();		//else 8m in front of the player						
 				}
 			}
 			
@@ -170,7 +171,7 @@ class W3Petard extends CThrowable
 			jSize = atts.Size();
 			for( j = 0; j < jSize; j += 1 )
 			{
-				
+				//buff
 				if( IsEffectNameValid( atts[j] ) )
 				{
 					EffectNameToType(atts[j], type, customAbilityName);
@@ -190,7 +191,7 @@ class W3Petard extends CThrowable
 					disabledAbility.abilityName = atts[j];
 					disabledAbility.timeWhenEnabledd = abilityDisableDuration;
 					
-					
+					//if not set then inf
 					if(disabledAbility.timeWhenEnabledd == 0)
 						disabledAbility.timeWhenEnabledd = -1;
 					
@@ -205,7 +206,7 @@ class W3Petard extends CThrowable
 			jSize = atts.Size();
 			for( j = 0; j < jSize; j += 1 )
 			{
-				
+				//damage
 				if(IsDamageTypeNameValid(atts[j]))
 				{				
 					dmgRaw.dmgVal = CalculateAttributeValue(inv.GetItemAttributeValue(itemId, atts[j]));
@@ -221,7 +222,7 @@ class W3Petard extends CThrowable
 				}
 			}
 			
-			
+			//ignore armor, if has any damage
 			if(isLoopAbility && loopParams.damages.Size() > 0)
 			{
 				loopParams.ignoresArmor = atts.Contains('ignoreArmor');
@@ -233,15 +234,15 @@ class W3Petard extends CThrowable
 		}
 	}
 	
-	
-	
-	
+	// OVERRIDES PARENT
+	// we break attachment when the item is thrown. In this case the throwing
+	// is on a delayed timer.
 	public function ThrowProjectile( targetPosIn : Vector )
 	{		
 		var phantom : CPhantomComponent;
 		var inv : CInventoryComponent;
 			
-		
+		//cache snapping collision group names
 		phantom = (CPhantomComponent)GetComponent('snappingCollisionGroupNames');
 		if(phantom)
 		{
@@ -253,17 +254,17 @@ class W3Petard extends CThrowable
 			snapCollisionGroupNames.PushBack('Static');
 		}
 		
-		
+		//load data from item stats
 		LoadDataFromItemXMLStats();		
 	
 		targetPos = targetPosIn;
 		
-		isProximity = false;
+		isProximity = false;//((W3PlayerWitcher)owner && GetWitcherPlayer().CanUseSkill(PROXIMITY_BOMBS));
 		
-		
+		// bombs need to be attached first in order to be released (in the next frame)
 		AddTimer( 'ReleaseProjectile', 0.01, false, , , true );
 		
-		
+		//remove item
 		if ( GetOwner() != thePlayer )
 		{
 			inv = GetOwner().GetInventory();
@@ -272,11 +273,11 @@ class W3Petard extends CThrowable
 		}
 		else
 		{
-			
+			//remove items from inventory
 			if(!FactsDoesExist("debug_fact_inf_bombs"))
 				thePlayer.inv.SingletonItemRemoveAmmo(itemId, 1);
 				
-			
+			//clear selected item on HUD if player has no more items
 			if( thePlayer.inv.GetItemQuantity(itemId) < 1 )		
 				thePlayer.ClearSelectedItemId();
 			else
@@ -287,7 +288,7 @@ class W3Petard extends CThrowable
 		}
 	}
 	
-	
+	//releases the projectile
 	timer function ReleaseProjectile( time : float , id : int)
 	{
 		var distanceToTarget, projectileFlightTime : float;
@@ -322,7 +323,7 @@ class W3Petard extends CThrowable
 			{
 				distanceToTarget = VecDistance( thePlayer.GetWorldPosition(), target.GetWorldPosition() );	
 				
-				
+				// used to dodge projectile before it hits
 				projectileFlightTime = distanceToTarget / 15;
 				target.SignalGameplayEventParamFloat( 'Time2DodgeBomb', projectileFlightTime );
 			}
@@ -334,35 +335,39 @@ class W3Petard extends CThrowable
 		wasThrown = true;
 	}
 	
+	//////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////  TRIGGERING  ///////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
-	
-	
+	//if collision then add proximity timer or activate
 	event OnProjectileCollision( pos, normal : Vector, collidingComponent : CComponent, hitCollisionsGroups : array< name >, actorIndex : int, shapeIndex : int )
 	{
 		var depthTestPos, petardPos, collisionPos, collisionNormal : Vector;
 		var template : CEntityTemplate;
 		var npc : CNewNPC;
 		var victim : CActor;
+		var entity : CEntity;
 		
 		if(stopCollisions)
 			return true;
+			
+		if(collidingComponent)
+			entity = collidingComponent.GetEntity();
 		
-		
-		if(collidingComponent && collidingComponent.GetEntity() == GetOwner())
+		//ignore collision with owner
+		if(entity == GetOwner())
 			return true;
 			
 		if(collidingComponent)
 		{
-			victim = (CActor)(collidingComponent.GetEntity());
+			victim = (CActor)entity;
 			npc = (CNewNPC)(victim);
 		}
 			
 		if ( !CanCollideWithVictim( victim ) )
 			return true;
 		
-		
+		// for enemies reflectint projectiles
 		if ( npc && npc.HasAbility( 'RepulseProjectiles' ) )
 		{
 			bounceOfVelocityPreserve = 0.8;
@@ -372,7 +377,7 @@ class W3Petard extends CThrowable
 			return true;
 		}
 		
-		
+		// destroying shield with Grapeshots 2 and 3
 		if( itemName == 'Grapeshot 2' || itemName == 'Grapeshot 3' )
 		{
 			if( npc && npc.IsShielded( thePlayer ) )
@@ -381,11 +386,11 @@ class W3Petard extends CThrowable
 			}
 		}
 		
-		
-		
-		theGame.VibrateControllerVeryHard();	
+		//vibra if any grapeshot
+		//if(StrFindFirst( NameToString(itemName), "Grapeshot" ) >= 0)
+		theGame.VibrateControllerVeryHard();	//bombs
 			
-		
+		//ignore collision with water
 		if ( hitCollisionsGroups.Contains( 'Water' ) )
 		{
 			if(isInWater)
@@ -400,7 +405,7 @@ class W3Petard extends CThrowable
 			if ( !theGame.GetWorld().StaticTrace(petardPos, depthTestPos, collisionPos, collisionNormal, snapCollisionGroupNames) )
 				isInDeepWater = true;
 			
-			
+			//create splash fx if petard is in deep water
 			if(isInDeepWater)
 			{
 				template = (CEntityTemplate)LoadResource("water_splash_small");
@@ -412,7 +417,7 @@ class W3Petard extends CThrowable
 			return true;
 		}
 		
-		
+		//stop flying if hit something other than water
 		StopFlying();		
 			
 		if(isProximity || FactsQuerySum('debug_petards_proximity') > 0)
@@ -425,7 +430,7 @@ class W3Petard extends CThrowable
 		}
 		else
 		{
-			ProcessEffect( pos, (CGameplayEntity)collidingComponent.GetEntity() );
+			ProcessEffect( pos, (CGameplayEntity)entity );
 		}
 	}
 	
@@ -448,17 +453,17 @@ class W3Petard extends CThrowable
 			ProcessEffect();	
 	}
 	
-	
+	//if proximity time ended
 	timer function DetonationTimer( detlaTime : float , id : int)
 	{
 		ProcessEffect();
 	}
 	
-	
-	
-	
+	//////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////  EFFECT PROCESSING  ////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////
 		
-	
+	// if explosionPosition is equal to 0, the current entity's position is taken
 	public function ProcessEffect( optional explosionPosition : Vector, optional collidedTarget : CGameplayEntity )
 	{
 		var targets : array< CGameplayEntity >;
@@ -471,17 +476,17 @@ class W3Petard extends CThrowable
 		var mesh : CMeshComponent;
 		var npc : CNewNPC;
 		
-		
+		//just destroy if in deep water or in water in general and we don't want effect there
 		if(isInDeepWater || (noLoopEffectIfHitWater && isInWater) )
 		{
 			Destroy();
 			return;
 		}
 		
-		
+		//prevent further collisions
 		stopCollisions = true;
 		
-		
+		//hide bomb mesh
 		meshes = GetComponentsByClassName('CMeshComponent');
 		for(i=0; i<meshes.Size(); i+=1)
 		{
@@ -495,7 +500,7 @@ class W3Petard extends CThrowable
 			mesh.SetEnabled(false);
 		}
 
-		
+		//custom handling for cluster bomb skill
 		if(!isCluster && (W3PlayerWitcher)GetOwner() && GetWitcherPlayer().CanUseSkill(S_Alchemy_s11) && !HasTag('Snowball'))
 		{
 			ProcessClusterBombs();
@@ -507,13 +512,13 @@ class W3Petard extends CThrowable
 			explosionPosition = this.GetWorldPosition();
 		}
 
-		
+		// hack so that gameplay entities is not empty - should not be, because should at least contain the target entity
 		explosionPosition = explosionPosition + Vector( 0.0f, 0.0f, 0.1f );
 		FindGameplayEntitiesInSphere(targets, explosionPosition, impactParams.range, 1000, '', FLAG_TestLineOfSight);	
 		
 		if( targets.Size() == 0 )
 		{
-			explosionPosition = explosionPosition - Vector( 0.0f, 0.0f, 0.2f ); 
+			explosionPosition = explosionPosition - Vector( 0.0f, 0.0f, 0.2f ); // double of what we've added
 			FindGameplayEntitiesInSphere(targets, explosionPosition, impactParams.range, 1000, '', FLAG_TestLineOfSight);	
 		}
 		
@@ -528,14 +533,26 @@ class W3Petard extends CThrowable
 				
 				if(npc)
 				{
-					
+					//abandon agony if target is an npc
 					npc.SignalGameplayEvent('AbandonAgony');
 					
-					npc.SetKinematic(false);
+					// Enable ragdoll if target is an npc
+					
+					// Ignore the following monsters because we don't have time to make a properly working ragdoll for them
+					// Also ignores all the animals because only some have a proper ragdoll
+					if( !npc.HasAbility( 'mon_bear_base' )
+						&& !npc.HasAbility( 'mon_golem_base' )
+						&& !npc.HasAbility( 'mon_endriaga_base' )
+						&& !npc.HasAbility( 'mon_gryphon_base' )
+						&& !npc.HasAbility( 'q604_shades' )
+						&& !npc.IsAnimal()	)
+					{
+						npc.SetKinematic(false);
+					}
 				}
 				else
 				{
-					
+					//Some tagged entities need to add facts for quests
 					if( !targets[i].HasTag( 'TargetableByBomb' ) )
 					{
 						targets.Erase(i);
@@ -549,14 +566,14 @@ class W3Petard extends CThrowable
 			}
 		}
 		
-		
+		//snap components
 		SnapComponents(true);
 				
-		
+		//process mechanics (damage, buffs, abilities etc.)
 		ProcessMechanicalEffect(targets, true);
 		
-		
-		if(cameraShakeStrMin + cameraShakeStrMax > 0)	
+		//cam shake
+		if(cameraShakeStrMin + cameraShakeStrMax > 0)	//if str is set at all
 		{
 			dist = VecDistance(GetOwner().GetWorldPosition(), GetWorldPosition());
 			
@@ -565,15 +582,15 @@ class W3Petard extends CThrowable
 				camShakeStrFrac = (cameraShakeRange - dist) / cameraShakeRange;
 				camShakeStr = cameraShakeStrMin + camShakeStrFrac * (cameraShakeStrMax - cameraShakeStrMin);
 				
-				
+				//cam shake is between min and max proportionally to how close to the center of blast we are
 				GCameraShake(camShakeStr, true, GetWorldPosition(), impactParams.range * 2);
 			}
 		}
 		
+		//reaction
+		theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( this, 'BombExplosionAction', 10.0, 20.0f, -1, -1, true); //reactionSystemSearch
 		
-		theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( this, 'BombExplosionAction', 10.0, 20.0f, -1, -1, true); 
-		
-		
+		//fx
 		ProcessEffectPlayFXs(true);
 				
 		if(loopDuration > 0)
@@ -603,18 +620,18 @@ class W3Petard extends CThrowable
 	
 	protected function ProcessLoopEffect()
 	{
-		
+		//enable loop components
 		LoopComponentsEnable(true);
 		
-		
+		//snap components
 		SnapComponents(false);
 		
-		
+		//fx
 		ProcessEffectPlayFXs(false);
 		
-		
+		//duration
 		AddTimer('OnTimeEnded', loopDuration, false, , , true);
-		AddTimer('Loop', 0.05, true, , , true);	
+		AddTimer('Loop', 0.05, true, , , true);	//dt needs to be greater than lower buff durations - to reapply the buffs properly
 	}
 	
 	protected function LoopComponentsEnable(enable : bool)
@@ -654,10 +671,10 @@ class W3Petard extends CThrowable
 		targetsSinceLastCheck.Clear();
 		FindGameplayEntitiesInCylinder(targets, pos, loopParams.range, loopParams.cylinderHeight, 100000);
 		
-		
+		//remove self
 		targets.Remove(this);
 		
-		
+		//convert to handles
 		targetsSinceLastCheck.Resize(targets.Size());
 		for(i=0; i<targetsSinceLastCheck.Size(); i+=1)
 		{
@@ -674,7 +691,7 @@ class W3Petard extends CThrowable
 		previousTargets.Clear();
 		previousTargets = targetsSinceLastCheck;
 		
-		
+		//debug - the rand bullshit is to get random name each time to show more than 1 sphere (we need unique name each time and we cannot get name of the Entity. Why? BECAUSE GETNAME() RETURNS STRING BITCH!!!)		
 		thePlayer.GetVisualDebug().AddSphere(GetRandomName(), loopParams.range, GetWorldPosition(), true, Color(0,0,255), 0.2);
 	}
 	
@@ -686,7 +703,7 @@ class W3Petard extends CThrowable
 		ProcessMechanicalEffect(targets, false, dt);
 	}
 	
-	
+	//restore abilities removed permanently
 	protected function ProcessTargetOutOfArea(entity : CGameplayEntity)
 	{
 		var dm : CDefinitionsManagerAccessor;
@@ -699,19 +716,19 @@ class W3Petard extends CThrowable
 		if(!actor || !actor.IsAlive())
 			return;
 			
-		
+		//unblock abilities / skills blocked for infinite time
 		dm = theGame.GetDefinitionsManager();
 		successfullUnblock = false;
 		for(j=0; j<loopParams.disabledAbilities.Size(); j+=1)
 		{			
 			if(loopParams.disabledAbilities[j].timeWhenEnabledd == -1 && dm.IsAbilityDefined(loopParams.disabledAbilities[j].abilityName))
 			{
-				
+				//check if it's skill
 				skill = S_SUndefined;
 				if(actor == thePlayer)
 					skill = SkillNameToEnum(loopParams.disabledAbilities[j].abilityName);						 
 				
-				
+				//block skill or ability
 				if(skill != S_SUndefined)
 					successfullUnblock = thePlayer.BlockSkill(skill, false) || successfullUnblock;
 				else
@@ -721,7 +738,7 @@ class W3Petard extends CThrowable
 		
 		if(successfullUnblock)
 		{
-			
+			//fx when ability successfully disabled
 			for(k=0; k<loopParams.fxPlayedWhenAbilityDisabled.Size(); k+=1)						
 				actor.StopEffect(loopParams.fxPlayedWhenAbilityDisabled[k]);
 				
@@ -743,31 +760,48 @@ class W3Petard extends CThrowable
 		RemoveTimer('Loop');
 	}
 	
-	
+	//playes water / non-water FX on impact or loop start
 	protected function ProcessEffectPlayFXs(isImpact : bool)
 	{
 		var params : SPetardParams;
 		var i : int;
+		var fx : array<name>;
 	
 		if(isImpact)
 			params = impactParams;
 		else
 			params = loopParams;
 			
-		
-		if(isInWater && params.fxWater.Size() > 0)
+		//choose fx to use
+		if(isInWater)
 		{
-			for(i=0; i<params.fxWater.Size(); i+=1)
-				PlayEffectInternal(params.fxWater[i]);
+			if(isCluster && params.fxClusterWater.Size() > 0)
+			{
+				fx = params.fxClusterWater;
+			}
+			else
+			{
+				fx = params.fxWater;
+			}
 		}
 		else
 		{
-			for(i=0; i<params.fx.Size(); i+=1)
-				PlayEffectInternal(params.fx[i]);
+			if(isCluster && params.fxCluster.Size() > 0)
+			{
+				fx = params.fxCluster;
+			}
+			else
+			{
+				fx = params.fx;
+			}
 		}
+		
+		//show fx
+		for(i=0; i<fx.Size(); i+=1)
+			PlayEffectInternal(fx[i]);
 	}
 
-	
+	//adds buff, deals damage etc.
 	protected function ProcessMechanicalEffect(targets : array<CGameplayEntity>, isImpact : bool, optional dt : float)
 	{			
 		var i, index, j, k : int;
@@ -784,11 +818,11 @@ class W3Petard extends CThrowable
 		var hitType : EHitReactionType;
 		var npc : CNewNPC;
 		
-		
+		//ignored entity types & friendly fire cleanup: player gets damaged, npcs only play hit anim
 		for(i=targets.Size()-1; i>=0; i-=1)
 		{
-			
-			if( (CActionPoint)targets[i] || (W3Petard)targets[i] )
+			//ignored entity types
+			if( (CActionPoint)targets[i] || (W3Petard)targets[i] /*|| (W3AnimationInteractionEntity)targets[i]*/)
 			{
 				targets.Erase(i);
 				continue;
@@ -798,16 +832,28 @@ class W3Petard extends CThrowable
 			{
 				actorTarget = (CActor)targets[i];
 				
-				
+				//player hits himself always, non-actors don't concern us
 				if(!actorTarget || (targets[i] == GetOwner() && GetOwner() == thePlayer))
 					continue;
 				
-				
+				/* AK: removing friendly fire hit reaction - friendlies will react differently through community reaction
+				//play hit
+				if(friendlyFire)
+				{					
+					if(!action)
+					{
+						action = new W3DamageAction in theGame.damageMgr;
+						action.Initialize(owner, actorTarget, this, "petard", EHRT_Heavy, CPS_Undefined, false, false, false, false);
+						action.SetHitAnimationPlayType(EAHA_ForceYes);
+					}
+					actorTarget.ReactToBeingHit(action);
+				}
+				*/
 				targets.Erase(i);
 			}
 		}
 		
-		
+		//temp for friendly fire
 		if(action)
 			delete action;
 		
@@ -816,7 +862,7 @@ class W3Petard extends CThrowable
 		else
 			params = loopParams;
 			
-		
+		//surface fx
 		if(params.surfaceFX.fxType >= 0 && !isInWater)
 		{
 			surface = theGame.GetSurfacePostFX();
@@ -828,10 +874,10 @@ class W3Petard extends CThrowable
 			
 		if(isImpact)
 		{
-			
+			//debug area - the rand bullshit is to get random name each time to show more than 1 sphere (we need unique name each time and we cannot get name of the Entity. Why? BECAUSE GETNAME() RETURNS STRING BITCH!!!)		
 			thePlayer.GetVisualDebug().AddSphere(EffectTypeToName(RandRange(EnumGetMax('EEffectType'))), impactParams.range, GetWorldPosition(), true, Color(255,0,0), 3);
 		
-			
+			//skill adding flat damage to all bombs			
 			if((W3PlayerWitcher)GetOwner() && GetWitcherPlayer().CanUseSkill(S_Alchemy_s10) && !HasTag('Snowball'))
 			{
 				theGame.GetDefinitionsManager().GetAbilityAttributes(SkillEnumToName(S_Alchemy_s10), atts);
@@ -850,7 +896,7 @@ class W3Petard extends CThrowable
 							}
 						}
 						
-						
+						//add damage with damage already used by bomb or make a new one if not used
 						if(index != -1)
 						{
 							params.damages[index].dmgVal += CalculateAttributeValue(thePlayer.GetSkillAttributeValue(S_Alchemy_s10, atts[j], false, true)) * thePlayer.GetSkillLevel(S_Alchemy_s10);
@@ -868,7 +914,7 @@ class W3Petard extends CThrowable
 		
 		dm = theGame.GetDefinitionsManager();
 					
-		
+		//damage and buffs
 		if(isImpact)
 			hitType = hitReactionType;
 		else
@@ -876,11 +922,11 @@ class W3Petard extends CThrowable
 			
 		for(i=0; i<targets.Size(); i+=1)
 		{	
-			
+			//append tags
 			targetTags = targets[i].GetTags();
 			ArrayOfNamesAppendUnique(allVictimsTags, targetTags);
 			
-			
+			//not actors - could get OnFireHit() if applicable
 			actorTarget = (CActor)targets[i];
 			if(!actorTarget)
 			{
@@ -899,7 +945,7 @@ class W3Petard extends CThrowable
 					}
 				}
 				
-				
+				//tutorial custom (aim throwed bomb at dummy while standing in trigger)
 				if(isFromAimThrow && wasInTutorialTrigger && ShouldProcessTutorial('TutorialThrowHold'))
 				{
 					for(j=0; j<targetTags.Size(); j+=1)
@@ -911,11 +957,11 @@ class W3Petard extends CThrowable
 				continue;
 			}
 			
-			
+			//skip dead actors
 			if(!actorTarget.IsAlive())
 				continue;
 			
-			
+			//apply action (always as we might want to force hit anims even if no damage is dealt)
 			action = new W3DamageAction in theGame.damageMgr;
 			action.Initialize(GetOwner(), actorTarget, this, 'petard', hitType, CPS_Undefined, false, true, false, false);
 			action.SetHitAnimationPlayType(params.playHitAnimMode);
@@ -937,20 +983,20 @@ class W3Petard extends CThrowable
 			theGame.damageMgr.ProcessAction(action);
 			delete action;
 						
-			
+			//block abilities / skills
 			successfullBlock = false;
 			for(j=0; j<params.disabledAbilities.Size(); j+=1)
 				if(dm.IsAbilityDefined(params.disabledAbilities[j].abilityName))
 					successfullBlock = BlockTargetsAbility(actorTarget, params.disabledAbilities[j].abilityName, params.disabledAbilities[j].timeWhenEnabledd) || successfullBlock;					
 			
-			
+			//regular fx
 			for(k=0; k<params.fxPlayedOnHit.Size(); k+=1)
 				actorTarget.PlayEffectSingle(params.fxPlayedOnHit[k]);
 			
-			
+			//block skill fx if at least one 
 			if(successfullBlock)
 			{
-				
+				//fx when ability successfully disabled
 				for(k=0; k<params.fxPlayedWhenAbilityDisabled.Size(); k+=1)						
 					actorTarget.PlayEffectSingle(params.fxPlayedWhenAbilityDisabled[k]);
 					
@@ -958,16 +1004,16 @@ class W3Petard extends CThrowable
 					actorTarget.StopEffect(params.fxStoppedWhenAbilityDisabled[k]);
 			}
 				
-			
+			//reaction for guards being hit in the face with a non-damaging bomb (if it's damaging, damage will trigger their reactions)
 			npc = (CNewNPC)actorTarget;
 			if(npc && npc.GetNPCType() == ENGT_Guard && !npc.IsInCombat() )
 			{
 				npc.SignalGameplayEventParamObject('BeingHitAction', GetOwner());
-				theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( npc, 'BeingHitAction', 8.0, 1.0f, 999.0f, 1, false); 
+				theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( npc, 'BeingHitAction', 8.0, 1.0f, 999.0f, 1, false); //reactionSystemSearch	
 			}
 		}
 
-		
+		//add fact
 		if(allVictimsTags.Size() > 0)
 		{
 			attackerTags = GetOwner().GetTags();
@@ -978,17 +1024,17 @@ class W3Petard extends CThrowable
 		}			
 	}
 	
-	
+	//blocks player skill or NPCs ability. Returns true if it was blocked.
 	protected function BlockTargetsAbility(target : CActor, abilityName : name, blockDuration : float, optional unlock : bool) : bool
 	{
 		var skill : ESkill;
 	
-		
+		//check if it's skill
 		skill = S_SUndefined;
 		if(target == thePlayer)					
 			skill = SkillNameToEnum(abilityName);						 
 		
-		
+		//block skill or ability
 		if(skill != S_SUndefined)
 			return thePlayer.BlockSkill(skill, !unlock, blockDuration);
 		else
@@ -1000,7 +1046,7 @@ class W3Petard extends CThrowable
 		stopCollisions = false;
 	}
 	
-	
+	//Handles cluster skill - additional 3 cluster bombs spawn on explosion
 	private function ProcessClusterBombs()
 	{
 		var target : CActor = thePlayer.GetTarget();
@@ -1025,22 +1071,22 @@ class W3Petard extends CThrowable
 			cluster = (W3Petard)Duplicate();
 			cluster.Init(GetOwner());
 			cluster.isCluster = true;
-			cluster.isProximity = false;					
-			cluster.AddTimer('DelayedRestoreCollisions', 0.2);	
+			cluster.isProximity = false;					//clusters are not affected by proximity
+			cluster.AddTimer('DelayedRestoreCollisions', 0.2);	//parent has them disabled since it already exploded but if we enable it here they collide with whatever the parent collided with
 			
-			
+			//set cluster's random displacement position (+/- 1..4 meters in x and y)
 			targetPosCluster.X = SgnF(RandF()-0.5) * (1+RandF()*3);
 			targetPosCluster.Y = SgnF(RandF()-0.5) * (1+RandF()*3);
 			targetPosCluster.Z = 0;
 			
-			distLen = VecLength2D(targetPosCluster);	
+			distLen = VecLength2D(targetPosCluster);	//2D distance from impact point
 			
-			targetPosCluster += GetWorldPosition();		
+			targetPosCluster += GetWorldPosition();		//cluster's target position
 			
-			angle = (9 - distLen) * 10;					
-			velocity = 4 + distLen/2;					
+			angle = (9 - distLen) * 10;					//angle: the smaller the further away
+			velocity = 4 + distLen/2;					//speed: the higher the further
 			
-			
+			//shoot cluster
 			cluster.ShootProjectileAtPosition( angle, velocity, targetPosCluster, theGame.params.MAX_THROW_RANGE );
 			cluster.PlayEffectSingle(FX_TRAIL);
 			
@@ -1048,13 +1094,13 @@ class W3Petard extends CThrowable
 			{
 				distanceToTarget = VecDistance( thePlayer.GetWorldPosition(), target.GetWorldPosition() );		
 				
-				
+				// used to dodge projectile before it hits
 				projectileFlightTime = distanceToTarget / velocity;
 				target.SignalGameplayEventParamFloat('Time2DodgeBomb', projectileFlightTime );
 			}
 		}
 		
-		
+		//fx in impact point
 		PlayEffect(FX_CLUSTER);		
 		justPlayingFXs.PushBack(FX_CLUSTER);
 		
@@ -1067,7 +1113,7 @@ class W3Petard extends CThrowable
 		DestroyWhenNoFXPlayedFunction(dt);
 	}
 	
-	
+	//returns true if DestroyAfter() has been scheduled
 	protected function DestroyWhenNoFXPlayedFunction(dt : float) : bool
 	{
 		var i : int;
@@ -1077,16 +1123,16 @@ class W3Petard extends CThrowable
 				return false;
 				
 		RemoveTimer('DestroyWhenNoFXPlayed');
-		DestroyAfter( 0.1f ); 
+		DestroyAfter( 0.1f ); // don't destroy immediately, this might cause crashes
 		return true;
 	}
 	
 	protected function PlayEffectInternal(fx : name)
 	{
-		
+		//play fx
 		PlayEffectSingle(fx);
 		
-		
+		//add to played array
 		justPlayingFXs.PushBack(fx);
 	}
 	
@@ -1102,7 +1148,7 @@ class W3Petard extends CThrowable
 	public function IsProximity() : bool				{return isProximity;}
 	
 	
-	
+	//Used for converting item name to a fact database friendly format
 	private function PrintFactFriendlyPetardName() : string
 	{
 		return StrLower(StrReplaceAll( NameToString(itemName) , " ", "_" ));

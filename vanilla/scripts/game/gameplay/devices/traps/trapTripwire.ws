@@ -1,15 +1,14 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2014
+/** Author : Ryan Pergent
+/***********************************************************************/
 class W3TrapTripwire extends W3Trap
 {
-	
-	
-	
+	//>---------------------------------------------------------------------
+	// VARIABLES
+	//----------------------------------------------------------------------
 	
 	editable inlined var eventOnTripped 		: array < IPerformableAction >;	
 	editable saved  var maxUseCount				: int; default maxUseCount = 1;
@@ -21,8 +20,8 @@ class W3TrapTripwire extends W3Trap
 	
 	default soundOnDisarm = 'qu_item_wire_cutter';
 	
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	event OnAreaEnter( area : CTriggerAreaComponent, activator : CComponent )
 	{	
 		var l_actor	: CActor;
@@ -35,8 +34,8 @@ class W3TrapTripwire extends W3Trap
 		
 		if (m_isArmed) Activate(activator.GetEntity());
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	private function ShouldExcludeActor( _Actor : CActor ) : bool
 	{
 		var i			: int;
@@ -56,8 +55,8 @@ class W3TrapTripwire extends W3Trap
 		return false;
 	}
 	
-	
-	
+	//>---------------------------------------------------------------------
+	//----------------------------------------------------------------------
 	public function Activate( optional _Target: CNode ):void
 	{
 		var passedNode : CActor;
@@ -66,8 +65,8 @@ class W3TrapTripwire extends W3Trap
 		
 		super.Activate( _Target );
 	}
-	
-	
+	//>---------------------------------------------------------------------
+	//----------------------------------------------------------------------
 	function SpringTripwire(_Target : CNode)
 	{
 		TriggerPerformableEventArgNode( eventOnTripped, this, _Target );

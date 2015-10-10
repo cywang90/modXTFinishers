@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 import class CAIQuestScriptedActionsTree extends IAITree
 {
 	default aiTreeName = "resdef:ai\internal\scripted_actions";

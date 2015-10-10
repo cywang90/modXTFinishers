@@ -1,20 +1,16 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
-
-
-
-
-
+﻿//>---------------------------------------------------------------------
+// Witcher Script file - Duration Obstacle 
+//----------------------------------------------------------------------
+// Spawned by witch2 special attack
+//----------------------------------------------------------------------
+// Andrzej Kwiatkowski - 01-August-2014
+// Copyright © 2014 CDProjektRed
+//----------------------------------------------------------------------
 class W3WitchBoilingWaterObstacle extends W3DurationObstacle
 {
-	
-	
-	
+	//>---------------------------------------------------------------------
+	// VARIABLES
+	//----------------------------------------------------------------------
 	private editable var		applyDebuffType					: EEffectType;	default applyDebuffType = EET_Undefined;
 	private editable var		debuffDuration					: float;		default debuffDuration = 0.2;
 	private editable var		simpleDamageAction				: bool;			default simpleDamageAction = true;
@@ -28,14 +24,18 @@ class W3WitchBoilingWaterObstacle extends W3DurationObstacle
 	private editable var		attackEffectName				: name;
 	private editable var		hitReactionType					: EHitReactionType;	default hitReactionType = EHRT_Heavy;
 	private editable var		loopedAttack					: bool;
+	private editable var 		playAttackEffectOnlyWhenHit 	: bool;
+	private editable var		useSeperateAttackEffectEntity 	: CEntityTemplate;
+	private editable var 		onHitCameraShakeStrength 		: float;
 	
+	private			 var 		fxEntity 						: CEntity;
 	private 		 var		summoner						: CActor;
 	private			 var		params 							: SCustomEffectParams;
 	private			 var		effectComponent					: CComponent;
 	
 	
-	
-	
+	//>---------------------------------------------------------------------
+	//----------------------------------------------------------------------
 	event OnSpawned( spawnData : SEntitySpawnData )
 	{	
 		super.OnSpawned( spawnData );
@@ -53,8 +53,8 @@ class W3WitchBoilingWaterObstacle extends W3DurationObstacle
 			AddTimer( 'ScaleEffect', 0.01f, true );
 		}
 	}
-	
-	
+	//>---------------------------------------------------------------------
+	//----------------------------------------------------------------------
 	private timer function Appear( _Delta : float, optional id : int)
 	{
 		var i						: int;
@@ -71,9 +71,18 @@ class W3WitchBoilingWaterObstacle extends W3DurationObstacle
 		}
 		
 		
-		if ( IsNameValid(attackEffectName) )
+		if ( IsNameValid(attackEffectName) && !playAttackEffectOnlyWhenHit )
 		{
-			PlayEffect(attackEffectName);
+			if ( useSeperateAttackEffectEntity )
+			{
+				fxEntity = theGame.CreateEntity( useSeperateAttackEffectEntity, this.GetWorldPosition(), this.GetWorldRotation() );
+				fxEntity.PlayEffect(attackEffectName);
+				fxEntity.DestroyAfter( 5.0 );
+			}
+			else
+			{
+				PlayEffect(attackEffectName);
+			}
 		}
 		
 		FindGameplayEntitiesInRange( l_entitiesInRange, this, attackRadius, 1000);
@@ -98,10 +107,27 @@ class W3WitchBoilingWaterObstacle extends W3DurationObstacle
 						l_damage.AddDamage( theGame.params.DAMAGE_NAME_PHYSICAL, damageValue );
 						theGame.damageMgr.ProcessAction( l_damage );
 						delete l_damage;
+						
+						if ( onHitCameraShakeStrength > 0 )
+							GCameraShake(onHitCameraShakeStrength, true, l_actor.GetWorldPosition(), 30.0f);
 					}
 					if ( applyDebuffType != EET_Undefined )
 					{
 						l_actor.AddEffectCustom(params);
+					}
+					
+					if ( IsNameValid(attackEffectName) && playAttackEffectOnlyWhenHit )
+					{
+						if ( useSeperateAttackEffectEntity )
+						{
+							fxEntity = theGame.CreateEntity( useSeperateAttackEffectEntity, l_actor.GetWorldPosition(), l_actor.GetWorldRotation() );
+							fxEntity.PlayEffect(attackEffectName);
+							fxEntity.DestroyAfter( 5.0 );
+						}
+						else
+						{
+							PlayEffect(attackEffectName);
+						}
 					}
 				}
 			}
@@ -162,7 +188,7 @@ class W3WitchBoilingWaterObstacle extends W3DurationObstacle
 	
 	private function SpecificDisappear()
 	{
-		
+		//stop dealing damage on disappear timer
 		damageValue = 0;
 	}
 }

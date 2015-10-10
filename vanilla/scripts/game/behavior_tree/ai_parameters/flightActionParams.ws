@@ -1,15 +1,11 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 
 abstract class IFlightActionTree extends IAIActionTree
 {
 
 };
-
-
+////////////////////////////////////////////////////////////
+// CFlyToActionTree
 class CFlyToActionTree extends IFlightActionTree
 {
 	default aiTreeName = "resdef:ai\scripted_actions/fly_to";
@@ -25,8 +21,8 @@ class CFlyToActionTree extends IFlightActionTree
 	default landAtTargetLocation		= false;
 	default landingForwardOffset		= 6.0;
 };
-
-
+////////////////////////////////////////////////////////////
+// CAIFlyOnCurve
 class CAIFlyOnCurve extends IFlightActionTree
 {
 	default aiTreeName = "resdef:ai\scripted_actions/fly_on_curve";
@@ -56,8 +52,8 @@ class CAIFlyOnCurve extends IFlightActionTree
 	default maxYawOutput			= 1.0;
 };
 
-
-
+////////////////////////////////////////////////////////////
+// Landing
 class CAIFlyFindLandingSpotTree extends IFlightActionTree
 {
 	default aiTreeName = "gameplay/trees/scripted_actions/fly_find_landing_spot.w2behtree";
@@ -70,8 +66,8 @@ class CAIFlyLandTree extends IFlightActionTree
 	default aiTreeName = "gameplay/trees/scripted_actions/fly_landing_animation.w2behtree";
 };
 
-
-
+////////////////////////////////////////////////////////////
+// CAIFlyInterruptableAction
 class CAIFlyInterruptableAction extends IFlightActionTree
 {
 	default aiTreeName = "resdef:ai\scripted_actions/fly_critical_state_interruptable_action";
@@ -79,8 +75,8 @@ class CAIFlyInterruptableAction extends IFlightActionTree
 	editable inlined var interruptableAction	: CAISubTree;
 }
 
-
-
+////////////////////////////////////////////////////////////
+// Flight idle
 abstract class IAIFlightIdleTree extends CAIMainTree
 {
 }

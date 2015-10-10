@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : Danisz Markiewicz
+/***********************************************************************/
 
 class W3ArachasEggCustom extends W3MonsterClue
 {

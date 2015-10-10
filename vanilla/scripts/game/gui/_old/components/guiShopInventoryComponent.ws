@@ -1,12 +1,8 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3GuiShopInventoryComponent extends W3GuiBaseInventoryComponent
+﻿class W3GuiShopInventoryComponent extends W3GuiBaseInventoryComponent
 {
 	protected function InvalidateItems( items : array<SItemUniqueId> )
 	{
-		
+		//_dpShop.InvalidateData(); // #B deprecated
 	}
 
 	function SetInventoryFlashObjectForItem( item : SItemUniqueId, out flashObject : CScriptedFlashObject) : void
@@ -18,7 +14,7 @@ class W3GuiShopInventoryComponent extends W3GuiBaseInventoryComponent
 		isQuest = _inv.ItemHasTag(item, 'Quest');
 		
 		flashObject.SetMemberFlashBool( "isQuest", isQuest );
-		flashObject.SetMemberFlashBool( "isNew", false ); 
+		flashObject.SetMemberFlashBool( "isNew", false ); // ignore for shop
 	}
 	
 	protected function GridPositionEnabled() : bool
@@ -26,13 +22,13 @@ class W3GuiShopInventoryComponent extends W3GuiBaseInventoryComponent
 		return false;
 	}
 	
-	
+	// For override
 	protected function ShopHasInfiniteFunds() : bool
 	{
 		return _inv.GetFundsType() == EInventoryFunds_Unlimited;
 	}
 
-	
+	// Shop is selling Item to the Player
 	public function GiveItem( itemId : SItemUniqueId, customer : W3GuiBaseInventoryComponent, optional quantity : int, optional out newItemID : SItemUniqueId ) : bool
 	{
 		var customerMoney : int;
@@ -69,7 +65,7 @@ class W3GuiShopInventoryComponent extends W3GuiBaseInventoryComponent
 		return success;
 	}
 	
-	
+	// Shop is purchasing Item from the Player; Giver = Player
 	public function ReceiveItem( itemId : SItemUniqueId, giver : W3GuiBaseInventoryComponent, optional quantity : int, optional out newItemID : SItemUniqueId ) : bool
 	{
 		var shopMoney : int;
@@ -110,4 +106,4 @@ class W3GuiShopInventoryComponent extends W3GuiBaseInventoryComponent
 	}
 }
 
-
+//--------------------------------------------------------------------------------------------------------

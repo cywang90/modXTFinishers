@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-struct MerchantNPCEmbeddedScenes
+﻿struct MerchantNPCEmbeddedScenes
 {
 	editable var voiceTag        : name;
 	editable var storyScene		 : CStoryScene;
@@ -35,6 +31,8 @@ class W3MerchantNPC extends CNewNPC
 	event OnSpawned( spawnData : SEntitySpawnData )
 	{
 		var tags : array< name >;
+		var ids : array< SItemUniqueId >;
+		var i : int;
 		
 		super.OnSpawned( spawnData );
 		
@@ -65,6 +63,17 @@ class W3MerchantNPC extends CNewNPC
 			{
 				invComp.SetupFunds();
 				lastDayOfInteraction = GameTimeDays( theGame.GetGameTime() );
+			}
+			if ( invComp.GetMoney() == 0 )
+			{
+				invComp.SetupFunds();
+			}
+			invComp.GetAllItems(ids);
+			for(i=0; i<ids.Size(); i+=1)
+			{
+				//Process items that do not have stats changed already
+				if ( invComp.GetItemModifierInt(ids[i], 'ItemQualityModified') <= 0 )
+					invComp.AddRandomEnhancementToItem(ids[i]);
 			}
 		}
 		else
@@ -200,15 +209,15 @@ class W3MerchantNPC extends CNewNPC
 			LogChannel( 'DialogueTest', "Activating TALK Interaction - PLAY DIALOGUE" );
 			isPlayingChatScene = IsPlayingChatScene();
 			
-			
+			//If actor has embedded scenes treat this case differently
 			if ( HasEmbeddedScenes() )
 			{
 				if ( !isPlayingChatScene )
 				{
-				
+				// By default, play dialog
 					if ( !PlayDialog() )
 					{
-						
+						// No main dialog found
 						ciriEntity = (W3ReplacerCiri)thePlayer;
 						if ( ciriEntity )
 						{
@@ -216,7 +225,7 @@ class W3MerchantNPC extends CNewNPC
 						}
 						else
 						{
-							
+							// In case that embedded scene failed go back to regular NPC behavior
 							if ( !StartEmbeddedScene() )
 							{
 								super.OnInteraction( actionName, activator);
@@ -232,7 +241,7 @@ class W3MerchantNPC extends CNewNPC
 		}
 	}
 
-	
+	// If merchant has embedded scene trigger is interaction dialogue
 	event OnInteractionActivationTest( interactionComponentName : string, activator : CEntity )
 	{
 		if( HasEmbeddedScenes() && interactionComponentName == "talk" )

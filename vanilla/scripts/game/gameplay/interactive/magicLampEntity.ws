@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3MagicLampEntity extends CInteractiveEntity
+﻿class W3MagicLampEntity extends CInteractiveEntity
 {
 	
 	event OnAreaEnter( area : CTriggerAreaComponent, activator : CComponent )
@@ -23,8 +19,8 @@ class W3MagicLampEntity extends CInteractiveEntity
 	{
 	}
 
-	
-	
-	
-	
+	// TURNING OFF MAPPIN OF THIS ENTITY:
+	//
+	//mapManager.SetEntityMapPinDiscoveredScript( false, entityName, false );
+	//
 }

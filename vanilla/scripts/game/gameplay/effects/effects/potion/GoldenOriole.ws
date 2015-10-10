@@ -1,11 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Copyright © 2012
+/** Author : Tomasz Kozera
+/***********************************************************************/
 
-
-
-
-
+// increases non-physical resitances
 class W3Potion_GoldenOriole extends CBaseGameplayEffect
 {
 	default effectType = EET_GoldenOriole;
@@ -32,9 +30,9 @@ class W3Potion_GoldenOriole extends CBaseGameplayEffect
 		}
 	}
 	
-	
-	
-	
+	//////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////  BUFF INTERACTIONS  //////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	protected function GetEffectStrength() : float
 	{		
@@ -47,7 +45,7 @@ class W3Potion_GoldenOriole extends CBaseGameplayEffect
 		
 		dm.GetAbilityAttributes(abilityName, atts);
 		
-		
+		//get this effect value
 		for(i=0; i<atts.Size(); i+=1)
 		{
 			if(IsNonPhysicalResistStat(ResistStatNameToEnum(atts[i], isPoint)))

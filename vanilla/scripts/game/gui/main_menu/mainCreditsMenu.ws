@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file - Main Credits Menu
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author : Bartosz Bigaj
+/***********************************************************************/
 
 struct CreditsSection
 {
@@ -17,6 +16,12 @@ struct CreditsSection
 	var delay : float;
 };
 
+enum CreditsIndex
+{
+	CreditsIndex_Wither3 = 0,
+	CreditsIndex_Ep1 = 1
+}
+
 class CR4MainCreditsMenu extends CR4MenuBase
 {
 	private var guiManager 			: CR4GuiManager;
@@ -24,17 +29,19 @@ class CR4MainCreditsMenu extends CR4MenuBase
 	private var	m_fxSetScrollingSpeedSFF : CScriptedFlashFunction;
 	private var	m_fxAddScrollingTextSFF : CScriptedFlashFunction;
 	private var	m_fxStartScrollingTextSFF : CScriptedFlashFunction;
+	private var	m_fxChangedConstraintedStateSFF : CScriptedFlashFunction;
+	
 	private var legalTextOverride : bool; default legalTextOverride = false;
 	public var shouldCloseOnMovieEnd: bool;
 	private var creditsSections : array< CreditsSection >;
 	private var currentSectionID : int;
-	private var htmlNewline		: string;	default htmlNewline = "&#10;"; 
+	private var htmlNewline		: string;	default htmlNewline = "&#10;"; //default htmlNewline = "<br>";
 	private var playedSecondSection : bool; default playedSecondSection = false;
 	
 	private var SCROLLING_TEXT_LINE_COUNT	: int;		default SCROLLING_TEXT_LINE_COUNT	= 50;
 	private var SCROLLING_SPEED				: int;		default SCROLLING_SPEED				= 100;
 
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{
 		var flashModule : CScriptedFlashSprite;
 
@@ -47,6 +54,7 @@ class CR4MainCreditsMenu extends CR4MenuBase
 		m_fxSetScrollingSpeedSFF	= flashModule.GetMemberFlashFunction( "setScrollingSpeed" );
 		m_fxAddScrollingTextSFF		= flashModule.GetMemberFlashFunction( "addScrollingText" );
 		m_fxStartScrollingTextSFF	= flashModule.GetMemberFlashFunction( "startScrollingText" );
+		m_fxChangedConstraintedStateSFF = flashModule.GetMemberFlashFunction( "changedConstraintedState" );
 
 		m_fxSetScrollingSpeedSFF.InvokeSelfOneArg( FlashArgNumber( SCROLLING_SPEED ) );
 
@@ -65,7 +73,22 @@ class CR4MainCreditsMenu extends CR4MenuBase
 		theSound.EnterGameState( ESGS_MusicOnly );
 		theSound.StopMusic();
 		theSound.SoundEvent('play_music_main_menu');
-		theSound.SoundEvent('mus_credits_usm');
+		
+		if ( theGame.GetGuiManager().lastRequestedCreditsIndex == CreditsIndex_Ep1 )
+		{
+			if ( theGame.IsActive() && FactsQuerySum( "q605_mirror_banished" ) > 0 )
+			{
+				theSound.SoundEvent( 'mus_q605_credits_usm' );
+			}
+			else
+			{
+				theSound.SoundEvent( 'mus_credits_usm_ep1' );
+			}
+		}
+		else if ( theGame.GetGuiManager().lastRequestedCreditsIndex == CreditsIndex_Wither3 )
+		{
+			theSound.SoundEvent( 'mus_credits_usm' );
+		}
 
 		theGame.ResetFadeLock( "CR4MainCreditsMenu" );
 		theGame.FadeInAsync(0.5);
@@ -75,30 +98,38 @@ class CR4MainCreditsMenu extends CR4MenuBase
 		DisplayNextSection();
 	}
 	
-	event OnVideoStopped() 
+	event OnVideoStopped() // c++
 	{
-		
+		//guiManager.PlayFlashbackVideoAsync("gamestart/credits_6000bitrate.usm");
 	}
 	
 	protected function BuildCreditsSections() : void
 	{
 		var creditsCSV			: C2dArray;
-
+		
 		var i					: int;
 		var rowsCount			: int;
 		var readSectionIDString	: string;
 		var readSectionID		: int;
-
-
+		
+		
 		var creditsString 	: string;
 		var tempString 		: string;
 		var sectionID 		: int;
 		var tempCreditsSection : CreditsSection;
 		var emptyCreditsSection : CreditsSection;
-
+		
 		sectionID = -1;
-
-		creditsCSV = LoadCSV("gameplay\globals\credits.csv");
+		
+		if (theGame.GetGuiManager().lastRequestedCreditsIndex == CreditsIndex_Wither3)
+		{
+			creditsCSV = LoadCSV("gameplay\globals\credits.csv");
+		}
+		else if (theGame.GetGuiManager().lastRequestedCreditsIndex == CreditsIndex_Ep1)
+		{
+			creditsCSV = LoadCSV("gameplay\globals\credits_ep1.csv");
+		}
+		
 		rowsCount = creditsCSV.GetNumRows();
 
 		for( i = 0; i < rowsCount; i += 1 )
@@ -108,7 +139,7 @@ class CR4MainCreditsMenu extends CR4MenuBase
 			
 			if ( sectionID != readSectionID )
 			{
-				
+				// NEW SECTION
 				if( sectionID > 0 )
 				{
 					creditsSections.PushBack( tempCreditsSection );
@@ -117,7 +148,7 @@ class CR4MainCreditsMenu extends CR4MenuBase
 				sectionID = readSectionID;
 				if( sectionID == 0 )
 				{
-					
+					// empty line, end of section
 					continue;
 				}
 				
@@ -194,7 +225,22 @@ class CR4MainCreditsMenu extends CR4MenuBase
 			if (!playedSecondSection)
 			{
 				playedSecondSection = true;
-				theSound.SoundEvent('mus_credits_secondary');
+				
+				if ( theGame.GetGuiManager().lastRequestedCreditsIndex == CreditsIndex_Ep1 )
+				{
+					if ( theGame.IsActive() && FactsQuerySum( "q605_mirror_banished" ) > 0 )
+					{
+						theSound.SoundEvent( 'mus_q605_credits_secondary' );
+					}
+					else
+					{
+						theSound.SoundEvent( 'mus_credits_secondary_ep1' );
+					}
+				}
+				else if ( theGame.GetGuiManager().lastRequestedCreditsIndex == CreditsIndex_Wither3 )
+				{
+					theSound.SoundEvent( 'mus_credits_secondary' );
+				}
 			}
 			
 			tempString = "";
@@ -203,7 +249,7 @@ class CR4MainCreditsMenu extends CR4MenuBase
 			LogChannel( 'credits', "START" );
 			for( i = 0; i < creditsSections[currentSectionID].positionNames.Size(); i += 1 )
 			{
-				
+				// #J Hack for certain languages that don' support (C) and (R) characters and are in english anyways
 				if (legalTextOverride && creditsSections[currentSectionID].positionNames[i] == "credits_LEGAL_NOTICE")
 				{
 					tempString += "<font face=\"$CreditsFont\" color=\"#FFFFFF\">" + GetLocalizedPositionAndDepartment(creditsSections[currentSectionID].positionNames[i]) + "</font> ";
@@ -250,15 +296,22 @@ class CR4MainCreditsMenu extends CR4MenuBase
 		
 		if ( tempStr == "" )
 		{
-			
+			//LogChannel('Credits_Missing', "[" + StrLower(inString) + "]" );
 			return inString;
 		}
 		
+		//
+		// THIS CAN'T BE DONE THIS WAY
+		//
 		
-		
-		
-		
-		
+		/*
+		if( tempStr == "" || StrFindFirst(tempStr,"#") != -1 )
+		{
+			inString = FixColorString(inString);
+			return inString;
+		}
+		tempStr = FixColorString(tempStr);
+		*/
 		
 		return tempStr;
 	}
@@ -320,13 +373,22 @@ class CR4MainCreditsMenu extends CR4MenuBase
 		
 		guiManager.CancelFlashbackVideo();
 
+		theSound.LeaveGameState( ESGS_MusicOnly );
+
 		if(m_parentMenu)
 		{
 			ingameMenu = (CR4IngameMenu)m_parentMenu;
 			
 			if (ingameMenu)
 			{
-				theSound.SoundEvent('mus_main_menu_theme');
+				if ( theGame.GetDLCManager().IsEP1Available() )
+				{
+					theSound.SoundEvent('mus_main_menu_theme_ep1');
+				}
+				else
+				{
+					theSound.SoundEvent('mus_main_menu_theme');
+				}
 			}
 			else
 			{
@@ -354,12 +416,16 @@ class CR4MainCreditsMenu extends CR4MenuBase
 		theInput.RestoreContext( 'EMPTY_CONTEXT', true );
 	}	
 	
-	
+	event OnChangedConstrainedState( entered : bool )
+	{
+		m_fxChangedConstraintedStateSFF.InvokeSelfOneArg( FlashArgBool( entered ) );
+	}
+
 }
 
 exec function crd()
 {
-	theGame.RequestMenu( 'CreditsMenu' );
+	theGame.GetGuiManager().RequestCreditsMenu(CreditsIndex_Wither3);
 }
 
 exec function casttest()

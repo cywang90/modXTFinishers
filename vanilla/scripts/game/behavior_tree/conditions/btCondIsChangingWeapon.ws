@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class BTCondIsChangingWeapon extends IBehTreeTask
+﻿class BTCondIsChangingWeapon extends IBehTreeTask
 {
 	private var storageHandler : CAIStorageHandler;
 	protected var combatDataStorage : CHumanAICombatStorage;
@@ -29,7 +25,7 @@ class BTCondIsChangingWeaponDef extends IBehTreeConditionalTaskDefinition
 }
 
 
-
+//////////////////////////////////////////////////////////////////
 
 class BTCondDoesChangingWeaponRequiresIdle extends IBehTreeTask
 {

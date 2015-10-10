@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 enum EActionInfoType
 {
 	EAIT_ApproachAttack,

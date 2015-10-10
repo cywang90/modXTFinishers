@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class BTCondIsGuarded extends IBehTreeTask
+﻿class BTCondIsGuarded extends IBehTreeTask
 {
 	function IsAvailable() : bool
 	{

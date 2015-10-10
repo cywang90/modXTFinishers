@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** CBTManageIsPlayerFollower
+/***********************************************************************/
+/** Copyright © 2014
+/** Author : Andrzej Kwiatkowski
+/***********************************************************************/
 
 class CBTManageIsPlayerFollower extends IBehTreeTask
 {
@@ -17,8 +16,8 @@ class CBTManageIsPlayerFollower extends IBehTreeTask
 	public var targetTagCompare : name;
 	
 	
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function OnActivate() : EBTNodeStatus
 	{
 		if ( IsNameValid( targetTagCondition ) )
@@ -32,8 +31,8 @@ class CBTManageIsPlayerFollower extends IBehTreeTask
 		return BTNS_Active;
 	}
 	
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function OnDeactivate()
 	{
 		if ( IsNameValid( targetTagCondition ) )

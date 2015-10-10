@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3SE_ManageOilBarrel extends W3SwitchEvent
+﻿class W3SE_ManageOilBarrel extends W3SwitchEvent
 {
 	editable var oilBarrelTag	: name;
 	editable var operations	: array< EOilBarrelOperation >;

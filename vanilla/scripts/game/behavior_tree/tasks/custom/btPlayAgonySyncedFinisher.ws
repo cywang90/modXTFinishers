@@ -1,8 +1,6 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/**
 
- 
+*/ 
 
 class CBTTaskPlayAgonySyncedFinisher extends CBTTaskPlaySyncedAnimation
 {
@@ -10,7 +8,10 @@ class CBTTaskPlayAgonySyncedFinisher extends CBTTaskPlaySyncedAnimation
 	{
 		var owner : CNewNPC = GetNPC();
 	
-		
+		/*if ( isActive )
+		{
+			return true;
+		}*/
 		return super.IsAvailable();
 		return owner.IsInFinisherAnim();
 	}
@@ -18,7 +19,7 @@ class CBTTaskPlayAgonySyncedFinisher extends CBTTaskPlaySyncedAnimation
 	function OnActivate() : EBTNodeStatus
 	{
 		return super.OnActivate();
-		
+		//return BTNS_Active;
 	}
 	
 	function OnDeactivate()
@@ -32,7 +33,11 @@ class CBTTaskPlayAgonySyncedFinisher extends CBTTaskPlaySyncedAnimation
 	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo ) : bool
 	{
 		
-		
+		/*if ( animEventName == 'AllowBlend' )
+		{
+			Complete(true);
+			return true;
+		}*/
 		
 		return false;
 	}

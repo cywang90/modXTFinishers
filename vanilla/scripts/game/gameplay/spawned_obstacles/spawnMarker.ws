@@ -1,20 +1,16 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
-
-
-
-
-
+﻿//>---------------------------------------------------------------------
+// W3SpawnMarker
+//----------------------------------------------------------------------
+// Entity that spawns another one after some time
+//----------------------------------------------------------------------
+// R.Pergent - 06-August-2014
+// Copyright © 2014 CDProjektRed
+//----------------------------------------------------------------------
 class W3SpawnMarker extends CGameplayEntity
 {
-	
-	
-	
+	//>---------------------------------------------------------------------
+	// VARIABLES
+	//----------------------------------------------------------------------
 	public editable var spawnDelay		: float;
 	public editable var destroyDelay	: float;
 	public editable var entitiesToSpawn	: array<CEntityTemplate>;
@@ -26,16 +22,16 @@ class W3SpawnMarker extends CGameplayEntity
 	default destroyDelay 	= 5;
 	
 	default spawnOnGround	= true;
-	
-	
+	//>---------------------------------------------------------------------
+	//----------------------------------------------------------------------
 	event OnSpawned( spawnData : SEntitySpawnData )
 	{		
 		m_summonedEntityCmp = (W3SummonedEntityComponent) GetComponentByClassName('W3SummonedEntityComponent');
 		AddTimer( 'SpawnEntity', spawnDelay, false,,, true );		
 		AddTimer( 'DestroyTimer', destroyDelay, false,,, true );		
 	}
-	
-	
+	//>---------------------------------------------------------------------
+	//----------------------------------------------------------------------
 	private timer function SpawnEntity( optional _DeltaTime : float , id : int)
 	{
 		var l_summoner					: CActor;

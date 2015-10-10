@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-enum EUpdateEventType
+﻿enum EUpdateEventType
 {
 	EUET_StartedTracking,
 	EUET_TrackedQuest,
@@ -40,9 +36,9 @@ class CR4HudModuleQuests extends CR4HudModuleBase
 	private var m_guiManager 						: CR4GuiManager;
 	private var m_hud 								: CR4ScriptedHud;
 	
-	
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	event  OnConfigUI()
+	event /* Flash */ OnConfigUI()
 	{
 		var flashModule : CScriptedFlashSprite;
 		
@@ -64,7 +60,7 @@ class CR4HudModuleQuests extends CR4HudModuleBase
 		
 		theInput.RegisterListener( this, 'OnHighlightNextObjective', 'HighlightObjective' );
 
-		
+		// ShowElement(true);
 		UpdateQuest();
 		
 		if (m_hud)
@@ -78,7 +74,7 @@ class CR4HudModuleQuests extends CR4HudModuleBase
 		UpdateQuest();
 	}
 
-	event  OnTick( timeDelta : float )
+	event /* C++ */ OnTick( timeDelta : float )
 	{
 		var i : int;
 		var e : SUpdateEvent;
@@ -87,7 +83,7 @@ class CR4HudModuleQuests extends CR4HudModuleBase
 
 		if ( CheckIfUpdateIsAllowed() && m_updateEvents.Size() )
 		{
-			
+			// dealing with all tracker changes
 			systemObjectives = m_systemObjectives;
 			
 			for ( i = 0; i < m_updateEvents.Size(); )
@@ -101,7 +97,7 @@ class CR4HudModuleQuests extends CR4HudModuleBase
 						UpdateQuest();
 						break;
 					case EUET_TrackedQuest:
-						
+						// actually nothing particular here
 						break;
 					case EUET_TrackedQuestObjective:
 						UpdateObjectives();
@@ -127,7 +123,7 @@ class CR4HudModuleQuests extends CR4HudModuleBase
 			{
 				SendObjectives();
 			}
-			
+			// if needed, differences can be found by comparing systemObjectives & m_systemObjectives
 		}
 	}
 	
@@ -135,7 +131,7 @@ class CR4HudModuleQuests extends CR4HudModuleBase
 	{
 		switch( m_hud.currentInputContext )
 		{
-			case 'FastMenu' : 
+			case 'FastMenu' : // #B to kill
 			case 'TutorialPopup' :
 			case 'RadialMenu' :
 			case 'Scene' :
@@ -147,7 +143,7 @@ class CR4HudModuleQuests extends CR4HudModuleBase
 		return true;
 	}	
 
-	event  OnHighlightNextObjective( action : SInputAction )
+	event /* C++ */ OnHighlightNextObjective( action : SInputAction )
 	{
 		var walkToggleAction : SInputAction;
 		
@@ -170,14 +166,14 @@ class CR4HudModuleQuests extends CR4HudModuleBase
 		}
 	}
 	
-	
-	
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// EVENT FUNCTIONS FROM HUD.WS
 
 	public function OnQuestTrackingStarted( journalQuest : CJournalQuest )
 	{
-		
-		
-		
+		// a new or different quest is being tracked
+		// we need to refresh all data relared to quest
+		// that's the place we can use GetTrackedQuest & GetTrackedQuestObjectives
 		var e : SUpdateEvent;
 		e.eventType		= EUET_StartedTracking;
 		e.delay			= 0;
@@ -187,8 +183,8 @@ class CR4HudModuleQuests extends CR4HudModuleBase
 
 	public function OnTrackedQuestUpdated( journalQuest : CJournalQuest )
 	{
-		
-		
+		// a quest has changed
+		// don't use GetTrackedQuest or GetTrackedQuestObjectives
 		var e : SUpdateEvent;
 		e.eventType		= EUET_TrackedQuest;
 		e.delay			= 1;
@@ -198,8 +194,8 @@ class CR4HudModuleQuests extends CR4HudModuleBase
 	
 	public function OnTrackedQuestObjectivesUpdated( journalObjective : CJournalQuestObjective )
 	{
-		
-		
+		// an objective has changed
+		// don't use GetTrackedQuest or GetTrackedQuestObjectives
 		var e : SUpdateEvent;
 		e.eventType		= EUET_TrackedQuestObjective;
 		e.delay			= 1;
@@ -209,7 +205,7 @@ class CR4HudModuleQuests extends CR4HudModuleBase
 	
 	public function OnTrackedQuestObjectiveCounterUpdated( journalObjective : CJournalQuestObjective )
 	{
-		
+		// an objective counter has changed
 		var e : SUpdateEvent;
 		e.eventType		= EUET_TrackedQuestObjectiveCounter;
 		e.delay			= 1;
@@ -219,7 +215,7 @@ class CR4HudModuleQuests extends CR4HudModuleBase
 
 	public function OnTrackedQuestObjectiveHighlighted( journalObjective : CJournalQuestObjective, objectiveIndex : int )
 	{
-		
+		// highlighted objective has changed
 		var e : SUpdateEvent;
 		e.eventType		= EUET_HighlightedQuestObjective;
 		e.delay			= 2;
@@ -234,7 +230,7 @@ class CR4HudModuleQuests extends CR4HudModuleBase
 		var objectives2 : array< SJournalQuestObjectiveData >;
 		
 		theGame.GetJournalManager().GetTrackedQuestObjectivesData( objectives1 );
-		GetTrackedObjectives( objectives2 );
+		HAXGetTrackedObjectives( objectives2 );
 		
 		if ( objectives1.Size() != objectives2.Size() )
 		{
@@ -242,8 +238,8 @@ class CR4HudModuleQuests extends CR4HudModuleBase
 		}
 	}
 
-	
-	
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// UPDATE FUNCTIONS
 
 	private function UpdateQuest()
 	{
@@ -269,17 +265,17 @@ class CR4HudModuleQuests extends CR4HudModuleBase
 		var l_objectives : array< SJournalQuestObjectiveData >;
 		var i : int;
 		
-		
-		
+		// at this point we can use GetTrackedQuestObjectivesData, because this function should be delayed
+		//HAXGetTrackedObjectives( l_objectives );
 		theGame.GetJournalManager().GetTrackedQuestObjectivesData( l_objectives );
 		
-		
-		
-		
-		
-		
-		
-		
+		/////////////////////////////
+		// just for testing purposes
+		//
+		//Test();
+		//
+		//
+		/////////////////////////////
 		
 		m_systemObjectives.Clear();
 			
@@ -293,7 +289,7 @@ class CR4HudModuleQuests extends CR4HudModuleBase
 		}
 	}
 	
-	function GetTrackedObjectives( out l_objectives : array< SJournalQuestObjectiveData > )
+	function HAXGetTrackedObjectives( out l_objectives : array< SJournalQuestObjectiveData > )
 	{
 		var journalQuest : CJournalQuest;
 		var l_questPhase : CJournalQuestPhase;
@@ -423,7 +419,7 @@ class CR4HudModuleQuests extends CR4HudModuleBase
 		
 		if ( objective.GetCount() <= 0 )
 		{
-			
+			// forget it
 			return;
 		}
 		
@@ -442,9 +438,9 @@ class CR4HudModuleQuests extends CR4HudModuleBase
 		commonMapManager = theGame.GetCommonMapManager();
 		journalManager = theGame.GetJournalManager();
 
-		
+		// unhighlight all objectives
 		m_fxUpdateObjectiveUnhighlightAllSFF.InvokeSelf();
-		
+		// highlight single objective
 		m_fxUpdateObjectiveHighlightSFF.InvokeSelfThreeArgs( FlashArgInt( objectiveIndex ), FlashArgBool( true ), FlashArgBool( true ) );
 	}
 
@@ -453,8 +449,8 @@ class CR4HudModuleQuests extends CR4HudModuleBase
 		m_fxShowTrackedQuestSFF.InvokeSelfTwoArgs( FlashArgInt( 0 ), FlashArgBool( show ) );
 	}
 
-	
-	
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// OTHER FUNCTIONS
 
 	private function GetObjectiveIndex( objective : CJournalQuestObjective ) : int
 	{

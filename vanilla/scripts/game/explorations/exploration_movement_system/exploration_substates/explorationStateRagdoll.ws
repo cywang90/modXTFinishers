@@ -1,20 +1,16 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿// CExplorationStateInteraction
+//------------------------------------------------------------------------------------------------------------------
+// Eduard Lopez Plans	( 10/12/2013 )	 
+//------------------------------------------------------------------------------------------------------------------
 
 
-
-
-
-
-
-
-
+//>-----------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------
 class CExplorationStateRagdoll extends CExplorationStateAbstract
 {	
 	private var	lastPos	: Vector;
 	
-	
+	//---------------------------------------------------------------------------------
 	private function InitializeSpecific( _Exploration : CExplorationStateManager )
 	{	
 		if( !IsNameValid( m_StateNameN ) )
@@ -29,39 +25,39 @@ class CExplorationStateRagdoll extends CExplorationStateAbstract
 		SetCanSave( false );
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	private function AddDefaultStateChangesSpecific()
 	{
 	}
 
-	
+	//---------------------------------------------------------------------------------
 	function StateWantsToEnter() : bool
 	{
 		return false;
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	function StateCanEnter( curStateName : name ) : bool
 	{	
 		return true;
 	}
 
-	
+	//---------------------------------------------------------------------------------
 	function StateCanExitToTo( nextStateName : name ) : bool
 	{	
 		return nextStateName == 'Idle' || nextStateName == 'Swim' || nextStateName == 'CombatExploration' || nextStateName == 'Jump' || nextStateName == 'Slide';
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	private function StateEnterSpecific( prevStateName : name )	
 	{
 		lastPos	= m_ExplorationO.m_OwnerE.GetWorldPosition();		
 		
-		
+		//Abort all signs
 		thePlayer.AbortSign();	
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	function StateChangePrecheck( )	: name
 	{	
 		if ( VecLengthSquared( m_ExplorationO.m_OwnerMAC.GetVelocity() ) <= 9.0f 
@@ -82,35 +78,35 @@ class CExplorationStateRagdoll extends CExplorationStateAbstract
 		return super.StateChangePrecheck();
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	protected function StateUpdateSpecific( _Dt : float )
 	{
 		var curPos		: Vector;
 		var fallHeight	: float;
 		
 		
-		
-		
-		
+		//curPos	= m_ExplorationO.m_OwnerE.GetWorldPosition();
+		//fallHeight	= curPos.Z - lastPos.Z;
+		//m_ExplorationO.m_SharedDataO.AddHeightFallen( fallHeight );
 		
 		m_ExplorationO.m_SharedDataO.UpdateFallHeight();
 		
 		lastPos	= curPos;
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	private function StateExitSpecific( nextStateName : name )
 	{
 		thePlayer.SetBIsCombatActionAllowed( true );
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	function CanInteract( ) :bool
 	{		
 		return false;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	function ReactToCriticalState( enabled : bool ) : bool
 	{
 		if( !enabled )
@@ -129,21 +125,21 @@ class CExplorationStateRagdoll extends CExplorationStateAbstract
 		return true;
 	}
 	
-	
-	function ReactToBeingHit() : bool
+	//---------------------------------------------------------------------------------
+	function ReactToBeingHit( optional damageAction : W3DamageAction ) : bool
 	{
 		return true;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	function ReactToLoseGround() : bool
 	{
-		
+		//thePlayer.SetIsInAir( true );
 		
 		return true;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	function ReactToHitGround() : bool
 	{
 		var fallDiff		: float;
@@ -151,10 +147,10 @@ class CExplorationStateRagdoll extends CExplorationStateAbstract
 		var damagePerc		: float;
 		
 		
-		
+		// Get the falling heights
 		m_ExplorationO.m_SharedDataO.CalculateFallingHeights( fallDiff, jumpTotalDiff );
 		
-		
+		// Apply Damage
 		damagePerc		= m_ExplorationO.m_OwnerE.ApplyFallingDamage( fallDiff, true );
 		
 		m_ExplorationO.m_SharedDataO.ResetHeightFallen();		
@@ -162,7 +158,7 @@ class CExplorationStateRagdoll extends CExplorationStateAbstract
 		return true;
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
 	}

@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskCombatStorage extends IBehTreeTask
+﻿class CBTTaskCombatStorage extends IBehTreeTask
 {
 	protected var storageHandler 	: CAIStorageHandler;
 	protected var combatDataStorage : CBaseAICombatStorage;
@@ -52,8 +48,8 @@ class CBTTaskCombatStorageDef extends IBehTreeTaskDefinition
 	editable var setIsAiming 	: bool;
 }
 
-
-
+/////////////////////////////////////////////////////////
+// CBehTreeTaskCombatStorageCleanup
 class CBehTreeTaskCombatStorageCleanup extends IBehTreeTask
 {
 	private var storageHandler : CAIStorageHandler;
@@ -61,7 +57,7 @@ class CBehTreeTaskCombatStorageCleanup extends IBehTreeTask
 	
 	function OnActivate() : EBTNodeStatus
 	{
-		
+		//disables dynamicLookAt
 		GetNPC().DisableLookAt();
 		return BTNS_Active;
 	}
@@ -99,7 +95,7 @@ class CBehTreeTaskCombatStorageCleanupDef extends IBehTreeTaskDefinition
 	default instanceClass = 'CBehTreeTaskCombatStorageCleanup';
 }
 
-
+/////////////////////////////////////////////////////////
 
 class CBTTaskPreCombatWarning extends IBehTreeTask
 {
@@ -158,7 +154,7 @@ class CBTTaskPreCombatWarningDef extends IBehTreeTaskDefinition
 
 
 
-
+/////////////////////////////////////////////////////////
 
 class CBTTaskGetPreCombatWarning extends IBehTreeTask
 {

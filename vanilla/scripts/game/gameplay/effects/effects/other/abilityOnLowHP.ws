@@ -1,14 +1,12 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Copyright © 2013
+/** Author : Tomasz Kozera
+/***********************************************************************/
 
-
-
-
-
+//gives ability when HP is low (below or equal to effectValue.additive)
 class W3Effect_AbilityOnLowHP extends CBaseGameplayEffect
 {
-	private var lowHPAbilityName : name;				
+	private var lowHPAbilityName : name;				//name of the ability to give when HP is low
 
 	default effectType = EET_AbilityOnLowHealth;
 	default isPositive = false;
@@ -51,17 +49,17 @@ class W3Effect_AbilityOnLowHP extends CBaseGameplayEffect
 		target.RemoveAbility(lowHPAbilityName);		
 	}
 	
-	
-	
-	
+	//////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////  BUFF INTERACTIONS  //////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////////////	
 	
 	protected function GetSelfInteraction( e : CBaseGameplayEffect) : EEffectInteract
 	{
-		
+		//different ability
 		if(lowHPAbilityName != ((W3Effect_AbilityOnLowHP)e).lowHPAbilityName)
 			return EI_Pass;
 			
-		
+		//same ability
 		return super.GetSelfInteraction(e);
 	}
 }

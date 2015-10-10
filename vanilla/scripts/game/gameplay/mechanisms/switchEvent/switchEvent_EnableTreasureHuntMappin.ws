@@ -1,10 +1,8 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author : Łukasz Szczepankowski
+/***********************************************************************/
 
 class W3SE_EnableTreasureHuntMappin extends W3SwitchEvent
 {

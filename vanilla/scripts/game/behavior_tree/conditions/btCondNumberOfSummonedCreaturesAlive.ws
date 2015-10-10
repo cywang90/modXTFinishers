@@ -1,13 +1,12 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author : R.Pergent - 07-March-2014
+/***********************************************************************/
+//>---------------------------------------------------------------
+// Check the number of summoned creature alive. NPC needs the summonerComponent
+//----------------------------------------------------------------
 class BTCondNumberOfSummonedCreaturesAlive extends IBehTreeTask
 {
 	var value : float;

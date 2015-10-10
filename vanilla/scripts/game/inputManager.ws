@@ -1,31 +1,27 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 import class CInputManager
 {
-	import final function GetLastActivationTime( actionName : name ) : float; 	
-	import final function GetActionValue( actionName : name ) : float; 			
+	import final function GetLastActivationTime( actionName : name ) : float; 	// clamped at 10s 
+	import final function GetActionValue( actionName : name ) : float; 			//[0-1]
 	import final function GetAction( actionName : name ) : SInputAction;
 
-	import final function ClearIgnoredInput();									
-	
+	import final function ClearIgnoredInput();									// Resets all blocked inputs
+	//import final function IgnoreGameInput( actionName : name, ignore : bool );	// Ignore input for action 
 	import final function IsInputIgnored( actionName : name ) : bool;			
 		
-	
+	//one listener per action - registerring second one will unregister first
 	import final function RegisterListener( listener : IScriptable, eventName : name, actionName : name );
 	import final function UnregisterListener( listener : IScriptable, actionName : name );
 	
-	import final function SetContext( contextName : name );						
-	import final function GetContext() : name;									
+	import final function SetContext( contextName : name );						// changes current input context
+	import final function GetContext() : name;									// returns name of current context
 	
-	
+	//import final function SuppressSendingEvents( val : bool );
 	
 	import final function StoreContext( newContext : name );
 	
-	
-	
+	// @param storedContext - what was the name of the context stored (what do we restore from)
+	// @param contextCouldChange - is it possible that context has changed?
 	import final function RestoreContext( storedContext : name, contextCouldChange : bool );
 	
 	import final function EnableLog( val : bool );
@@ -41,24 +37,24 @@ import class CInputManager
 	
 	import final function ForceDeactivateAction( actionName : name );
 	
-	
-	
+	// get all keys mapped to action (actionName), for PC (keyboard + mouse) input schema
+	//ACHTUNG!!! outKeys is not cleared!!!!
 	import final function GetPCKeysForAction( actionName : name, out outKeys : array< EInputKey > );
-	
-	
+	// get all keys mapped to action (actionName), for gamepad input schema
+	//ACHTUNG!!! outKeys is not cleared!!!!
 	import final function GetPadKeysForAction( actionName : name, out outKeys : array< EInputKey > );
-	
-	
+	// get all keys mapped to action on currently used device (keyboard + mouse / pad )
+	//ACHTUNG!!! outKeys is not cleared!!!!
 	import final function GetCurrentKeysForAction( actionName : name, out outKeys : array< EInputKey > );
 	
-	
-	
+	// get all keys mapped to action (actionName), for PC (keyboard + mouse) input schema
+	//ACHTUNG!!! outKeys is not cleared!!!!
 	import final function GetPCKeysForActionStr( actionName : string, out outKeys : array< EInputKey > );
-	
-	
+	// get all keys mapped to action (actionName), for gamepad input schema
+	//ACHTUNG!!! outKeys is not cleared!!!!
 	import final function GetPadKeysForActionStr( actionName : string, out outKeys : array< EInputKey > );
-	
-	
+	// get all keys mapped to action on currently used device (keyboard + mouse / pad )
+	//ACHTUNG!!! outKeys is not cleared!!!!
 	import final function GetCurrentKeysForActionStr( actionName : string, out outKeys : array< EInputKey > );
 	
 	function IsActionPressed( actionName : name ) : bool
@@ -137,7 +133,7 @@ import class CInputManager
 				glossaryTutorial = (CR4GlossaryTutorialsMenu)commonMenuRef.GetSubMenu();
 				if (glossaryTutorial)
 				{
-					
+					//glossaryTutorial.UpdateTutorials();
 				}
 			}
 			

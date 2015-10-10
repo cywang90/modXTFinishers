@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2013
+/** Author : Tomasz Kozera
+/***********************************************************************/
 
 class W3Effect_BattleTrance extends CBaseGameplayEffect
 {
@@ -14,7 +12,7 @@ class W3Effect_BattleTrance extends CBaseGameplayEffect
 	default isNeutral = false;
 	default isNegative = false;
 
-	
+	// check if character's focus points have changed and if so apply a level change
 	event OnUpdate(deltaTime : float)
 	{
 		var focus : float;
@@ -22,17 +20,20 @@ class W3Effect_BattleTrance extends CBaseGameplayEffect
 	
 		super.OnUpdate(deltaTime);
 		
-		
+		//check current focus level
 		focus = target.GetStat(BCS_Focus);
 		newLevel = FloorF(focus);
 		delta = newLevel - currentFocusLevel;
 		
-		
+		//if changed then add/remove 1 level of bonus
 		if(delta != 0)
 		{
 			if(delta < 0)
 			{
-				target.RemoveAbilityMultiple(thePlayer.GetSkillAbilityName(S_Sword_5), Abs(delta));
+				if(GetWitcherPlayer().CanUseSkill(S_Perk_19))
+					target.RemoveAbilityMultiple(thePlayer.GetSkillAbilityName(S_Perk_19), Abs(delta));
+				else
+					target.RemoveAbilityMultiple(thePlayer.GetSkillAbilityName(S_Sword_5), Abs(delta));
 				
 				if(thePlayer.CanUseSkill(S_Magic_s07))
 					thePlayer.RemoveAbilityMultiple(thePlayer.GetSkillAbilityName(S_Magic_s07), Abs(delta));
@@ -42,7 +43,10 @@ class W3Effect_BattleTrance extends CBaseGameplayEffect
 			}
 			else
 			{
-				target.AddAbilityMultiple(thePlayer.GetSkillAbilityName(S_Sword_5), delta);
+				if(GetWitcherPlayer().CanUseSkill(S_Perk_19))
+					target.AddAbilityMultiple(thePlayer.GetSkillAbilityName(S_Perk_19), delta);
+				else
+					target.AddAbilityMultiple(thePlayer.GetSkillAbilityName(S_Sword_5), delta);
 				
 				if(thePlayer.CanUseSkill(S_Magic_s07))
 					thePlayer.AddAbilityMultiple(thePlayer.GetSkillAbilityName(S_Magic_s07), delta);
@@ -51,7 +55,7 @@ class W3Effect_BattleTrance extends CBaseGameplayEffect
 					thePlayer.AddAbilityMultiple(thePlayer.GetSkillAbilityName(S_Perk_11), delta);
 			}
 			
-			
+			//shut down if no focus left
 			if(newLevel == 0)
 			{
 				isActive = false;
@@ -62,7 +66,7 @@ class W3Effect_BattleTrance extends CBaseGameplayEffect
 		}
 	}
 	
-	
+	// also add trance aura dreadfull if hero has this skill
 	event OnEffectAdded(optional customParams : W3BuffCustomParams)
 	{
 		var player : CR4Player;
@@ -78,10 +82,13 @@ class W3Effect_BattleTrance extends CBaseGameplayEffect
 		
 		currentFocusLevel = FloorF(target.GetStat(BCS_Focus));
 		
-		target.AddAbility(thePlayer.GetSkillAbilityName(S_Sword_5));
+		if(player.CanUseSkill(S_Perk_19))
+			target.AddAbilityMultiple(thePlayer.GetSkillAbilityName(S_Perk_19), currentFocusLevel);
+		else
+			target.AddAbilityMultiple(thePlayer.GetSkillAbilityName(S_Sword_5), currentFocusLevel);
 		
 		if( player.CanUseSkill(S_Magic_s07) )
-			player.AddAbility( player.GetSkillAbilityName(S_Magic_s07) );
+			player.AddAbilityMultiple( player.GetSkillAbilityName(S_Magic_s07), currentFocusLevel);
 			
 		if(player.CanUseSkill(S_Perk_11))
 			player.AddAbilityMultiple(player.GetSkillAbilityName(S_Perk_11), currentFocusLevel);
@@ -97,6 +104,7 @@ class W3Effect_BattleTrance extends CBaseGameplayEffect
 		player.RemoveAbilityAll( player.GetSkillAbilityName(S_Magic_s07) );
 		player.RemoveAbilityAll( player.GetSkillAbilityName(S_Perk_11) );
 		player.RemoveAbilityAll( player.GetSkillAbilityName(S_Sword_5) );
+		player.RemoveAbilityAll( player.GetSkillAbilityName(S_Perk_19) );
 	}
 	
 	public function OnPerk11Equipped()
@@ -111,6 +119,9 @@ class W3Effect_BattleTrance extends CBaseGameplayEffect
 	
 	protected function SetEffectValue()
 	{
-		effectValue = GetWitcherPlayer().GetSkillAttributeValue(S_Sword_5, PowerStatEnumToName(CPS_AttackPower), false, true);
+		if(GetWitcherPlayer().CanUseSkill(S_Perk_19))
+			effectValue = GetWitcherPlayer().GetSkillAttributeValue(S_Perk_19, theGame.params.CRITICAL_HIT_CHANCE, false, true);
+		else
+			effectValue = GetWitcherPlayer().GetSkillAttributeValue(S_Sword_5, PowerStatEnumToName(CPS_AttackPower), false, true);
 	}
 }

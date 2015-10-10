@@ -1,14 +1,12 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Copyright © 2012-2014
+/** Author : Rafal Jarczewski, Tomek Kozera
+/***********************************************************************/
 
-
-
-
-
+// Automatic vitality regeneration - set this up in entity template
 class W3Effect_AutoVitalityRegen extends W3AutoRegenEffect
 {
-	private var regenModeIsCombat : bool;		
+	private var regenModeIsCombat : bool;		//set to true if we're in combat regen mode
 	private var cachedPlayer : CR4Player;
 
 		default regenStat = CRS_Vitality;	
@@ -31,10 +29,10 @@ class W3Effect_AutoVitalityRegen extends W3AutoRegenEffect
 	
 	event OnUpdate(deltaTime : float)
 	{
-		
+		//if(isOnPlayer && regenModeIsCombat != cachedPlayer.IsInCombat())
 		if(isOnPlayer)
 		{
-			
+			//regenModeIsCombat = !regenModeIsCombat;
 			regenModeIsCombat = cachedPlayer.IsInCombat();
 			if(regenModeIsCombat)
 				attributeName = 'vitalityCombatRegen';
@@ -46,7 +44,7 @@ class W3Effect_AutoVitalityRegen extends W3AutoRegenEffect
 		
 		super.OnUpdate(deltaTime);
 		
-		if( target.GetStatPercents( BCS_Vitality ) >= 1.0f )
+		if( target.GetStatPercents( BCS_Vitality ) >= 1.0f && !target.HasAbility('Runeword 4 _Stats', true))
 		{
 			target.StopVitalityRegen();
 		}

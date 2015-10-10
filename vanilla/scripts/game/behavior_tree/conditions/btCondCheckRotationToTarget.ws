@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class BTCondCheckRotationToTarget extends IBehTreeTask
+﻿class BTCondCheckRotationToTarget extends IBehTreeTask
 {
 	var ifNot : bool;
 	var toleranceAngle : float;

@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 class CBTTaskDrink extends IBehTreeTask
 {
 	var available : bool;

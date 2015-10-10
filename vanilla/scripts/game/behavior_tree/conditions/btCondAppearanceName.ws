@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2013
+/** Author : Andrzej Kwiatkowski
+/***********************************************************************/
 
 class CBTCondAppearanceName extends IBehTreeTask
 {
@@ -16,7 +15,7 @@ class CBTCondAppearanceName extends IBehTreeTask
 		var currentAppearance : name;
 		
 		currentAppearance = owner.GetAppearance();
-		
+		//Log( currentAppearance );
 		
 		if( currentAppearance == appearanceName )
 		{

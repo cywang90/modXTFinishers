@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file - Base popup class 
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author : Yaroslav Getsevich
+/***********************************************************************/
 
 class CR4PopupBase extends CR4Popup
 {
@@ -20,7 +19,7 @@ class CR4PopupBase extends CR4Popup
 	
 	protected var m_guiManager : CR4GuiManager;	
 	
-	event  OnConfigUI() 
+	event /*flash*/ OnConfigUI() 
 	{	
 		m_guiManager = theGame.GetGuiManager();
 	
@@ -39,10 +38,10 @@ class CR4PopupBase extends CR4Popup
 		SetPlatformType(theGame.GetPlatform());
 		setArabicAligmentMode();
 		UpdateAcceptCancelSwaping();
-		
+		//SetPlatformType(Platform_PS4);
 	}
 	
-	event  OnClosingPopup()
+	event /* C++ */ OnClosingPopup()
 	{
 		var initData:IScriptable;
 		initData = GetPopupInitData();
@@ -100,7 +99,7 @@ class CR4PopupBase extends CR4Popup
 		}
 	}
 	
-	event  OnPlaySoundEvent( soundName : string )
+	event /*flash*/ OnPlaySoundEvent( soundName : string )
 	{
 		theSound.SoundEvent( soundName );
 	}

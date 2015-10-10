@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class BTCondHasTarget extends IBehTreeTask
+﻿class BTCondHasTarget extends IBehTreeTask
 {
 	var useCombatTarget : bool;
 	

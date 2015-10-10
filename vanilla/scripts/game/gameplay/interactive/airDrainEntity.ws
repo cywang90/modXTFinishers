@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Authors : Tomek Kozera, Danisz Markiewicz
+/***********************************************************************/
 
 class W3AirDrainEntity extends CGameplayEntity
 {

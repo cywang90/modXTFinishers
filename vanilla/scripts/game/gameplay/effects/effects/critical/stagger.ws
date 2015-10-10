@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2012-2014
+/** Author : Rafal Jarczewski, Andrzej Kwiatkowski, Tomek Kozera
+/***********************************************************************/
 
 class W3Effect_Stagger extends W3CriticalEffect
 {
@@ -64,13 +62,20 @@ class W3Effect_Stagger extends W3CriticalEffect
 		{
 			actor = (CActor)EntityHandleGet(creatorHandle);
 			if(actor)
+			{
 				thePlayer.SetCustomRotation( 'Stagger',  VecHeading( actor.GetWorldPosition() - thePlayer.GetWorldPosition() ), 0.0f, 0.2f, false );
+				
+				if( actor.HasTag( 'olgierd_gpl' ) && actor.HasAbility( 'SandAttack' ) )
+				{
+					actor.PlayEffect( 'smoke_throw_screen' );
+				}
+			}
 		}
 		
-		
+		//info for quest conditions
 		tags = target.GetTags();
 		for(i=0; i<tags.Size(); i+=1)
-			FactsAdd("actor_"+NameToString(tags[i])+"_was_stunned",1,CeilF(duration)+1 );	
+			FactsAdd("actor_"+NameToString(tags[i])+"_was_stunned",1,CeilF(duration)+1 );	//valid for stun duration + 1 sec
 	}
 	
 	public function OnTimeUpdated(dt : float)

@@ -1,23 +1,22 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Localized content
+/** Copyright © 2010
+/***********************************************************************/
 
 import function GetLocStringById( stringId : int ) : string;
 
 import function GetLocStringByKey( stringKey : string ) : string;
 
-
+// if no translation were found, returnes stringKey prefixed with '#'
 import function GetLocStringByKeyExt( stringKey : string ) : string;
 
-
-
+// Assume this function is expensive as it replaces characters in a string based on chosen language. 
+// Should be saved for user inputted content where we have no control over what the string contains
 import function FixStringForFont( originalString : string ) : string;
 
-
+// returns localised string with item name for given item name
 function GetItemCategoryLocalisedString(cat : name) : string
 {
 	if(!IsNameValid(cat))
@@ -26,7 +25,7 @@ function GetItemCategoryLocalisedString(cat : name) : string
 	return GetLocStringByKeyExt("item_category_" + StrReplaceAll( StrLower(NameToString(cat)), " ", "_") );
 }
 
-
+// returns localized string with attribute name
 function GetAttributeNameLocStr(attName : name, isMult : bool) : string
 {
 	if(isMult)
@@ -35,7 +34,7 @@ function GetAttributeNameLocStr(attName : name, isMult : bool) : string
 		return GetLocStringByKeyExt("attribute_name_"+StrLower(attName));
 }
 
-
+// returns localized string with attribute name
 function GetLocStringByKeyExtWithParams(stringKey : string , optional intParamsArray : array<int>, optional floatParamsArray : array<float>, optional stringParamsArray : array<string>, optional addNbspTag:bool) : string
 {
 	var i : int;
@@ -55,7 +54,7 @@ function GetLocStringByKeyExtWithParams(stringKey : string , optional intParamsA
 	
 	for( i = 0; i < intParamsArray.Size(); i += 1 )
 	{
-		resultString = StrReplace( resultString, "$I$", prefix + IntToString(intParamsArray[i]) ); 
+		resultString = StrReplace( resultString, "$I$", prefix + IntToString(intParamsArray[i]) ); // #B "$I"+i+"$" - it will be safer to number parameters
 	}
 	for( i = 0; i < floatParamsArray.Size(); i += 1 )
 	{
@@ -69,7 +68,7 @@ function GetLocStringByKeyExtWithParams(stringKey : string , optional intParamsA
 	return resultString;
 }
 
-
+// returns localized string with attribute name
 function GetLocStringByIdWithParams( stringId : int , optional intParamsArray : array<int>, optional floatParamsArray : array<float>, optional stringParamsArray : array<string>) : string
 {
 	var i : int;
@@ -79,7 +78,7 @@ function GetLocStringByIdWithParams( stringId : int , optional intParamsArray : 
 
 	for( i = 0; i < intParamsArray.Size(); i += 1 )
 	{
-		resultString = StrReplace( resultString, "$I$", IntToString(intParamsArray[i]) ); 
+		resultString = StrReplace( resultString, "$I$", IntToString(intParamsArray[i]) ); // #B "$I"+i+"$" - it will be safer to number parameters
 	}
 	for( i = 0; i < floatParamsArray.Size(); i += 1 )
 	{
@@ -250,7 +249,7 @@ function GetResistStatLocalizedDesc(s : ECharacterDefenseStats, isPointResistanc
 	}
 }
 
-
+//checks if string has any localization tags
 function HasLolcalizationTags(s : string) : bool
 {
 	return StrFindFirst(s, "<<") >= 0;
@@ -298,10 +297,10 @@ function GetIconByPlatform(tag : string) : string
 	return icon;
 }
 
-
-
-
-
+//Parses text and replaces tags (images, controls keys) to their icons.
+//In case of keyboard tags some might be replaced to text as we don't do icons for those, eg. [Enter]
+//If action has more than one key then you can specify the index youn want by placing it after comma inside tag.
+//For example GI_AxisLeftY binds to W and S. Using <<GI_AxisLeftY>> gives [W] and using <<GI_AxisLeftY,1>> gives [S].
 function ReplaceTagsToIcons(s : string) : string
 {
 	var start, stop, keyIdx, commaIdx : int;
@@ -313,7 +312,7 @@ function ReplaceTagsToIcons(s : string) : string
 	
 	while(true)
 	{
-		
+		//find next unparsed tag
 		start = StrFindFirst(s, "<<");
 		if(start < 0)
 			break;
@@ -322,18 +321,18 @@ function ReplaceTagsToIcons(s : string) : string
 		if(stop < 0)
 			break;
 			
-		
+		//some broken tags - first close then open
 		if(stop < start)
 		{
-			
+			//erase broken tag
 			s = StrReplace(s, ">>", "");
 			continue;
 		}
 		
-		
+		//get tag string
 		tag = StrMid(s, start+2, stop-start-2);
 				
-		
+		//check for array index request e.g. GI_AxisLeftY,1
 		commaIdx = StrFindFirst(tag, ",");
 		if(commaIdx >= 0)
 		{
@@ -346,15 +345,15 @@ function ReplaceTagsToIcons(s : string) : string
 			keyIdx = 0;
 		}
 		
+		//input check - assume tag is an action and try to get key assigned to it
 		
-		
-		
-		
-		
-		
-		
-		
-		
+		//---------------------------------------------------
+		// #Y2 Hack for attack tutorials
+		// AttackWithAlternateHeavy
+		// AttackWithAlternateLight
+		// SpecialAttackWithAlternateLight
+		// SpecialAttackWithAlternateHeavy
+		// PCAlternate
 		
 		if (tag == "PCAlternate")
 		{
@@ -372,14 +371,14 @@ function ReplaceTagsToIcons(s : string) : string
 			}
 			else			
 			{
-				icon = "##"; 
+				icon = "##"; // NONE if we have heavy attack bound
 			}
 		}
 		else
 		if (tag == "AttackWithAlternateLight_mod" || tag == "SpecialAttackWithAlternateLight_mod")
 		{
-			
-			
+			// light attack as a part of heavy attack text:
+			// <<PCAlternate>> oraz <<SpecialAttackWithAlternateLight_mod>> aby wykonać specjalny atak silny.
 			
 			keys.Clear();
 			attackModKeysPC.Clear();
@@ -439,7 +438,7 @@ function ReplaceTagsToIcons(s : string) : string
 				}
 				else
 				{
-					icon = "##"; 
+					icon = "##"; // none
 				}
 			}
 		}
@@ -468,23 +467,23 @@ function ReplaceTagsToIcons(s : string) : string
 			keys.Clear();
 			theInput.GetCurrentKeysForActionStr(tag, keys);
 			
-			
+			//get replacement string
 			if(keys.Size() == 0)
 			{
-				
+				//tag is not an action so it's a general icon tag
 				icon = GetIconForTag(tag);
 			}
 			else
 			{
-				
+				//get icon string from input key
 				icon = GetIconForKey(keys[keyIdx]);
 			}
 		}
 		
-		
+		//replace tag with icon
 		if(StrStartsWith(icon, "##"))
 		{
-			
+			//unmapped key (or broken TAG!)
 			GetBracketSymbols(bracketOpeningSymbol, bracketClosingSymbol);
 			icon = " " + bracketOpeningSymbol + "<font color=\"" + theGame.params.KEYBOARD_KEY_FONT_COLOR + "\">" + GetLocStringByKeyExt("input_device_key_name_IK_none") + "</font>" + bracketClosingSymbol + " ";
 			s = StrReplaceAll(s, "<<" + tag + ">>", icon);
@@ -502,8 +501,8 @@ function ReplaceTagsToIcons(s : string) : string
 	return s;
 }
 
-
-
+//Gets full icon string for input key.
+//It's either a html tag to insert image or a string in case of keyboard, eg. "[Backspace]"
 function GetIconForKey(key : EInputKey, optional isGuiKey:bool) : string
 {
 	var inGameConfigWrapper : CInGameConfigWrapper;
@@ -531,16 +530,16 @@ function GetIconForKey(key : EInputKey, optional isGuiKey:bool) : string
 		}
 	}
 	
-	
+	//get image file name from given input key
 	icon = GetIconNameForKey(key);
 	
 	GetBracketSymbols(bracketOpeningSymbol, bracketClosingSymbol);
 	if(icon == "")
 	{
-		
+		//if no image, it's a keyboard key
 		switch(key)
 		{
-			
+			//for special keys we have localized strings (e.g. backspace, space)
 			case IK_Backspace:
 			case IK_Tab:
 			case IK_Enter:
@@ -595,7 +594,7 @@ function GetIconForKey(key : EInputKey, optional isGuiKey:bool) : string
 				keyText = GetLocStringByKeyExt("input_device_key_name_" + key);
 				break;
 				
-			
+			//for generic ones we just take it's char
 			default:
 				keyText = StrChar(key);
 		}
@@ -643,12 +642,12 @@ function GetBracketSymbols(out openingSymbol:string, out closingSymbol:string, o
 	}
 }
 
-
+//gets html string icon
 function GetHTMLForICO(icon : string) : string
 {
+	//we use vspace as we cannot align it vertically at the moment
 	
-	
-	
+	// #Y Sorry, hack for PC
 	if (icon == "Mouse_LeftBtn" || icon == "Mouse_RightBtn" || icon == "Mouse_MiddleBtn" || icon == "Mouse_ScrollUp" || icon == "Mouse_ScrollDown")
 	{
 		icon = " <img src=\"" + icon + ".png\" vspace=\"-10\" />";
@@ -663,31 +662,38 @@ function GetHTMLForICO(icon : string) : string
 
 function GetHTMLForMouseICO(icon : string) : string
 {
-	
+	//we use vspace as we cannot align it vertically at the moment
 	icon = " <img src=\"" + icon + ".png\" vspace=\"-10\" />";
 
 	return icon;
 }
 
-function GetHTMLForItemICO(icon : string) : string
+function GetHTMLForItemICO(icon : string, optional vspace : float) : string
 {
-	
-	icon = " <img src=\"" + icon + ".png\" vspace=\"-10\" />";
+	//we use vspace as we cannot align it vertically at the moment
+	if (vspace == 0)
+	{
+		icon = " <img src=\"" + icon + ".png\" vspace=\"-10\" />";
+	}
+	else
+	{
+		icon = " <img src=\"" + icon + ".png\" vspace=\"" + NoTrailZeros(vspace) + "\" />";
+	}
 
 	return icon;
 }
 
-
+//gets html string icon
 function GetBookTexture(tag : string) : string
 {
 	var retStr : string;
-	
+	//we use vspace as we cannot align it vertically at the moment
 	retStr = "<p align=\"center\">"+" <img src=\"" + tag + ".png\" vspace=\"-20\" align=\"middle\" /> "+ "</p>";
 
 	return retStr;
 }
 
-
+//gets icon file name for given tag (not an input key!)
 function GetIconForTag(tag : string) : string
 {
 	var icon : string;
@@ -726,7 +732,7 @@ function GetIconForTag(tag : string) : string
 	else if(tag == "GUI_PC_Close")					icon = GetIconForKey(IK_Escape);	
 	else
 	{
-		
+		//out of memory, let's party!
 		return GetIconOrColorForTag2(tag);
 	}
 	
@@ -745,8 +751,9 @@ function GetIconOrColorForTag2(tag : string) : string
 	
 	if(tag == "ICO_ActiveQuestPin")					icon = GetHTMLForItemICO("ICO_ActiveQuestPin");
 	else if(tag == "ICO_NewQuest")					icon = GetHTMLForItemICO("ICO_NewQuest");
+	else if(tag == "ICO_EP1Quest")					icon = GetHTMLForItemICO("ICO_EP1Quest", -25);
 	else if(tag == "ICO_Destructible")				icon = GetHTMLForItemICO("ICO_Destructible");
-	else if(tag == "ICO_BoatFastTravel")			icon = GetHTMLForItemICO("ICO_minimap_harbor"); 
+	else if(tag == "ICO_BoatFastTravel")			icon = GetHTMLForItemICO("ICO_minimap_harbor"); // old- ICO_BoatFastTravel
 	else if(tag == "ICO_Overencumbered")			icon = GetHTMLForItemICO("ICO_Overencumbered");
 	else if(tag == "ICO_UnknownPOI")				icon = GetHTMLForItemICO("ICO_UnknownPOI");
 	else if(tag == "ICO_ThunderboltPotion")			icon = GetHTMLForItemICO("ICO_ThunderboltPotion");
@@ -755,10 +762,11 @@ function GetIconOrColorForTag2(tag : string) : string
 	else if(tag == "ICO_Skull")						icon = GetHTMLForItemICO("ICO_Skull");
 	else if(tag == "ICO_DungeonCrawl")			    icon = GetHTMLForItemICO("ICO_DungeonCrawl");
 	else if(tag == "ICO_ShopMapPin")				icon = GetHTMLForItemICO("ICO_ShopIcoPin");
+	else if(tag == "ICO_Enchanter")					icon = GetHTMLForItemICO("ICO_Enchanter", -20);
 	else if(tag == "IK_Tab")						icon = GetIconForKey(IK_Tab);
 	else
 	{
-		
+		//out of memory, let's party!
 		return GetIconOrColorForTag3(tag);
 	}
 	
@@ -805,11 +813,11 @@ function GetIconOrColorForTag3(tag : string) : string
 	}
 	else if(tag == "Color_Gwint")
 	{
-		icon = " <font color=\"#CD7D03\">"; 
+		icon = " <font color=\"#CD7D03\">"; //#J this is because stupid replaceall is removing mah spaces
 	}
 	else if(tag == "Color_Gwint2")
 	{
-		icon = " <font color=\"#EF1919\">"; 
+		icon = " <font color=\"#EF1919\">"; //#J this is because stupid replaceall is removing mah spaces
 	}
 	else if(tag == "End_Color")
 	{
@@ -847,7 +855,7 @@ function GetIconOrColorForTag3(tag : string) : string
 	return icon;
 }
 
-
+//Returns name of icon file for given input key (pc/pad)
 function GetIconNameForKey(key : EInputKey) : string
 {
 	if(key == IK_Pad_A_CROSS)			return GetPadFileName("A");
@@ -877,12 +885,12 @@ function GetIconNameForKey(key : EInputKey) : string
 	return "";
 }
 
-
+//given general button type, returns proper icon filename for pad: xbox or ps4
 function GetPadFileName(type : string) : string
 {
 	if(theInput.UsesPlaystationPadScript())
 	{
-		
+		//ps4 icons
 		switch(type)
 		{
 			case "LS" :					return "ICO_PlayS_L3";
@@ -967,9 +975,9 @@ exec function hintloc()
 	theGame.RequestMenu('TutorialPopupMenu', m_tutorialHintDataObj);
 }
 
-
-
-
+//////////////////////////////////////////////////////////////////
+//////////////////  @TESTING ICONS  //////////////////////////////
+//////////////////////////////////////////////////////////////////
 
 function DEBUG_Test_GetIconForTag(out text : string, tag : string)
 {
@@ -989,7 +997,7 @@ exec function tutico(optional num : int)
 	var tag, key : string;
 	var message : W3TutorialPopupData;
 	
-	
+	//enable tutorials
 	TutorialMessagesEnable(true);
 	theGame.GetTutorialSystem().TutorialStart(false);	
 	message = new W3TutorialPopupData in theGame;
@@ -998,7 +1006,7 @@ exec function tutico(optional num : int)
 	message.duration = -1;
 	message.autosize = false;
 	
-	
+	//close any old messages
 	theGame.ClosePopup( 'TutorialPopup');
 		
 	switch(num)

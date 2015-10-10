@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CMagicMineEntity extends CInteractiveEntity
+﻿class CMagicMineEntity extends CInteractiveEntity
 {
 	editable var tellTime : float;
 	editable var damageVal : float;

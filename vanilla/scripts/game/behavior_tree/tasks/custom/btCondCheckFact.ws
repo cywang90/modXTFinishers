@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2014
+/** Author : Andrzej Kwiatkowski
+/***********************************************************************/
 
 
 class CBTCondCheckFact extends IBehTreeTask
@@ -13,8 +12,8 @@ class CBTCondCheckFact extends IBehTreeTask
 	var value		: int;
 	var operator 	: EOperator;
 	
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function IsAvailable() : bool
 	{
 		var oppNo : int;

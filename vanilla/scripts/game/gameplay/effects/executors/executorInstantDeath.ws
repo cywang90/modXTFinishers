@@ -1,11 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Copyright © 2013
+/** Author : Tomasz Kozera
+/***********************************************************************/
 
-
-
-
-
+// Instant death executor buff - kills the owner
 class W3Executor_InstantDeath extends IInstantEffectExecutor
 {
 	default executorName = 'InstantDeath';

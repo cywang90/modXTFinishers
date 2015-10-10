@@ -1,22 +1,24 @@
-﻿/*
-Copyright © CD Projekt RED 2015
+﻿/***********************************************************************/
+/** Copyright © 2013
+/** Author : Tomasz Kozera
+/***********************************************************************/
+
+/*
+	Applies knockdown type of effect. Generally use this class always when you want to apply
+	knockdown/stagger etc. It checks the 'hit severity reduction' of the target and decides
+	which of the buffs to apply.
 */
-
-
-
-
-
 class W3Effect_KnockdownTypeApplicator extends W3ApplicatorEffect
 {
-	private saved var customEffectValue : SAbilityAttributeValue;		
-	private saved var customDuration : float;							
-	private saved var customAbilityName : name;							
+	private saved var customEffectValue : SAbilityAttributeValue;		//custom value for the effect to apply
+	private saved var customDuration : float;							//custom duration for the final applied effect
+	private saved var customAbilityName : name;							//custom ability name for the effect to apply
 
 	default effectType = EET_KnockdownTypeApplicator;
 	default isNegative = true;
 	default isPositive = false;
 	
-	
+	// picks the right knockdown type effect to apply and disables itself
 	event OnEffectAdded(optional customParams : W3BuffCustomParams)
 	{
 		var aardPower	: float;
@@ -29,37 +31,42 @@ class W3Effect_KnockdownTypeApplicator extends W3ApplicatorEffect
 		var mutagen : CBaseGameplayEffect;
 		var min, max : SAbilityAttributeValue;
 		var encumbranceBonus : float; 
-				
 		
+		// Mutagen 8 - increase knockdown resistance based on the current encumbrance
 		if (target == thePlayer && thePlayer.HasBuff(EET_Mutagen08))
 		{
 			mutagen = thePlayer.GetBuff(EET_Mutagen08);
 			theGame.GetDefinitionsManager().GetAbilityAttributeValue(mutagen.GetAbilityName(), 'resistGainRate', min, max);
 			encumbranceBonus = GetWitcherPlayer().GetEncumbrance() * CalculateAttributeValue(GetAttributeRandomizedValue(min, max));
 			resistance += encumbranceBonus / 100;
-			
+			// APPLY ARMOR MODIFIERS
 		}
 		
+		if(isOnPlayer)
+		{
+			thePlayer.OnRangedForceHolster( true, true, false );
+		}
 		
-		if(effectValue.valueMultiplicative + effectValue.valueAdditive > 0)		
+		//first determine the type of effect to apply - let's calculate
+		if(effectValue.valueMultiplicative + effectValue.valueAdditive > 0)		//if effect value set
 			aardPower = effectValue.valueMultiplicative * ( 1 - resistance ) / (1 + effectValue.valueAdditive/100);
 		else
 			aardPower = creatorPowerStat.valueMultiplicative * ( 1 - resistance ) / (1 + creatorPowerStat.valueAdditive/100);
 		
-		
+		//for shielded enemy
 		npc = (CNewNPC)target;
 		if(npc && npc.HasShieldedAbility() )
 		{
 			if ( npc.IsShielded(GetCreator()) )
 			{
-				if ( aardPower >= 1.2 )
+				if ( aardPower >= 1.2 )//when aard is most powerfull
 					appliedType = EET_LongStagger;
 				else
 					appliedType = EET_Stagger;
 			}
 			else
 			{
-				if ( aardPower >= 1.2 )
+				if ( aardPower >= 1.2 )//when aard is most powerfull
 					appliedType = EET_Knockdown;
 				if ( aardPower >= 1.0 )
 					appliedType = EET_LongStagger;
@@ -95,10 +102,10 @@ class W3Effect_KnockdownTypeApplicator extends W3ApplicatorEffect
 			appliedType = EET_Stagger;
 		}
 		
-		
+		//now let's modify it by hit severity reduction
 		appliedType = ModifyHitSeverityBuff(target, appliedType);
 		
-		
+		//now set the right buff with custom params if any
 		params.effectType = appliedType;
 		params.creator = GetCreator();
 		params.sourceName = sourceName;
@@ -110,8 +117,8 @@ class W3Effect_KnockdownTypeApplicator extends W3ApplicatorEffect
 		
 		target.AddEffectCustom(params);
 				
-		
-		
+		//HACK
+		//disable by changing duration, otherwise it's reported as if the buff would not apply properly (it gets disabled on adding)
 		isActive = true;
 		duration = 0;
 	}

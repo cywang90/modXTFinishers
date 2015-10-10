@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-enum ELogicalOperator
+﻿enum ELogicalOperator
 {
 	AND,
 	OR
@@ -281,7 +277,7 @@ class W3LessunClue extends CFlyingCrittersLairEntityScript
 				accuracy = 360 + accuracy;
 			}
 			
-			
+			//Log("Clue accuracy: " + accuracy);
 			
 			theSound.SoundGlobalParameter("focus_boid_aim", accuracy);
 		}

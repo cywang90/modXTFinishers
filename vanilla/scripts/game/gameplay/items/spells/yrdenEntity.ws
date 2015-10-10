@@ -1,10 +1,6 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿//
+//	@TODO - pass effects, damage or whatever somehow (maybe hardcoded) ?
+//
 
 struct SYrdenEffects
 {
@@ -26,8 +22,17 @@ statemachine class W3YrdenEntity extends W3SignEntity
 	protected var trapDuration	: float;
 	protected var charges		: int;
 	
+	public var notFromPlayerCast : bool;
+	
 	default skillEnum = S_Magic_3;
 
+	public function Init( inOwner : W3SignOwner, prevInstance : W3SignEntity, optional skipCastingAnimation : bool, optional notPlayerCast : bool ) : bool
+	{
+		notFromPlayerCast = notPlayerCast;
+		
+		return super.Init(inOwner, prevInstance, skipCastingAnimation, notPlayerCast);
+	}
+		
 	public function GetSignType() : ESignType
 	{
 		return ST_Yrden;
@@ -67,7 +72,11 @@ statemachine class W3YrdenEntity extends W3SignEntity
 
 	event OnProcessSignEvent( eventName : name )
 	{
-		if ( eventName == 'yrden_draw_ready' )
+		/*if( eventName == 'yrden_alternate_ready' )
+		{
+			PlayEffect('yrden_ready');
+		}
+		else */if ( eventName == 'yrden_draw_ready' )
 		{
 			PlayEffect( 'yrden_cast' );
 		}
@@ -85,7 +94,7 @@ statemachine class W3YrdenEntity extends W3SignEntity
 		
 		for(i=0; i<ActorsInArea.Size(); i+=1)
 			ActorsInArea[i].SignalGameplayEventParamObject('LeavesYrden', this );
-				
+		
 		ActorsInArea.Clear();
 		flyersInArea.Clear();
 	}
@@ -100,7 +109,7 @@ statemachine class W3YrdenEntity extends W3SignEntity
 		trapDurationAtt = owner.GetSkillAttributeValue(skillEnum, 'trap_duration', false, true);
 		
 		trapDurationAtt += owner.GetActor().GetTotalSignSpellPower(skillEnum);
-		trapDurationAtt.valueMultiplicative -= 1;	
+		trapDurationAtt.valueMultiplicative -= 1;	//100% base spell power
 		
 		charges = (int)CalculateAttributeValue(chargesAtt);
 		trapDuration = CalculateAttributeValue(trapDurationAtt);
@@ -132,9 +141,10 @@ statemachine class W3YrdenEntity extends W3SignEntity
 		}
 	}
 	
-	protected latent function Place()
+	//isCreatedByPlayerCast - set to true if player creates yrden. If it's created by something else, set false.
+	protected latent function Place(trapPos : Vector)
 	{
-		var trapPos, trapPosTest, trapPosResult, collisionNormal : Vector;
+		var trapPosTest, trapPosResult, collisionNormal : Vector;
 		var rot : EulerAngles;
 		var witcher : W3PlayerWitcher;
 		
@@ -143,15 +153,14 @@ statemachine class W3YrdenEntity extends W3SignEntity
 		
 		DisablePreviousYrdens();		
 		
-		
+		//detach from actor
 		Detach();
 		
-		
+		//wait for detach to process
 		SleepOneFrame();
 		
-		
-		trapPos = GetWorldPosition();
-		trapPosTest = owner.GetActor().GetWorldPosition();
+		//look for placement pos & teleport
+		trapPosTest = trapPos;
 		trapPosTest.Z -= 0.5;		
 		rot = GetWorldRotation();
 		rot.Pitch = 0;
@@ -159,7 +168,7 @@ statemachine class W3YrdenEntity extends W3SignEntity
 		
 		if(theGame.GetWorld().StaticTrace(trapPos, trapPosTest, trapPosResult, collisionNormal))
 		{
-			trapPosResult.Z += 0.1;	
+			trapPosResult.Z += 0.1;	//so it's placed a bit above the ground so we could see all fx properly
 			TeleportWithRotation ( trapPosResult, rot );
 		}
 		else
@@ -167,10 +176,13 @@ statemachine class W3YrdenEntity extends W3SignEntity
 			TeleportWithRotation ( trapPos, rot );
 		}
 		
-		
+		//wait for teleport to finish
 		SleepOneFrame();
 		
 		AddTimer('TimedCanceled', trapDuration, , , , true);
+		
+		if(!notFromPlayerCast)
+			owner.GetActor().OnSignCastPerformed(ST_Yrden, fireMode);
 	}
 	
 	private final function DisablePreviousYrdens()
@@ -179,12 +191,12 @@ statemachine class W3YrdenEntity extends W3SignEntity
 		var isAlternate : bool;
 		var witcher : W3PlayerWitcher;
 		
-		
+		//check which Yrdens are alternate and which not
 		isAlternate = IsAlternateCast();
 		witcher = GetWitcherPlayer();
 		size = witcher.yrdenEntities.Size();
 		
-		
+		//calculate max allowed Yrden's count
 		maxCount = 1;
 		currCount = 0;
 		
@@ -195,10 +207,10 @@ statemachine class W3YrdenEntity extends W3SignEntity
 		
 		for(i=size-1; i>=0; i-=1)
 		{
-			
+			//yrdens that timed out
 			if(!witcher.yrdenEntities[i])
 			{
-				witcher.yrdenEntities.Erase(i);		
+				witcher.yrdenEntities.Erase(i);		//cannot use EraseFast() as we need to keep the order of list unchanged!
 				continue;
 			}
 			
@@ -206,7 +218,7 @@ statemachine class W3YrdenEntity extends W3SignEntity
 			{
 				currCount += 1;
 				
-				
+				//if limit exceeded
 				if(currCount > maxCount)
 				{
 					witcher.yrdenEntities[i].OnSignAborted(true);
@@ -223,7 +235,7 @@ statemachine class W3YrdenEntity extends W3SignEntity
 		super.CleanUp();
 		StopAllEffects();
 		
-		
+		//disable the sign
 		areas = GetComponentsByClassName('CTriggerAreaComponent');
 		for(i=0; i<areas.Size(); i+=1)
 			areas[i].SetEnabled(false);
@@ -233,10 +245,10 @@ statemachine class W3YrdenEntity extends W3SignEntity
 			ActorsInArea[i].BlockAbility('Flying', false);
 		}
 		ClearActorsInArea();
-		DestroyAfter(6);
+		DestroyAfter(3);
 	}
 	
-	
+	//YYYY broken, range is 0 always
 	protected function NotifyGameplayEntitiesInArea( componentName : CName )
 	{
 		var entities : array<CGameplayEntity>;
@@ -266,7 +278,7 @@ state YrdenCast in W3YrdenEntity extends NormalCast
 	{
 		if( super.OnThrowing() )
 		{
-			parent.CleanUp();	
+			parent.CleanUp();	//OnEnded is called when the trap object is destroyed not when you end cast
 			parent.StopEffect( 'yrden_cast' );			
 			parent.GotoState( 'YrdenSlowdown' );
 		}
@@ -288,7 +300,7 @@ state YrdenChanneled in W3YrdenEntity extends Channeling
 	{
 		if( super.OnThrowing() )
 		{
-			parent.CleanUp();	
+			parent.CleanUp();	//OnEnded is called when the trap object is destroyed not when you end cast
 		}
 		
 		parent.StopEffect( 'yrden_cast' );
@@ -309,6 +321,8 @@ state YrdenChanneled in W3YrdenEntity extends Channeling
 			caster.GetPlayer().LockToTarget( false );
 		}
 		
+		parent.AddTimer('TimedCanceled', 0, , , , true);
+		
 		super.OnSignAborted( force );
 	}		
 	
@@ -323,7 +337,7 @@ state YrdenChanneled in W3YrdenEntity extends Channeling
 	}
 }
 
-
+//alternate mode
 state YrdenShock in W3YrdenEntity extends Active
 {
 	private var usedShockAreaName : name;
@@ -362,17 +376,17 @@ state YrdenShock in W3YrdenEntity extends Active
 		var hitEntity : CEntity;
 		var shot : bool;
 			
-		parent.Place();
+		parent.Place(parent.GetWorldPosition());
 		
 		parent.PlayEffect( parent.effects[parent.fireMode].placeEffect );
 		parent.PlayEffect( parent.effects[parent.fireMode].castEffect );
 		
-		
+		//don't start firing right away (fx don't show yet etc, looks & feels bad)
 		Sleep(1.f);
 		
 		while( parent.ActorsInArea.Size() == 0 )
 		{
-			
+			// We don't need to sleep every frame, we can delay the shock a bit... yes?
 			Sleep( 0.2f );
 		}
 		
@@ -386,15 +400,15 @@ state YrdenShock in W3YrdenEntity extends Active
 				do
 				{
 					target = parent.ActorsInArea[RandRange(size)];
-					if(target.GetHealth() <= 0.f || target.IsInAgony())
+					if(target.GetHealth() <= 0.f || target.IsInAgony() )
 					{
 						parent.ActorsInArea.Remove(target);
 						size -= 1;
 						target = NULL;
 					}
 				}while(size > 0 && !target)
-			
-				if(target)
+				
+				if(target && target.GetGameplayVisibility())
 				{
 					shot = true;
 					hitEntity = ShootTarget(target, true, 0.2f, false);
@@ -402,11 +416,11 @@ state YrdenShock in W3YrdenEntity extends Active
 			}
 			
 			if(hitEntity)
-				Sleep(2.f);		
+				Sleep(2.f);		//tried to shoot and hit - wait 2 secs between shots
 			else if(shot)
-				Sleep(0.1f);	
+				Sleep(0.1f);	//tried to shoot but failed - make next attemp fast
 			else
-				Sleep(1.f);		
+				Sleep(1.f);		//there is no one to shoot at, keep checking
 		}
 		
 		parent.GotoState( 'Discharged' );
@@ -439,7 +453,7 @@ state YrdenShock in W3YrdenEntity extends Active
 			{
 				if(projectile.IsStopped())
 				{
-					
+					//case where npc is standing in yrden's range and he draws a new arrow
 					projectile.SetIsInYrdenAlternateRange(parent);
 				}
 				else
@@ -456,17 +470,17 @@ state YrdenShock in W3YrdenEntity extends Active
 		
 		hitEntity = ShootTarget(projectile, false, 0.1f, true);
 					
-		
+		//if hit projectile or there's nothing in the way then destroy the projectile
 		if(hitEntity == projectile || !hitEntity)
 		{
-			
+			//'spark' on destroyed projectile
 			fxEntity = theGame.CreateEntity( parent.projDestroyFxEntTemplate, projectile.GetWorldPosition() );
 			
-			
-			
+			//fx if no collision (projectile is hard to catch with RayCast for some bizzare reason. In any way if there is no collision then 
+			//for sure the projectile is not obstructed. If we didn't detect collision the fx wete not played so we do it manually here)
 			if(!hitEntity)
 			{
-				parent.PlayEffect( parent.effects[1].shootEffect );		
+				parent.PlayEffect( parent.effects[1].shootEffect );		//flash on trap
 				parent.PlayEffect( parent.effects[1].shootEffect, fxEntity );
 			}
 			
@@ -543,10 +557,10 @@ state YrdenShock in W3YrdenEntity extends Active
 		
 		if ( results.Size() > 0 )
 		{
-			
+			//keep trying while we have valid targets
 			while(results.Size() > 0)
 			{
-				
+				//find closest target
 				min = results[0].distance;
 				ind = 0;
 				
@@ -559,26 +573,26 @@ state YrdenShock in W3YrdenEntity extends Active
 					}
 				}
 				
-				
+				//if entity check, otherwise it's a miss - break
 				if(results[ind].component)
 				{
 					entity = results[ind].component.GetEntity();
 					targetActor = (CActor)entity;
 					
-					
+					//if friendly moves in on the line of shot - skip shot
 					if(targetActor && IsRequiredAttitudeBetween(targetActor, caster.GetActor(), false, false, true))
 						return NULL;
 					
-					
+					//with recent changes when npc dies it's IsAlive() is not updated for 2 more secs so we need to check health as well
 					if( (targetActor && targetActor.GetHealth() > 0.f && targetActor.IsAlive()) || (!targetActor && entity) )
 					{
-						
+						//if alive actor or not an actor
 						YrdenTrapHitEnemy(targetActor, results[ind].position);						
 						return entity;
 					}
 					else if(targetActor)
 					{
-						
+						//dead actor - pick other target (continue while() loop)
 						results.EraseFast(ind);
 					}
 				}
@@ -600,10 +614,11 @@ state YrdenShock in W3YrdenEntity extends Active
 		var player : W3PlayerWitcher;
 		var skillType : ESkill;
 		var skillLevel, i : int;
-		var damageBonusFlat : float;
+		var damageBonusFlat : float;		
 		var damages : array<SRawDamage>;
+		var glyphwordY : W3YrdenEntity;
 		
-		
+		//fx
 		parent.StopEffect( parent.effects[parent.fireMode].castEffect );
 		parent.PlayEffect( parent.effects[parent.fireMode].shootEffect );
 		parent.PlayEffect( parent.effects[parent.fireMode].castEffect );
@@ -623,27 +638,27 @@ state YrdenShock in W3YrdenEntity extends Active
 			parent.PlayEffect( parent.effects[parent.fireMode].shootEffect, entity );
 		}
 
-		
-		
+		//ammo
+		//if(FactsQuerySum("infinite_yrden_trap") <= 0)
 			parent.charges -= 1;
 		
-		
+		//hit
 		casterActor = caster.GetActor();
 		if ( casterActor && (CGameplayEntity)entity)
 		{
-			
+			//needed vars
 			action =  new W3DamageAction in theGame.damageMgr;
 			player = caster.GetPlayer();
 			skillType = virtual_parent.GetSkill();
 			skillLevel = player.GetSkillLevel(skillType);
 			
-			
+			//init basic damage action
 			action.Initialize( casterActor, (CGameplayEntity)entity, this, casterActor.GetName()+"_sign", EHRT_Light, CPS_SpellPower, false, false, true, false, 'yrden_shock', 'yrden_shock', 'yrden_shock', 'yrden_shock');
 			virtual_parent.InitSignDataForDamageAction(action);
 			action.hitLocation = hitPosition;
 			action.SetCanPlayHitParticle(true);
 			
-			
+			//bonus damage from skill level
 			if(player && skillLevel > 1)
 			{
 				action.GetDTs(damages);
@@ -657,18 +672,26 @@ state YrdenShock in W3YrdenEntity extends Active
 				}
 			}
 			
-			
+			//process
 			theGame.damageMgr.ProcessAction( action );
 		}
 		else
 		{
 			entity.PlayEffect( 'yrden_shock' );
 		}
+		
+		if(casterActor.HasAbility('Glyphword 15 _Stats', true))
+		{
+			glyphwordY = (W3YrdenEntity)theGame.CreateEntity(GetWitcherPlayer().GetSignTemplate(ST_Yrden), entity.GetWorldPosition(), entity.GetWorldRotation() );
+			glyphwordY.Init(caster, parent, true, true);
+			glyphwordY.CacheActionBuffsFromSkill();
+			glyphwordY.GotoState( 'YrdenSlowdown' );
+		}
 	}
 	
 	event OnThrowing()
 	{
-		parent.CleanUp();	
+		parent.CleanUp();	//OnEnded is called when the trap object is destroyed not when you end cast
 	}
 	
 	event OnVisualDebug( frame : CScriptedRenderFrame, flag : EShowFlags, selected : bool )
@@ -691,19 +714,22 @@ state YrdenSlowdown in W3YrdenEntity extends Active
 		
 		ActivateSlowdown();
 		
-		player = caster.GetPlayer();
-		if(player == caster.GetActor() && player && player.CanUseSkill(S_Perk_09))
+		if(!parent.notFromPlayerCast)
 		{
-			cost = player.GetStaminaActionCost(ESAT_Ability, SkillEnumToName( parent.skillEnum ), 0);
-			stamina = player.GetStat(BCS_Stamina, true);
-			
-			if(cost > stamina)
-				player.DrainFocus(1);
+			player = caster.GetPlayer();
+			if(player == caster.GetActor() && player && player.CanUseSkill(S_Perk_09))
+			{
+				cost = player.GetStaminaActionCost(ESAT_Ability, SkillEnumToName( parent.skillEnum ), 0);
+				stamina = player.GetStat(BCS_Stamina, true);
+				
+				if(cost > stamina)
+					player.DrainFocus(1);
+				else
+					caster.GetActor().DrainStamina( ESAT_Ability, 0, 0, SkillEnumToName( parent.skillEnum ) );
+			}
 			else
 				caster.GetActor().DrainStamina( ESAT_Ability, 0, 0, SkillEnumToName( parent.skillEnum ) );
 		}
-		else
-			caster.GetActor().DrainStamina( ESAT_Ability, 0, 0, SkillEnumToName( parent.skillEnum ) );
 	}
 	
 	event OnLeaveState( nextStateName : name )
@@ -726,7 +752,7 @@ state YrdenSlowdown in W3YrdenEntity extends Active
 	
 	event OnThrowing()
 	{
-		parent.CleanUp();	
+		parent.CleanUp();	//OnEnded is called when the trap object is destroyed not when you end cast
 	}
 	
 	event OnSignAborted( force : bool )
@@ -734,15 +760,23 @@ state YrdenSlowdown in W3YrdenEntity extends Active
 		if( force )
 			CleanUp();
 		
+		parent.AddTimer('TimedCanceled', 0, , , , true);
+		
 		super.OnSignAborted( force );
 	}
 	
 	entry function ActivateSlowdown()
 	{
-		parent.Place();
+		var obj : CEntity;
+		var pos : Vector;
+		
+		obj = (CEntity)parent;
+		pos = obj.GetWorldPosition();
+		parent.Place(pos);
 		
 		CreateTrap();
 		
+		theGame.GetBehTreeReactionManager().CreateReactionEvent( parent, 'YrdenCreated', parent.trapDuration, 30, 0.1f, 999, true );
 		parent.NotifyGameplayEntitiesInArea( 'Slowdown' );
 		YrdenSlowdown_Loop();
 	}
@@ -814,24 +848,25 @@ state YrdenSlowdown in W3YrdenEntity extends Active
 		casterActor = caster.GetActor();
 		casterPlayer = caster.GetPlayer();
 		
-		
+		//cache slowdown params
 		min = CalculateAttributeValue(casterPlayer.GetSkillAttributeValue(S_Magic_3, 'min_slowdown', false, true));
 		max = CalculateAttributeValue(casterPlayer.GetSkillAttributeValue(S_Magic_3, 'max_slowdown', false, true));
-				
+
 		params.effectType = parent.actionBuffs[0].effectType;
 		params.creator = casterActor;
 		params.sourceName = "yrden_mode0";
 		params.isSignEffect = true;
 		params.customPowerStatValue = casterActor.GetTotalSignSpellPower(virtual_parent.GetSkill());
 		params.customAbilityName = parent.actionBuffs[0].effectAbilityName;
-		params.duration = 0.1;	
-		scale = (params.customPowerStatValue.valueMultiplicative - 1) / (theGame.params.MAX_SPELLPOWER_ASSUMED - 1);
+		params.duration = 0.1;	//continuous inside area
+		scale = params.customPowerStatValue.valueMultiplicative / 4;
 		params.effectValue.valueAdditive = min + (max - min) * scale;
+		params.effectValue.valueAdditive = ClampF( params.effectValue.valueAdditive, min, max );
 		
-		
+		//cache health drain params
 		if(thePlayer.CanUseSkill(S_Magic_s11))
 		{
-			
+			//previous params are the same
 			paramsDrain = params;
 			paramsDrain.customAbilityName = '';
 			paramsDrain.effectType = EET_YrdenHealthDrain;
@@ -839,7 +874,7 @@ state YrdenSlowdown in W3YrdenEntity extends Active
 						
 		while(true)
 		{
-			
+			//check if flyers landed / crashed
 			for(i=parent.flyersInArea.Size()-1; i>=0; i-=1)
 			{
 				npc = parent.flyersInArea[i];
@@ -853,18 +888,18 @@ state YrdenSlowdown in W3YrdenEntity extends Active
 			
 			for(i=0; i<parent.ActorsInArea.Size(); i+=1)
 			{			
-				
+				//slowdown if Shock Resistance < 100%
 				parent.ActorsInArea[i].GetResistValue(CDS_ShockRes, pts, prc);
 				if(prc < 1)
 					parent.ActorsInArea[i].AddEffectCustom(params);			
 				
-				
+				//hp drain
 				if(thePlayer.CanUseSkill(S_Magic_s11))
 				{
 					parent.ActorsInArea[i].AddEffectCustom(paramsDrain);
 				}
 				
-				
+				//hit
 				parent.ActorsInArea[i].OnYrdenHit( casterActor );
 			}
 			
@@ -881,9 +916,9 @@ state YrdenSlowdown in W3YrdenEntity extends Active
 		casterActor = caster.GetActor();
 		if ( target && target.IsAlive() && target.GetAttitude( casterActor ) == AIA_Hostile && !parent.ActorsInArea.Contains(target))
 		{
-			if(!target.IsFlying())
+			if (!target.IsFlying())
 			{
-				
+				//yrden fx when first someone enters area
 				if( parent.ActorsInArea.Size() == 0 )
 				{
 					parent.PlayEffect( parent.effects[parent.fireMode].activateEffect );

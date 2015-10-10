@@ -1,12 +1,10 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Copyright © 2013
+/** Author : collective mind of the CDP
+/***********************************************************************/
 
 
-
-
-
-
+// DEPRECATED
 class W3SafeModeTrigger extends CGameplayEntity
 {
 	editable var enable : bool;
@@ -18,8 +16,8 @@ class W3SafeModeTrigger extends CGameplayEntity
 	
 	event OnAreaExit( area : CTriggerAreaComponent, activator : CComponent )
 	{	
-		
-		
+		// is the following functionality needed?
+		// thePlayer.EnableMode( PM_Safe, !enable );
 	}		
 }
 

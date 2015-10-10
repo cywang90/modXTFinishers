@@ -1,17 +1,13 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CR4HudModuleBoatHealth extends CR4HudModuleBase
+﻿class CR4HudModuleBoatHealth extends CR4HudModuleBase
 {	
-	
-	
-	
+	//>-----------------------------------------------------------------------------------------------------------------	
+	// VARIABLES
+	//------------------------------------------------------------------------------------------------------------------
 	private	var m_fxSetVolumeHealth			: CScriptedFlashFunction;
 
 	private var m_wasInBoat : bool;
 
-	 event OnConfigUI()
+	/* flash */ event OnConfigUI()
 	{
 		var flashModule : CScriptedFlashSprite;
 		var hud : CR4ScriptedHud;
@@ -24,12 +20,12 @@ class CR4HudModuleBoatHealth extends CR4HudModuleBase
 		
 		m_fxSetVolumeHealth		= flashModule.GetMemberFlashFunction( "setVolumeHealth" );
 		
-		
+		//fix for TTP 100895 - Shadi Dadenji
 		ClearVolumes();
 		
 		m_wasInBoat = false;
 
-		
+		//ShowElement( false );
 		SetTickInterval( 1 );
 		
 		hud = (CR4ScriptedHud)theGame.GetHud();
@@ -61,7 +57,7 @@ class CR4HudModuleBoatHealth extends CR4HudModuleBase
 			UpdateVolumes();
 			if ( isInBoat != m_wasInBoat )
 			{
-				ShowElement( true ); 
+				ShowElement( true ); //#B OnUpdate
 				m_wasInBoat = isInBoat;
 			}
 		}
@@ -71,7 +67,7 @@ class CR4HudModuleBoatHealth extends CR4HudModuleBase
 			{
 				m_wasInBoat = false;
 				ClearVolumes();
-				ShowElement( false ); 
+				ShowElement( false ); //#B OnUpdate
 			}
 		}
 	}

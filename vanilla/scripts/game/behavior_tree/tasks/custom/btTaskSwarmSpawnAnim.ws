@@ -1,13 +1,12 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2013
+/** Author : Andrzej Kwiatkowski
+/***********************************************************************/
 class CBTTaskSwarmSpawnAnim extends IBehTreeTask
 {
-	
+	//var spawnType : ESpawnType;
 	var spawned 				: bool;
 	var spawnCondition			: ESpawnCondition;
 	var lair					: CFlyingSwarmMasterLair;
@@ -90,12 +89,12 @@ class CBTTaskSwarmSpawnAnim extends IBehTreeTask
 		}
 		
 		pos = npc.GetWorldPosition();
-		
+		// If the NPC is underwater, set the spawn anim to Water
 		if( ((CMovingPhysicalAgentComponent) npc.GetMovingAgentComponent()).GetWaterLevel() > pos.Z )
 		{
 			npc.SetBehaviorVariable( 'SpawnAnim', 3 );
 		}
-		
+		// Set the spawn anim to Air if the npc is spawn above the ground
 		else if( npc.GetDistanceFromGround( 2 ) > 1 && npc.HasAbility('Flying') )
 		{
 			npc.SetBehaviorVariable( 'SpawnAnim', 2 );
@@ -160,7 +159,7 @@ class CBTTaskSwarmSpawnAnim extends IBehTreeTask
 			spawnCount = lair.GetSpawnCount();
 		}
 		
-		
+		// make sure that all birds are spawned before we despawn them
 		while ( !res && !fail )
 		{
 			if ( lair.GetTeleportBirdCount() < spawnCount )
@@ -169,7 +168,7 @@ class CBTTaskSwarmSpawnAnim extends IBehTreeTask
 			}
 			else
 			{
-				
+				//initialSwarmPos = lair.GetTeleportGroupPosition();
 				res = true;
 			}
 			TimeOut();
@@ -178,12 +177,12 @@ class CBTTaskSwarmSpawnAnim extends IBehTreeTask
 		res = false;
 		while ( !res )
 		{
-			
+			//if( VecDot( initialSwarmPos - npc.GetWorldPosition(), lair.GetTeleportGroupPosition() - npc.GetWorldPosition() ) < 0.0f )
 			if( animEventOccured )
 			{					
-				
+				// wait for birds to stabilize their flight
 				Sleep ( swarmStabilizeTime );
-				
+				// despawn and wait until all birds are gone
 				lair.DespawnFromBirdMaster( spawnCount );
 				despawnCalled = true;
 				res = true;
@@ -221,7 +220,7 @@ class CBTTaskSwarmSpawnAnim extends IBehTreeTask
 	
 	function TimeOut()
 	{
-		
+		// failsafe
 		currTime = GetLocalTime();
 		if ( currTime > initialTime )
 		{
@@ -251,7 +250,7 @@ class CBTTaskSwarmSpawnAnim extends IBehTreeTask
 		}
 		
 		npc.SetBehaviorVariable( 'Spawn', 1.f );
-		
+		//switchGravity = npc.WaitForBehaviorNodeDeactivation('SpawnEndShort' );
 		switchGravity = npc.GetBehaviorVariable( 'SpawnAnim' ) >= 2.f ;
 		
 		if ( switchGravity && manageGravity )
@@ -264,7 +263,7 @@ class CBTTaskSwarmSpawnAnim extends IBehTreeTask
 		}
 		else if ( npc.GetBehaviorVariable( 'SpawnAnim' ) > 1.f )
 		{
-			
+			//npc.SetBehaviorVariable( "FlySpeed", 1.f );
 			success = npc.WaitForBehaviorNodeDeactivation('SpawnEndShort', 6.f );
 		}
 		if ( success )
@@ -337,7 +336,7 @@ class CBTTaskSwarmSpawnAnim extends IBehTreeTask
 class CBTTaskSwarmSpawnAnimDef extends IBehTreeTaskDefinition
 {
 	default instanceClass = 'CBTTaskSwarmSpawnAnim';
-	
+	//editable var spawnType : ESpawnType;
 	editable var useSwarms			: bool;
 	editable var manageGravity 		: bool;
 	editable var spawnCondition		: ESpawnCondition;
@@ -356,7 +355,7 @@ class CBTTaskSwarmSpawnAnimDef extends IBehTreeTaskDefinition
 	default spawnCondition			= SC_PlayerInRange;
 	default manageGravity 			= false;
 	default distToActors			= 30.f;
-	
+	//default spawnType = ST_Ground;
 	
 	function InitializeEvents()
 	{

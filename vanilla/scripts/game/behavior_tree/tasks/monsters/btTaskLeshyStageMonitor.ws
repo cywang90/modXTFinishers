@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2013
+/** Author : Andrzej Kwiatkowski
+/***********************************************************************/
 
 class CBTTaskLeshyStageMonitor extends IBehTreeTask
 {
@@ -20,12 +19,12 @@ class CBTTaskLeshyStageMonitor extends IBehTreeTask
 			if ( MinionNumberCheck() && owner.GetStatPercents( BCS_Essence ) > 0.2 )
 			{
 				owner.ChangeFightStage( NFS_Stage1 );
-				
+				//owner.SetImmortalityMode( AIM_Invulnerable ); 
 			}
 			else
 			{
 				owner.ChangeFightStage( NFS_Stage2 );
-				
+				//owner.SetImmortalityMode( AIM_None ); 
 			}
 			Sleep(2.0);
 		}
@@ -39,8 +38,8 @@ class CBTTaskLeshyStageMonitor extends IBehTreeTask
 		var minion : CEntity;
 		var minions : array< CNode >;
 		
-		
-		
+		// AK : shitty way of finding npcs
+		// fix when filtering by tag in FindGameplayEntitiesInRange starts working
 		theGame.GetNodesByTag( 'leshy_minion', minions );
 		for ( i = 0 ; i < minions.Size() ; i += 1 )
 		{
@@ -60,8 +59,9 @@ class CBTTaskLeshyStageMonitorDef extends IBehTreeTaskDefinition
 
 
 
-
-
+/***********************************************************************/
+/** Cond
+/***********************************************************************/
 
 class CBTCondLeshyStage extends IBehTreeTask
 {

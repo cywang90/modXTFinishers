@@ -1,15 +1,14 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Copyright © 2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
-
-
-
-
-
-
-
-
+//light entity with fire damage area
+//
+// Trigger area uses channel Custom 7 for trigger activators to ignite other entities that fall in (e.g. oil barrel)
+//
 class W3LightEntityDamaging extends CLightEntitySimple
 {	
 	editable var hitReactionType : EHitReactionType;
@@ -29,7 +28,7 @@ class W3LightEntityDamaging extends CLightEntitySimple
 	private var damageDealingEnabled : bool;
 	private var buffParams : SCustomEffectParams;
 	private var spawned : bool;
-	private const var FIRE_DAMAGE_FX : name;						
+	private const var FIRE_DAMAGE_FX : name;						//fx on character if getting damage but not getting burning effect
 	
 		default FIRE_DAMAGE_FX = 'critical_burning';
 
@@ -43,7 +42,7 @@ class W3LightEntityDamaging extends CLightEntitySimple
 			buffDamageVal.valueAdditive = damagePerSec;
 			
 		spawned = true;
-		
+		// Ł.SZ moved it here. Previously it was the first line in the event. As a result fire was never starting
 		super.OnSpawned( spawnData );
 	}
 	
@@ -53,7 +52,7 @@ class W3LightEntityDamaging extends CLightEntitySimple
 		var time : EngineTime;
 		var i : int;
 		
-		
+		//Ł.SZ when this is called for the first tike "spawned" = false.
 		
 		if(!spawned)
 			return;
@@ -136,7 +135,7 @@ class W3LightEntityDamaging extends CLightEntitySimple
 					{
 						action.Initialize(this, actor, this, 'damageable_light_source', hitReactionType, CPS_Undefined, false, false, false, true, FIRE_DAMAGE_FX, FIRE_DAMAGE_FX);
 									
-						
+						//disable fx if we already have it or entity was in fire less than 1 sec
 						if(actor.IsEffectActive(FIRE_DAMAGE_FX) || EngineTimeToFloat(theGame.GetEngineTime() - entitiesInRangeEnterTime[i]) < 1)
 						{
 							action.SetCanPlayHitParticle(false);

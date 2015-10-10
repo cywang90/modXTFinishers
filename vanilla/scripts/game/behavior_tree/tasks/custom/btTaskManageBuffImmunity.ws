@@ -1,18 +1,15 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿// copyrajt orajt
+// W. Żerek
 
-
-
-
-
-
+// ManageBuffImmunity //
+////////////////////////
 class CBTTaskManageBuffImmunity extends IBehTreeTask
 {
 	var effects 		: array<EEffectType>;
 	var onActivate 		: bool;
 	var onDeactivate 	: bool;
 	var bRemove			: bool;
+	var removeFromTemplate	: bool;
 	
 	function IsAvailable() : bool
 	{
@@ -30,7 +27,10 @@ class CBTTaskManageBuffImmunity extends IBehTreeTask
 			{
 				if( bRemove )
 				{
-					npc.RemoveBuffImmunity( effects[i], 'CBTTaskManageBuffImmunity' );
+					if( removeFromTemplate )
+						npc.RemoveBuffImmunity( effects[i] );
+					else
+						npc.RemoveBuffImmunity( effects[i], 'CBTTaskManageBuffImmunity' );
 				}
 				else
 				{
@@ -53,7 +53,10 @@ class CBTTaskManageBuffImmunity extends IBehTreeTask
 			{
 				if( bRemove )
 				{
-					npc.RemoveBuffImmunity( effects[i], 'CBTTaskManageBuffImmunity' );
+					if( removeFromTemplate )
+						npc.RemoveBuffImmunity( effects[i] );
+					else
+						npc.RemoveBuffImmunity( effects[i], 'CBTTaskManageBuffImmunity' );
 				}
 				else
 				{
@@ -72,6 +75,7 @@ class CBTTaskManageBuffImmunityDef extends IBehTreeTaskDefinition
 	editable var onActivate 		: bool;
 	editable var onDeactivate 		: bool;
 	editable var bRemove			: bool;
+	editable var removeFromTemplate	: bool;
 	
 	default onActivate = true;
 	

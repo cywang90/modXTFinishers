@@ -1,14 +1,10 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CR4HudModuleSubtitles extends CR4HudModuleBase
+﻿class CR4HudModuleSubtitles extends CR4HudModuleBase
 {
 	private var m_fxAddSubtitleSFF		: CScriptedFlashFunction;
 	private var m_fxRemoveSubtitleSFF	: CScriptedFlashFunction;
 	private var m_fxUpdateWidthSFF		: CScriptedFlashFunction;
 
-	event  OnConfigUI()
+	event /* flash */ OnConfigUI()
 	{
 		var flashModule : CScriptedFlashSprite;
 		var configValue : string;
@@ -28,8 +24,18 @@ class CR4HudModuleSubtitles extends CR4HudModuleBase
 		SetEnabled(configValue == "true");
 	}
 
-	event  OnSubtitleAdded( id : int, speakerNameDisplayText : string, htmlString : string )
+	event /*C++*/ OnSubtitleAdded( id : int, speakerNameDisplayText : string, htmlString : string, alternativeUI : bool )
 	{
+		if (alternativeUI)
+		{
+			speakerNameDisplayText = "<FONT COLOR='#5ACCF6'>" + GetLocStringByKeyExt("Witold")  + ": </FONT>";
+			htmlString = "<FONT COLOR='#5ACCF6'>" + htmlString + "</FONT>";
+		}
+		else
+		{
+			htmlString = ": "  + htmlString;
+		}
+		
 		if( theGame.isDialogDisplayDisabled )
 		{
 			speakerNameDisplayText = "";
@@ -38,7 +44,7 @@ class CR4HudModuleSubtitles extends CR4HudModuleBase
 		m_fxAddSubtitleSFF.InvokeSelfThreeArgs( FlashArgInt( id ), FlashArgString( speakerNameDisplayText ), FlashArgString( htmlString ) );
 	}
 	
-	event  OnSubtitleRemoved( id : int )
+	event /*C++*/ OnSubtitleRemoved( id : int )
 	{
 		m_fxRemoveSubtitleSFF.InvokeSelfOneArg( FlashArgInt( id ) );
 	}
@@ -51,14 +57,14 @@ class CR4HudModuleSubtitles extends CR4HudModuleBase
 	}
 }
 
-exec function hud_addsub( speaker : string, text : string )
+exec function hud_addsub( speaker : string, text : string , optional alternativeUI : bool )
 {
 	var hud : CR4ScriptedHud;
 	var subtitlesModule : CR4HudModuleSubtitles;
 
 	hud = (CR4ScriptedHud)theGame.GetHud();
 	subtitlesModule = (CR4HudModuleSubtitles)hud.GetHudModule("SubtitlesModule");
-	subtitlesModule.OnSubtitleAdded( 1, speaker, text );
+	subtitlesModule.OnSubtitleAdded( 1, speaker, text, alternativeUI );
 }
 
 exec function hud_remsub()

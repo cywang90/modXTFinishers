@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class BTCondIsInState extends IBehTreeTask
+﻿class BTCondIsInState extends IBehTreeTask
 {
 	var stateName : CName;
 	var ifNot : bool;
@@ -13,15 +9,15 @@ class BTCondIsInState extends IBehTreeTask
 		var temp : string;
 		var currState : string;
 		
-		
+		//PFTODO: cleanup
 		
 		currState = npc.GetRootAnimatedComponent().GetCurrentBehaviorState();
 		
 		if ( !ifNot )
 		{
-			
+			//npc.Getcurre
 			return currState == (string)stateName;
-			
+			//return npc.GetCurrentBehaviorState('') == stateName;
 		}
 		else
 		{
@@ -41,7 +37,7 @@ class BTCondIsInStateDef extends IBehTreeConditionalTaskDefinition
 	default ifNot = false;
 }
 
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class BTCondIsPlayerUnconscious extends IBehTreeTask
 {
@@ -56,7 +52,7 @@ class BTCondIsPlayerUnconsciousDef extends IBehTreeConditionalTaskDefinition
 	default instanceClass = 'BTCondIsPlayerUnconscious';
 }
 
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class BTCondIsPlayerInCombatState extends IBehTreeTask
 {

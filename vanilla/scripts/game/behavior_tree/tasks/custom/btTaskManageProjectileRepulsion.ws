@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** CBTTaskManageRepulseProjectileEvents
+/***********************************************************************/
+/** Copyright © 2012
+/** Author : Andrzej Kwiatkowski
+/***********************************************************************/
 
 class CBTTaskManageRepulseProjectileEvents extends IBehTreeTask
 {

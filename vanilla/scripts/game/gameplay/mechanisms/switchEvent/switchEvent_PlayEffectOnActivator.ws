@@ -1,12 +1,14 @@
-﻿/*
-Copyright © CD Projekt RED 2015
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2012
+/** Author : Tomasz Kozera
+/**			 Rafal Jarczewski
+/***********************************************************************/
+
+/**
+
 */
-
-
-
-
-
-
 class W3SE_PlayEffectOnActivator extends W3SwitchEvent
 {
 	editable var effectName	: name;

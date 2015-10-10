@@ -1,17 +1,13 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-import class CInGameConfigWrapper
+﻿import class CInGameConfigWrapper
 {
-	
+	/* Groups - access by group CName */
 	import final function GetGroupDisplayName( groupName : name ) : string;
 	import final function GetGroupPresetsNum( groupName : name ) : int;
 	import final function GetGroupPresetDisplayName( groupName : name, presetIdx : int ) : string;
 	import final function ApplyGroupPreset( groupName : name, presetIdx : int );
 	import final function ResetGroupToDefaults( groupName : name );
 	
-	
+	/* Vars - access by var CName */
 	import final function GetVarDisplayType( groupName : name, varName : name ) : string;
 	import final function GetVarDisplayName( groupName : name, varName : name ) : string;
 	import final function GetVarOptionsNum( groupName : name, varName : name ) : int;
@@ -23,7 +19,7 @@ import class CInGameConfigWrapper
 	import final function IsVarVisible( groupName : name, varName : name ) : bool;
 	import final function DoVarHasTag( groupName : name, varName : name, tag : name ) : bool;
 	
-	
+	/* List groups and vars - access by indices */
 	import final function GetGroupsNum() : int;
 	import final function GetGroupName( groupIdx : int ) : name;
 	import final function GetVarsNum( groupIdx : int ) : int;
@@ -31,7 +27,7 @@ import class CInGameConfigWrapper
 	import final function IsGroupVisible( groupName : name ) : bool;
 	import final function DoGroupHasTag( groupName : name, tag : name ) : bool;
 	
-	
+	/* General functions */
 	import final function IsTagActive( tag : name ) : bool;
 	import final function ActivateScriptTag( tag : name );
 	import final function DeactivateScriptTag( tag : name );
@@ -79,7 +75,7 @@ class CInGameConfigBufferedWrapper
 			bufferEntry.varName = inGameConfig.GetVarNameByGroupName( groupName, counter );
 			found = false;
 			
-			
+			// Look for the entry in buffer
 			for( i=0; i<buffer.Size(); i+=1 )
 			{
 				if( buffer[i].groupName == bufferEntry.groupName && buffer[i].varName == bufferEntry.varName )
@@ -89,7 +85,7 @@ class CInGameConfigBufferedWrapper
 				}
 			}
 			
-			
+			// Add only if not found
 			if( found == false )
 			{
 				bufferEntry.varValue = inGameConfig.GetVarValue( groupName, bufferEntry.varName );
@@ -99,12 +95,12 @@ class CInGameConfigBufferedWrapper
 		}
 	}
 	
-	
+	// Get buffered var value (or value from config system if there is no buffered entry for particular var)
 	public function GetVarValue( groupName : name, varName : name ) : string
 	{
 		var i : int;
 		
-		
+		// Look for the value in buffer
 		for( i=0; i<buffer.Size(); i+=1 )
 		{
 			if( buffer[i].groupName == groupName && buffer[i].varName == varName )
@@ -113,11 +109,11 @@ class CInGameConfigBufferedWrapper
 			}
 		}
 		
-		
+		// Otherwise get from configs (that means that we have not set anything to that var in buffer)
 		return inGameConfig.GetVarValue( groupName, varName );
 	}
 	
-	
+	// Set buffered var value
 	public function SetVarValue( groupName : name, varName : name, varValue : string ) : void
 	{
 		var i : int;
@@ -125,7 +121,7 @@ class CInGameConfigBufferedWrapper
 		var found : bool;
 		
 		found = false;
-		
+		// Look for the value in buffer
 		for( i=0; i<buffer.Size(); i+=1 )
 		{
 			if( buffer[i].groupName == groupName && buffer[i].varName == varName )
@@ -136,7 +132,7 @@ class CInGameConfigBufferedWrapper
 			}
 		}
 		
-		
+		// Otherwise create new buffer entry
 		if( found == false )
 		{
 			bufferEntry.groupName = groupName;
@@ -151,10 +147,10 @@ class CInGameConfigBufferedWrapper
 	{
 		var i : int;
 		
-		
+		// Look for the value in buffer
 		for( i=0; i<buffer.Size(); i+=1 )
 		{
-			
+			// We can ignore options that haven't actually changed
 			if (inGameConfig.DoVarHasTag( buffer[i].groupName, buffer[i].varName, tag ) && buffer[i].startValue != buffer[i].varValue)
 			{
 				return true;
@@ -168,14 +164,14 @@ class CInGameConfigBufferedWrapper
 	{
 		var i : int;
 		
-		
+		// Look for the value in buffer
 		for( i=0; i<buffer.Size(); i+=1 )
 		{
 			inGameConfig.SetVarValue( buffer[i].groupName, buffer[i].varName, buffer[i].varValue );
 		}
 	}
 	
-	
+	// Flush buffered configs to config system and clears the buffer
 	public function FlushBuffer() : void
 	{
 		ApplyNewValues();
@@ -187,7 +183,7 @@ class CInGameConfigBufferedWrapper
 	{
 		var i : int;
 		
-		
+		// Look for the value in buffer
 		for( i=0; i<buffer.Size(); i+=1 )
 		{
 			inGameConfig.SetVarValue( buffer[i].groupName, buffer[i].varName, buffer[i].startValue );
@@ -196,7 +192,7 @@ class CInGameConfigBufferedWrapper
 		buffer.Clear();
 	}
 	
-	
+	// Check if there is anything to flush in the buffer
 	public function IsEmpty() : bool
 	{
 		if( buffer.Size() > 0 )
@@ -207,7 +203,7 @@ class CInGameConfigBufferedWrapper
 		return true;
 	}
 	
-	
+	// Clear buffer without flushing config values to config system
 	public function ClearBuffer() : void
 	{
 		buffer.Clear();

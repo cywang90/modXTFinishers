@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskThrowBomb extends CBTTaskAttack
+﻿class CBTTaskThrowBomb extends CBTTaskAttack
 {
 	protected var thrownEntity 		: W3Petard;
 	protected var inventory 		: CInventoryComponent;
@@ -172,9 +168,9 @@ class CBTTaskThrowBombDef extends CBTTaskAttackDef
 	default activationChance = 100;
 }
 
-
-
-
+///////////////////////////////////////////////////////////
+//throw Dwimeritium bomb only
+///////////////////////////////////////////////////////////
 
 class CBTTaskThrowDwimeritiumBomb extends CBTTaskThrowBomb
 {

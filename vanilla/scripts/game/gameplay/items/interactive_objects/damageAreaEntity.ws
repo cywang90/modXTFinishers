@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2013 - 2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 class CDamageAreaEntity extends CInteractiveEntity
 {
@@ -120,7 +118,7 @@ class CDamageAreaEntity extends CInteractiveEntity
 		}
 		
 		actorsInRange = GetActorsInRange( this, range, -1, , true);
-		
+		//thePlayer.GetVisualDebug().AddSphere( 'DamageAreaRadius', range, this.GetWorldPosition(), true,,5 );
 		
 		if(buffParams.effectType == EET_Undefined)
 		{

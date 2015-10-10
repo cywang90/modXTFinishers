@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Copyright © 2013 CD Projekt RED
+/** Author : Andrzej Kwiatkowski
+/***********************************************************************/
 
 class CBTTaskSetBehVarOnAnimEvent extends IBehTreeTask
 {
@@ -31,8 +30,8 @@ class CBTTaskSetBehVarOnAnimEvent extends IBehTreeTask
 	{
 		var npc : CNewNPC = GetNPC();
 		
-	
-	
+	//	AllowBlend handled on OnDeactivate because AtomicPlayAnimationEvent
+	//	should always be used with PlayAnimationEventDecorator which Completes task on AllowBlend
 		if ( eventReceived && IsNameValid(eventName) && eventName == 'AllowBlend' )
 		{
 			npc.SetBehaviorVariable( behVarName, behVarValue );

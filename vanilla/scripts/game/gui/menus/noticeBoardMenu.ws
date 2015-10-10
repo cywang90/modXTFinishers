@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file - Notice Board Menu
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author : Bartosz Bigaj
+/***********************************************************************/
 
 class CR4NoticeBoardMenu extends CR4MenuBase
 {
@@ -13,7 +12,7 @@ class CR4NoticeBoardMenu extends CR4MenuBase
 	private var m_fxSetTitle   			 : CScriptedFlashFunction;
 	private var m_fxSetDescription   	 : CScriptedFlashFunction;
 
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{			
 		super.OnConfigUI();
 		
@@ -24,12 +23,12 @@ class CR4NoticeBoardMenu extends CR4MenuBase
 		board = (W3NoticeBoard)GetMenuInitData();
 		if( board )
 		{
-			
+			//board.addedErrands
 			UpdateDescription();
 		}
 		
 		theInput.StoreContext( 'EMPTY_CONTEXT' );
-		thePlayer.BlockAction(EIAB_Interactions, 'NoticeBoard' );
+		thePlayer.BlockAction(EIAB_Interactions, 'NoticeBoard' );		
 		
 		theGame.GetGuiManager().RequestMouseCursor(true);
 		
@@ -38,9 +37,11 @@ class CR4NoticeBoardMenu extends CR4MenuBase
 			theGame.MoveMouseTo(0.3, 0.5);
 		}
 		
-		
-		
-		
+		theGame.ResetFadeLock( "NoticeboardStart" );
+		theGame.FadeInAsync( 3.0 );
+		//board.UpdateBoard();
+		//board.SetNoticeBoardMenu(this);
+		//board.ShowErrand( board.FindFirstErrand() );
 	}
 	
 	public function UpdateDescription()
@@ -62,12 +63,22 @@ class CR4NoticeBoardMenu extends CR4MenuBase
 			if( !selected && errands[i].errandStringKey != "" )
 			{
 				selected = true;
-				
+				//l_DataFlashObject.SetMemberFlashBool("selected", true );
 				m_fxSetSelectedIndex.InvokeSelfOneArg(FlashArgInt(i));
 				OnErrandSelected( errands[i].errandStringKey );
 			}
-			
-			l_DataFlashObject.SetMemberFlashBool("isFluff", errands[i].newQuestFact == "flaw" );
+			/*else
+			{
+				l_DataFlashObject.SetMemberFlashBool("selected", false );
+			}*/
+			if( errands[i].newQuestFact == "flaw" || errands[i].displayAsFluff )
+			{
+				l_DataFlashObject.SetMemberFlashBool("isFluff", true );
+			}
+			else
+			{
+				l_DataFlashObject.SetMemberFlashBool("isFluff", false );
+			}
 			l_DataFlashObject.SetMemberFlashInt("posX", errands[i].posX );
 			l_DataFlashObject.SetMemberFlashInt("posY", errands[i].posY );
 			l_DataFlashArray.PushBackFlashObject(l_DataFlashObject);
@@ -78,7 +89,7 @@ class CR4NoticeBoardMenu extends CR4MenuBase
 				break;
 			}
 		}
-		
+		//board.RemoveEmptyActiveErrands();
 		m_flashValueStorage.SetFlashArray( "noticeboard.errands.list", l_DataFlashArray );
 	}
 	
@@ -92,7 +103,7 @@ class CR4NoticeBoardMenu extends CR4MenuBase
 		m_fxSetDescription.InvokeSelfOneArg(FlashArgString(value));
 	}
 
-	event  OnTakeQuest( tag : string )
+	event /*flash*/ OnTakeQuest( tag : string )
 	{	
 		if(ShouldProcessTutorial('TutorialQuestBoard'))
 		{
@@ -105,17 +116,17 @@ class CR4NoticeBoardMenu extends CR4MenuBase
 		}
 	}
 	
-	event  OnErrandSelected( tag : string )
+	event /*flash*/ OnErrandSelected( tag : string )
 	{
 		SetBoardNoteTitle(GetLocStringByKeyExt(tag));
 		SetBoardNoteDescription(GetLocStringByKeyExt(tag+"_text"));
 	}
 	
-	event  OnCloseMenu()
+	event /*flash*/ OnCloseMenu()
 	{
+		//board.LeaveBoardPreview();
 		
-		
-		
+		//custom handling since it doesn't work from base for some reason???
 		theGame.GetTutorialSystem().uiHandler.OnClosedMenu(GetMenuName());
 		
 		
@@ -123,9 +134,9 @@ class CR4NoticeBoardMenu extends CR4MenuBase
 	}
 	
 		
-	event  OnClosingMenu()
+	event /* C++ */ OnClosingMenu()
 	{
-		
+		//custom handling since it doesn't work from base for some reason???
 		theGame.GetTutorialSystem().uiHandler.OnClosingMenu(GetMenuName());
 		
 		theGame.GetGuiManager().RequestMouseCursor(false);

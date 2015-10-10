@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CR4TestMenu extends CR4MenuBase
+﻿class CR4TestMenu extends CR4MenuBase
 {
 	private var entityTemplateIndex : int;			default entityTemplateIndex = 0;
 	private var appearanceIndex : int;				default appearanceIndex = 0;
@@ -13,7 +9,7 @@ class CR4TestMenu extends CR4MenuBase
 	
 	private var sunRotation : EulerAngles;
 
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{
 		super.OnConfigUI();
 		theInput.StoreContext( 'EMPTY_CONTEXT' );
@@ -36,12 +32,12 @@ class CR4TestMenu extends CR4MenuBase
 		UpdateItems();
 	}
 
-	event  OnClosingMenu()
+	event /* C++ */ OnClosingMenu()
 	{
 		theInput.RestoreContext( 'EMPTY_CONTEXT', false );
 	}
 	
-	event  OnCameraUpdate( lookAtX : float, lookAtY : float, lookAtZ : float, cameraYaw : float, cameraPitch : float, cameraDistance : float )
+	event /*flash*/ OnCameraUpdate( lookAtX : float, lookAtY : float, lookAtZ : float, cameraYaw : float, cameraPitch : float, cameraDistance : float )
 	{
 		var lookAtPos : Vector;
 		var cameraRotation : EulerAngles;
@@ -60,14 +56,14 @@ class CR4TestMenu extends CR4MenuBase
 		theGame.GetGuiManager().SetupSceneCamera( lookAtPos, cameraRotation, cameraDistance, fov );
 	}
 	
-	event  OnSunUpdate( sunYaw : float, sunPitch : float )
+	event /*flash*/ OnSunUpdate( sunYaw : float, sunPitch : float )
 	{
 		sunRotation.Yaw = sunYaw;
 		sunRotation.Pitch = sunPitch;
 		UpdateEnvironmentAndSunRotation();
 	}
 
-	event  OnNextEntityTemplate()
+	event /*flash*/ OnNextEntityTemplate()
 	{
 		entityTemplateIndex += 1;
 		entityTemplateIndex = entityTemplateIndex % entityTemplates.Size();
@@ -81,7 +77,7 @@ class CR4TestMenu extends CR4MenuBase
 		
 	}
 
-	event  OnNextAppearance()
+	event /*flash*/ OnNextAppearance()
 	{
 		appearanceIndex += 1;
 		appearanceIndex = appearanceIndex % appearances.Size();
@@ -89,7 +85,7 @@ class CR4TestMenu extends CR4MenuBase
 		UpdateApperance();
 	}
 
-	event  OnNextEnvironmentDefinition()
+	event /*flash*/ OnNextEnvironmentDefinition()
 	{
 		environmentDefinitionIndex += 1;
 		environmentDefinitionIndex = environmentDefinitionIndex % environmentDefinitions.Size();
@@ -97,12 +93,12 @@ class CR4TestMenu extends CR4MenuBase
 		UpdateEnvironmentAndSunRotation();
 	}
 
-	event  OnCloseMenu()
+	event /*flash*/ OnCloseMenu()
 	{
 		CloseMenu();
 	}
 	
-	event  OnCloseMenuTemp()
+	event /*flash*/ OnCloseMenuTemp()
 	{
 		CloseMenu();
 	}
@@ -126,21 +122,43 @@ class CR4TestMenu extends CR4MenuBase
 	protected function UpdateItems()
 	{
 		var inventory : CInventoryComponent;
+		var enhancements : array< SGuiEnhancementInfo >;
+		var info : SGuiEnhancementInfo;
+		var enhancementNames : array< name >;
 		var items : array< name >;
 		var witcher : W3PlayerWitcher;
+		var i, j : int;
+		var itemsId : array< SItemUniqueId >;
+		var itemId : SItemUniqueId;
+		var itemName : name;
 
 		inventory = thePlayer.GetInventory();
 		if ( inventory )
 		{
-			inventory.GetHeldAndMountedItems( items );
+			inventory.GetHeldAndMountedItems( itemsId );
 			
 			witcher = (W3PlayerWitcher) thePlayer;
 			if ( witcher )
 			{
-				witcher.GetMountableItems( items );
+				witcher.GetMountableItems( itemsId );
 			}
 			
-			theGame.GetGuiManager().UpdateSceneEntityItems( items );
+			for ( i = 0; i < itemsId.Size(); i += 1 )
+			{
+				itemId = itemsId[i];
+				itemName = inventory.GetItemName( itemId );
+				
+				items.PushBack( itemName );
+				
+				inventory.GetItemEnhancementItems( itemId, enhancementNames );
+				for ( j = 0; j < enhancementNames.Size(); j += 1 )
+				{
+					info.enhancedItem = itemName;
+					info.enhancement = enhancementNames[j];
+					enhancements.PushBack( info );
+				}
+			}
+			theGame.GetGuiManager().UpdateSceneEntityItems( items, enhancements );
 		}
 	}
 

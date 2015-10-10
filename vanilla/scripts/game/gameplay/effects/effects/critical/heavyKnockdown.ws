@@ -1,11 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Copyright © 2012-2014
+/** Author : Rafal Jarczewski, Andrzej Kwiatkowski, Tomek Kozera
+/***********************************************************************/
 
-
-
-
-
+// the difference form knockdown is that in this state the character is thrown far far away while being knocked down
 class W3Effect_HeavyKnockdown extends W3CriticalEffect
 {
 	default criticalStateType 			= ECST_HeavyKnockdown;
@@ -56,10 +54,14 @@ class W3Effect_HeavyKnockdown extends W3CriticalEffect
 	{
 		super.OnEffectAddedPost();
 		
+		if(isOnPlayer)
+		{
+			thePlayer.OnRangedForceHolster( true, true, false );
+		}
 		target.FinishQuen(false);
 	}
 	
-	
+	//@Override ragdoll hack
 	public function OnTimeUpdated(deltaTime : float)
 	{
 		var mac : CMovingPhysicalAgentComponent;
@@ -83,7 +85,7 @@ class W3Effect_HeavyKnockdown extends W3CriticalEffect
 			{
 				timeEndedHandled = true;				
 				
-				
+				//if this effect is currently animated
 				if(isActive && this == target.GetCurrentlyAnimatedCS())
 				{				
 					target.RequestCriticalAnimStop(target.IsInAir());

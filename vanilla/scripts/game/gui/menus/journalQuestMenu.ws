@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file - quest journal
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author :		 Bartosz Bigaj
+/***********************************************************************/
 
 struct JournalDescriptionText
 {
@@ -33,8 +32,11 @@ class CR4JournalQuestMenu extends CR4ListBaseMenu
 	private var m_fxSetTitle			: CScriptedFlashFunction;
 	private var m_fxSetText				: CScriptedFlashFunction;
 	
+	private var m_fxSetExpansionTexture : CScriptedFlashFunction;
+	private var m_fxUpdateExpansionIcon : CScriptedFlashFunction;
+	//var _currentQuestID					: int;	
 	
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{	
 		UISavedData.selectedTag = m_journalManager.GetTrackedQuest().GetUniqueScriptTag();
 		
@@ -42,24 +44,114 @@ class CR4JournalQuestMenu extends CR4ListBaseMenu
 		
 		super.OnConfigUI();
 		
-		
+		//for journal tutorial prompt
 		FactsAdd("tutorial_journal_opened", 1, 1);
 		
 		m_fxSetTrackedQuest = m_flashModule.GetMemberFlashFunction("setCurrentlyTrackedQuest");
 		m_fxSetTrackedObj = m_flashModule.GetMemberFlashFunction("setCurrentlyTrackedObjective");
 		m_fxSetTitle = m_flashModule.GetMemberFlashFunction("setTitle");
 		m_fxSetText = m_flashModule.GetMemberFlashFunction("setText");
+		m_fxSetExpansionTexture = m_flashModule.GetMemberFlashFunction("setExpansionTexture");
+		m_fxUpdateExpansionIcon = m_flashModule.GetMemberFlashFunction("updateExpansionIcon");
+		
+		m_fxSetExpansionTexture.InvokeSelfTwoArgs( FlashArgInt( 1 ), FlashArgString( GetEpTextureName( 1 ) ) );
 		
 		GetQuests();
 		PopulateData();
-		
-		
+		//UpdateQuestLegend();
+		//UpdateLegend();
 		SelectCurrentModule();
 		
 		UpdateTrackedQuest();
 	}
 	
+	/*function UpdateLegend()
+	{	
+		var l_feedbackFlashArray		: CScriptedFlashArray;
+		var l_feedbackDataFlashObject	: CScriptedFlashObject;
+		
+		l_feedbackFlashArray = m_flashValueStorage.CreateTempFlashArray();	
+				
+		l_feedbackDataFlashObject = m_flashValueStorage.CreateTempFlashObject();
+		l_feedbackDataFlashObject.SetMemberFlashBool( "isNew", false );
+		l_feedbackDataFlashObject.SetMemberFlashBool( "tracked", true );
+		l_feedbackDataFlashObject.SetMemberFlashInt( "status", JS_Active );	
+		l_feedbackDataFlashObject.SetMemberFlashBool( "isLegend", true );
+		l_feedbackDataFlashObject.SetMemberFlashString(  "label", GetLocStringByKeyExt("panel_journal_legend_tracked") );
+		l_feedbackFlashArray.PushBackFlashObject(l_feedbackDataFlashObject);
+			
+		l_feedbackDataFlashObject = m_flashValueStorage.CreateTempFlashObject();
+		l_feedbackDataFlashObject.SetMemberFlashBool( "isNew", false );
+		l_feedbackDataFlashObject.SetMemberFlashBool( "tracked", false );
+		l_feedbackDataFlashObject.SetMemberFlashInt( "status", JS_Success );
+		l_feedbackDataFlashObject.SetMemberFlashBool( "isLegend", true );				
+		l_feedbackDataFlashObject.SetMemberFlashString(  "label", GetLocStringByKeyExt("panel_journal_legend_succed") );
+		l_feedbackFlashArray.PushBackFlashObject(l_feedbackDataFlashObject);
+			
+		l_feedbackDataFlashObject = m_flashValueStorage.CreateTempFlashObject();
+		l_feedbackDataFlashObject.SetMemberFlashBool( "isNew", false );
+		l_feedbackDataFlashObject.SetMemberFlashBool( "tracked", false );
+		l_feedbackDataFlashObject.SetMemberFlashInt( "status", JS_Failed );
+		l_feedbackDataFlashObject.SetMemberFlashBool( "isLegend", true );			
+		l_feedbackDataFlashObject.SetMemberFlashString(  "label", GetLocStringByKeyExt("panel_journal_legend_failed") );
+		l_feedbackFlashArray.PushBackFlashObject(l_feedbackDataFlashObject);			
+		
+		l_feedbackDataFlashObject = m_flashValueStorage.CreateTempFlashObject();
+		l_feedbackDataFlashObject.SetMemberFlashBool( "isNew", true );
+		l_feedbackDataFlashObject.SetMemberFlashBool( "tracked", false );
+		l_feedbackDataFlashObject.SetMemberFlashInt( "status", JS_Active );
+		l_feedbackDataFlashObject.SetMemberFlashBool( "isLegend", true );
+		l_feedbackDataFlashObject.SetMemberFlashString(  "label", GetLocStringByKeyExt("panel_journal_legend_new") );
+		l_feedbackFlashArray.PushBackFlashObject(l_feedbackDataFlashObject);
+					
+		m_flashValueStorage.SetFlashArray( "journal.legend.list", l_feedbackFlashArray );
+	}
 	
+	function UpdateQuestLegend()
+	{
+		var l_feedbackFlashArray		: CScriptedFlashArray;
+		var l_feedbackDataFlashObject	: CScriptedFlashObject;
+		
+		l_feedbackFlashArray = m_flashValueStorage.CreateTempFlashArray();	
+				
+		l_feedbackDataFlashObject = m_flashValueStorage.CreateTempFlashObject();
+		l_feedbackDataFlashObject.SetMemberFlashUInt(  "tag", NameToFlashUInt('main') );
+		l_feedbackDataFlashObject.SetMemberFlashString(  "dropDownLabel", "" );		
+		l_feedbackDataFlashObject.SetMemberFlashInt( "isStory", 0 );					
+		l_feedbackDataFlashObject.SetMemberFlashString( "iconPath", GetQuestIconByType(Story) );			
+		l_feedbackDataFlashObject.SetMemberFlashBool( "isNew", false );
+		l_feedbackDataFlashObject.SetMemberFlashBool( "selected", false );		
+		l_feedbackDataFlashObject.SetMemberFlashInt( "status", JS_Active );
+		l_feedbackDataFlashObject.SetMemberFlashBool( "tracked", false );
+		l_feedbackDataFlashObject.SetMemberFlashString(  "label", GetLocStringByKeyExt("panel_journal_legend_main") );
+		l_feedbackFlashArray.PushBackFlashObject(l_feedbackDataFlashObject);
+			
+		l_feedbackDataFlashObject = m_flashValueStorage.CreateTempFlashObject();
+		l_feedbackDataFlashObject.SetMemberFlashUInt(  "tag", NameToFlashUInt('secondary') );
+		l_feedbackDataFlashObject.SetMemberFlashString(  "dropDownLabel", "" );		
+		l_feedbackDataFlashObject.SetMemberFlashInt( "isStory", 0 );					
+		l_feedbackDataFlashObject.SetMemberFlashString( "iconPath", GetQuestIconByType(Chapter) );			
+		l_feedbackDataFlashObject.SetMemberFlashBool( "isNew", false );
+		l_feedbackDataFlashObject.SetMemberFlashBool( "selected", false );		
+		l_feedbackDataFlashObject.SetMemberFlashInt( "status", JS_Active );
+		l_feedbackDataFlashObject.SetMemberFlashBool( "tracked", false );
+		l_feedbackDataFlashObject.SetMemberFlashString(  "label", GetLocStringByKeyExt("panel_journal_legend_secondary") );
+		l_feedbackFlashArray.PushBackFlashObject(l_feedbackDataFlashObject);
+			
+		l_feedbackDataFlashObject = m_flashValueStorage.CreateTempFlashObject();
+		l_feedbackDataFlashObject.SetMemberFlashUInt(  "tag", NameToFlashUInt('minor') );
+		l_feedbackDataFlashObject.SetMemberFlashString(  "dropDownLabel", "" );	
+		l_feedbackDataFlashObject.SetMemberFlashInt( "isStory", 0 );					
+		l_feedbackDataFlashObject.SetMemberFlashString( "iconPath", GetQuestIconByType(Side) );			
+		l_feedbackDataFlashObject.SetMemberFlashBool( "isNew", false );
+		l_feedbackDataFlashObject.SetMemberFlashBool( "selected", false );		
+		l_feedbackDataFlashObject.SetMemberFlashInt( "status", JS_Active );
+		l_feedbackDataFlashObject.SetMemberFlashBool( "tracked", false );
+		l_feedbackDataFlashObject.SetMemberFlashString(  "label", GetLocStringByKeyExt("panel_journal_legend_minor") );
+		l_feedbackFlashArray.PushBackFlashObject(l_feedbackDataFlashObject);			
+		
+		m_flashValueStorage.SetFlashArray( "journal.legend.quests.list", l_feedbackFlashArray );
+	}*/
 	
 	protected function UpdateTrackedQuest():void
 	{
@@ -106,10 +198,10 @@ class CR4JournalQuestMenu extends CR4ListBaseMenu
 			questTemp = (CJournalQuest)tempQuests[i];
 			if( questTemp )
 			{
-				
-				
+				//if( questTemp.GetType() < 3 /*QuestType_MonsterHunt*/ )
+				//{
 					allQuests.PushBack(questTemp);
-				
+				//}
 			}
 		}
 	}
@@ -304,6 +396,21 @@ class CR4JournalQuestMenu extends CR4ListBaseMenu
 		}
 	}
 	
+	private function GetEpTag( targetQuest : CJournalQuest ) : string
+	{
+		var epIndex : int;
+		epIndex = targetQuest.GetContentType();
+		if ( epIndex == 1 )
+		{
+			return "ep1tag";
+		}
+		else if ( epIndex == 2 )
+		{
+			return "ep2tag";
+		}
+		return "";
+	}
+	
 	private function generateFlashObjectForQuest(targetQuest : CJournalQuest) : CScriptedFlashObject
 	{
 		var l_questsDataFlashObject : CScriptedFlashObject;
@@ -346,7 +453,14 @@ class CR4JournalQuestMenu extends CR4ListBaseMenu
 		l_questIsNew		= m_journalManager.IsEntryUnread( targetQuest );
 		l_questIsTracked	= ( (m_journalManager.GetTrackedQuest().guid == targetQuest.guid) && ( l_questStatus == JS_Active ) );
 		
-		
+		/*if( l_questIsSelected )
+		{
+			l_questIsSelected = false;
+		}
+		else if( targetQuest.guid == initialTrackedQuest.guid && ( l_questStatus == JS_Active ) )
+		{
+			l_questIsSelected = true;
+		}*/
 		
 		l_dropdownLabel = "";
 		
@@ -373,7 +487,7 @@ class CR4JournalQuestMenu extends CR4ListBaseMenu
 		{
 			GameplayFactsAdd("tut_high_level_quest");
 			
-			
+			//force UI handler to refresh once again after the fact is set
 			theGame.GetTutorialSystem().uiHandler.OnOpeningMenu( GetMenuName() );
 		}
 		
@@ -391,9 +505,9 @@ class CR4JournalQuestMenu extends CR4ListBaseMenu
 			l_areaTag = "";
 		}
 		
-		if ( questName != "" && questLevel > 1 ) 
-			l_areaTag 			= l_areaTag + difficultyColor + GetLocStringByKeyExt('panel_item_required_level') + " " + questLevel + "</font>";
-		else 
+		if ( questName != "" && questLevel > 1 ) // && ( thePlayer.GetLevel() <  questLevel - theGame.params.LEVEL_DIFF_HIGH || thePlayer.GetLevel() >  questLevel + theGame.params.LEVEL_DIFF_HIGH  ) )
+			l_areaTag 			= l_areaTag + difficultyColor + GetLocStringByKeyExt('panel_item_required_level') + " " + questLevel + "</font>";// + " " + GetLocStringByKeyExt(lvlStr);
+		else // level / difficulty
 			l_areaTag 			= l_areaTag + GetLocStringByKeyExt(l_GroupTag); 
 		
 		l_questWorld = targetQuest.GetWorld();
@@ -402,18 +516,24 @@ class CR4JournalQuestMenu extends CR4ListBaseMenu
 		{
 			switch (l_questType)
 			{
-			case 0: 
-			case 1: 
+			case 0: //QuestType_Story
+			case 1: //QuestType_Chapter
 				l_dropdownLabel = GetLocStringByKeyExt("panel_journal_queststatus_story");
 				break;
-			case 2: 
-				l_dropdownLabel = GetLocStringByKeyExt("panel_journal_queststatus_side"); 
+			case 2: //QuestType_Side
+				l_dropdownLabel = GetLocStringByKeyExt("panel_journal_queststatus_side"); //panel_journal_queststatus_minor
 				break;
-			case 3: 
+			case 3: //QuestType_MonsterHunt
 				l_dropdownLabel = GetLocStringByKeyExt("panel_journal_legend_monsterhunt");
 				break;
-			case 4: 
+			case 4: //QuestType_TreasureHunt
 				l_dropdownLabel = GetLocStringByKeyExt("panel_journal_legend_treasurehunt");
+				break;
+			case 5: //QuestType_EP1
+				l_dropdownLabel = GetLocStringByKeyExt("panel_journal_legend_ep1");
+				break;
+			case 6: //QuestType_EP2
+				l_dropdownLabel = GetLocStringByKeyExt("panel_journal_legend_ep2");
 				break;
 			}
 		}
@@ -428,7 +548,7 @@ class CR4JournalQuestMenu extends CR4ListBaseMenu
 		
 		l_questsDataFlashObject = m_flashValueStorage.CreateTempFlashObject();
 		
-		
+		//l_questsDataFlashObject.SetMemberFlashInt(  "id", i ); //#B change to cguid
 		if( l_Tag == 'None' )
 		{
 			LogChannel('JOURNAL_ERROR',"There is no unique script tag for quest "+l_questTitle);
@@ -438,8 +558,9 @@ class CR4JournalQuestMenu extends CR4ListBaseMenu
 		l_questsDataFlashObject.SetMemberFlashUInt(  "dropDownTag",  NameToFlashUInt(l_GroupTag) );
 		l_questsDataFlashObject.SetMemberFlashBool(  "dropDownOpened", IsCategoryOpened( l_GroupTag ) );
 		
-		l_questsDataFlashObject.SetMemberFlashInt( "isStory", l_questType ); 
-		l_questsDataFlashObject.SetMemberFlashString( "iconPath", GetQuestIconByType(targetQuest.GetType()) );		
+		l_questsDataFlashObject.SetMemberFlashInt( "isStory", l_questType ); // #Y TODO: Why isStory ????
+		l_questsDataFlashObject.SetMemberFlashInt( "epIndex", targetQuest.GetContentType() );
+		l_questsDataFlashObject.SetMemberFlashString( "iconPath", GetQuestIconByType( targetQuest.GetType(), targetQuest.GetContentType() ) );		
 		l_questsDataFlashObject.SetMemberFlashBool( "isNew", l_questIsNew );
 		l_questsDataFlashObject.SetMemberFlashInt( "questWorld", l_questWorld );
 		l_questsDataFlashObject.SetMemberFlashInt( "curWorld", currentArea );
@@ -453,27 +574,47 @@ class CR4JournalQuestMenu extends CR4ListBaseMenu
 		return l_questsDataFlashObject;
 	}
 	
-	function GetQuestIconByType( type : eQuestType ) : string
+	function GetQuestIconByType( type : eQuestType, optional epIndex : int ) : string
 	{
 		var retStr : string;
 		retStr = "icons/quests/";
-		switch(type)
+		if ( epIndex == 0 )
 		{
-			case Story :
-				retStr += "story.png";	
-				break;
-			case Chapter :
-				retStr += "chapter.png";	
-				break;
-			case Side :
-				retStr += "side.png";	
-				break;
-			case MonsterHunt :
-				retStr += "monsterhunt.png";	
-				break;
-			case TreasureHunt :
-				retStr += "treasurehunt.png";	
-				break;
+			switch(type)
+			{
+				case Story :
+					retStr += "story.png";	
+					break;
+				case Chapter :
+					retStr += "chapter.png";	
+					break;
+				case Side :
+					retStr += "side.png";	
+					break;
+				case MonsterHunt :
+					retStr += "monsterhunt.png";	
+					break;
+				case TreasureHunt :
+					retStr += "treasurehunt.png";	
+					break;
+			}
+		}
+		else if ( epIndex == 1 )
+		{
+			switch(type)
+			{
+				case Story :
+				case Chapter :
+				case Side :
+					retStr += "quest_hos.png";
+					break;
+				case MonsterHunt :
+					retStr += "monsterhunt_hos.png";	
+					break;
+				case TreasureHunt :
+					retStr += "treasurehunt_hos.png";	
+					break;
+			}
 		}
 		return retStr;
 	}
@@ -506,7 +647,7 @@ class CR4JournalQuestMenu extends CR4ListBaseMenu
 		}
 		
 		l_questObjectivesFlashArray = m_flashValueStorage.CreateTempFlashArray();
-		
+		//l_questObjectives.Clear();
 		questEntry = (CJournalQuest)m_journalManager.GetEntryByTag(tag);
 		
 		if (!questEntry)
@@ -541,9 +682,9 @@ class CR4JournalQuestMenu extends CR4ListBaseMenu
 						l_objectiveIsTracked = ( highlightedObjective == l_objective );
 						l_objectiveOrder = l_objective.GetOrder();
 						
-						
+						//l_questObjectiveDataFlashObject.SetMemberFlashInt(  "id", j ); //#B change to cguid		
 						l_objectiveTag = l_objective.GetUniqueScriptTag();
-						l_questObjectiveDataFlashObject.SetMemberFlashUInt(  "tag", NameToFlashUInt(l_objectiveTag) ); 
+						l_questObjectiveDataFlashObject.SetMemberFlashUInt(  "tag", NameToFlashUInt(l_objectiveTag) ); //#B change to cguid				
 						l_questObjectiveDataFlashObject.SetMemberFlashBool( "isNew", l_objectiveIsNew );
 						l_questObjectiveDataFlashObject.SetMemberFlashBool( "tracked", l_objectiveIsTracked );
 						l_questObjectiveDataFlashObject.SetMemberFlashBool( "isLegend", false );
@@ -562,6 +703,8 @@ class CR4JournalQuestMenu extends CR4ListBaseMenu
 		locID = questEntry.GetTitleStringId();
 		m_flashValueStorage.SetFlashArray( DATA_BINDING_NAME_SUBLIST, l_questObjectivesFlashArray );
 		m_flashValueStorage.SetFlashString( DATA_BINDING_NAME_SUBLIST+".questname", GetLocStringById(locID));
+		
+		m_fxUpdateExpansionIcon.InvokeSelfOneArg( FlashArgInt( questEntry.GetContentType() ) );
 	}
 	
 	function GetAreaName( questEntry : CJournalQuest ) : name
@@ -585,7 +728,7 @@ class CR4JournalQuestMenu extends CR4ListBaseMenu
 				l_questArea = 'panel_journal_filters_area_prolgue_village';
 				break;
 
-			
+			// TODO
 			case AN_Wyzima:
 				l_questArea = 'panel_journal_filters_area_wyzima';
 				break;
@@ -629,13 +772,13 @@ class CR4JournalQuestMenu extends CR4ListBaseMenu
 				break;
 			}
 		}
-		
+		//for( i = descriptionsGroup.GetNumChildren() - 1 ; i >= 0 ; i -= 1 )
 		for( i = 0; i < descriptionsGroup.GetNumChildren(); i += 1 )
 		{
 			description = (CJournalQuestDescriptionEntry)descriptionsGroup.GetChild(i);
 			if( m_journalManager.GetEntryStatus(description) != JS_Inactive )
 			{
-				
+				// Fun sorting ensues
 				currentJournalDescriptionText.stringKey = description.GetDescriptionStringId();
 				currentJournalDescriptionText.order = description.GetOrder();
 				currentJournalDescriptionText.groupOrder = descriptionsGroup.GetOrder();
@@ -688,7 +831,7 @@ class CR4JournalQuestMenu extends CR4ListBaseMenu
 		var description : string;
 		var title : string;
 		
-		
+		// #B could add description for creatures group here !!!
 		l_quest = (CJournalQuest)m_journalManager.GetEntryByTag( entryName );
 		description = GetDescription( l_quest );
 		title = GetLocStringById( l_quest.GetTitleStringId());	
@@ -705,7 +848,7 @@ class CR4JournalQuestMenu extends CR4ListBaseMenu
 		
 		l_quest = (CJournalQuest)m_journalManager.GetEntryByTag( tag );
 		
-		return; 
+		return; // #J Temporarly disabling rewards as they aren't working properly
 		
 		rewards = m_journalManager.GetQuestRewards( l_quest );
 		if( rewards.Size() < 1 )
@@ -763,7 +906,7 @@ class CR4JournalQuestMenu extends CR4ListBaseMenu
 		for( i = 0; i < items.Size(); i += 1 )
 		{
 			l_flashObject = m_flashValueStorage.CreateTempFlashObject("red.game.witcher3.menus.common.ItemDataStub");
-			l_flashObject.SetMemberFlashInt( "id", i + 1 ); 
+			l_flashObject.SetMemberFlashInt( "id", i + 1 ); // ERRR
 			l_flashObject.SetMemberFlashInt( "quantity", items[ i ].amount );
 			l_flashObject.SetMemberFlashString( "iconPath",  dm.GetItemIconPath( items[ i ].item ) );
 			l_flashObject.SetMemberFlashInt( "gridPosition", i );
@@ -783,10 +926,10 @@ class CR4JournalQuestMenu extends CR4ListBaseMenu
 		return l_flashArray;
 	}
 	
-	event OnGetItemData(item : int, compareItemType : int) 
+	event OnGetItemData(item : int, compareItemType : int) // #B in that case item is ID !!!
 	{
-		
-		
+		//var compareItemStats	: array<SAttributeTooltip>;
+		//var itemStats 			: array<SAttributeTooltip>;
 		var itemName 			: string;
 		var category			: name;
 		var typeStr				: string;
@@ -796,7 +939,7 @@ class CR4JournalQuestMenu extends CR4ListBaseMenu
 		var statsList			: CScriptedFlashArray;		
 		var dm 					: CDefinitionsManagerAccessor = theGame.GetDefinitionsManager();
 		item = item - 1;
-		
+		//itemName = itemsNames[item];
 		resultData = m_flashValueStorage.CreateTempFlashObject();
 		statsList = m_flashValueStorage.CreateTempFlashArray();
 		
@@ -804,10 +947,10 @@ class CR4JournalQuestMenu extends CR4ListBaseMenu
 		itemName = GetLocStringByKeyExt(itemName);
 		resultData.SetMemberFlashString("ItemName", itemName);
 		
+		//tooltipInv.GetItemStats(item, itemStats);
+		//CompareItemsStats(itemStats, compareItemStats, statsList);
 		
-		
-		
-		
+		//resultData.SetMemberFlashArray("StatsList", statsList);
 		resultData.SetMemberFlashString("PriceValue", dm.GetItemPrice(itemsNames[item]));
 				
 		category = dm.GetItemCategory(itemsNames[item]);
@@ -819,13 +962,13 @@ class CR4JournalQuestMenu extends CR4ListBaseMenu
 			|| dm.ItemHasTag(itemsNames[item], 'SilverOil') 
 			|| dm.ItemHasTag(itemsNames[item], 'SteelOil') 
 			|| category == 'petard' 
-			|| category == 'bolt' )
+			|| category == 'bolt' )// #B item weight check
 		{
 			weight = 0;
 		}
 		else
 		{
-			weight = 1; 
+			weight = 1; // no way to get it
 		}
 		
 		resultData.SetMemberFlashString("WeightValue", NoTrailZeros(weight));
@@ -854,7 +997,32 @@ class CR4JournalQuestMenu extends CR4ListBaseMenu
 	
 	function PlayOpenSoundEvent()
 	{
-		
-		
+		// Common Menu takes care of this for us
+		//OnPlaySoundEvent("gui_global_panel_open");	
+	}
+	
+	private function GetEpTextureName( epIndex : int ) : string
+	{
+		var audio, subtitles : string;
+		var path : string;
+
+		path = "img://icons/quests/ep_logos/";
+
+		theGame.GetGameLanguageName( audio, subtitles );
+		switch ( subtitles )
+		{
+		case "PL":
+			return path + "ep" + epIndex + "_logo_pl.png";
+		case "CZ":
+			return path + "ep" + epIndex + "_logo_cz.png";
+		case "RU":
+			return path + "ep" + epIndex + "_logo_ru.png";
+		case "ZH":
+			return path + "ep" + epIndex + "_logo_ch.png";
+		case "EN":
+		default:
+			return path + "ep" + epIndex + "_logo_en.png";
+		}
+		return "";	
 	}
 }

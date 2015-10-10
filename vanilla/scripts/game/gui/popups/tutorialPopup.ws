@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file - Layer for displaying tutorial hints
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author : Yaroslav Getsevich
+/***********************************************************************/
 
 struct TutorialHighlightedArea
 {
@@ -15,7 +14,9 @@ struct TutorialHighlightedArea
 }
 
 
-
+/*
+	Tutorial popup class
+*/
 
 class CR4TutorialPopup extends CR4PopupBase
 {
@@ -30,13 +31,17 @@ class CR4TutorialPopup extends CR4PopupBase
 	var m_fxPlayFeedbackAnim    : CScriptedFlashFunction;
 	var m_fxResetInput          : CScriptedFlashFunction;
 	
-	event  OnConfigUI()
+	private var m_contextStored : bool;
+	
+	event /*flash*/ OnConfigUI()
 	{
 		var initData      : W3TutorialPopupData;
 		var isHidden 	  : bool;
 		var isForceHidden : bool;
 		
 		super.OnConfigUI();
+		
+		m_contextStored = false;
 		
 		m_fxResetInput = m_flashModule.GetMemberFlashFunction( "resetInput" );
 		m_fxPlayFeedbackAnim = m_flashModule.GetMemberFlashFunction( "playFeedbackAnimation" );
@@ -98,6 +103,8 @@ class CR4TutorialPopup extends CR4PopupBase
 			if (m_DataObject.blockInput || m_DataObject.fullscreen)
 			{
 				theInput.StoreContext( 'EMPTY_CONTEXT' );
+				m_contextStored = true;
+				
 				MakeModal(true);
 				m_guiManager.ForceHideMouseCursor(true);
 				commonMenuRef = theGame.GetGuiManager().GetCommonMenu();
@@ -131,6 +138,7 @@ class CR4TutorialPopup extends CR4PopupBase
 				{
 					MakeModal(false);
 					theInput.RestoreContext( 'EMPTY_CONTEXT', false );
+					m_contextStored = false;
 				}
 				if (m_DataObject && (m_DataObject.pauseGame || m_DataObject.fullscreen))
 				{
@@ -147,6 +155,7 @@ class CR4TutorialPopup extends CR4PopupBase
 			{
 				MakeModal(true);
 				theInput.StoreContext( 'EMPTY_CONTEXT' );
+				m_contextStored = true;
 			}
 			if (m_DataObject && (m_DataObject.pauseGame || m_DataObject.fullscreen))
 			{
@@ -159,17 +168,17 @@ class CR4TutorialPopup extends CR4PopupBase
 		}
 	}
 	
-	event  OnStartHiding()
+	event /*flash*/ OnStartHiding()
 	{
 		RequestUnpause();
 	}
 	
-	event  OnHideTimer()
+	event /*flash*/ OnHideTimer()
 	{
 		RequestClose();
 	}
 	
-	event  OnGotoGlossary()
+	event /*flash*/ OnGotoGlossary()
 	{
 		if (isVisible)
 		{
@@ -182,7 +191,7 @@ class CR4TutorialPopup extends CR4PopupBase
 		}
 	}
 	
-	event  OnCloseByUser()
+	event /*flash*/ OnCloseByUser()
 	{
 		if ( m_DataObject )
 		{
@@ -194,7 +203,7 @@ class CR4TutorialPopup extends CR4PopupBase
 		RequestClose(true);
 	}
 	
-	event  OnClosingPopup()
+	event /* C++ */ OnClosingPopup()
 	{
 		var scriptTag : name;
 		var commonMenuRef : CR4CommonMenu;
@@ -207,9 +216,10 @@ class CR4TutorialPopup extends CR4PopupBase
 			}
 			if (m_DataObject.blockInput || m_DataObject.fullscreen)
 			{
-				if (theInput.GetContext() == 'EMPTY_CONTEXT')
+				if (theInput.GetContext() == 'EMPTY_CONTEXT' && m_contextStored)
 				{
 					theInput.RestoreContext( 'EMPTY_CONTEXT', true );
+					m_contextStored = false;
 				}
 				m_guiManager.ForceHideMouseCursor(false);
 				MakeModal(false);
@@ -230,7 +240,7 @@ class CR4TutorialPopup extends CR4PopupBase
 		}
 	}
 	
-	
+	// Enable only if we have at least one active tutorial
 	private function CanEnableGlossaryLink():bool
 	{
 		var tempEntries				: array<CJournalBase>;
@@ -292,9 +302,10 @@ class CR4TutorialPopup extends CR4PopupBase
 			}
 			if ((m_DataObject.blockInput || m_DataObject.fullscreen))
 			{
-				if (theInput.GetContext() == 'EMPTY_CONTEXT')
+				if (theInput.GetContext() == 'EMPTY_CONTEXT' && m_contextStored)
 				{
 					theInput.RestoreContext( 'EMPTY_CONTEXT', true );
+					m_contextStored = false;
 				}
 				MakeModal(false);
 				m_guiManager.ForceHideMouseCursor(false);
@@ -307,18 +318,19 @@ class CR4TutorialPopup extends CR4PopupBase
 		var scriptTag : name;
 		var commonMenuRef : CR4CommonMenu;
 		
-		
+		// #Y Copypaste???
 		if ( m_DataObject )
 		{
 			if (m_DataObject.pauseGame || m_DataObject.fullscreen)
 			{
 				theGame.Unpause("tutorial");
 			}
-			if (m_DataObject.blockInput || m_DataObject.fullscreen)
+			if (m_DataObject.blockInput || m_DataObject.fullscreen )
 			{
-				if (theInput.GetContext() == 'EMPTY_CONTEXT')
+				if (theInput.GetContext() == 'EMPTY_CONTEXT' && m_contextStored)
 				{
 					theInput.RestoreContext( 'EMPTY_CONTEXT', true );
+					m_contextStored = false;
 				}
 				m_guiManager.ForceHideMouseCursor(false);
 				MakeModal(false);
@@ -341,7 +353,7 @@ class CR4TutorialPopup extends CR4PopupBase
 	
 	protected function EnableGlossaryLink(value:bool):void
 	{
-		
+		//
 	}
 	
 	public function setArabicAligmentMode() : void
@@ -394,7 +406,9 @@ class CR4TutorialPopup extends CR4PopupBase
 }
 
 
-
+/*
+	Popup InitData class
+*/
 
 class W3TutorialPopupData extends CObject
 {
@@ -403,7 +417,7 @@ class W3TutorialPopupData extends CObject
 	public var messageTitle:string;
 	public var messageText:string;
 	public var imagePath:string;
-	public var fadeBackground:bool; 
+	public var fadeBackground:bool; // #Y not implemented
 	public var autosize:bool;
 	public var enableGlossoryLink:bool;
 	public var enableAcceptButton:bool;
@@ -426,12 +440,12 @@ class W3TutorialPopupData extends CObject
 	{
 		var newArea:TutorialHighlightedArea;
 		
-		newArea.x = x; 
-		newArea.y = y; 
-		newArea.width = width; 
-		newArea.height = height; 
+		newArea.x = x; // * theGame.uiHorizontalFrameScale;
+		newArea.y = y; // * theGame.uiVerticalFrameScale;
+		newArea.width = width; // * theGame.uiHorizontalFrameScale;
+		newArea.height = height; // * theGame.uiVerticalFrameScale;
 		
-		
+		// #Y TODO: Apply HUD scaling
 		highlightedAreas.PushBack(newArea);
 	}
 	
@@ -457,7 +471,7 @@ class W3TutorialPopupData extends CObject
 		else
 		{
 			closeRequested = true;
-			
+			//LogAssert(false, "Failed to close tutorial hint!");
 		}
 	}
 	

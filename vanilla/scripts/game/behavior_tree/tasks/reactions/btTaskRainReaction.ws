@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskRainReaction extends IBehTreeTask
+﻿class CBTTaskRainReaction extends IBehTreeTask
 {
 	protected var storageHandler 	: CAIStorageHandler;
 	protected var reactionDataStorage : CAIStorageReactionData;

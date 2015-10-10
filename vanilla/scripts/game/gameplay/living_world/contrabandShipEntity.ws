@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3POI_ContrabandShipEntity extends CR4MapPinEntity
+﻿class W3POI_ContrabandShipEntity extends CR4MapPinEntity
 {	
 	event OnAreaEnter( area : CTriggerAreaComponent, activator : CComponent )
 	{

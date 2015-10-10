@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2012
+/** Author : Patryk Fiutowski, Andrzej Kwiatkowski
+/***********************************************************************/
 
 class CBTTaskPlayAnimationEventDecorator extends IBehTreeTask
 {
@@ -272,7 +271,24 @@ class CBTTaskPlayAnimationEventDecorator extends IBehTreeTask
 				npc.EnableCharacterCollisions( true );
 			}
 		}
-		
+		else if ( animEventName == 'CompleteTask' && animEventType == AET_DurationEnd )
+		{
+			Complete( true );
+		}
+		/*else if ( animEventName == 'SlowMo' )
+		{
+			if( animEventType != AET_DurationEnd && !slowMo )
+				//&& npc.InAttackRange(GetCombatTarget(),'SlowMo') )
+			{
+				theGame.SetTimeScale(0.2, theGame.GetTimescaleSource(ETS_SlowMoTask), theGame.GetTimescalePriority(ETS_SlowMoTask) );
+				slowMo = true;
+			}
+ 			else if( animEventType == AET_DurationEnd )
+			{
+				theGame.RemoveTimeScale( theGame.GetTimescaleSource(ETS_SlowMoTask) );
+				slowMo = false;
+			}
+		}*/
 		return false;
 	}
 	

@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-struct SPetardParams
+﻿struct SPetardParams
 {
 	saved var damages : array<SRawDamage>;
 	saved var buffs	: array<SEffectInfo>;
@@ -18,6 +14,8 @@ struct SPetardParams
 	editable var fxPlayedOnHit : array<name>;
 	editable var surfaceFX : SFXSurfacePostParams;
 	editable var fx : array<name>;
+	editable var fxCluster : array<name>;
+	editable var fxClusterWater : array<name>;
 	editable var fxWater : array<name>;
 	editable var componentsToSnap : array<name>;
 	
@@ -29,7 +27,10 @@ struct SPetardParams
 		hint fxStoppedWhenAbilityDisabled = "Names of FXs stopped on target when abilities are disabled";
 		hint surfaceFX = "Params for surface fx";
 		hint fx = "FXs to play when NOT in water";
+		hint fxCluster = "FXs to play when NOT in water AND cluster bomb";
 		hint fxWater = "FXs to play when in water";
+		hint fxClusterWater = "FXs to play when in water AND cluster bomb";
 		hint componentsToSnap = "Components to be snapped to terrain";
 		hint range = "Effect's mechanics' radius (sphere - if no height) or range (if cylinder)";
+		hint fxPlayedOnHit = "FX played on target when target hit";
 };

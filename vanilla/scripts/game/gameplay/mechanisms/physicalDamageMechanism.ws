@@ -1,8 +1,6 @@
 ﻿/*
-Copyright © CD Projekt RED 2015
+NEEDS CHECKING! MADE COMPATIBLE WITH NEW COLLISION SYSTEM (added physicalActorindex / shapeIndex): Dennis Zoetebier
 */
-
-
 
 enum EPhysicalDamagemechanismOperation
 {
@@ -79,7 +77,7 @@ class W3PhysicalDamageMechanism extends CGameplayEntity
 			{
 				action = new W3DamageAction in theGame.damageMgr;
 				action.Initialize(this,victim,component,this.GetName(),hitReactionType,CPS_AttackPower,true,false,false,true);
-				action.AddDamage(theGame.params.DAMAGE_NAME_PHYSICAL, dmgValue );		
+				action.AddDamage(theGame.params.DAMAGE_NAME_PHYSICAL, dmgValue );		//FIXME URGENT - fixed value -TK
 				theGame.damageMgr.ProcessAction( action );
 				
 				delete action;

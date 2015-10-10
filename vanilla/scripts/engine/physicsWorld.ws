@@ -1,29 +1,18 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
-
-import struct SCollisionInfo
-{
-	import var firstContactPoint : Vector;
-	import var collisionNormal : Vector;
-	import var impulseApplied : float;
-	import var soundMaterial : Int8;
-	 
-	
-	
-	
-	
-	
-};
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Exports for CPhysicsWorld
+/** Copyright © 2009 CD Projekt RED
+/***********************************************************************/
 
 import function PhysxDebugger( host : string ) : bool;
 
-
+/*
+	triggerObject will receive collision events. If receiverObject is set instead it will receive events. onEventName - ?	
+	Sent event is:
+	event OnCollision(collidedWith : CObject, actorIndex : int, shapeIndex : int);
+		collidedWith - NULL when colliding with terrain.
+*/
 import function SetPhysicalEventOnCollision( triggerObject : CComponent, optional receiverObject : CObject, optional onEventName : name ) : bool;
 import function SetPhysicalEventOnTriggerFocusFound( triggerObject : CComponent, optional receiverObject : CObject, optional onEventName : name ) : bool;
 import function SetPhysicalEventOnTriggerFocusLost( triggerObject : CComponent, optional receiverObject : CObject, optional onEventName : name ) : bool;

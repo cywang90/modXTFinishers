@@ -1,9 +1,5 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿
+///////////////////////////////////////////////////////////////////////////////////
 
 import class CCurve extends CObject
 {
@@ -11,10 +7,10 @@ import class CCurve extends CObject
 	import function GetDuration() : float;
 }
 
+///////////////////////////////////////////////////////////////////////////////////
 
 
-
-
+// What is that ???
 
 
 enum EInterpMethodType
@@ -43,7 +39,7 @@ class InterpCurveF extends InterpCurve
 		var numPoints : int = points.Size();
 		var i : int;
 		
-		
+		// TODO Move it to 'constructor'
 		keyPoint.inVal = inVal;
 		keyPoint.outVal = outVal;
 		keyPoint.interpMode = CIM_Linear;
@@ -54,7 +50,9 @@ class InterpCurveF extends InterpCurve
 		return i;
 	}
 	
+	/**
 	
+	*/
 	private function ComputeCurveTangent( prevTime : float, prevPoint : float,
 								currTime : float, currPoint : float,
 								nextTime : float, nextPoint : float,
@@ -69,16 +67,22 @@ class InterpCurveF extends InterpCurve
 		outTangent /= timeDiff;
 	}
 	
+	/**
 	
+	*/
 	private function AutoCalcTangent( prevP : float, p : float, nextP : float, tension : float, out outTan : float )
 	{
 		outTan = (1.f - tension) * ( (p - prevP) + (nextP - p) );
 	}
 	
-	
+	/**
+		TODO
+	*/
 	private function AutoCalcClampTngent( prevP : float, p : float, nextP : float, tension : float, out outTan : float ){}
 	
+	/**
 	
+	*/
 	function AutoSetTangents( optional tension : float )
 	{
 		var numPoints : int = points.Size();
@@ -93,21 +97,21 @@ class InterpCurveF extends InterpCurve
 			
 			if(ptIdx == 0)
 			{
-				if(ptIdx < numPoints - 1) 
+				if(ptIdx < numPoints - 1) // Start point
 				{
 					if( points[ptIdx].interpMode == CIM_CurveAuto )
 					{
 						leaveTangent = 0;
 					}
 				}
-				else 
+				else // Only point
 				{
 					leaveTangent = 0;
 				}			
 			}
 			else
 			{
-				if(ptIdx < numPoints - 1) 
+				if(ptIdx < numPoints - 1) // Inner point
 				{
 					if( points[ptIdx].interpMode == CIM_CurveAuto )
 					{
@@ -125,7 +129,7 @@ class InterpCurveF extends InterpCurve
 							{
 								AutoCalcTangent( points[ptIdx-1].outVal, points[ptIdx].outVal, points[ptIdx+1].outVal, tension, arriveTangent );
 							}
-							
+							// In 'auto' mode, arrive and leave tangents are always the same
 							leaveTangent = arriveTangent;
 						}
 						else if( points[ptIdx-1].interpMode == CIM_Constant || points[ptIdx].interpMode == CIM_Constant )
@@ -135,7 +139,7 @@ class InterpCurveF extends InterpCurve
 						}
 					}
 				}
-				else 
+				else // End point
 				{
 					if( points[ptIdx].interpMode == CIM_CurveAuto )
 					{
@@ -150,7 +154,9 @@ class InterpCurveF extends InterpCurve
 	}
 
 	
+	/**
 	
+	*/
 	function Eval(inVal : float, defaultVal : float, optional out ptIdx : int) : float
 	{
 		var numPoints : int = points.Size();
@@ -165,21 +171,21 @@ class InterpCurveF extends InterpCurve
 			return defaultVal;
 		}
 		
-		
+		// if only one point or we are before first point
 		if( numPoints < 2 || inVal <= points[0].inVal )
 		{
 			ptIdx = 0;
 			return points[0].outVal;
 		}
 		
-		
+		// if beyond the last point
 		if( inVal >= points[numPoints-1].inVal )
 		{
 			ptIdx = numPoints - 1;
 			return points[numPoints-1].outVal;
 		}
 		
-		
+		// we should be somewhere between
 		for( i = 1; i < numPoints; i = i + 1 )
 		{
 			if( inVal < points[i].inVal )
@@ -220,7 +226,7 @@ class InterpCurveF extends InterpCurve
 			}
 		}
 		
-		
+		// we shouldn't reach here.
 		ptIdx = numPoints - 1;
 		return points[numPoints-1].outVal;
 	}
@@ -238,7 +244,7 @@ class InterpCurveV extends InterpCurve
 		var numPoints : int = points.Size();
 		var i : int;
 		
-		
+		// TODO Move it to 'constructor'
 		keyPoint.inVal = inVal;
 		keyPoint.outVal = outVal;
 		keyPoint.interpMode = CIM_Linear;
@@ -249,7 +255,9 @@ class InterpCurveV extends InterpCurve
 		return i;
 	}
 
+	/**
 	
+	*/
 	private function ComputeCurveTangent( prevTime : float, prevPoint : Vector,
 								currTime : float, currPoint : Vector,
 								nextTime : float, nextPoint : Vector,
@@ -264,16 +272,22 @@ class InterpCurveV extends InterpCurve
 		outTangent /= timeDiff;
 	}
 	
+	/**
 	
+	*/
 	private function AutoCalcTangent( prevP : Vector, p : Vector, nextP : Vector, tension : float, out outTan : Vector )
 	{
 		outTan = (1.f - tension) * ( (p - prevP) + (nextP - p) );
 	}
 	
-	
+	/**
+		TODO
+	*/
 	private function AutoCalcClampTngent( prevP : float, p : float, nextP : float, tension : float, out outTan : float ){}
 	
+	/**
 	
+	*/
 	function AutoSetTangents( optional tension : float )
 	{
 		var numPoints : int = points.Size();
@@ -288,21 +302,21 @@ class InterpCurveV extends InterpCurve
 			
 			if(ptIdx == 0)
 			{
-				if(ptIdx < numPoints - 1) 
+				if(ptIdx < numPoints - 1) // Start point
 				{
 					if( points[ptIdx].interpMode == CIM_CurveAuto )
 					{
 						leaveTangent = Vector( 0.f, 0.f, 0.f, 0.f );
 					}
 				}
-				else 
+				else // Only point
 				{
 					leaveTangent = Vector( 0.f, 0.f, 0.f, 0.f );
 				}			
 			}
 			else
 			{
-				if(ptIdx < numPoints - 1) 
+				if(ptIdx < numPoints - 1) // Inner point
 				{
 					if( points[ptIdx].interpMode == CIM_CurveAuto )
 					{
@@ -320,7 +334,7 @@ class InterpCurveV extends InterpCurve
 							{
 								AutoCalcTangent( points[ptIdx-1].outVal, points[ptIdx].outVal, points[ptIdx+1].outVal, tension, arriveTangent );
 							}
-							
+							// In 'auto' mode, arrive and leave tangents are always the same
 							leaveTangent = arriveTangent;
 						}
 						else if( points[ptIdx-1].interpMode == CIM_Constant || points[ptIdx].interpMode == CIM_Constant )
@@ -330,7 +344,7 @@ class InterpCurveV extends InterpCurve
 						}
 					}
 				}
-				else 
+				else // End point
 				{
 					if( points[ptIdx].interpMode == CIM_CurveAuto )
 					{
@@ -345,7 +359,9 @@ class InterpCurveV extends InterpCurve
 	}
 
 	
+	/**
 	
+	*/
 	function Eval(inVal : float, defaultVal : Vector, optional out ptIdx : int) : Vector
 	{
 		var numPoints : int = points.Size();
@@ -360,21 +376,21 @@ class InterpCurveV extends InterpCurve
 			return defaultVal;
 		}
 		
-		
+		// if only one point or we are before first point
 		if( numPoints < 2 || inVal <= points[0].inVal )
 		{
 			ptIdx = 0;
 			return points[0].outVal;
 		}
 		
-		
+		// if beyond the last point
 		if( inVal >= points[numPoints-1].inVal )
 		{
 			ptIdx = numPoints - 1;
 			return points[numPoints-1].outVal;
 		}
 		
-		
+		// we should be somewhere between
 		for( i = 1; i < numPoints; i = i + 1 )
 		{
 			if( inVal < points[i].inVal )
@@ -415,7 +431,7 @@ class InterpCurveV extends InterpCurve
 			}
 		}
 		
-		
+		// we shouldn't reach here.
 		ptIdx = numPoints - 1;
 		return points[numPoints-1].outVal;
 	}	
