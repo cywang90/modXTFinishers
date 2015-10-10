@@ -2,6 +2,12 @@
 MODULE camshake_default Changelog
 =================================
 
+-----------------
+v2.0.0 (15/10/09)
+-----------------
+
+- No changes were made for this version. (Version bump only.)
+
 ----------------
 v1.02 (15/10/06)
 ----------------

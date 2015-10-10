@@ -139,6 +139,7 @@ class XTFinishersDefaultDismemberHandler extends XTFinishersAbstractReactionStar
 					if (playerAttacker && playerAttacker.forceDismember) {
 						dismemberChance = thePlayer.forceDismemberChance;
 						context.dismember.explosion = thePlayer.forceDismemberExplosion;
+						context.dismember.debug = true;
 					}
 					
 					if (attackAction) {

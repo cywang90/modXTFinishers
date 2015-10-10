@@ -114,7 +114,7 @@ class XTFinishersDefaultFinisherHandler extends XTFinishersAbstractReactionStart
 		
 		if (thePlayer.forceFinisher && actorVictim.IsHuman()) {
 			context.finisher.active = true;
-			context.finisher.forced = true;
+			context.finisher.debug = true;
 			return;
 		}
 		
@@ -141,8 +141,8 @@ class XTFinishersDefaultFinisherHandler extends XTFinishersAbstractReactionStart
 		result = ((CR4Player)context.action.attacker) && attackAction && attackAction.IsActionMelee();
 		result = result && (actorVictim.IsHuman() && !actorVictim.IsWoman());
 		result = result && RandRangeF(100) < finisherChance;
-		result = result && (!areEnemiesAttacking || areEnemiesAttackingModifier);
-		result = result && AbsF(victimToPlayerVector.Z) < 0.4f;
+		result = result && (areEnemiesAttackingModifier || !areEnemiesAttacking);
+		result = result && (context.finisher.debug || AbsF(victimToPlayerVector.Z) < 0.4f);
 		result = result && !thePlayer.IsInAir();
 		result = result && (thePlayer.IsWeaponHeld('steelsword') || thePlayer.IsWeaponHeld('silversword'));
 		result = result && !thePlayer.IsSecondaryWeaponHeld();
@@ -151,12 +151,12 @@ class XTFinishersDefaultFinisherHandler extends XTFinishersAbstractReactionStart
 		result = result && !context.effectsSnapshot.HasEffect(EET_Knockdown);
 		result = result && !context.effectsSnapshot.HasEffect(EET_Ragdoll);
 		result = result && !context.effectsSnapshot.HasEffect(EET_Frozen);
-		result = result && !actorVictim.HasAbility('DisableFinishers');
-		result = result && actorVictim.GetAttitude(thePlayer) == AIA_Hostile;
+		result = result && (context.finisher.debug || !actorVictim.HasAbility('DisableFinishers'));
+		result = result && (context.finisher.debug || actorVictim.GetAttitude(thePlayer) == AIA_Hostile);
 		result = result && !thePlayer.IsUsingVehicle();
 		result = result && thePlayer.IsAlive();
 		result = result && !thePlayer.IsCurrentSignChanneled();
-		result = result && (theGame.GetWorld().NavigationCircleTest(actorVictim.GetWorldPosition(), 2.f) || navCheckModifier) ;
+		result = result && (navCheckModifier || theGame.GetWorld().NavigationCircleTest(actorVictim.GetWorldPosition(), 2.f)) ;
 		
 		if (result) {
 			if (!actorVictim.IsAlive()) {

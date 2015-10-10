@@ -1,96 +1,101 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Copyright © 2012-2014
+/** Author : Rafal Jarczewski, 
+/**			 Tomasz Czarny, 
+/**			 Tomek Kozera
+/***********************************************************************/
 
-class W3DamageManagerProcessor extends CObject 
+/*
+  Class deals with damage dealing. Damage manager is given a DamageAction object
+  based on which it delivers damage to the victim. DM takes under consideration all
+  possible damage modifiers (bonuses, spells, skills, protection, dodging, immortality etc.).
+  DM also displays hit particles and sends info regarding which hit animation to use.
+*/
+class W3DamageManagerProcessor extends CObject /* CObject extension is required because of Clone function that is used */
 {
-	private var playerAttacker				: CR4Player;				
-	private var playerVictim				: CR4Player;
+	//helper cached variables
+	private var playerAttacker				: CR4Player;				//attacker entity cast to player class
+	private var playerVictim				: CR4Player;				//victim entity cast to player class
 	private var action						: W3DamageAction;
-	private var attackAction				: W3Action_Attack;			
-	private var weaponId					: SItemUniqueId;			
-	private var actorVictim 				: CActor;					
-	private var actorAttacker				: CActor;					
+	private var attackAction				: W3Action_Attack;			//W3DamageAction cast to AttackAction
+	private var weaponId					: SItemUniqueId;			//weapon id (used if AttackAction)
+	private var actorVictim 				: CActor;					//victim cast to CActor
+	private var actorAttacker				: CActor;					//attacker cast to CActor
 	private var dm 							: CDefinitionsManagerAccessor;
 	private var attackerMonsterCategory		: EMonsterCategory;
 	private var victimMonsterCategory		: EMonsterCategory;
 	private var victimCanBeHitByFists		: bool;
+	
 	// modXTFinishers BEGIN
 	private var actionContext				: XTFinishersActionContext;
 	// modXTFinishers END
 	
+	// processes damage action
 	public function ProcessAction(act : W3DamageAction)
-	{		
-		var abilityTag, abilityName : name;		
-		var min, max, value : SAbilityAttributeValue;
-		var focusDrain, rendLoad : float;
-		var validDamage, usesSteel, usesSilver, usesVitality, usesEssence : bool;
-		var bloodTrailParam : CBloodTrailEffect;
-		var i : int;
-		var abs : array<name>;
-		var isFrozen : bool;
-		var wasAlive : bool;
+	{
+		var wasAlive, validDamage, isFrozen, autoFinishersEnabled : bool;
+		var focusDrain : float;
 		var npc : CNewNPC;
-		var arrStr : array<string>;
-		var ciriPlayer : W3ReplacerCiri;
 		var buffs : array<EEffectType>;
-		
-		if(!act || !act.victim)
-			return;
+		var arrStr : array<string>;
 			
-		wasAlive = act.victim.IsAlive();
-		
-		
-		if(!wasAlive && act.GetEffectsCount() == 0)
-			return;
-		
-		playerAttacker = (CR4Player)act.attacker;
+		wasAlive = act.victim.IsAlive();		
 		npc = (CNewNPC)act.victim;
 		
-		
-		if ( playerAttacker && npc && !npc.isAttackableByPlayer )
-			return;
-		
+		//cache global vars
  		InitializeActionVars(act);
- 		
- 		// modXTFinishers BEGIN
+		
+		// modXTFinishers BEGIN
 		actionContext = CreateXTFinishersActionContext(theGame.xtFinishersMgr, action);
 		
 		theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.ACTION_START_EVENT_ID, CreateXTFinishersActionContextData(theGame.xtFinishersMgr.eventMgr, actionContext));
 		// modXTFinishers END
  		
+ 		//Special case: if attack cannot be parried but player did parry and attack does not apply knockdown:
+		//				apply stagger, deal reduced damage, apply buffs
  		if(playerVictim && attackAction && attackAction.IsActionMelee() && !attackAction.CanBeParried() && attackAction.IsParried())
  		{
 			action.GetEffectTypes(buffs);
 			
 			if(!buffs.Contains(EET_Knockdown) && !buffs.Contains(EET_HeavyKnockdown))
 			{
-				
+				//set flag - later in actor's ReduceDamage() we will reduce incoming damage properly
 				action.SetParryStagger();
 				
-				
+				//force to apply buffs 
 				action.SetProcessBuffsIfNoDamage(true);
 				
-				
+				//add stagger buff
 				action.AddEffectInfo(EET_LongStagger);
 				
-				
+				//no hit anim & fx, since we will stagger
 				action.SetHitAnimationPlayType(EAHA_ForceNo);
 				action.SetCanPlayHitParticle(false);
 				
-				
+				//no bleeding
 				action.RemoveBuffsByType(EET_Bleeding);
 			}
  		}
  		
+ 		//store info if player was victim and had quen turned on at the time of attack
  		if(actorAttacker && playerVictim && ((W3PlayerWitcher)playerVictim) && GetWitcherPlayer().IsAnyQuenActive())
 			FactsAdd("player_had_quen");
 		
+		// custom stuff
+		ProcessPreHitModifications();
+
+		//quest stuff
 		ProcessActionQuest(act);
-		isFrozen = (actorVictim && actorVictim.HasBuff(EET_Frozen));	
+		
+		//check if victim was frozen before attack
+		isFrozen = (actorVictim && actorVictim.HasBuff(EET_Frozen));
+		
+		//deal damage
 		validDamage = ProcessActionDamage();
 		
-		
+		//ingame combat log when victim dies / becomes unconscious
 		if(wasAlive && !action.victim.IsAlive())
 		{
 			arrStr.PushBack(action.victim.GetDisplayName());
@@ -109,12 +114,20 @@ class W3DamageManagerProcessor extends CObject
 			}
 		}
 		
+		if( wasAlive && action.DealsAnyDamage() )
+		{
+			((CActor) action.attacker).SignalGameplayEventParamFloat(  'CausesDamage', MaxF( action.processedDmg.vitalityDamage, action.processedDmg.essenceDamage ) );
+		}
+		
+		//process victim reaction to what just happened
 		ProcessActionReaction(isFrozen, wasAlive);
 		
-		if( ( action.DealsAnyDamage() || action.ProcessBuffsIfNoDamage() ) )
+		//process buffs if damage was dealt or if buff processing is forced regardless of damage
+		if(action.DealsAnyDamage() || action.ProcessBuffsIfNoDamage())
 			ProcessActionBuffs();
-			
-		if(!validDamage && action.GetEffectsCount() == 0)
+		
+		//error check - action that did nothing
+		if(theGame.CanLog() && !validDamage && action.GetEffectsCount() == 0)
 		{
 			LogAssert(false, "W3DamageManagerProcessor.ProcessAction: action deals no damage and gives no buffs - investigate!");
 			if ( theGame.CanLog() )
@@ -123,148 +136,12 @@ class W3DamageManagerProcessor extends CObject
 			}
 		}
 		
-		
-		if(playerAttacker && attackAction)
-		{		
-			if( npc.IsHuman() )
-			{
-				playerAttacker.PlayBattleCry('BattleCryHumansHit', 0.05f );
-			}
-			else
-			{
-				playerAttacker.PlayBattleCry('BattleCryMonstersHit', 0.05f );
-			}
-	
-			if(attackAction.IsActionMelee())
-			{
-				abilityTag = attackAction.GetAttackName();
-				if(!IsBasicAttack(abilityTag))
-				{
-					abilityName = attackAction.GetAttackTypeName();
-				}
-				else
-				{
-					abilityName = abilityTag;
-				}
-								
-				
-				playerAttacker.IncreaseUninterruptedHitsCount();
-				
-				if(action.DealsAnyDamage())
-				{
-					
-					ciriPlayer = (W3ReplacerCiri)playerAttacker;
-					if ( ciriPlayer )
-						ciriPlayer.GainResource();
-				}
-					
-				// modXTFinishers BEGIN
-				/*
-				if ( playerAttacker.IsLightAttack( attackAction.GetAttackName() ) )
-				{
-					GCameraShake(0.1, false, playerAttacker.GetWorldPosition(), 10);
-				}
-				*/
-				// modXTFinishers END
-				
-				if(SkillNameToEnum(attackAction.GetAttackTypeName()) == S_Sword_s02)
-				{
-					rendLoad = playerAttacker.GetSpecialAttackTimeRatio();
-					
-					
-					rendLoad = MinF(rendLoad * playerAttacker.GetStatMax(BCS_Focus), playerAttacker.GetStat(BCS_Focus));
-					
-					
-					rendLoad = FloorF(rendLoad);
-					playerAttacker.DrainFocus(rendLoad);
-					thePlayer.OnSpecialAttackHeavyActionProcess();
-				}
-				else
-				{
-					
-		
-					
-					
-					value = playerAttacker.GetAttributeValue('focus_gain'); 
-					
-					
-					if ( playerAttacker.CanUseSkill(S_Sword_s20) )
-					{
-						value += playerAttacker.GetSkillAttributeValue(S_Sword_s20, 'focus_gain', false, true) * playerAttacker.GetSkillLevel(S_Sword_s20);
-					}					
-					playerAttacker.GainStat(BCS_Focus, 0.1f * (1 + CalculateAttributeValue(value)) );
-				}
-				
-				
-				if(actorVictim && (ShouldProcessTutorial('TutorialWrongSwordSteel') || ShouldProcessTutorial('TutorialWrongSwordSilver')) && GetAttitudeBetween(actorVictim, playerAttacker) == AIA_Hostile)
-				{
-					usesSteel = playerAttacker.inv.IsItemSteelSwordUsableByPlayer(weaponId);
-					usesSilver = playerAttacker.inv.IsItemSilverSwordUsableByPlayer(weaponId);
-					usesVitality = actorVictim.UsesVitality();
-					usesEssence = actorVictim.UsesEssence();
-					
-					if(usesSilver && usesVitality)
-					{
-						FactsAdd('tut_wrong_sword_silver',1);
-					}
-					else if(usesSteel && usesEssence)
-					{
-						FactsAdd('tut_wrong_sword_steel',1);
-					}
-					else if(FactsQuerySum('tut_wrong_sword_steel') && usesSilver && usesEssence)
-					{
-						FactsAdd('tut_proper_sword_silver',1);
-						FactsRemove('tut_wrong_sword_steel');
-					}
-					else if(FactsQuerySum('tut_wrong_sword_silver') && usesSteel && usesVitality)
-					{
-						FactsAdd('tut_proper_sword_steel',1);
-						FactsRemove('tut_wrong_sword_silver');
-					}
-				}
-			}
-			else if(attackAction.IsActionRanged())
-			{
-				
-				if(playerAttacker.CanUseSkill(S_Sword_s15))
-				{				
-					value = playerAttacker.GetSkillAttributeValue(S_Sword_s15, 'focus_gain', false, true) * playerAttacker.GetSkillLevel(S_Sword_s15) ;
-					playerAttacker.GainStat(BCS_Focus, CalculateAttributeValue(value) );
-				}
-				
-				
-				if(playerAttacker.CanUseSkill(S_Sword_s12) && attackAction.IsCriticalHit()) 
-				{
-					abs = actorVictim.GetAbilities(false);
-					for(i=abs.Size()-1; i>=0; i-=1)
-					{
-						if(!dm.AbilityHasTag(abs[i], theGame.params.TAG_MONSTER_SKILL) || actorVictim.IsAbilityBlocked(abs[i]))
-						{
-							abs.EraseFast(i);
-						}
-					}
-					
-					if(abs.Size() > 0)
-					{
-						value = playerAttacker.GetSkillAttributeValue(S_Sword_s12, 'duration', true, true) * playerAttacker.GetSkillLevel(S_Sword_s12);
-						actorVictim.BlockAbility(abs[ RandRange(abs.Size()) ], true, CalculateAttributeValue(value));
-					}
-				}
-			}
-		}
-		
-		
-		if(action.DealsAnyDamage())
-		{
-			bloodTrailParam = (CBloodTrailEffect)actorVictim.GetGameplayEntityParam( 'CBloodTrailEffect' );
-			if ( bloodTrailParam )
-			{
-				act.attacker.GetInventory().PlayItemEffect( weaponId, bloodTrailParam.GetEffectName() );
-			}
-		}
-		
-		
-		if(actorVictim == GetWitcherPlayer() && action.DealsAnyDamage())	
+		//post process code
+		if(actorAttacker)
+			actorAttacker.OnPocessActionPost(action);
+
+		//focus points drain on player being hit (amount depends on hit type: light, heavy, super heavy)
+		if(actorVictim == GetWitcherPlayer() && action.DealsAnyDamage() && !action.IsDoTDamage())
 		{
 			if(actorAttacker && attackAction)
 			{
@@ -272,27 +149,63 @@ class W3DamageManagerProcessor extends CObject
 					focusDrain = CalculateAttributeValue(thePlayer.GetAttributeValue('heavy_attack_focus_drain'));
 				else if(actorAttacker.IsSuperHeavyAttack( attackAction.GetAttackName() ))
 					focusDrain = CalculateAttributeValue(thePlayer.GetAttributeValue('super_heavy_attack_focus_drain'));
-				else 
+				else //light or undefined
 					focusDrain = CalculateAttributeValue(thePlayer.GetAttributeValue('light_attack_focus_drain')); 
 			}
 			else
 			{
-				
+				//no attack action so use light attack cost
 				focusDrain = CalculateAttributeValue(thePlayer.GetAttributeValue('light_attack_focus_drain')); 
 			}
 			
+			//skill: reduces focus loss when hit
 			if ( GetWitcherPlayer().CanUseSkill(S_Sword_s16) )
 				focusDrain *= 1 - (CalculateAttributeValue( thePlayer.GetSkillAttributeValue(S_Sword_s16, 'focus_drain_reduction', false, true) ) * thePlayer.GetSkillLevel(S_Sword_s16));
+				
 			thePlayer.DrainFocus(focusDrain);
 		}
 		
+		//runewords 10 & 12 effect on player sword kill - needs to be postponed if finisher will fire, hence it's here rather than in OnDeath()
+		if(actorAttacker == GetWitcherPlayer() && actorVictim && !actorVictim.IsAlive() && (action.IsActionMelee() || action.GetBuffSourceName() == "Kill"))
+		{
+			autoFinishersEnabled = theGame.GetInGameConfigWrapper().GetVarValue('Gameplay', 'AutomaticFinishersEnabled');
+			
+			//If automatic finishers are disabled we show the fx on death.
+			//If they are enabled and we will not perform a finisher we also show it now.
+			//If they are enabled and we will perform a finisher the call is postponed (not called here) and called later during the finisher animation.
+			if(!autoFinishersEnabled || !thePlayer.GetFinisherVictim())
+			{
+				if(thePlayer.HasAbility('Runeword 10 _Stats', true))
+					GetWitcherPlayer().Runeword10Triggerred();
+				if(thePlayer.HasAbility('Runeword 12 _Stats', true))
+					GetWitcherPlayer().Runeword12Triggerred();
+			}
+		}
 		
+		//breaking quen
 		if(action.EndsQuen() && actorVictim)
 		{
 			actorVictim.FinishQuen(false);			
 		}
-		
-		PostProcessActionTutorial();
+
+		//parry, counter, dodge tutorials
+		if(actorVictim == thePlayer && attackAction && attackAction.IsActionMelee() && (ShouldProcessTutorial('TutorialDodge') || ShouldProcessTutorial('TutorialCounter') || ShouldProcessTutorial('TutorialParry')) )
+		{
+			if(attackAction.IsCountered())
+			{
+				theGame.GetTutorialSystem().IncreaseCounters();
+			}
+			else if(attackAction.IsParried())
+			{
+				theGame.GetTutorialSystem().IncreaseParries();
+			}
+			
+			if(attackAction.CanBeDodged() && !attackAction.WasDodged())
+			{
+				GameplayFactsAdd("tut_failed_dodge", 1, 1);
+				GameplayFactsAdd("tut_failed_roll", 1, 1);
+			}
+		}
 		
 		// modXTFinishers BEGIN
 		theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.ACTION_END_EVENT_ID, CreateXTFinishersActionContextData(theGame.xtFinishersMgr.eventMgr, actionContext));
@@ -307,7 +220,7 @@ class W3DamageManagerProcessor extends CObject
 		// modXTFinishers END
 	}
 	
-	
+	//cached for easy access and to avoid multiple class casting
 	private final function InitializeActionVars(act : W3DamageAction)
 	{
 		var tmpName : name;
@@ -330,11 +243,14 @@ class W3DamageManagerProcessor extends CObject
 			theGame.GetMonsterParamsForActor(actorAttacker, attackerMonsterCategory, tmpName, tmpBool, tmpBool, tmpBool);
 	}
 	
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////   @QUESTS   //////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
-	
-	
+	/*
+		Processes action quest stuff - fact setting. Although it's called hit_by_weapon 
+		is true for *all attacks* (hand combat and signs) - don't ask me why...
+	*/
 	private function ProcessActionQuest(act : W3DamageAction)
 	{
 		var victimTags, attackerTags : array<name>;
@@ -346,92 +262,38 @@ class W3DamageManagerProcessor extends CObject
 		
 		AddHitFacts( victimTags, attackerTags, "_weapon_hit" );
 		
-		
-		if ((W3MonsterClue) action.victim) action.victim.OnWeaponHit(act);
+		//DZ used to activate monster clues when hit.
+		if ((CGameplayEntity) action.victim) action.victim.OnWeaponHit(act);
 	}
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////   @DAMAGE   //////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	private function PostProcessActionTutorial()
-	{
-		
-		if(actorAttacker == thePlayer && (ShouldProcessTutorial('TutorialLightAttacks') || ShouldProcessTutorial('TutorialHeavyAttacks')) )
-		{
-			
-			if(attackAction && attackAction.IsActionMelee())
-			{
-				if(thePlayer.IsLightAttack(attackAction.GetAttackName()))
-				{
-					theGame.GetTutorialSystem().IncreaseGeraltsLightAttacksCount(action.victim.GetTags());
-				}
-				else if(thePlayer.IsHeavyAttack(attackAction.GetAttackName()))
-				{
-					theGame.GetTutorialSystem().IncreaseGeraltsHeavyAttacksCount(action.victim.GetTags());
-				}
-			}
-		}
-		
-		else if(actorVictim == thePlayer && (ShouldProcessTutorial('TutorialCounter') || ShouldProcessTutorial('TutorialParry') || ShouldProcessTutorial('TutorialDodge')) )
-		{
-			if(attackAction && attackAction.IsActionMelee())
-			{
-				if(attackAction.CanBeDodged() && attackAction.WasDodged())
-				{
-
-				}
-				else if(attackAction.CanBeParried())
-				{
-					if(attackAction.IsCountered())
-					{
-						theGame.GetTutorialSystem().IncreaseCounters();
-					}
-					else if(attackAction.IsParried())
-					{
-						theGame.GetTutorialSystem().IncreaseParries();
-					}
-				}
-				
-				
-				if(attackAction.CanBeDodged() && !attackAction.WasDodged())
-				{
-					
-						GameplayFactsAdd("tut_failed_dodge", 1, 1);
-						
-					
-						GameplayFactsAdd("tut_failed_roll", 1, 1);
-				}
-			}
-		}
-	}
-	
-	
-	
-	
-	
+	// Processes action's damage, returns true if any damage was processed
 	private function ProcessActionDamage() : bool
 	{
 		var directDmgIndex, size, i : int;
 		var dmgInfos : array< SRawDamage >;
 		var immortalityMode : EActorImmortalityMode;
 		var dmgValue : float;
-		var anyDamageProcessed : bool;
+		var anyDamageProcessed, fallingRaffard : bool;
 		var victimHealthPercBeforeHit, frozenAdditionalDamage : float;		
 		var powerMod : SAbilityAttributeValue;
 		var witcher : W3PlayerWitcher;
 		var canLog : bool;
+		var immortalityChannels : array<EActorImmortalityChanel>;
 		
 		canLog = theGame.CanLog();
 		
-		
+		//clear processed dmg
 		action.SetAllProcessedDamageAs(0);
 		size = action.GetDTs(dmgInfos);
 		action.SetDealtFireDamage(false);		
 		
-		
-		
-		
+		//if victim has no stats at all
 		if(!actorVictim || (!actorVictim.UsesVitality() && !actorVictim.UsesEssence()) )
 		{
-			
+			//skip damage dealing, only call OnFireHit event if action deals fire damage
 			for(i=0; i<dmgInfos.Size(); i+=1)
 			{
 				if(dmgInfos[i].dmgType == theGame.params.DAMAGE_NAME_FIRE && dmgInfos[i].dmgVal > 0)
@@ -447,37 +309,37 @@ class W3DamageManagerProcessor extends CObject
 			return false;
 		}
 		
-		
+		//store initial health before hit
 		if(actorVictim.UsesVitality())
 			victimHealthPercBeforeHit = actorVictim.GetStatPercents(BCS_Vitality);
 		else
 			victimHealthPercBeforeHit = actorVictim.GetStatPercents(BCS_Essence);
 				
-		
+		//special cases that increase incoming damage
 		ProcessDamageIncrease(dmgInfos);
 					
-		
+		//log
 		if ( canLog )
 		{
 			LogBeginning();
 		}
 			
-		
+		//critical hit check
 		ProcessCriticalHitCheck();
 		
-		
+		//some effects can trigger on hit, before we process hit
 		ProcessOnBeforeHitChecks();
 		
-		
+		//attacker's power damage modification
 		powerMod = GetAttackersPowerMod();
 
-		
+		//calculate damages
 		anyDamageProcessed = false;
 		directDmgIndex = -1;
 		witcher = GetWitcherPlayer();
 		for( i = 0; i < size; i += 1 )
 		{
-			
+			//ignore if no damage or direct damage
 			if(dmgInfos[i].dmgVal == 0)
 				continue;
 			
@@ -487,26 +349,26 @@ class W3DamageManagerProcessor extends CObject
 				continue;
 			}
 			
-			
+			//poison damage absorbing from Golden Oriole potion
 			if(dmgInfos[i].dmgType == theGame.params.DAMAGE_NAME_POISON && witcher == actorVictim && witcher.HasBuff(EET_GoldenOriole) && witcher.GetPotionBuffLevel(EET_GoldenOriole) == 3)
 			{
-				
+				//heal
 				witcher.GainStat(BCS_Vitality, dmgInfos[i].dmgVal);
 				
-				
+				//log
 				if ( canLog )
 				{
 					LogDMHits("", action);
 					LogDMHits("*** Player absorbs poison damage from level 3 Golden Oriole potion: " + dmgInfos[i].dmgVal, action);
 				}
 				
-				
+				//clear damage
 				dmgInfos[i].dmgVal = 0;
 				
 				continue;
 			}
 			
-			
+			//logging
 			if ( canLog )
 			{
 				LogDMHits("", action);
@@ -515,10 +377,13 @@ class W3DamageManagerProcessor extends CObject
 					LogDMHits("DoT's current dt = " + NoTrailZeros(action.GetDoTdt()) + ", estimated dps = " + NoTrailZeros(dmgInfos[i].dmgVal / action.GetDoTdt()), action);
 			}
 			
+			//set that we have at least one valid damage to be dealt
 			anyDamageProcessed = true;
 				
+			//calculate final damage to deal
 			dmgValue = MaxF(0, CalculateDamage(dmgInfos[i], powerMod));
-						
+		
+			//add to total damage to be dealt
 			if( DamageHitsEssence(  dmgInfos[i].dmgType ) )		action.processedDmg.essenceDamage  += dmgValue;
 			if( DamageHitsVitality( dmgInfos[i].dmgType ) )		action.processedDmg.vitalityDamage += dmgValue;
 			if( DamageHitsMorale(   dmgInfos[i].dmgType ) )		action.processedDmg.moraleDamage   += dmgValue;
@@ -529,61 +394,81 @@ class W3DamageManagerProcessor extends CObject
 		{
 			LogDMHits("*** There is no incoming damage set (probably only buffs).", action);
 		}
-				
 		
 		if ( canLog )
 		{
 			LogDMHits("", action);
 			LogDMHits("Processing block, parry, immortality, signs and other GLOBAL damage reductions...", action);		
 		}
+		
+		//global damage reductions of actor not related to specific damage types
 		if(actorVictim)
 			actorVictim.ReduceDamage(action);
 				
-		
+		//add direct damage - this is dealt always unless immortal (it will ignore armor, parry, etc.)
 		if(directDmgIndex != -1)
 		{
 			anyDamageProcessed = true;
-			if(action.GetIgnoreImmortalityMode() || (!actorVictim.IsImmortal() && !actorVictim.IsInvulnerable() && !actorVictim.IsKnockedUnconscious()) )
+			
+			//ignore invulnerability if it's from White Raffards Potion and you are falling
+			immortalityChannels = actorVictim.GetImmortalityModeChannels(AIM_Invulnerable);
+			fallingRaffard = immortalityChannels.Size() == 1 && immortalityChannels.Contains(AIC_WhiteRaffardsPotion) && action.GetBuffSourceName() == "FallingDamage";
+			
+			if(action.GetIgnoreImmortalityMode() || (!actorVictim.IsImmortal() && !actorVictim.IsInvulnerable() && !actorVictim.IsKnockedUnconscious()) || fallingRaffard)
 			{
 				action.processedDmg.vitalityDamage += dmgInfos[directDmgIndex].dmgVal;
 				action.processedDmg.essenceDamage  += dmgInfos[directDmgIndex].dmgVal;
 			}
 			else if( actorVictim.IsInvulnerable() )
 			{
-				
+				//don't add any damage
 			}
 			else if( actorVictim.IsImmortal() )
 			{
+				//deal damage but leave victim at 1 hp if it would kill it
 				action.processedDmg.vitalityDamage += MinF(dmgInfos[directDmgIndex].dmgVal, actorVictim.GetStat(BCS_Vitality)-1 );
 				action.processedDmg.essenceDamage  += MinF(dmgInfos[directDmgIndex].dmgVal, actorVictim.GetStat(BCS_Essence)-1 );
 			}
-		}		
-				
+		}
+		
+		// check for immunity to being one-shotted
+		if( actorVictim.HasAbility( 'OneShotImmune' ) )
+		{
+			if( action.processedDmg.vitalityDamage >= actorVictim.GetStatMax( BCS_Vitality ) )
+			{
+				action.processedDmg.vitalityDamage = actorVictim.GetStatMax( BCS_Vitality ) - 1;
+			}
+			else if( action.processedDmg.essenceDamage >= actorVictim.GetStatMax( BCS_Essence ) )
+			{
+				action.processedDmg.essenceDamage = actorVictim.GetStatMax( BCS_Essence ) - 1;
+			}
+		}
+		
+		//inform victim if fire damage was dealt (e.g. will trigger exploding barrels or toxic gas or lighten up efreet)
 		if(action.HasDealtFireDamage())
 			action.victim.OnFireHit( (CGameplayEntity)action.causer );
 			
-		
-		ProcessInstantKill();	
+		// Check for Intant Kill
+		ProcessInstantKill();
 			
-		
+		//deal total calculated damage to victim
 		ProcessActionDamage_DealDamage();
+		
+		
 		if(playerAttacker && witcher)
 			witcher.SetRecentlyCountered(false);
 		
-		
-		
+		//Achievement: chained uninterrupted counters break
 		if( attackAction && !attackAction.IsCountered() && playerVictim && attackAction.IsActionMelee())
 			theGame.GetGamerProfile().ResetStat(ES_CounterattackChain);
-
 		
-		
-		
+		//reduce item durability
 		ProcessActionDamage_ReduceDurability();
 		
-		
+		//per-hit item temporary bonuses
 		if(playerAttacker && actorVictim)
 		{
-			
+			//reduce applied oil ammo
 			if(playerAttacker.inv.ItemHasOilApplied(weaponId) && (!playerAttacker.CanUseSkill(S_Alchemy_s06) || (playerAttacker.GetSkillLevel(S_Alchemy_s06) < 3)) )
 			{			
 				playerAttacker.ReduceOilAmmo(weaponId);
@@ -594,27 +479,37 @@ class W3DamageManagerProcessor extends CObject
 				}
 			}
 			
-			
+			//repair object (whetstone & armor table) bonus
 			playerAttacker.inv.ReduceItemRepairObjectBonusCharge(weaponId);
 		}
 		
-		
+		//returning damage aka thorns
 		if(actorVictim && actorAttacker && !action.GetCannotReturnDamage() )
 			ProcessActionReturnedDamage();	
 		
 		return anyDamageProcessed;
 	}
 	
-	
+	//makes a test and if successfull, deals instant kill
 	private function ProcessInstantKill()
 	{
 		var instantKill, focus : float;
-		
+
 		if(!actorVictim || !attackAction || !actorAttacker || actorVictim.HasAbility('InstantKillImmune') || actorVictim.IsImmortal() || actorVictim.IsInvulnerable())
 			return;
+		
+		//player has internal cooldown on instant kills
+		if(actorAttacker == thePlayer)
+		{
+			if( ConvertGameSecondsToRealTimeSeconds(GameTimeToSeconds(theGame.GetGameTime()-thePlayer.lastInstantKillTime)) < theGame.params.INSTANT_KILL_INTERNAL_PLAYER_COOLDOWN)
+				return;
+		}
+	
 			
+		//get base chance
 		instantKill = CalculateAttributeValue(actorAttacker.GetInventory().GetItemAttributeValue(weaponId, 'instant_kill_chance'));
 		
+		//skill increase
 		if ((attackAction.IsActionMelee() || attackAction.IsActionRanged()) && playerAttacker && thePlayer.CanUseSkill(S_Sword_s03) && !playerAttacker.inv.IsItemFists(weaponId))
 		{
 			focus = thePlayer.GetStat(BCS_Focus);
@@ -622,7 +517,8 @@ class W3DamageManagerProcessor extends CObject
 			if(focus >= 1)
 				instantKill += focus * CalculateAttributeValue( thePlayer.GetSkillAttributeValue(S_Sword_s03, 'instant_kill_chance', false, true) ) * thePlayer.GetSkillLevel(S_Sword_s03);
 		}
-		
+
+		//test
 		if ( RandF() < instantKill )
 		{
 			if(theGame.CanLog())
@@ -632,11 +528,13 @@ class W3DamageManagerProcessor extends CObject
 		
 			action.processedDmg.vitalityDamage += actorVictim.GetStat(BCS_Vitality);
 			action.processedDmg.essenceDamage += actorVictim.GetStat(BCS_Essence);
-			attackAction.SetCriticalHit();
-			attackAction.SetInstantKill();
+			attackAction.SetCriticalHit();	//we make instant kills critical hits to make player feel the impact more
+			attackAction.SetInstantKill();			
 			
+			//slomo and sound if instigated by player
 			if(playerAttacker)
 			{
+				thePlayer.SetLastInstantKillTime(theGame.GetGameTime());
 				theSound.SoundEvent('cmb_play_deadly_hit');
 				theGame.SetTimeScale(0.2, theGame.GetTimescaleSource(ETS_InstantKill), theGame.GetTimescalePriority(ETS_InstantKill), true, true);
 				thePlayer.AddTimer('RemoveInstantKillSloMo', 0.2);
@@ -644,7 +542,7 @@ class W3DamageManagerProcessor extends CObject
 		}
 	}
 	
-	
+	//checks done before hit is processed
 	private function ProcessOnBeforeHitChecks()
 	{
 		var isSilverSword, isSteelSword : bool;
@@ -655,10 +553,10 @@ class W3DamageManagerProcessor extends CObject
 		var baseChance, perOilLevelChance, chance : float;
 		var buffs : array<name>;
 	
-		
+		//test for skill having chance to poison victim if we use proper oil on enemy
 		if(playerAttacker && actorVictim && attackAction && attackAction.IsActionMelee() && playerAttacker.CanUseSkill(S_Alchemy_s12))
 		{
-			
+			//check which sword we use
 			isSilverSword = playerAttacker.inv.IsItemSilverSwordUsableByPlayer(weaponId);
 			
 			if(!isSilverSword)
@@ -668,27 +566,27 @@ class W3DamageManagerProcessor extends CObject
 			
 			if(isSilverSword || isSteelSword)
 			{
-				
+				//check if we have any oil applied
 				oilItemName = playerAttacker.inv.GetOilNameOnSword(isSteelSword);				
 				if(dm.IsItemAlchemyItem(oilItemName))
 				{
-					
+					//check if oil type matches monster type
 					monsterBonusType = MonsterCategoryToAttackPowerBonus(victimMonsterCategory);
 					monsterBonusVal = playerAttacker.inv.GetItemAttributeValue(weaponId, monsterBonusType);
 				
 					if(monsterBonusVal != null)
 					{
-						
+						//calculate chance
 						oilLevel = (int)CalculateAttributeValue(playerAttacker.inv.GetItemAttributeValue(weaponId, 'level')) - 1;				
 						skillLevel = playerAttacker.GetSkillLevel(S_Alchemy_s12);
 						baseChance = CalculateAttributeValue(playerAttacker.GetSkillAttributeValue(S_Alchemy_s12, 'skill_chance', false, true));
 						perOilLevelChance = CalculateAttributeValue(playerAttacker.GetSkillAttributeValue(S_Alchemy_s12, 'oil_level_chance', false, true));						
 						chance = baseChance * skillLevel + perOilLevelChance * oilLevel;
 						
-						
+						//percentage test
 						if(RandF() < chance)
 						{
-							
+							//get & apply effects
 							dm.GetContainedAbilities(playerAttacker.GetSkillAbilityName(S_Alchemy_s12), buffs);
 							for(i=0; i<buffs.Size(); i+=1)
 							{
@@ -702,7 +600,7 @@ class W3DamageManagerProcessor extends CObject
 		}
 	}
 	
-	
+	//makes a test for critical hit and if so sets proper flag on action
 	private function ProcessCriticalHitCheck()
 	{
 		var critChance, critDamageBonus : float;
@@ -714,56 +612,60 @@ class W3DamageManagerProcessor extends CObject
 		
 		if(playerAttacker && attackAction && (attackAction.IsActionMelee() || attackAction.IsActionRanged()))
 		{		
-			
+			//Rend skill has bonus crit chance
 			if( SkillEnumToName(S_Sword_s02) == attackAction.GetAttackTypeName() )
 			{				
 				critChance += CalculateAttributeValue(playerAttacker.GetSkillAttributeValue(S_Sword_s02, theGame.params.CRITICAL_HIT_CHANCE, false, true)) * playerAttacker.GetSkillLevel(S_Sword_s02);
 			}
 			
+			// Counter attack crit bonus
 			if(GetWitcherPlayer() && GetWitcherPlayer().HasRecentlyCountered() && playerAttacker.CanUseSkill(S_Sword_s11) && playerAttacker.GetSkillLevel(S_Sword_s11) > 2)
 			{
 				critChance += CalculateAttributeValue(playerAttacker.GetSkillAttributeValue(S_Sword_s11, theGame.params.CRITICAL_HIT_CHANCE, false, true));
 			}
 			
-			
+			//calculate base chance
 			critChance += playerAttacker.GetCriticalHitChance(playerAttacker.IsHeavyAttack(attackAction.GetAttackName()),actorVictim, victimMonsterCategory);
 			
-			
+			// Crossbow skill bonus
 			if (attackAction.IsActionRanged() && playerAttacker.CanUseSkill(S_Sword_s07))
 			{
 				critChance += CalculateAttributeValue(playerAttacker.GetSkillAttributeValue(S_Sword_s07, theGame.params.CRITICAL_HIT_CHANCE, false, true)) * playerAttacker.GetSkillLevel(S_Sword_s07);
 			}
 			
+			//headshot bonus
 			if(action.GetIsHeadShot())
 				critChance += theGame.params.HEAD_SHOT_CRIT_CHANCE_BONUS;
 				
+			//backstab bonus
 			if ( actorVictim && actorVictim.IsAttackerAtBack(playerAttacker) )
 				critChance += theGame.params.BACK_ATTACK_CRIT_CHANCE_BONUS;
 				
-			
+			//level 3 samum bonus
 			samum = actorVictim.GetBuff(EET_Blindness, 'petard');
 			if(samum && samum.GetBuffLevel() == 3)
 			{
 				critChance += 1.0f;
 			}
 			
-			
+			//extensive logging
 			if ( canLog )
 			{
-				
+				//damage bonus from critical
 				critDamageBonus = 1 + CalculateAttributeValue(actorAttacker.GetCriticalHitDamageBonus(weaponId, victimMonsterCategory, actorVictim.IsAttackerAtBack(playerAttacker)));
-				
+				//if ( playerAttacker.IsHeavyAttack(attackAction.GetAttackName()) )
 				critDamageBonus += CalculateAttributeValue(actorAttacker.GetAttributeValue('critical_hit_chance_fast_style'));
 				critDamageBonus = 100 * critDamageBonus;
 				
-				
+				//log				
 				LogDMHits("", action);				
 				LogDMHits("Trying critical hit (" + NoTrailZeros(critChance*100) + "% chance, dealing " + NoTrailZeros(critDamageBonus) + "% damage)...", action);
 			}
 			
-			
+			//test
 			if(RandF() < critChance)
 			{
+				//mark that action has critical hit - we'll use it when calculating damage
 				attackAction.SetCriticalHit();
 								
 				if ( canLog )
@@ -783,7 +685,7 @@ class W3DamageManagerProcessor extends CObject
 		}	
 	}
 	
-	
+	//logs info at the beginning of hit processing
 	private function LogBeginning()
 	{
 		var logStr : string;
@@ -820,19 +722,26 @@ class W3DamageManagerProcessor extends CObject
 		}
 	}
 	
+	//Apply all effects that increase damage
 	private function ProcessDamageIncrease(out dmgInfos : array< SRawDamage >)
 	{
-		var difficultyDamageMultiplier, rendLoad, rendBonus : float;
+		var difficultyDamageMultiplier, rendLoad, rendBonus, overheal, rendRatio : float;
 		var i : int;
 		var frozenBuff : W3Effect_Frozen;
 		var frozenDmgInfo : SRawDamage;
 		var hadFrostDamage : bool;
 		var mpac : CMovingPhysicalAgentComponent;
-		var rendBonusPerPoint : SAbilityAttributeValue;
+		var rendBonusPerPoint, staminaRendBonus : SAbilityAttributeValue;
 		var witcherAttacker : W3PlayerWitcher;
+		var damageVal 			: SAbilityAttributeValue;
+		var fxEnt : CEntity;
+		var template : CEntityTemplate;
+		var boneRotation : EulerAngles;
+		var bonePosition : Vector;
+		var boneIndex : int;
 		
-		
-		
+		//update damage values due to difficulty mode.
+		//TK: disabling damage multiplication on DoTs due to difficulty (#113563 + Quen balance)
 		if(actorAttacker && !actorAttacker.IgnoresDifficultySettings() && !action.IsDoTDamage())
 		{
 			difficultyDamageMultiplier = CalculateAttributeValue(actorAttacker.GetAttributeValue(theGame.params.DIFFICULTY_DMG_MULTIPLIER));
@@ -842,15 +751,16 @@ class W3DamageManagerProcessor extends CObject
 			}
 		}
 			
-		
-		
+		//When victim is frozen and gets hit we deal additional damage (shattering)
+		//add frozen buff damage if frozen and not DoT and hit by Aard or physical or silver
+		//this damage is not modified by difficulty modes
 		if(actorVictim && !action.IsDoTDamage() && actorVictim.HasBuff(EET_Frozen) && ( (W3AardProjectile)action.causer || (W3AardEntity)action.causer || action.DealsPhysicalOrSilverDamage()) )
 		{
 			frozenBuff = (W3Effect_Frozen)actorVictim.GetBuff(EET_Frozen);
 			
 			frozenDmgInfo.dmgVal = frozenBuff.GetAdditionalDamagePercents() * actorVictim.GetMaxHealth();
 			
-			
+			//add damage to existing frost damage...
 			hadFrostDamage = false;
 			for(i=0; i<dmgInfos.Size(); i+=1)
 			{
@@ -862,18 +772,19 @@ class W3DamageManagerProcessor extends CObject
 				}
 			}
 			
+			//... or as new damage if has no frost damage cached
 			if(!hadFrostDamage)
 			{						
 				frozenDmgInfo.dmgType = theGame.params.DAMAGE_NAME_FROST;
 				dmgInfos.PushBack(frozenDmgInfo);
 			}
 			
-			
+			//break frozen state and add knockdown
 			actorVictim.RemoveAllBuffsOfType(EET_Frozen);
 			action.AddEffectInfo(EET_KnockdownTypeApplicator);
 		}
 		
-		
+		//underwater bolt damage increase (if attacker and victim are underwater)
 		if(actorVictim)
 		{
 			mpac = (CMovingPhysicalAgentComponent)actorVictim.GetMovingAgentComponent();
@@ -884,7 +795,7 @@ class W3DamageManagerProcessor extends CObject
 				
 				if(mpac && mpac.IsDiving())
 				{
-					action.SetUnderwaterDisplayDamage();
+					action.SetUnderwaterDisplayDamageHack();
 				
 					if(playerAttacker && attackAction && attackAction.IsActionRanged())
 					{
@@ -904,16 +815,18 @@ class W3DamageManagerProcessor extends CObject
 			}
 		}
 		
-		
+		//Rend increased damage on top, per adrenaline point and stamina used
 		if(playerAttacker && attackAction && SkillNameToEnum(attackAction.GetAttackTypeName()) == S_Sword_s02)
 		{
 			witcherAttacker = (W3PlayerWitcher)playerAttacker;
-			rendLoad = witcherAttacker.GetSpecialAttackTimeRatio();
 			
+			//check how much of the 'gauge' player channeled
+			rendRatio = witcherAttacker.GetSpecialAttackTimeRatio();
 			
-			rendLoad = MinF(rendLoad * playerAttacker.GetStatMax(BCS_Focus), playerAttacker.GetStat(BCS_Focus));
+			//used focus points are lesser of: current focus and (rend time held * max focus)
+			rendLoad = MinF(rendRatio * playerAttacker.GetStatMax(BCS_Focus), playerAttacker.GetStat(BCS_Focus));
 			
-			
+			//used points are rounded as INTs
 			if(rendLoad >= 1)
 			{
 				rendBonusPerPoint = witcherAttacker.GetSkillAttributeValue(S_Sword_s02, 'adrenaline_final_damage_bonus', false, true);
@@ -924,37 +837,106 @@ class W3DamageManagerProcessor extends CObject
 					dmgInfos[i].dmgVal *= (1 + rendBonus);
 				}
 			}
-		}	
-
-		
-		if ( FactsQuerySum("NewGamePlus") > 0 && actorAttacker != thePlayer && action.IsActionRanged())
-		{
+			
+			//bonus for stamina usage
+			staminaRendBonus = witcherAttacker.GetSkillAttributeValue(S_Sword_s02, 'stamina_max_dmg_bonus', false, true);
+			
 			for(i=0; i<dmgInfos.Size(); i+=1)
 			{
-				dmgInfos[i].dmgVal = dmgInfos[i].dmgVal * theGame.params.ARCHER_DAMAGE_BONUS_NGP;
+				dmgInfos[i].dmgVal *= (1 + rendRatio * staminaRendBonus.valueMultiplicative);
+			}
+		}	
+ 
+		//NPC arrows in NG+ need to deal more damage
+		if ( actorAttacker != thePlayer && action.IsActionRanged() && (int)CalculateAttributeValue(actorAttacker.GetAttributeValue('level',,true)) > 31)
+		{
+			damageVal = actorAttacker.GetAttributeValue('light_attack_damage_vitality',,true);
+			for(i=0; i<dmgInfos.Size(); i+=1)
+			{
+				dmgInfos[i].dmgVal = dmgInfos[i].dmgVal + CalculateAttributeValue(damageVal) / 2;
+			}
+		}
+		
+		//Runeword 4 overheal damage increase
+		if ( actorVictim && playerAttacker && attackAction && action.IsActionMelee() && thePlayer.HasAbility('Runeword 4 _Stats', true) && !attackAction.WasDodged() )
+		{
+			overheal = thePlayer.abilityManager.GetOverhealBonus() / thePlayer.GetStatMax(BCS_Vitality);
+		
+			if(overheal > 0.005f)
+			{
+				for(i=0; i<dmgInfos.Size(); i+=1)
+				{
+					dmgInfos[i].dmgVal *= 1.0f + overheal;
+				}
+			
+				thePlayer.abilityManager.ResetOverhealBonus();
+				
+				//hit FX
+				template = (CEntityTemplate)LoadResource('runeword_4');
+				
+				boneIndex = actorVictim.GetBoneIndex( 'pelvis' );
+				if( boneIndex == -1 )
+				{
+					boneIndex = actorVictim.GetBoneIndex( 'k_pelvis_g' );
+				}
+				
+				if( boneIndex != -1 )
+				{
+					actorVictim.GetBoneWorldPositionAndRotationByIndex( boneIndex, bonePosition, boneRotation );
+					fxEnt = theGame.CreateEntity( template, bonePosition, boneRotation );
+					fxEnt.CreateAttachmentAtBoneWS( actorVictim, 'k_pelvis_g', bonePosition, boneRotation );
+				}
 			}
 		}
 	}
 	
-	
+	//handles any "damage returned" at the attacker
 	private function ProcessActionReturnedDamage()
 	{
 		var witcher 			: W3PlayerWitcher;
 		var quen 				: W3QuenEntity;
 		var params 				: SCustomEffectParams;
-		var processFireShield 	: bool;
+		var processFireShield, canBeParried, canBeDodged, wasParried, wasDodged : bool;
+		var g5Chance			: SAbilityAttributeValue;
 		
+		//Black Blood potion
 		if((attackerMonsterCategory == MC_Necrophage || attackerMonsterCategory == MC_Vampire) && actorVictim.HasBuff(EET_BlackBlood))
 			ProcessActionBlackBloodReturnedDamage();		
 		
+		//Thorns monster skill
 		if(action.IsActionMelee() && actorVictim.HasAbility( 'Thorns' ) )
 			ProcessActionThornDamage();
 		
+		if(actorVictim.HasAbility( 'Glyphword 5 _Stats', true))
+		{			
+			if( GetAttitudeBetween(actorAttacker, actorVictim) == AIA_Hostile)
+			{
+				if( !action.IsDoTDamage() )
+				{
+					g5Chance = actorVictim.GetAttributeValue('glyphword5_chance');
+					
+					if(RandF() < g5Chance.valueAdditive)
+					{
+						canBeParried = attackAction.CanBeParried();
+						canBeDodged = attackAction.CanBeDodged();
+						wasParried = attackAction.IsParried() || attackAction.IsCountered();
+						wasDodged = attackAction.WasDodged();
+				
+						if(!action.IsActionMelee() || (!canBeParried && canBeDodged && !wasDodged) || (canBeParried && !wasParried && !canBeDodged) || (canBeParried && canBeDodged && !wasDodged && !wasParried))
+							ProcessActionReflectDamage();
+					}	
+				}
+			}			
+			
+		}
+		
+		//Leshen Mutagen effect
 		if(playerVictim && !playerAttacker && actorAttacker && attackAction && attackAction.IsActionMelee() && thePlayer.HasBuff(EET_Mutagen26))
 		{
 			ProcessActionLeshenMutagenDamage();
 		}
 		
+		//FireShield monster skill
 		if(action.IsActionMelee() && actorVictim.HasAbility( 'FireShield' ) )
 		{
 			witcher = GetWitcherPlayer();			
@@ -973,17 +955,18 @@ class W3DamageManagerProcessor extends CObject
 				params.effectType = EET_Burning;
 				params.creator = actorVictim;
 				params.sourceName = actorVictim.GetName();
-				
+				//symbolic damage
 				params.effectValue.valueMultiplicative = 0.01;
 				actorAttacker.AddEffectCustom(params);
 			}
 		}
 		
+		//SilverStuds item ability (returns silver damage to monsers)
 		if(actorAttacker.UsesEssence())
 			ProcessSilverStudsReturnedDamage();
 	}
 	
-	
+	//returns damage to attacker due to mutagen
 	private function ProcessActionLeshenMutagenDamage()
 	{
 		var damageAction : W3DamageAction;
@@ -998,9 +981,10 @@ class W3DamageManagerProcessor extends CObject
 			
 		returnedDamage = pts + perc * action.GetDamageValueTotal();
 		
+		//create action that will deal returned damage
 		damageAction = new W3DamageAction in this;		
 		damageAction.Initialize( action.victim, action.attacker, NULL, "Mutagen26", EHRT_None, CPS_AttackPower, true, false, false, false );		
-		damageAction.SetCannotReturnDamage( true );		
+		damageAction.SetCannotReturnDamage( true );		//prevent infinite loop	(returned damage to returned damage...)	
 		damageAction.SetHitAnimationPlayType( EAHA_ForceNo );				
 		damageAction.AddDamage(theGame.params.DAMAGE_NAME_SILVER, returnedDamage);
 		damageAction.AddDamage(theGame.params.DAMAGE_NAME_PHYSICAL, returnedDamage);
@@ -1009,7 +993,7 @@ class W3DamageManagerProcessor extends CObject
 		delete damageAction;
 	}
 	
-	
+	//returns silver damage to attacker
 	private function ProcessSilverStudsReturnedDamage()
 	{
 		var damageAction : W3DamageAction;
@@ -1022,7 +1006,7 @@ class W3DamageManagerProcessor extends CObject
 		
 		damageAction = new W3DamageAction in this;		
 		damageAction.Initialize( action.victim, action.attacker, NULL, "SilverStuds", EHRT_None, CPS_AttackPower, true, false, false, false );		
-		damageAction.SetCannotReturnDamage( true );		
+		damageAction.SetCannotReturnDamage( true );		//prevent infinite loop		
 		damageAction.SetHitAnimationPlayType( EAHA_ForceNo );		
 		
 		damageAction.AddDamage(theGame.params.DAMAGE_NAME_SILVER, returnedDamage);
@@ -1031,7 +1015,7 @@ class W3DamageManagerProcessor extends CObject
 		delete damageAction;
 	}
 	
-	
+	// Processes return damage (EET_BlackBlood only) functionality of the action (enemy gets hit for X% of the damage it deals to you)
 	private function ProcessActionBlackBloodReturnedDamage()
 	{
 		var returnedAction : W3DamageAction;
@@ -1046,10 +1030,10 @@ class W3DamageManagerProcessor extends CObject
 		bb = (W3Potion_BlackBlood)actorVictim.GetBuff(EET_BlackBlood);
 		potionLevel = bb.GetBuffLevel();
 		
-		
+		//create action which will be used to return the damage to attacker
 		returnedAction = new W3DamageAction in this;		
 		returnedAction.Initialize( action.victim, action.attacker, bb, "BlackBlood", EHRT_None, CPS_AttackPower, true, false, false, false );		
-		returnedAction.SetCannotReturnDamage( true );		
+		returnedAction.SetCannotReturnDamage( true );		//prevent infinite loop
 		
 		returnVal = bb.GetReturnDamageValue();
 		
@@ -1070,7 +1054,70 @@ class W3DamageManagerProcessor extends CObject
 		delete returnedAction;
 	}
 	
+	// Processes return damage (runeword on armor only) functionality of the action
+	private function ProcessActionReflectDamage()
+	{
+		var returnedAction : W3DamageAction;
+		var returnVal, min, max : SAbilityAttributeValue;
+		var potionLevel : int;
+		var returnedDamage : float;
+		var template : CEntityTemplate;
+		var fxEnt : CEntity;
+		var boneIndex: int;
+		var b : bool;
+		var component : CComponent;
+		//var attack_power : SAbilityAttributeValue;
+		
+		if(action.processedDmg.vitalityDamage <= 0)
+			return;
+		
+		returnedDamage = CalculateAttributeValue(actorVictim.GetTotalArmor());
+		theGame.GetDefinitionsManager().GetAbilityAttributeValue('Glyphword 5 _Stats', 'damage_mult', min, max);
+		//attack_power = actorVictim.GetAttributeValue('attack_power');
+		//returnedDamage *= attack_power.valueBase;
+		
+		//create action which will be used to return the damage to attacker
+		returnedAction = new W3DamageAction in this;		
+		returnedAction.Initialize( action.victim, action.attacker, NULL, "Glyphword5", EHRT_None, CPS_AttackPower, true, false, false, false );		
+		returnedAction.SetCannotReturnDamage( true );		//prevent infinite loop
+		returnedAction.SetHitAnimationPlayType(EAHA_ForceYes);
+		returnedAction.SetHitReactionType(EHRT_Heavy);
+		
+		returnedAction.AddDamage(theGame.params.DAMAGE_NAME_DIRECT, returnedDamage * min.valueMultiplicative);
+		
+		//damageAction.AddDamage(theGame.params.DAMAGE_NAME_SILVER, returnedDamage);
+		//damageAction.AddDamage(theGame.params.DAMAGE_NAME_PHYSICAL, returnedDamage);
+		
+		theGame.damageMgr.ProcessAction(returnedAction);
+		delete returnedAction;
+		
+		template = (CEntityTemplate)LoadResource('glyphword_5');
+		
+		/*
+		boneIndex = action.attacker.GetBoneIndex( 'pelvis' );
+		if( boneIndex == -1 )
+		{
+			boneIndex = action.attacker.GetBoneIndex( 'k_pelvis_g' );
+		}
+		
+		fxEnt = theGame.CreateEntity(template, action.attacker.GetBoneWorldPositionByIndex( boneIndex ), action.attacker.GetWorldRotation(), , , true);
+		b = fxEnt.CreateAttachment(action.attacker, 'pelvis');	//k_pelvis_g
+		if(!b)
+			fxEnt.CreateAttachment(action.attacker, 'k_pelvis_g');
+		*/
+		
+		//theGame.CreateEntity(template, action.attacker.GetWorldPosition(), action.attacker.GetWorldRotation(), , , true);
+		//fxEnt.CreateAttachment(action.attacker);
+		
+		component = action.attacker.GetComponent('torso3effect');
+		if(component)
+			thePlayer.PlayEffect('reflection_damge', component);
+		else
+			thePlayer.PlayEffect('reflection_damge', action.attacker);
+		action.attacker.PlayEffect('yrden_shock');
+	}
 	
+	// Process Thorn damage (get damage from victim)
 	private function ProcessActionThornDamage()
 	{
 		var damageAction 		: W3DamageAction;
@@ -1083,18 +1130,18 @@ class W3DamageManagerProcessor extends CObject
 		
 		damageAction.Initialize( action.victim, action.attacker, NULL, "Thorns", EHRT_Light, CPS_AttackPower, true, false, false, false );
 		
-		damageAction.SetCannotReturnDamage( true );		
+		damageAction.SetCannotReturnDamage( true );		//prevent infinite loop
 		
 		damageVal 				=  actorVictim.GetAttributeValue( 'light_attack_damage_vitality' );
 		
-		
-		
-		
+		//This is one big lol. We take random damage type from weapon (e.g. silver / fire damage from steel sword).
+		//Then we take 10% of that and add to vitality damage done by current action. So if this is called when someone is 
+		//attacking a monster it's always 0. Anyway, then we add and multiply that by weapon's damage mods which can by anything from 0 to whatever high value.
 		
 		inv = actorAttacker.GetInventory();		
 		inv.GetWeaponDTNames(weaponId, damageNames );
 		damageVal.valueBase  = actorAttacker.GetTotalWeaponDamage(weaponId, damageNames[0], GetInvalidUniqueId() );
-		
+		// Take 10% of random damage type
 		damageVal.valueBase *= 0.10f;
 		
 		if( damageVal.valueBase == 0 )
@@ -1110,33 +1157,35 @@ class W3DamageManagerProcessor extends CObject
 		delete damageAction;
 	}
 	
-	
+	// Calculates final power stat bonus of attacker (attack power or spell power respectfully)
 	private function GetAttackersPowerMod() : SAbilityAttributeValue
 	{		
-		var powerMod, criticalDamageBonus, min, max : SAbilityAttributeValue;
+		var powerMod, criticalDamageBonus, min, max, critReduction : SAbilityAttributeValue;
 		var mutagen : CBaseGameplayEffect;
+		var totalBonus : float;
 			
+		//base value
 		powerMod = action.GetPowerStatValue();
 		if ( powerMod.valueAdditive == 0 && powerMod.valueBase == 0 && powerMod.valueMultiplicative == 0 && theGame.CanLog() )
 			LogDMHits("Attacker has power stat of 0!", action);
 		
-		
+		// M.J. - Adjust damage for player's strong attack
 		if(playerAttacker && attackAction && playerAttacker.IsHeavyAttack(attackAction.GetAttackName()))
 			powerMod.valueMultiplicative -= 0.833;
 		
-		
+		// M.J. - Igni has extra damage bonus from spell power
 		if ( playerAttacker && (W3IgniProjectile)action.causer )
 			powerMod.valueMultiplicative = 1 + (powerMod.valueMultiplicative - 1) * theGame.params.IGNI_SPELL_POWER_MILT;
 		
-		
+		// M.J. Aard damage do noet get damage increase from spell power
 		if ( playerAttacker && (W3AardProjectile)action.causer )
 			powerMod.valueMultiplicative = 1;
 		
-		
+		//critical hits
 		if(attackAction && attackAction.IsCriticalHit())
 		{
 			criticalDamageBonus = actorAttacker.GetCriticalHitDamageBonus(weaponId, victimMonsterCategory, actorVictim.IsAttackerAtBack(playerAttacker));
-			
+			//if ( actorAttacker.IsHeavyAttack(attackAction.GetAttackName()) )
 			criticalDamageBonus += actorAttacker.GetAttributeValue('critical_hit_chance_fast_style');
 			
 			if(playerAttacker)
@@ -1147,10 +1196,16 @@ class W3DamageManagerProcessor extends CObject
 					criticalDamageBonus += playerAttacker.GetSkillAttributeValue(S_Sword_s17, theGame.params.CRITICAL_HIT_DAMAGE_BONUS, false, true) * playerAttacker.GetSkillLevel(S_Sword_s17);
 			}
 			
-			powerMod.valueMultiplicative += CalculateAttributeValue(criticalDamageBonus);			
+			//crit damage reduction
+			totalBonus = CalculateAttributeValue(criticalDamageBonus);
+			critReduction = actorVictim.GetAttributeValue(theGame.params.CRITICAL_HIT_REDUCTION);
+			totalBonus = totalBonus * ClampF(1 - critReduction.valueMultiplicative, 0.f, 1.f);
+			
+			//final mod
+			powerMod.valueMultiplicative += totalBonus;
 		}
 		
-		
+		// Mutagen 5 - incease damage if at max HP
 		if (actorVictim && playerAttacker)
 		{
 			if ( playerAttacker.HasBuff(EET_Mutagen05) && (playerAttacker.GetStat(BCS_Vitality) == playerAttacker.GetStatMax(BCS_Vitality)) )
@@ -1164,7 +1219,7 @@ class W3DamageManagerProcessor extends CObject
 		return powerMod;
 	}
 	
-	
+	// Calculates final damage resistances
 	private function GetDamageResists(dmgType : name, out resistPts : float, out resistPerc : float)
 	{
 		var armorReduction, armorReductionPerc, skillArmorReduction : SAbilityAttributeValue;
@@ -1173,24 +1228,25 @@ class W3DamageManagerProcessor extends CObject
 		var mutagenBuff : W3Mutagen28_Effect;
 		var appliedOilName, vsMonsterResistReduction : name;
 		
-		
+		//fists ignore armor (all res is equal to 0)
 		if(attackAction && attackAction.IsActionMelee() && actorAttacker.GetInventory().IsItemFists(weaponId) && !actorVictim.UsesEssence())
 			return;
 			
-		
+		//reductions from victim
 		if(actorVictim)
 		{
+			//get base resists
 			actorVictim.GetResistValue( GetResistForDamage(dmgType, action.IsDoTDamage()), resistPts, resistPerc );
 			
-			
+			//oil damage reduction if player has skill which makes oil reduce player's received damage when fighting proper monster type			
 			if(playerVictim && actorAttacker && playerVictim.CanUseSkill(S_Alchemy_s05))
 			{
 				GetOilProtectionAgainstMonster(dmgType, bonusResist, bonusReduct);
-				
+				//resistPts += bonusReduct * playerVictim.GetSkillLevel(S_Alchemy_s05);
 				resistPerc += bonusResist * playerVictim.GetSkillLevel(S_Alchemy_s05);
 			}
 			
-			
+			//mutagen 28 damage protection against monsters
 			if(playerVictim && actorAttacker && playerVictim.HasBuff(EET_Mutagen28))
 			{
 				mutagenBuff = (W3Mutagen28_Effect)playerVictim.GetBuff(EET_Mutagen28);
@@ -1199,17 +1255,20 @@ class W3DamageManagerProcessor extends CObject
 				resistPerc += bonusResist;
 			}
 			
+			//from attacker
 			if(actorAttacker)
 			{
-				
+				//base armor reduction
 				armorReduction = actorAttacker.GetAttributeValue('armor_reduction');
 				armorReductionPerc = actorAttacker.GetAttributeValue('armor_reduction_perc');
 				
-				
+				//lvl3 oil resistance reduction
 				if(playerAttacker)
 				{
 					vsMonsterResistReduction = MonsterCategoryToResistReduction(victimMonsterCategory);
 					appliedOilName = playerAttacker.inv.GetSwordOil(weaponId);
+					
+					//if proper oil for this monster type
 					if(dm.ItemHasAttribute(appliedOilName, true, vsMonsterResistReduction))
 					{
 						oilCharges = playerAttacker.GetCurrentOilAmmo(weaponId);
@@ -1219,11 +1278,11 @@ class W3DamageManagerProcessor extends CObject
 					}
 				}
 				
-				
+				//basic heavy attack armor piercing
 				if(playerAttacker && action.IsActionMelee() && playerAttacker.IsHeavyAttack(attackAction.GetAttackName()) && playerAttacker.CanUseSkill(S_Sword_2))
 					armorReduction += playerAttacker.GetSkillAttributeValue(S_Sword_2, 'armor_reduction', false, true);
 				
-				
+				//skill damage reduction
 				if ( playerAttacker && 
 					 action.IsActionMelee() && playerAttacker.IsHeavyAttack(attackAction.GetAttackName()) && 
 					 ( dmgType == theGame.params.DAMAGE_NAME_PHYSICAL || 
@@ -1236,25 +1295,27 @@ class W3DamageManagerProcessor extends CObject
 					 playerAttacker.CanUseSkill(S_Sword_s06)
 				   ) 
 				{
-					
+					//percentage skill reduction
 					skillArmorReduction = playerAttacker.GetSkillAttributeValue(S_Sword_s06, 'armor_reduction_perc', false, true);
 					armorReductionPerc += skillArmorReduction * playerAttacker.GetSkillLevel(S_Sword_s06);				
 				}
 			}
 		}
 		
-		
+		//add ARMOR if can
 		if(!action.GetIgnoreArmor())
 			resistPts += CalculateAttributeValue( actorVictim.GetTotalArmor() );
 		
-		resistPts = MaxF(0, resistPts - CalculateAttributeValue(armorReduction) );
+		//reduce resistance points by armor reduction
+		resistPts = MaxF(0, resistPts - CalculateAttributeValue(armorReduction) );		
+		resistPerc -= CalculateAttributeValue(armorReductionPerc);		
+		//resistPerc *= (1 - MinF(1, armorReductionPerc.valueMultiplicative));		//bug or design change?		
 		
-		resistPerc -= CalculateAttributeValue(armorReductionPerc);
-		
+		//percents resistance cap
 		resistPerc = MaxF(0, resistPerc);
 	}
 		
-	
+	// Calculates final damage for a single damage type
 	private function CalculateDamage(dmgInfo : SRawDamage, powerMod : SAbilityAttributeValue) : float
 	{
 		var finalDamage, finalIncomingDamage : float;
@@ -1265,10 +1326,12 @@ class W3DamageManagerProcessor extends CObject
 		var encumbranceBonus : float;
 		var temp : bool;
 		var fistfightDamageMult : float;
+		var burning : W3Effect_Burning;
 	
+		//get total reductions for this damage type
 		GetDamageResists(dmgInfo.dmgType, resistPoints, resistPercents);
 	
-		
+		//damage bonus from attacker
 		if( thePlayer.IsFistFightMinigameEnabled() && actorAttacker == thePlayer )
 		{
 			finalDamage = MaxF(0, (dmgInfo.dmgVal));
@@ -1282,7 +1345,7 @@ class W3DamageManagerProcessor extends CObject
 			
 		if(finalDamage > 0.f)
 		{
-			
+			//damage reduction, point reduction might be skipped (e.g. Igni channeling)
 			if(!action.IsPointResistIgnored() && !(dmgInfo.dmgType == theGame.params.DAMAGE_NAME_ELEMENTAL || dmgInfo.dmgType == theGame.params.DAMAGE_NAME_FIRE || dmgInfo.dmgType == theGame.params.DAMAGE_NAME_FROST ))
 			{
 				finalDamage = MaxF(0, finalDamage - resistPoints);
@@ -1294,7 +1357,7 @@ class W3DamageManagerProcessor extends CObject
 		
 		if(finalDamage > 0.f)
 		{
-			
+			// Mutagen 2 - increase resistPercents based on the encumbrance
 			if (playerVictim == GetWitcherPlayer() && playerVictim.HasBuff(EET_Mutagen02))
 			{
 				encumbranceBonus = 1 - (GetWitcherPlayer().GetEncumbrance() / GetWitcherPlayer().GetMaxRunEncumbrance(temp));
@@ -1306,9 +1369,33 @@ class W3DamageManagerProcessor extends CObject
 				resistPercents += encumbranceBonus;
 			}
 			finalDamage *= 1 - resistPercents;
+		}		
+		
+		if(dmgInfo.dmgType == theGame.params.DAMAGE_NAME_FIRE && finalDamage > 0)
+			action.SetDealtFireDamage(true);
+			
+		if( playerAttacker && thePlayer.IsWeaponHeld('fist') && !thePlayer.IsInFistFightMiniGame() && action.IsActionMelee() )
+		{
+			if(FactsQuerySum("NewGamePlus") > 0)
+			{fistfightDamageMult = thePlayer.GetLevel()* 0.1;}
+			else
+			{fistfightDamageMult = thePlayer.GetLevel()* 0.05;}
+			
+			finalDamage *= ( 1+fistfightDamageMult );
+		}
+		// M.J. - Adjust damage for player's strong attack
+		if(playerAttacker && attackAction && playerAttacker.IsHeavyAttack(attackAction.GetAttackName()))
+			finalDamage *= 1.833;
+			
+		//EP1 hack for boosting Igni damage against bosses
+		burning = (W3Effect_Burning)action.causer;
+		if(actorVictim && (((W3IgniEntity)action.causer) || ((W3IgniProjectile)action.causer) || ( burning && burning.IsSignEffect())) )
+		{
+			min = actorVictim.GetAttributeValue('igni_damage_amplifier');
+			finalDamage = finalDamage * (1 + min.valueMultiplicative) + min.valueAdditive;
 		}
 		
-		
+		//extensive logging
 		if ( theGame.CanLog() )
 		{
 			LogDMHits("Single hit damage: initial damage = " + NoTrailZeros(dmgInfo.dmgVal), action);
@@ -1320,32 +1407,18 @@ class W3DamageManagerProcessor extends CObject
 			LogDMHits("Single hit damage: resistance perc = " + NoTrailZeros(resistPercents * 100), action);
 			LogDMHits("Single hit damage: final damage to sustain = " + NoTrailZeros(finalDamage), action);
 		}
-		
-		if(dmgInfo.dmgType == theGame.params.DAMAGE_NAME_FIRE && finalDamage > 0)
-			action.SetDealtFireDamage(true);
-		if( playerAttacker && thePlayer.IsWeaponHeld('fist') && !thePlayer.IsInFistFightMiniGame() && action.IsActionMelee() )
-		{
-			if(FactsQuerySum("NewGamePlus") > 0)
-			{fistfightDamageMult = thePlayer.GetLevel()* 0.1;}
-			else
-			{fistfightDamageMult = thePlayer.GetLevel()* 0.05;}
-			
-			finalDamage *= ( 1+fistfightDamageMult );
-		}
-		
-		if(playerAttacker && attackAction && playerAttacker.IsHeavyAttack(attackAction.GetAttackName()))
-			finalDamage *= 1.833;
 			
 		return finalDamage;
 	}
 	
+	//deal total damage
 	private function ProcessActionDamage_DealDamage()
 	{
 		var logStr : string;
 		var hpPerc : float;
 		var npcVictim : CNewNPC;
 	
-		
+		//extensive logging
 		if ( theGame.CanLog() )
 		{
 			logStr = "";
@@ -1359,12 +1432,12 @@ class W3DamageManagerProcessor extends CObject
 			LogDMHits("Final damage to sustain is: " + logStr, action);
 		}
 				
-		
+		//deal final damage 
 		if(actorVictim)
 		{
 			hpPerc = actorVictim.GetHealthPercents();
 			
-			
+			//don't deal damage if already dead
 			if(actorVictim.IsAlive())
 			{
 				npcVictim = (CNewNPC)actorVictim;
@@ -1400,7 +1473,7 @@ class W3DamageManagerProcessor extends CObject
 		}
 	}
 	
-	
+	//Damage dealing - reduce durability of player items
 	private function ProcessActionDamage_ReduceDurability()
 	{		
 		var witcherPlayer : W3PlayerWitcher;
@@ -1416,7 +1489,7 @@ class W3DamageManagerProcessor extends CObject
 
 		witcherPlayer = GetWitcherPlayer();
 	
-		
+		//weapon if attacker
 		if ( playerAttacker && playerAttacker.inv.IsIdValid( weaponId ) && playerAttacker.inv.HasItemDurability( weaponId ) )
 		{		
 			dbg_prevDur = playerAttacker.inv.GetItemDurability(weaponId);
@@ -1427,7 +1500,7 @@ class W3DamageManagerProcessor extends CObject
 				LogDMHits("Player's weapon durability changes from " + NoTrailZeros(dbg_prevDur) + " to " + NoTrailZeros(action.attacker.GetInventory().GetItemDurability(weaponId)), action );
 			}
 		}
-		
+		//weapon if parry/counter
 		else if(playerVictim && attackAction && attackAction.IsActionMelee() && (attackAction.IsParried() || attackAction.IsCountered()) )
 		{
 			weapons = playerVictim.inv.GetHeldWeapons();
@@ -1447,10 +1520,10 @@ class W3DamageManagerProcessor extends CObject
 				playerVictim.inv.ReduceItemDurability(weapon);
 			}
 		}
-		
+		//armor if player is the victim and if action deals any damage
 		else if(action.victim == witcherPlayer && (action.IsActionMelee() || action.IsActionRanged()) && action.DealsAnyDamage())
 		{
-			
+			//extensive logging
 			if ( canLog )
 			{
 				if ( witcherPlayer.GetItemEquippedOnSlot(EES_Armor, dbg_armor) )
@@ -1476,7 +1549,7 @@ class W3DamageManagerProcessor extends CObject
 			
 			slot = GetWitcherPlayer().ReduceArmorDurability();
 			
-			
+			//extensive logging
 			if( canLog )
 			{
 				LogDMHits("", action);
@@ -1516,15 +1589,17 @@ class W3DamageManagerProcessor extends CObject
 				}
 			}
 				
-			
+			//repair object bonus (use the same item that was chosed for durability reduction)
 			if(slot != EES_InvalidSlot)
 				thePlayer.inv.ReduceItemRepairObjectBonusCharge(reducedItemId);
 		}
 	}	
 	
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////   @REACTION   ////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
+	// processes action reaction - hit anims and particles
 	private function ProcessActionReaction(wasFrozen : bool, wasAlive : bool)
 	{
 		var dismemberExplosion 			: bool;
@@ -1540,7 +1615,6 @@ class W3DamageManagerProcessor extends CObject
 		var toxicCloud					: W3ToxicCloud;
 		var playsNonAdditiveAnim		: bool;
 		var bleedCustomEffect 			: SCustomEffectParams;
-		var staminaPercent				: float;
 		
 		if(!actorVictim)
 			return;
@@ -1554,10 +1628,10 @@ class W3DamageManagerProcessor extends CObject
 		
 		theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.REACTION_START_EVENT_ID, CreateXTFinishersActionContextData(theGame.xtFinishersMgr.eventMgr, actionContext));
 		
-		// modXTFinishers BEGIN
 		if( actorVictim.IsAlive() && !actionContext.finisher.active )
 		// modXTFinishers END
 		{
+			//regular damage
 			if(!action.IsDoTDamage() && action.DealtDamage())
 			{
 				if ( actorAttacker && npcVictim)
@@ -1565,11 +1639,11 @@ class W3DamageManagerProcessor extends CObject
 					npcVictim.NoticeActorInGuardArea( actorAttacker );
 				}
 
-				
+				//if hit when confused (Samum) remove the confusion
 				if ( !playerVictim )
 					actorVictim.RemoveAllBuffsOfType(EET_Confusion);
 				
-				
+				//crippling strikes skill - add bleeding
 				if(playerAttacker && action.IsActionMelee() && !playerAttacker.GetInventory().IsItemFists(weaponId) && playerAttacker.IsLightAttack(attackAction.GetAttackName()) && playerAttacker.CanUseSkill(S_Sword_s05))
 				{
 					bleedCustomEffect.effectType = EET_Bleeding;
@@ -1581,14 +1655,10 @@ class W3DamageManagerProcessor extends CObject
 				}
 			}
 			
+			//reaction on victim side
 			if(actorVictim && wasAlive)
 			{
 				playsNonAdditiveAnim = actorVictim.ReactToBeingHit( action );
-				
-				if( action.DealsAnyDamage() )
-				{
-					((CActor) action.attacker).SignalGameplayEventParamFloat(  'CausesDamage', MaxF( action.processedDmg.vitalityDamage, action.processedDmg.essenceDamage ) );
-				}
 			}				
 		}
 		else
@@ -1597,12 +1667,13 @@ class W3DamageManagerProcessor extends CObject
 			if( !actionContext.finisher.active && actionContext.dismember.active )
 			{
 				ProcessDismemberment();
+				// modXTFinishers END
 				toxicCloud = (W3ToxicCloud)action.causer;
 				
 				if(toxicCloud && toxicCloud.HasExplodingTargetDamages())
 					ProcessToxicCloudDismemberExplosion(toxicCloud.GetExplodingTargetDamages());
 					
-				
+				//if dismembered victim is hostile to player drain morale
 				if(IsRequiredAttitudeBetween(thePlayer, action.victim, true))
 				{
 					moveTargets = thePlayer.GetMoveTargets();
@@ -1613,11 +1684,14 @@ class W3DamageManagerProcessor extends CObject
 					}
 				}
 			}
+			//Finisher
+			// modXTFinishers BEGIN
 			else if ( actionContext.finisher.active )
 			// modXTFinishers END
 			{
 				if ( actorVictim.IsAlive() )
 					actorVictim.Kill(false,thePlayer);
+					
 				thePlayer.AddTimer( 'DelayedFinisherInputTimer', 0.1f );
 				thePlayer.SetFinisherVictim( actorVictim );
 				thePlayer.CleanCombatActionBuffer();
@@ -1638,7 +1712,8 @@ class W3DamageManagerProcessor extends CObject
 					actorVictim.AddAbility( 'ForceFinisher', false );
 				
 				actorVictim.SignalGameplayEvent( 'ForceFinisher' );
-				
+				//thePlayer.SetFinisherVictim( actorVictim );	
+
 				// modXTFinishers BEGIN
 				thePlayer.LoadActionContext(actionContext);
 				// modXTFinishers END
@@ -1651,33 +1726,41 @@ class W3DamageManagerProcessor extends CObject
 			thePlayer.FindMoveTarget();
 		}
 		
-		
+		//process hit sound
 		actorVictim.ProcessHitSound(action, playsNonAdditiveAnim || !actorVictim.IsAlive());
 		
-		
+		//cam shake when critical hit and playing some hit animation or dead
+		//if((playsNonAdditiveAnim || action.additiveHitReactionAnimRequested || !actorVictim.IsAlive()) && attackAction && attackAction.IsCriticalHit() && action.DealtDamage())
 		// modXTFinishers BEGIN
 		/*
-		if(attackAction && attackAction.IsCriticalHit() && action.DealtDamage() && !actorVictim.IsAlive()) {
+		if(attackAction && attackAction.IsCriticalHit() && action.DealtDamage() && !actorVictim.IsAlive())
 			GCameraShake(0.5);
-		}
 		*/
 		// modXTFinishers END
 		
-		if ( npcVictim)
-			staminaPercent = npcVictim.GetStaminaPercents();
-		
-		if( attackAction && npcVictim && npcVictim.IsShielded( actorAttacker ) && attackAction.IsParried() && attackAction.GetAttackName() == 'attack_heavy' &&  staminaPercent <= 0.1 )
+		// shield destruction
+		if( attackAction && npcVictim && npcVictim.IsShielded( actorAttacker ) && attackAction.IsParried() && attackAction.GetAttackName() == 'attack_heavy' &&  npcVictim.GetStaminaPercents() <= 0.1 )
 		{
 			npcVictim.ProcessShieldDestruction();
 		}
 		
-		
-		if(actorVictim && action.CanPlayHitParticle() && ( action.DealsAnyDamage() || (attackAction && attackAction.IsParried()) ) )
+		//play hit fx
+		if( actorVictim && action.CanPlayHitParticle() && ( action.DealsAnyDamage() || (attackAction && attackAction.IsParried()) ) )
 			actorVictim.PlayHitEffect(action);
 			
-		
+
+		if( action.victim.HasAbility('mon_nekker_base') && !actorVictim.CanPlayHitAnim() && !((CBaseGameplayEffect) action.causer) ) 
+		{
+			// R.P: Hack requested by Konrad. Nekker should always have a blood effect, even if we deal no damage
+			actorVictim.PlayEffect(theGame.params.LIGHT_HIT_FX);
+			actorVictim.SoundEvent("cmb_play_hit_light");
+		}
+			
+		//attacker's reflection animation - when player attacks monster with fists and ( (monster has high resistance to damage) or (cannot be hit by fists) )
 		if(actorVictim && playerAttacker && action.IsActionMelee() && thePlayer.inv.IsItemFists(weaponId) )
-		{			
+		{
+			actorVictim.SignalGameplayEvent( 'wasHitByFists' );	
+				
 			if(MonsterCategoryIsMonster(victimMonsterCategory))
 			{
 				if(!victimCanBeHitByFists)
@@ -1694,19 +1777,54 @@ class W3DamageManagerProcessor extends CObject
 			}			
 		}
 		
-		
+		//sparks - if armored opponent blocked all damage
 		ProcessSparksFromNoDamage();
 		
+		//check for countered attack
 		if(attackAction && attackAction.IsActionMelee() && actorAttacker && playerVictim && attackAction.IsCountered() && playerVictim == GetWitcherPlayer())
 		{
 			GetWitcherPlayer().SetRecentlyCountered(true);
 		}
 		
+		/*
+		if(attackAction && attackAction.IsActionMelee() && actorAttacker && attackAction.IsCountered()
+		{
+			//------------ damage from counterstrike			
+			counterAction = new W3DamageAction in this;
+			counterAction.Initialize(action.victim,action.attacker,NULL,'',EHRT_None,CPS_AttackPower,true,false,false,false);
+			counterAction.SetHitAnimationPlayType(EAHA_ForceNo);
+			counterAction.SetCanPlayHitParticle(false);
+			
+			//deal some damage but don't get below 1 hp left
+			if(actorAttacker.UsesVitality())
+			{
+				hp = actorAttacker.GetStat(BCS_Vitality);
+				damageName = theGame.params.DAMAGE_NAME_PHYSICAL;
+			}
+			else
+			{
+				hp = actorAttacker.GetStat(BCS_Essence);
+				damageName = theGame.params.DAMAGE_NAME_SILVER;
+			}
+				
+			if(hp <= 1)
+				dmg = 0.0000001;
+			else if(hp <= 5)
+				dmg = hp - 1;
+			else
+				dmg = 5;
+				
+			counterAction.AddDamage(damageName,dmg);
+			
+			theGame.damageMgr.ProcessAction( counterAction );				
+			delete counterAction;
+		}
+		*/
 		
-		
+		//vibrate pad - any attack parried or countered
 		if(attackAction && !action.IsDoTDamage() && (playerAttacker || playerVictim) && (attackAction.IsParried() || attackAction.IsCountered()) )
 		{
-			theGame.VibrateControllerLight();	
+			theGame.VibrateControllerLight();
 		}
 		
 		// modXTFinishers BEGIN
@@ -1800,26 +1918,31 @@ class W3DamageManagerProcessor extends CObject
 				dismember = true;
 				dismemberExplosion = attackAction.HasForceExplosionDismemberment();
 			}
+			else if ( action.HasForceExplosionDismemberment() )
+			{
+				dismember = true;
+				dismemberExplosion = true;
+			}
 			else
 			{
-				
+				//base
 				dismemberChance = theGame.params.DISMEMBERMENT_ON_DEATH_CHANCE;
 				
-				
+				//debug
 				if(playerAttacker && playerAttacker.forceDismember)
 				{
 					dismemberChance = thePlayer.forceDismemberChance;
 					dismemberExplosion = thePlayer.forceDismemberExplosion;
 				}
 				
-				
+				//chance on weapon
 				if(attackAction)
 				{
 					dismemberChance += RoundMath(100 * CalculateAttributeValue(inv.GetItemAttributeValue(weaponId, 'dismember_chance')));
 					dismemberExplosion = attackAction.HasForceExplosionDismemberment();
 				}
 					
-				
+				//perk
 				witcher = (W3PlayerWitcher)actorAttacker;
 				if(witcher && witcher.CanUseSkill(S_Perk_03))
 					dismemberChance += RoundMath(100 * CalculateAttributeValue(witcher.GetSkillAttributeValue(S_Perk_03, 'dismember_chance', false, true)));
@@ -1904,31 +2027,47 @@ class W3DamageManagerProcessor extends CObject
 		}
 			
 		item = thePlayer.inv.GetItemFromSlot( 'l_weapon' );	
-
-		b = playerAttacker && attackAction && attackAction.IsActionMelee();
-		b = b && ( actorVictim.IsHuman() && !actorVictim.IsWoman() );
-		b =	b && RandRange(100) < finisherChance;
-		b =	b && !areEnemiesAttacking;
-		b =	b && AbsF( victimToPlayerVector.Z ) < 0.4f;
-		b =	b && !thePlayer.IsInAir();
-		b =	b && ( thePlayer.IsWeaponHeld( 'steelsword') || thePlayer.IsWeaponHeld( 'silversword') );
-		b = b && !thePlayer.IsSecondaryWeaponHeld();
-		b =	b && !thePlayer.inv.IsIdValid( item );
-		b =	b && !actorVictim.IsKnockedUnconscious();
-		b =	b && !actorVictim.HasBuff( EET_Knockdown );
-		b =	b && !actorVictim.HasBuff( EET_Ragdoll );
-		b =	b && !actorVictim.HasBuff( EET_Frozen );
-		b =	b && !actorVictim.HasAbility( 'DisableFinishers' );
-		b =	b && actorVictim.GetAttitude( thePlayer ) == AIA_Hostile;
-		b =	b && !thePlayer.IsUsingVehicle();
-		b =	b && thePlayer.IsAlive();
-		b =	b && !thePlayer.IsCurrentSignChanneled();
-		b =	b && ( theGame.GetWorld().NavigationCircleTest( actorVictim.GetWorldPosition(), 2.f ) || actorVictim.HasTag('ForceFinisher') ) ;
 		
-
-		if ( thePlayer.forceFinisher && actorVictim.IsHuman() )
-			return true;
-			
+		if ( thePlayer.forceFinisher )
+		{
+			b = playerAttacker && attackAction && attackAction.IsActionMelee();
+			b = b && ( actorVictim.IsHuman() && !actorVictim.IsWoman() );
+			b =	b && !thePlayer.IsInAir();
+			b =	b && ( thePlayer.IsWeaponHeld( 'steelsword') || thePlayer.IsWeaponHeld( 'silversword') );
+			b = b && !thePlayer.IsSecondaryWeaponHeld();
+			b =	b && !thePlayer.inv.IsIdValid( item );
+			b =	b && !actorVictim.IsKnockedUnconscious();
+			b =	b && !actorVictim.HasBuff( EET_Knockdown );
+			b =	b && !actorVictim.HasBuff( EET_Ragdoll );
+			b =	b && !actorVictim.HasBuff( EET_Frozen );
+			b =	b && !thePlayer.IsUsingVehicle();
+			b =	b && thePlayer.IsAlive();
+			b =	b && !thePlayer.IsCurrentSignChanneled();
+		}
+		else
+		{
+			b = playerAttacker && attackAction && attackAction.IsActionMelee();
+			b = b && ( actorVictim.IsHuman() && !actorVictim.IsWoman() );
+			b =	b && RandRange(100) < finisherChance;
+			b =	b && !areEnemiesAttacking;
+			b =	b && AbsF( victimToPlayerVector.Z ) < 0.4f;
+			b =	b && !thePlayer.IsInAir();
+			b =	b && ( thePlayer.IsWeaponHeld( 'steelsword') || thePlayer.IsWeaponHeld( 'silversword') );
+			b = b && !thePlayer.IsSecondaryWeaponHeld();
+			b =	b && !thePlayer.inv.IsIdValid( item );
+			b =	b && !actorVictim.IsKnockedUnconscious();
+			b =	b && !actorVictim.HasBuff( EET_Knockdown );
+			b =	b && !actorVictim.HasBuff( EET_Ragdoll );
+			b =	b && !actorVictim.HasBuff( EET_Frozen );
+			b =	b && !actorVictim.HasAbility( 'DisableFinishers' );
+			b =	b && actorVictim.GetAttitude( thePlayer ) == AIA_Hostile;
+			b =	b && !thePlayer.IsUsingVehicle();
+			b =	b && thePlayer.IsAlive();
+			b =	b && !thePlayer.IsCurrentSignChanneled();
+			b =	b && ( theGame.GetWorld().NavigationCircleTest( actorVictim.GetWorldPosition(), 2.f ) || actorVictim.HasTag('ForceFinisher') ) ;
+			//&& playerAttacker.HasPerk( FINISHER_PERK) )
+		}
+		
 		if ( b  )
 		{
 			if ( !actorVictim.IsAlive() )
@@ -1949,28 +2088,30 @@ class W3DamageManagerProcessor extends CObject
 		&& !actorVictim.HasAbility('InstantKillImmune');
 	}
 	
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////   @BUFFS   ///////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
-	
+	// processes action buffs, returns true if at least one buff got processed
 	private function ProcessActionBuffs() : bool
 	{
 		var inv : CInventoryComponent;
 		var ret : bool;
 	
-		
-		if(!action.victim.IsAlive() || action.WasDodged() || (attackAction && attackAction.IsActionMelee() && attackAction.CanBeParried() && attackAction.IsParried()) )
+		//no buffs if (attack was dodged) or (target is dead) or (melee attack and parried)
+		if(!action.victim.IsAlive() || action.WasDodged() || (attackAction && attackAction.IsActionMelee() && !attackAction.ApplyBuffsIfParried() && attackAction.CanBeParried() && attackAction.IsParried()) )
 			return true;
 			
-		
+		//no buffs if quen prevented all damage. Unless the buff is a knockdown/stagger etc.
 		ApplyQuenBuffChanges();
 	
+		//apply buffs if any
 		if(actorVictim && action.GetEffectsCount() > 0)
 			ret = actorVictim.ApplyActionEffects(action);
 		else
 			ret = false;
 			
-		
+		//if attacker is an actor apply also OnHit Applicator Buffs
 		if(actorAttacker && actorVictim)
 		{
 			inv = actorAttacker.GetInventory();
@@ -1980,6 +2121,7 @@ class W3DamageManagerProcessor extends CObject
 		return ret;
 	}
 	
+	//Quen prevents some buffs from being applied - we filter it here
 	private function ApplyQuenBuffChanges()
 	{
 		var npc : CNewNPC;
@@ -2024,8 +2166,9 @@ class W3DamageManagerProcessor extends CObject
 		}
 	}
 	
-	
-	
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////   @DISMEMBERMENT  ////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// modXTFinishers BEGIN
 	private function ProcessDismemberment()
 	// modXTFinishers END
@@ -2049,8 +2192,10 @@ class W3DamageManagerProcessor extends CObject
 		dismembermentComp = (CDismembermentComponent)(actorVictim.GetComponentByClassName( 'CDismembermentComponent' ));
 		if(!dismembermentComp)
 			return;
-			
+		
+		// modXTFinishers BEGIN
 		if(actionContext.effectsSnapshot.HasEffect(EET_Frozen))
+		// modXTFinishers END
 		{
 			ProcessFrostDismemberment();
 			return;
@@ -2058,25 +2203,28 @@ class W3DamageManagerProcessor extends CObject
 		
 		forcedRagdoll = false;
 		
-		
+		//explosion or normal?
 		petard = (W3Petard)action.causer;
 		bolt = (W3BoltProjectile)action.causer;
 		
 		// modXTFinishers BEGIN
-		if( actionContext.dismember.explosion || (attackAction && attackAction.GetAttackName() == 'attack_explosion') || (petard && petard.DismembersOnKill()) || (bolt && bolt.DismembersOnKill()) ) {
+		if( actionContext.dismember.explosion || (attackAction && (attackAction.GetAttackName() == 'attack_explosion' || attackAction.HasForceExplosionDismemberment())) || (petard && petard.DismembersOnKill()) || (bolt && bolt.DismembersOnKill()) ) {
 		// modXTFinishers END
 			isExplosion = true;
-		} else {
+		}
+		else
+		{
 			isExplosion = false;
 		}
 		
+		//forced wound?
 		if(playerAttacker && thePlayer.forceDismember && IsNameValid(thePlayer.forceDismemberName))
 		{
 			usedWound = thePlayer.forceDismemberName;
 		}
 		else
 		{	
-			
+			//find proper wound
 			if(isExplosion)
 			{
 				dismembermentComp.GetWoundsNames( wounds, WTF_Explosion );								
@@ -2098,10 +2246,10 @@ class W3DamageManagerProcessor extends CObject
 				}
 				else
 				{			
-					
+					// Get all wounds
 					dismembermentComp.GetWoundsNames( wounds );
 					
-					
+					// remove explosion wounds
 					if(wounds.Size() > 0)
 					{
 						dismembermentComp.GetWoundsNames( specialWounds, WTF_Explosion );
@@ -2112,13 +2260,14 @@ class W3DamageManagerProcessor extends CObject
 						
 						if(wounds.Size() > 0)
 						{
-							
+							//remove frost wounds
 							dismembermentComp.GetWoundsNames( specialWounds, WTF_Frost );
 							for ( i = 0; i < specialWounds.Size(); i += 1 )
 							{
 								wounds.Remove( specialWounds[i] );
 							}
-												
+							
+							//select wound to use
 							if ( wounds.Size() > 0 )
 								usedWound = wounds[ RandRange( wounds.Size() ) ];
 						}
@@ -2135,13 +2284,16 @@ class W3DamageManagerProcessor extends CObject
 			
 			actorVictim.SetDismembermentInfo( usedWound, actorVictim.GetWorldPosition() - actorAttacker.GetWorldPosition(), forcedRagdoll );
 			actorVictim.AddTimer( 'DelayedDismemberTimer', 0.05f );
-			ProcessDismembermentDeathAnim( usedWound );
 			
-			
-			if ( usedWound == 'explode_02' )
+			//MS: hack for bug 112289
+			if ( usedWound == 'explode_02' || usedWound == 'explode2' )
 			{
+				ProcessDismembermentDeathAnim( usedWound, true, EFDT_LegLeft );
 				actorVictim.SetKinematic( false );
+				//ApplyForce();
 			}
+			else
+				ProcessDismembermentDeathAnim( usedWound, false );
 			
 			DropEquipmentFromDismember( usedWound, true, true );
 			
@@ -2149,15 +2301,13 @@ class W3DamageManagerProcessor extends CObject
 			theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.DISMEMBER_EVENT_ID, CreateXTFinishersActionContextData(theGame.xtFinishersMgr.eventMgr, actionContext));
 			
 			/*
-			if (attackAction) {	
-				GCameraShake(0.5, false, actorAttacker.GetWorldPosition(), 10);
-			}
+			if( attackAction )			
+				GCameraShake( 0.5, false, actorAttacker.GetWorldPosition(), 10);
 			*/
 			// modXTFinishers END
 				
-			if (playerAttacker) {
-				theGame.VibrateControllerHard();
-			}
+			if(playerAttacker)
+				theGame.VibrateControllerHard();	//dismemberment
 		}
 		else
 		{
@@ -2165,6 +2315,30 @@ class W3DamageManagerProcessor extends CObject
 			actionContext.dismember.active = false;
 			// modXTFinishers END
 			LogChannel( 'Dismemberment', "ERROR: No wound found to dismember on entity but entity supports dismemberment!!!" );
+		}
+	}
+	
+	function ApplyForce()
+	{
+		var size, i : int;
+		var victim : CNewNPC;
+		var fromPos, toPos : Vector;
+		var comps : array<CComponent>;
+		var impulse : Vector;
+		
+		victim = (CNewNPC)action.victim;
+		toPos = victim.GetWorldPosition();
+		toPos.Z += 1.0f;
+		fromPos = toPos;
+		fromPos.Z -= 2.0f;
+		impulse = VecNormalize( toPos - fromPos.Z ) * 10;
+		
+		comps = victim.GetComponentsByClassName('CComponent');
+		victim.GetVisualDebug().AddArrow( 'applyForce', fromPos, toPos, 1, 0.2f, 0.2f, true, Color( 0,0,255 ), true, 5.0f );
+		size = comps.Size();
+		for( i = 0; i < size; i += 1 )
+		{
+			comps[i].ApplyLocalImpulseToPhysicalObject( impulse );
 		}
 	}
 	
@@ -2199,27 +2373,36 @@ class W3DamageManagerProcessor extends CObject
 	
 		actorVictim.SetDismembermentInfo( wound, actorVictim.GetWorldPosition() - actorAttacker.GetWorldPosition(), true );
 		actorVictim.AddTimer( 'DelayedDismemberTimer', 0.05f );
-		ProcessDismembermentDeathAnim( wound );
+		ProcessDismembermentDeathAnim( wound, false );
 		DropEquipmentFromDismember( wound, true, true );
 		
 		// modXTFinishers BEGIN
 		theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.DISMEMBER_EVENT_ID, CreateXTFinishersActionContextData(theGame.xtFinishersMgr.eventMgr, actionContext));
 		
 		/*
-		if (attackAction) {		
+		if( attackAction )			
 			GCameraShake( 0.5, false, actorAttacker.GetWorldPosition(), 10);
-		}
 		*/
 		// modXTFinishers END
 			
 		if(playerAttacker)
-			theGame.VibrateControllerHard();	
+			theGame.VibrateControllerHard();	//dismemberment
 	}
 	
 	
-	private function ProcessDismembermentDeathAnim( nearestWound : name )
+	private function ProcessDismembermentDeathAnim( nearestWound : name, forceDeathType : bool, optional deathType : EFinisherDeathType )
 	{
 		var dropCurveName : name;
+		
+		if ( forceDeathType )
+		{
+			if ( deathType == EFDT_Head )
+				StopVO( actorVictim );
+				
+			actorVictim.SetBehaviorVariable( 'FinisherDeathType', (int)deathType );
+			
+			return;
+		}
 		
 		dropCurveName = ( (CDismembermentComponent)(actorVictim.GetComponentByClassName( 'CDismembermentComponent' )) ).GetMainCurveName( nearestWound );
 		
@@ -2318,7 +2501,7 @@ class W3DamageManagerProcessor extends CObject
 		return false;
 	}
 	
-	
+	//If player has proper skill then oils applied on used weapon also grant additional resists against given monster type.
 	private function GetOilProtectionAgainstMonster(dmgType : name, out resist : float, out reduct : float)
 	{
 		var vsMonsterAttributeName : name;
@@ -2335,9 +2518,10 @@ class W3DamageManagerProcessor extends CObject
 		reduct = 0;
 		vsMonsterAttributeName = MonsterCategoryToAttackPowerBonus(attackerMonsterCategory);
 		
-		
+		//get held weapon - we cannot use weaponID as this has to work also with non attackActions, like signs 
 		heldWeapons = thePlayer.inv.GetHeldWeapons();
 		
+		//filter out fists
 		for(i=0; i<heldWeapons.Size(); i+=1)
 		{
 			if(!thePlayer.inv.IsItemFists(heldWeapons[i]))
@@ -2347,20 +2531,20 @@ class W3DamageManagerProcessor extends CObject
 			}
 		}
 		
-		
+		//abort if no weapon drawn
 		if(!thePlayer.inv.IsIdValid(weapon))
 			return;
 		
 		thePlayer.inv.GetItemAbilities(weapon, abs);
 		for(i=0; i<abs.Size(); i+=1)
 		{
-			
+			//player has some oil applied
 			if(dm.AbilityHasTag(abs[i], theGame.params.OIL_ABILITY_TAG))
 			{
 				dm.GetAbilityAttributes(abs[i], atts);
 				oilTypeMatches = false;
 				
-				
+				//check if the type of oil applied is ok for attacker's monster type
 				for(j=0; j<atts.Size(); j+=1)
 				{
 					if(vsMonsterAttributeName == atts[j])
@@ -2372,32 +2556,51 @@ class W3DamageManagerProcessor extends CObject
 				
 				if(!oilTypeMatches)
 					break;
+					
+				//get resist bonus
 				resist = CalculateAttributeValue(thePlayer.GetSkillAttributeValue(S_Alchemy_s05, 'defence_bonus', false, true));
 				
+				/* requiredResist = GetResistForDamage(dmgType, action.IsDoTDamage());
 				
+				//get resist bonus from oil
+				for(j=0; j<atts.Size(); j+=1)
+				{
+					if(ResistStatNameToEnum(atts[j], isPointResist) == requiredResist)
+					{
+						dm.GetAbilityAttributeValue(abs[i], atts[j], valMin, valMax);
+						val = CalculateAttributeValue(GetAttributeRandomizedValue(valMin, valMax));
+						if(isPointResist)
+							reduct += val;
+						else
+							resist += val;
+							
+						break;
+					}								
+				}*/
 				
 				return;
 			}
 		}
 	}
 	
-	
+	//toxi cloud from dragon's dream level 3 will explode targets if they die in explosion and by doing so will do additional damage (corpse explosion kind of)
 	private function ProcessToxicCloudDismemberExplosion(damages : array<SRawDamage>)
 	{
 		var act : W3DamageAction;
 		var i, j : int;
 		var ents : array<CGameplayEntity>;
 		
-		
+		//check data
 		if(damages.Size() == 0)
 		{
 			LogAssert(false, "W3DamageManagerProcessor.ProcessToxicCloudDismemberExplosion: trying to process but no damages are passed! Aborting!");
 			return;
 		}		
 		
-		
+		//get alive actors in sphere
 		FindGameplayEntitiesInSphere(ents, action.victim.GetWorldPosition(), 3, 1000, , FLAG_OnlyAliveActors);
 		
+		//deal additional damage
 		for(i=0; i<ents.Size(); i+=1)
 		{
 			act = new W3DamageAction in this;
@@ -2413,52 +2616,133 @@ class W3DamageManagerProcessor extends CObject
 		}
 	}
 	
-	
+	//sparks - if armored opponent blocked all damage
 	private final function ProcessSparksFromNoDamage()
 	{
 		var sparksEntity, weaponEntity : CEntity;
 		var weaponTipPosition : Vector;
 		var weaponSlotMatrix : Matrix;
 		
-		
+		//only if: player attacks melee and no damage was dealt
 		if(!playerAttacker || !attackAction || !attackAction.IsActionMelee() || attackAction.DealsAnyDamage())
 			return;
 			
-		
+		//only if damage got reduced to 0 by high enough armor attribute. Skip if attack was parried or countered as that already displays sparks.
 		if(!attackAction.DidArmorReduceDamageToZero() || attackAction.IsParried() || attackAction.IsCountered() )
 			return;
 			
-		
+		//don't show if customly set not to show
 		if(actorVictim.HasTag('NoSparksOnArmorDmgReduced'))
 			return;
 			
-		
+		//get position of weapon tip
 		weaponEntity = playerAttacker.inv.GetItemEntityUnsafe(weaponId);
 		weaponEntity.CalcEntitySlotMatrix( 'blood_fx_point', weaponSlotMatrix );
 		weaponTipPosition = MatrixGetTranslation( weaponSlotMatrix );
 		
+		//spawn sparks fx
 		sparksEntity = theGame.CreateEntity( (CEntityTemplate)LoadResource( 'sword_colision_fx' ), weaponTipPosition );
 		sparksEntity.PlayEffect('sparks');
+	}
+	
+	private function ProcessPreHitModifications()
+	{
+		var fireDamage, totalDmg : float;
+		var attribute : SAbilityAttributeValue;
+		var infusion : ESignType;
+		var hack : array< SIgniEffects >;
+		var dmgValTemp : float;
+		var igni : W3IgniEntity;
+		var template : CEntityTemplate;
+		var quen : W3QuenEntity;
+
+		if( actorVictim.HasAbility( 'HitWindowOpened' ) && !action.IsDoTDamage() )
+		{
+			quen = (W3QuenEntity)action.causer; 
+			
+			if( !quen )
+			{
+				action.ClearDamage();
+				if( action.IsActionMelee() )
+				{
+					actorVictim.PlayEffect( 'special_attack_break' );
+				}
+				actorVictim.SetBehaviorVariable( 'repelType', 0 );
+				//action.AddEffectInfo( EET_CounterStrikeHit );
+				actorVictim.AddEffectDefault( EET_CounterStrikeHit, thePlayer ); // i know this is hacky but upper line doesnt work with Igni for some reason
+				action.RemoveBuffsByType( EET_KnockdownTypeApplicator );
+			
+				((CNewNPC)actorVictim).SetHitWindowOpened( false );
+			}
+		}
+		
+		//Runeword infusing sword attacks with previously cast sign's power. Ability check is doubled here to prevent cases where
+		//player would cast sign to infuse and then switch gear.
+		if(action.attacker == thePlayer && attackAction && attackAction.IsActionMelee() && (W3PlayerWitcher)thePlayer && thePlayer.HasAbility('Runeword 1 _Stats', true))
+		{
+			infusion = GetWitcherPlayer().GetRunewordInfusionType();
+			
+			switch(infusion)
+			{
+				case ST_Aard:
+					action.AddEffectInfo(EET_KnockdownTypeApplicator);
+					action.SetProcessBuffsIfNoDamage(true);
+					attackAction.SetApplyBuffsIfParried(true);
+					template = (CEntityTemplate)LoadResource('runeword_1_aard');
+					if(action.victim.GetBoneIndex('pelvis') != -1)
+						theGame.CreateEntity(template, action.victim.GetBoneWorldPosition('pelvis'), action.victim.GetWorldRotation(), , , true);
+					else
+						theGame.CreateEntity(template, action.victim.GetBoneWorldPosition('k_pelvis_g'), action.victim.GetWorldRotation(), , , true);
+						
+					break;
+				case ST_Axii:
+					action.AddEffectInfo(EET_Confusion);
+					action.SetProcessBuffsIfNoDamage(true);
+					attackAction.SetApplyBuffsIfParried(true);
+					break;
+				case ST_Igni:
+					//damage
+					totalDmg = action.GetDamageValueTotal();
+					attribute = thePlayer.GetAttributeValue('runeword1_fire_dmg');
+					fireDamage = totalDmg * attribute.valueMultiplicative;
+					action.AddDamage(theGame.params.DAMAGE_NAME_FIRE, fireDamage);
+					
+					//hit reaction
+					action.SetCanPlayHitParticle(false);					
+					action.victim.AddTimer('Runeword1DisableFireFX', 1.f);
+					action.SetHitReactionType(EHRT_Heavy);	//EHRT_Igni does not work for NPCs anymore...					
+					action.victim.PlayEffect('critical_burning');
+					break;
+				case ST_Yrden:
+					attribute = thePlayer.GetAttributeValue('runeword1_yrden_duration');
+					action.AddEffectInfo(EET_Slowdown, attribute.valueAdditive);
+					action.SetProcessBuffsIfNoDamage(true);
+					attackAction.SetApplyBuffsIfParried(true);
+					break;
+				default:		//Quen done after the attack
+					break;
+			}
+		}
 	}
 }
 
 exec function ForceDismember( b: bool, optional chance : int, optional n : name, optional e : bool )
 {
-	var r4Player : CR4Player;
+	var temp : CR4Player;
 	
-	r4Player = thePlayer;
-	r4Player.forceDismember = b;
-	r4Player.forceDismemberName = n;
-	r4Player.forceDismemberChance = chance;
-	r4Player.forceDismemberExplosion = e;
+	temp = thePlayer;
+	temp.forceDismember = b;
+	temp.forceDismemberName = n;
+	temp.forceDismemberChance = chance;
+	temp.forceDismemberExplosion = e;
 } 
 
 exec function ForceFinisher( b: bool, optional n : name, optional rightStance : bool )
 {
-	var r4Player : CR4Player;
+	var temp : CR4Player;
 	
-	r4Player = thePlayer;
-	r4Player.forcedStance = rightStance;
-	r4Player.forceFinisher = b;
-	r4Player.forceFinisherAnimName = n;
+	temp = thePlayer;
+	temp.forcedStance = rightStance;
+	temp.forceFinisher = b;
+	temp.forceFinisherAnimName = n;
 } 
