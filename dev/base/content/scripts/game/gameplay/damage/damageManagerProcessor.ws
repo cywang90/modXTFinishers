@@ -1712,7 +1712,11 @@ class W3DamageManagerProcessor extends CObject /* CObject extension is required 
 					actorVictim.AddAbility( 'ForceFinisher', false );
 				
 				actorVictim.SignalGameplayEvent( 'ForceFinisher' );
-				//thePlayer.SetFinisherVictim( actorVictim );			
+				//thePlayer.SetFinisherVictim( actorVictim );	
+
+				// modXTFinishers BEGIN
+				thePlayer.LoadActionContext(actionContext);
+				// modXTFinishers END
 			} 
 			else if ( weaponName == 'fists' && npcVictim )
 			{
@@ -2188,8 +2192,10 @@ class W3DamageManagerProcessor extends CObject /* CObject extension is required 
 		dismembermentComp = (CDismembermentComponent)(actorVictim.GetComponentByClassName( 'CDismembermentComponent' ));
 		if(!dismembermentComp)
 			return;
-			
-		if(wasFrozen)
+		
+		// modXTFinishers BEGIN
+		if(actionContext.effectsSnapshot.HasEffect(EET_Frozen))
+		// modXTFinishers END
 		{
 			ProcessFrostDismemberment();
 			return;
