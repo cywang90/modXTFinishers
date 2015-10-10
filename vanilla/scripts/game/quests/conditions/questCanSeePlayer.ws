@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3QuestCond_CanSeePlayer_Listener extends IGlobalEventScriptedListener
+﻿class W3QuestCond_CanSeePlayer_Listener extends IGlobalEventScriptedListener
 {
 	public var condition : W3QuestCond_CanSeePlayer;
 	

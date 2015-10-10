@@ -1,10 +1,8 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2012
+/***********************************************************************/
 
 enum EInitialAction
 {
@@ -16,12 +14,22 @@ enum EInitialAction
 	IA_CriticalState,
 }
 
-
+//FIXME URGENT - move to r4player
 state CombatFists in W3PlayerWitcher extends Combat
 {
+	/*private var startupAction 	: EInitialAction;
+	private var startupBuff 	: CBaseGameplayEffect;
+	private var isInCriticalState	: bool;
 	
+	public function SetupState( initialAction : EInitialAction, optional initialBuff : CBaseGameplayEffect )
+	{
+		startupAction = initialAction;
+		startupBuff	= initialBuff;
+	}*/
 	
+	/**
 	
+	*/
 	event OnEnterState( prevStateName : name )
 	{
 		theInput.SetContext(parent.GetCombatInputContext());
@@ -32,19 +40,23 @@ state CombatFists in W3PlayerWitcher extends Combat
 		this.CombatFistsInit( prevStateName );	
 	}
 	
+	/**
 	
+	*/
 	event OnLeaveState( nextStateName : name )
 	{
 		startupAction = IA_None;
 		
-		
+		//marwin
 		this.CombatFistsDone( nextStateName );
 		
-		
+		// Pass to base class
 		super.OnLeaveState(nextStateName);		
 	}
 	
+	/**
 	
+	*/
 	var action : SInputAction;
 	
 	entry function CombatFistsInit( prevStateName : name )
@@ -52,7 +64,7 @@ state CombatFists in W3PlayerWitcher extends Combat
 		parent.SetBIsCombatActionAllowed( true );
 		
 		
-		
+		// It have to be after behavior activate
 		BuildComboPlayer();
 		
 		parent.LockEntryFunction( false );
@@ -90,13 +102,30 @@ state CombatFists in W3PlayerWitcher extends Combat
 		CombatFistsLoop();	
 	}
 	
+	/**
 	
+	*/
 	entry function CombatFistsDone( nextStateName : name )
 	{
-		
+		/*
+		if ( nextStateName != 'AimThrow' && parent.inv.IsItemCrossbow( parent.inv.GetItemFromSlot('l_weapon') ) )
+		{
+			parent.SetRequiredItems('None', 'None');
+			parent.ProcessRequiredItems();		
+			parent.SetRequiredItems('fists', 'None');
+			parent.ProcessRequiredItems();
+		}
+		else
+		{
+			parent.SetRequiredItems('Any', 'None');
+			parent.ProcessRequiredItems();
+		}
+		*/
 	}
 	
+	/**
 	
+	*/
 	latent function CombatFistsLoop()
 	{
 		while( true )
@@ -104,7 +133,21 @@ state CombatFists in W3PlayerWitcher extends Combat
 			Sleep( 0.5 );
 		}		
 	}
-
+/*
+	event OnAnimEvent_ActionBlend( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
+	{
+		var target : CActor;
+		
+		target = parent.GetTarget();
+		
+		if ( animEventType == AET_DurationStart && target && target.WillBeUnconscious() )
+		{
+			//theGame.GetSyncAnimManager().SetupSimpleSyncAnim( 'FistFightFinisher', thePlayer, thePlayer.target );
+		}
+		
+		virtual_parent.OnAnimEvent(animEventName, animEventType, animInfo);
+	}
+*/
 	
 	event OnCombatActionStart()
 	{
@@ -211,7 +254,7 @@ state CombatFists in W3PlayerWitcher extends Combat
 			str.AddAttack( 'man_fistfight_attack_heavy_3_lh_70ms', ADIST_Medium );
 		}		
 		
-		
+		// Left Pose Start - String 1
 		{
 			str = aspect.CreateComboString( true );
 
@@ -286,7 +329,7 @@ state CombatFists in W3PlayerWitcher extends Combat
 			str.AddAttack( 'man_fistfight_attack_fast_far_forward_2_lh_50ms', ADIST_Large );
 			str.AddAttack( 'man_fistfight_attack_fast_far_forward_2_rh_50ms', ADIST_Large );			
 			
-			
+			//Create combo links
 			aspect.AddLink( 'man_fistfight_close_combo_attack_1', 'man_fistfight_close_combo_attack_2' );
 			aspect.AddLink( 'man_fistfight_close_combo_attack_2', 'man_fistfight_close_combo_attack_3' );
 			aspect.AddLink( 'man_fistfight_close_combo_attack_3', 'man_fistfight_close_combo_attack_4' );
@@ -342,7 +385,7 @@ state CombatFists in W3PlayerWitcher extends Combat
 			str.AddAttack( 'man_fistfight_attack_fast_far_forward_2_lh_50ms', ADIST_Large );
 			str.AddAttack( 'man_fistfight_attack_fast_far_forward_2_rh_50ms', ADIST_Large );				
 			
-			
+			//Create combo links
 			aspect.AddLink( 'man_fistfight_close_combo_attack_1', 'man_fistfight_close_combo_attack_2' );
 			aspect.AddLink( 'man_fistfight_close_combo_attack_2', 'man_fistfight_close_combo_attack_3' );
 			aspect.AddLink( 'man_fistfight_close_combo_attack_3', 'man_fistfight_close_combo_attack_4' );
@@ -407,7 +450,7 @@ state CombatFists in W3PlayerWitcher extends Combat
 			str.AddAttack( 'man_fistfight_attack_heavy_far_2_ll_80ms', ADIST_Large );		
 		}		
 		
-		
+		// Left Pose Start - String 1
 		{
 			str = aspect.CreateComboString( true );
 			

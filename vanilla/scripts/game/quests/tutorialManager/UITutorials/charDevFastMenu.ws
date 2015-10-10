@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2015
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 state CharacterDevelopmentFastMenu in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {

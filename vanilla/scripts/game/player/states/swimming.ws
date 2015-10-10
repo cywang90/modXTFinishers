@@ -1,12 +1,8 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 state Swimming in CR4Player extends ExtendedMovable
 {
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// const variables
 	public const var START_SWIMMING_WATER_LEVEL 	: float;
 	public const var LEAVE_STATE_WATER_LEVEL 		: float;
 	public const var LEAVE_STATE_SUBMERGE_DEPTH 	: float;
@@ -18,26 +14,26 @@ state Swimming in CR4Player extends ExtendedMovable
 	
 	default START_SWIMMING_WATER_LEVEL 	= 1.3;
 	default LEAVE_STATE_WATER_LEVEL 	= 1.3;
-	default LEAVE_STATE_SUBMERGE_DEPTH 	= -0.9; 
+	default LEAVE_STATE_SUBMERGE_DEPTH 	= -0.9; // needs to be less then 1 - which is walkToSwimCapsule offset
 	default WALK_DEEP_WATER_LEVEL 		= 1.10;
 	default MIN_WATER_LEVEL_FOR_DIVING 	= 1.95;
 	default ENTER_DIVING_WATER_LEVEL 	= -1.6; 
 	default EXIT_DIVING_WATER_LEVEL 	= -1.2;
 	default MINIMAL_SUBMERGE_DEPTH 		= -25.0;
 	
-	
+	//anim distances
 	private const var jumpToWaterAnimDist	: float;
 	private const var swimToIdleAnimDist	: float;
 	
 	default jumpToWaterAnimDist	= 6.3f;
 	default swimToIdleAnimDist	= 1.35f;
 	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// resources
 	private var splashEntityTemplate : CEntityTemplate;
 	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// private variables
 	private var walkDeep 				: bool;
 	private var swimming				: bool;
 	private var diving					: bool;
@@ -56,11 +52,11 @@ state Swimming in CR4Player extends ExtendedMovable
 	
 	private var isCiri					: bool;
 	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Enter/Leave events
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
-	
-	
+	// enter swimming
 	event OnEnterState( prevStateName : name )
 	{
 		super.OnEnterState( prevStateName );
@@ -70,7 +66,7 @@ state Swimming in CR4Player extends ExtendedMovable
 		SwimmingLatentInit();
 	} 
 	
-	
+	// leaving swimming
 	event OnLeaveState( nextStateName : name )
 	{
 		var item : SItemUniqueId;
@@ -81,7 +77,7 @@ state Swimming in CR4Player extends ExtendedMovable
 		
 		if ( nextStateName == 'AimThrow' )
 		{
-			
+			//swimming = false;		//not sure why but it was before return on purpose so I leave it this way
 			return super.OnLeaveState( nextStateName );
 		}
 		
@@ -90,11 +86,11 @@ state Swimming in CR4Player extends ExtendedMovable
 		
 		EnableBuffImmunities(false);
 		
-		
+		//just in case
 		ToggleDiving(false);
 		ToggleSwimming(false);
 		swimming = false;	
-		diving = false;	
+		diving = false;	//this has to be after ToggleDiving as it's used inside!
 		
 		if ( nextStateName == 'TraverseExploration' )
 		{
@@ -111,10 +107,10 @@ state Swimming in CR4Player extends ExtendedMovable
 		
 		theSound.SoundEvent("fx_underwater_off");
 		
-		
+		// Capsule
 		SetCapsuleToSwim( false );
 		
-		
+		// deinit
 		parentMAC.SetSwimming( false );
 		parentMAC.SetDiving( false );
 		((W3PlayerWitcher)parent).SetBIsCombatActionAllowed(true);
@@ -126,9 +122,9 @@ state Swimming in CR4Player extends ExtendedMovable
 		{
 			EnableRadialSlots();
 		}
+		//LogSwimming("on leave swimming");
 		
-		
-		
+		//unequip bodkin/harpoon bolt and equip harpoon/bodkin bolt when getting in/out of water IF uses infinite bolts
 		if ( nextStateName != 'AimThrow')
 		{
 			GetWitcherPlayer().AddAndEquipInfiniteBolt(true);
@@ -139,22 +135,22 @@ state Swimming in CR4Player extends ExtendedMovable
 		
 		parent.GetMovingAgentComponent().SetEnabledFeetIK(true);
 		
-		
+		// leave state
 		super.OnLeaveState( nextStateName );
 		
-		
+		//parent.RemoveAnimEventCallback('TurnOnDiving');
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Init section
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	entry function SwimmingLatentInit()
 	{
-		
+		//change behavior graph
 		parent.ActivateAndSyncBehavior('PlayerSwimming');
 		
-		
+		//turn on retarget animations for ciri
 		if ( (W3ReplacerCiri)parent )
 		{
 			parent.SetBehaviorVariable( 'test_ciri_replacer', 1.0f);
@@ -183,14 +179,14 @@ state Swimming in CR4Player extends ExtendedMovable
 		}
 	}
 	
-	
+	// swimming init
 	function SwimmingInitGeneral( prevStateName : name )
 	{
 		theInput.SetContext( 'Swimming' );
 		
 		StateBlockInputActions(true);
 		
-		
+		//setup camera
 		TurnOnSwimmingCamera();
 		
 		parent.GetMovingAgentComponent().SetEnabledFeetIK(false);
@@ -199,12 +195,12 @@ state Swimming in CR4Player extends ExtendedMovable
 		
 		parent.findMoveTargetDist = parent.findMoveTargetDistMax;
 		
-		
+		//set required items
 		parent.OnMeleeForceHolster(true);
 		
 		parent.HideUsableItem(true);
 		
-		
+		// Hide weapon
 		thePlayer.OnEquipMeleeWeapon( PW_None, true );
 		
 		if ( prevStateName == 'DismountHorse' )
@@ -228,7 +224,7 @@ state Swimming in CR4Player extends ExtendedMovable
 		if ( !splashEntityTemplate )
 			splashEntityTemplate = (CEntityTemplate)LoadResource('water_splashes');
 		
-		
+		// store start pos
 		startSwimPos = parent.GetWorldPosition();
 		
 		if ( !thePlayer.IsSwimming() )
@@ -245,7 +241,7 @@ state Swimming in CR4Player extends ExtendedMovable
 		
 		EnableBuffImmunities(true);
 		
-		
+		// Capsule
 		SetCapsuleToSwim( true );
 		
 		theTelemetry.Log(TE_STATE_SWIMMING);
@@ -261,7 +257,7 @@ state Swimming in CR4Player extends ExtendedMovable
 		GetWitcherPlayer().AddAndEquipInfiniteBolt(false, true);
 	}
 	
-	
+	//swimming reinit when we get back from AimThrow state
 	function SwimmingInitAfterAimThrow()
 	{
 		if ( diving )
@@ -368,7 +364,7 @@ state Swimming in CR4Player extends ExtendedMovable
 	
 	
 	
-	
+	//Block Input section
 	private function StateBlockInputActions( toggle : bool )
 	{
 		if ( toggle )
@@ -391,7 +387,7 @@ state Swimming in CR4Player extends ExtendedMovable
 		if ( prevState == 'AimThrow' )
 			return;
 		
-		
+		// check if player jumped to water
         if ( parent.GetFallDist(fallDist) )
         {
 			if ( fallDist > 2.f && CheckWaterDepth(START_SWIMMING_WATER_LEVEL) )
@@ -409,9 +405,9 @@ state Swimming in CR4Player extends ExtendedMovable
 		}
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Main loop section
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	event OnPlayerTickTimer( deltaTime : float )
 	{
@@ -435,7 +431,7 @@ state Swimming in CR4Player extends ExtendedMovable
 		}
 	    if ( thePlayer.IsWeaponHeld( 'steelsword' ) || thePlayer.IsWeaponHeld( 'silversword' ) )
 	    {
-			
+			// Hide weapon
 			thePlayer.OnEquipMeleeWeapon( PW_None, true );
 	    }
 	    
@@ -453,7 +449,7 @@ state Swimming in CR4Player extends ExtendedMovable
 		currentWaterDepth = GetWaterDepth();
 		submergeDepth = GetSubmergeDepth();
 		
-		
+		// get water level
 		if ( usePredicitonDepth && predictedWaterDepth != 10000 )
 		{
 			waterDepth = this.predictedWaterDepth;
@@ -484,7 +480,7 @@ state Swimming in CR4Player extends ExtendedMovable
 		}
 		else if ( waterDepth > 0 && submergeDepth <= LEAVE_STATE_SUBMERGE_DEPTH && waterDepth != 10000 )
 		{
-			if ( waterDepth <= LEAVE_STATE_WATER_LEVEL )
+			if ( waterDepth <= LEAVE_STATE_WATER_LEVEL )//0.9
 			{
 				LogChannel( 'Swimming', "leaving water at depth: " + submergeDepth );
 				
@@ -512,7 +508,19 @@ state Swimming in CR4Player extends ExtendedMovable
 			}
 			else if ( !swimming )
 			{
-				
+				/*if ( dt == 0 && id == 0 ) //first call only
+				{
+					if( !diving && submergeDepth < ENTER_DIVING_WATER_LEVEL )
+					{
+						ToggleDiving(true);
+					}
+					if ( !diving )
+					{
+						ToggleSwimming(true,true);
+						parent.AddTimer('SetSwimming',0.1,false);
+					}
+				}
+				else*/
 				{
 					ToggleSwimming(true);
 				}
@@ -535,7 +543,12 @@ state Swimming in CR4Player extends ExtendedMovable
 		}
 		else if ( !swimming )
 		{
-			
+			/*if ( dt == 0 && id == 0 ) //first call only
+			{
+				ToggleSwimming(true,true);
+				parent.AddTimer('SetSwimming',0.1,false);
+			}
+			else*/
 			{
 				ToggleSwimming(true);
 			}
@@ -580,7 +593,7 @@ state Swimming in CR4Player extends ExtendedMovable
 	{
 		var currentContext : name = theInput.GetContext();
 		
-		
+		//physcial state
 		if ( parentMAC.GetPhysicalState() != CPS_Swimming )
 		{
 			if ( diving ) 
@@ -589,8 +602,21 @@ state Swimming in CR4Player extends ExtendedMovable
 				parentMAC.SetSwimming(true);
 		}
 		
-		
-		
+		// input context
+		/*if ( diving )
+		{
+			if ( currentContext != 'Diving' )
+			{
+				theInput.SetContext('Diving');
+			}
+		}
+		else if ( swimming )
+		{
+			if ( currentContext != 'Swimming' )
+			{
+				theInput.SetContext('Swimming');
+			}
+		}*/
 	}
 	
 	private function UpdatePitch()
@@ -618,24 +644,24 @@ state Swimming in CR4Player extends ExtendedMovable
 			delta = frontWaterLevel - backWaterLevel;
 			pitch = Rad2Deg( AtanF( delta, 1 ) );
 		}
-		
+		//pitch *= 1.5;
 		parent.SetBehaviorVariable('swimmingPitchCorrection',pitch);
-		
+		//LogSwimming("swimmingPitchCorrection: " + pitch);
 	}
 	
 	private function TryToPopState()
 	{
 		if ( !blockPopState && !swimStart )
 		{
-			
+			//we need OnEnterShallowWater couse we need to blend to proper anim
 			parent.OnEnterShallowWater();
 			parent.GotoStateAuto();
 		}
 	}
 	
-	
-	
-	
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	////// @Swimming @Functions
+	/////////////////////////////////////////////////////////////////////////////////////////////
 	
 	public function ShouldDrainStamina() : bool
 	{
@@ -643,7 +669,7 @@ state Swimming in CR4Player extends ExtendedMovable
 		
 		currentArea = theGame.GetCommonMapManager().GetCurrentArea();
 		
-		
+		//if ( !IsInTroubledWater() && ( currentWaterDepth < 8 || currentArea == AN_Prologue_Village ) )
 		if ( !IsInTroubledWater() || currentArea == AN_Prologue_Village )
 			return false;
 		
@@ -697,8 +723,14 @@ state Swimming in CR4Player extends ExtendedMovable
 	public function IsSwimmingAllowed() : bool
 	{
 		return true;
+		// if need we can check water type here
+		/*var materialName : name;
+		materialName = parentMAC.GetMaterialName();
 		
+		if ( materialName == 'SomeSwampMaterialName' )
+			return false;
 		
+		return true;*/
 	}
 	
 	private function ToggleWalkDeep( toggle : bool )
@@ -789,11 +821,12 @@ state Swimming in CR4Player extends ExtendedMovable
 			parent.ResumeEffects(EET_AutoAirRegen,'Diving');
 			parent.RemoveBuff(EET_StaminaDrainSwimming);
 			parentMAC.SetDiving( false );
-			
+			//parent.GetMovingAgentComponent().ResetHeight();
 			theGame.GetGameCamera().ChangePivotRotationController( 'Swimming' );
 			theGame.GetGameCamera().ChangePivotPositionController( 'Default' );
 			theGame.GetGameCamera().ChangePivotDistanceController( 'Default' );
 			theInput.SetContext('Swimming');
+			thePlayer.SoundEvent('g_swim_emerge');
 			LogSwimming("Left Diving");
 			theGame.GetGameCamera().SetManualRotationVerTimeout(cachedVerCameraTimeout);
 			slotsToBlock.PushBack( 'Slot3' );
@@ -841,7 +874,15 @@ state Swimming in CR4Player extends ExtendedMovable
 			}
 		}
 	}
-	
+	/*private function ShouldGoSwimming()
+	{
+		var depth : float;
+		depth = theGame.GetWorld().GetWaterDepth(parent.GetWorldPosition());
+		if( !swimming && depth >= START_SWIMMING_WATER_LEVEL )
+		{
+			ToggleSwimming(true);
+		}
+	}*/
 	
 	private function SpawnWaterSplash( splash : name )
 	{
@@ -888,7 +929,7 @@ state Swimming in CR4Player extends ExtendedMovable
 		return false;
 	}
 	
-	
+	//emerge speed section
 	private var defaultEmergeSpeed :  float;
 	private function ChangeEmergeSpeed( value : float)
 	{
@@ -941,7 +982,7 @@ state Swimming in CR4Player extends ExtendedMovable
 		if ( f <= 0.f )
 			animSpeedMult = 1.f;
 		else
-			animSpeedMult = 0.75f;		
+			animSpeedMult = 0.75f;		//MS: Slow player crossbow overlay and crossbow anims down when in water
 		
 		parent.SetBehaviorVariable( 'isSwimming', f );
 		parent.SetBehaviorVariable( 'animSpeedMultForOverlay', animSpeedMult );
@@ -953,13 +994,13 @@ state Swimming in CR4Player extends ExtendedMovable
 		predictedWaterDepth = theGame.GetWorld().GetWaterDepth(pos);
 	}
 	
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	////// @Swimming @Events
+	/////////////////////////////////////////////////////////////////////////////////////////////
 	
 	
-	
-	
-	
-	
-	
+	//////////////////////////////
+	////// from code events //////
 	
 	event OnOceanTriggerLeave()
 	{
@@ -1014,8 +1055,8 @@ state Swimming in CR4Player extends ExtendedMovable
 		blockDiveDown = false;
 	}
 	
-	
-	
+	////////////////////////////////
+	////// from script events //////
 	
 	event OnParentSpawned()
 	{
@@ -1025,7 +1066,7 @@ state Swimming in CR4Player extends ExtendedMovable
 	
 	event OnDiveInput( divePitch : float )
 	{
-		
+		//var rotController : ICustomCameraPivotRotationController;
 		 
 		if ( diving )
 		{
@@ -1036,7 +1077,8 @@ state Swimming in CR4Player extends ExtendedMovable
 	
 	event OnEmptyStamina()
 	{
-		
+		/*ToggleSwimStagger(true);
+		parent.AddEffectDefault(EET_Drowning,parent,"NoStamina");*/
 	}
 	
 	event OnAllowShallowWaterCheck()
@@ -1092,8 +1134,8 @@ state Swimming in CR4Player extends ExtendedMovable
 		return false;
 	}
 	
-	
-	
+	///////////////////////////////////
+	////// Behavior graph events //////
 	
 	var runJumpInProgress : bool;
 	
@@ -1214,9 +1256,9 @@ state Swimming in CR4Player extends ExtendedMovable
 		usePredicitonDepth = false;
 	}
 	
-	
-	
-	
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	////// @Swimming @Combat @Dodge
+	/////////////////////////////////////////////////////////////////////////////////////////////
 	event OnPerformEvade( playerEvadeType : EPlayerEvadeType )
 	{
 		if(!parent.HasStaminaToUseAction(ESAT_Dodge))
@@ -1235,20 +1277,20 @@ state Swimming in CR4Player extends ExtendedMovable
 	
 	function PerformEvade( playerEvadeType : EPlayerEvadeType ) : bool
 	{
-		
+		//return false;
 		if ( !diving )
 			return false;
 		
 		parent.SetBehaviorVariable( 'combatActionType', (int)CAT_Dodge );
-			
-			
-			
+			//parent.LockToMoveTarget( 0.5f );
+			//parent.SetBehaviorVariable(	'playerEvadeDirection', (int)( dodgeDirection ) ) ;			
+			//parent.RaiseForceEvent( 'CombatAction' );
 			LogChannel( 'CombatAction', "CombatAction" );
-			
-			
-			
-			
-			
+			// do initial turn to look properly when moving in dodge direction
+			//parent.SetCustomRotation( 'Dodge', GetDodgeHeading( playerEvadeType ), 0.0f, 0.2f, false ); // rotation speed is 0.0 as we want to rotate no matter what
+			// lock movement to move always towards dodge direction
+			//parent.CustomLockMovement( 'DodgeMovement', rawDodgeHeading );0
+			//parent.BindMovementAdjustmentToEvent( 'DodgeMovement', 'Dodge' );
 			
 		OnDodgeBoost();
 		parent.RaiseEvent( 'Dodge' );
@@ -1271,9 +1313,9 @@ state Swimming in CR4Player extends ExtendedMovable
 		parent.SetBehaviorVariable( 'dodgeBoost',0.0);
 	}
 	
-	
-	
-	
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	////// @Swimming @PlayerOrientation
+	/////////////////////////////////////////////////////////////////////////////////////////////
 	private function ProcessPlayerOrientation()
 	{
 		var newOrientationTarget		: EOrientationTarget;
@@ -1303,9 +1345,9 @@ state Swimming in CR4Player extends ExtendedMovable
 		if ( newOrientationTarget != parent.GetOrientationTarget() )
 			parent.SetOrientationTarget( newOrientationTarget );
 	}
-	
-	
-	
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	////// @Swimming @Camera
+	/////////////////////////////////////////////////////////////////////////////////////////////
 	
 	function EnableSprintingCamera( flag : bool )
 	{
@@ -1331,7 +1373,7 @@ state Swimming in CR4Player extends ExtendedMovable
 	{
 		theGame.GetGameCamera().SetCollisionOffset(Vector(0.f,0.f,1.f));
 		
-		
+		// focusMode camera
 		if ( theGame.IsFocusModeActive() )
 		{	
 			return false;
@@ -1377,7 +1419,7 @@ state Swimming in CR4Player extends ExtendedMovable
 			theSound.SoundEvent("fx_underwater_on");
 		}
 		
-		
+		// camera pitch
 		{
 			cameraRotation = theCamera.GetCameraRotation();
 			cameraPitch = AngleNormalize180(cameraRotation.Pitch);
@@ -1392,7 +1434,7 @@ state Swimming in CR4Player extends ExtendedMovable
 		
 		
 		
-		
+		// RotationController settings
 		
 		if ( parent.IsCameraLockedToTarget() )
 		{
@@ -1437,11 +1479,11 @@ state Swimming in CR4Player extends ExtendedMovable
 				}
 			}
 			
-			
+			//moveData.pivotRotationController.SetDesiredHeading(parent.GetHeading());
 		}
 		else if ( divingEnd )
 		{
-			
+			//theCamera.
 			moveData.pivotRotationController.SetDesiredPitch(-10.0, 3.f);
 			theGame.GetGameCamera().ForceManualControlHorTimeout();
 		}
@@ -1449,7 +1491,7 @@ state Swimming in CR4Player extends ExtendedMovable
 		{
 			moveData.pivotRotationController.SetDesiredPitch(-10.0);
 		}
-		
+		// PositionController settings
 		if ( moveData.pivotPositionController.controllerName == 'Diving' )
 		{
 			if ( parent.rawPlayerSpeed == 0 )
@@ -1466,7 +1508,7 @@ state Swimming in CR4Player extends ExtendedMovable
 			moveData.pivotDistanceController.SetDesiredDistance(1.f);
 			moveData.pivotRotationController.SetDesiredHeading(VecHeading(theCamera.GetCameraDirection()));
 		}
-		
+		// DistanceController settings
 		else if ( moveData.pivotDistanceController.controllerName == 'Diving' )
 		{
 			if ( cameraPitch < 0 && diff >= -0.25 )
@@ -1535,9 +1577,9 @@ state Swimming in CR4Player extends ExtendedMovable
 	}
 	
 	
-	
-	
-	
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	////// @Swimming @AnimEvents
+	/////////////////////////////////////////////////////////////////////////////////////////////
 	
 	event OnAnimEvent_TurnOnDiving( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
@@ -1556,9 +1598,9 @@ state Swimming in CR4Player extends ExtendedMovable
 		}
 	}
 	
-	
-	
-	
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	////// @Swimming @Debug
+	/////////////////////////////////////////////////////////////////////////////////////////////
 	private function LogSwimming( text : string )
 	{
 		LogChannel( 'Swimming', text );

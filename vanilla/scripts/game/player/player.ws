@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2009-2014
+/** Author : ?
+/***********************************************************************/
 
 enum EPlayerDeathType
 {
@@ -14,23 +12,23 @@ enum EPlayerDeathType
 
 statemachine import abstract class CPlayer extends CActor
 {		
-	
+	// DEBUG
 	private var _DEBUGDisplayRadiusMinimapIcons : bool;
-	private var debug_BIsInputAllowedLocks : array<name>;			
+	private var debug_BIsInputAllowedLocks : array<name>;			//list of locks on BIsInputAllowed
 	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
+	//Swimming
 	public const var ENTER_SWIMMING_WATER_LEVEL : float;
 	default ENTER_SWIMMING_WATER_LEVEL = -1.45;
 	
-	
+	// CAMERA
 	public var useSprintingCameraAnim	: bool;		default	useSprintingCameraAnim	= false;
 	public var oTCameraOffset 			: float;	default oTCameraOffset 			= 0.f;	
 	public var oTCameraPitchOffset 		: float;	default oTCameraPitchOffset		= 0.f;
 	
 
-	
+	// COMBAT
 	public				var bIsRollAllowed				: bool;
 	protected			var bIsInCombatAction			: bool;
 	protected			var bIsInCombatActionFriendly	: bool;
@@ -44,50 +42,50 @@ statemachine import abstract class CPlayer extends CActor
 		default	FarZoneDistMax = 30;
 		default	DangerZoneDistMax = 50;
 		
-	
+	// COMMENTARIES, VOICESETS
 	private 			var commentaryCooldown			: float;
 	private				var commentaryLastTime			: EngineTime;
 	
 	private				var	canPlaySpecificVoiceset		: bool;
 		default canPlaySpecificVoiceset = true;
  	
-	
-	public				var isHorseMounted				: bool; 
-	public				var isCompanionFollowing		: bool; 
-	public				var bStartScreenIsOpened		: bool; 
-	public				var bEndScreenIsOpened			: bool; 
-	public				var fStartScreenFadeDuration	: float;
-	public				var bStartScreenEndWithBlackScreen : bool; 
-	public				var fStartScreenFadeInDuration	: float;
-	const 				var DEATH_SCREEN_OPEN_DELAY		: float; 
+	// HUD VARIABLES FOR PROCESSING GUI EVENTS
+	public				var isHorseMounted				: bool; // #B
+	public				var isCompanionFollowing		: bool; // #B 
+	public				var bStartScreenIsOpened		: bool; //#B
+	public				var bEndScreenIsOpened			: bool; //#B
+	public				var fStartScreenFadeDuration	: float;//#B
+	public				var bStartScreenEndWithBlackScreen : bool; // #B
+	public				var fStartScreenFadeInDuration	: float;//#B
+	const 				var DEATH_SCREEN_OPEN_DELAY		: float; //#B
 		
-		default bStartScreenIsOpened = false;	
-		default bEndScreenIsOpened = false;	
-		default DEATH_SCREEN_OPEN_DELAY = 4.f; 
-		default fStartScreenFadeDuration = 3.0; 
-		default fStartScreenFadeInDuration = 3.0; 
-		default bStartScreenEndWithBlackScreen = false; 
+		default bStartScreenIsOpened = false;	//#B
+		default bEndScreenIsOpened = false;	//#B
+		default DEATH_SCREEN_OPEN_DELAY = 4.f; // #B
+		default fStartScreenFadeDuration = 3.0; // [ms] #B
+		default fStartScreenFadeInDuration = 3.0; // [ms] #B
+		default bStartScreenEndWithBlackScreen = false; // #B
 
-	
+	// INPUT
 	public 				var bLAxisReleased				: bool;
 	public 				var bRAxisReleased				: bool;
-	private 			var bUITakesInput				: bool; 
+	private 			var bUITakesInput				: bool; //#B
 	protected	saved	var inputHandler 				: CPlayerInput;
 	public				var sprintActionPressed			: bool;
 	private				var inputModuleNeededToRun		: float;
 	
-		default bUITakesInput = false;
+		default bUITakesInput = false;//#B
 		default bLAxisReleased = true;
 		default inputModuleNeededToRun = -1.0;
 		
-	
+	// INTERACTIVE OBJECTS
 	private				var bInteractionPressed			: bool;	
 		
-	
-	public				var rawPlayerSpeed 				: float; 
-	public	 			var rawPlayerAngle		 		: float; 
-	public	 			var rawPlayerHeading			: float; 
-	
+	// MOVEMENT
+	public				var rawPlayerSpeed 				: float; // protected
+	public	 			var rawPlayerAngle		 		: float; // protected
+	public	 			var rawPlayerHeading			: float; // protected
+	//public				var lAxisPushedTimeStamp		: float;
 	public				var cachedRawPlayerHeading		: float;
 	public				var cachedCombatActionHeading 			: float;
 	public				var canResetCachedCombatActionHeading 	: bool;	
@@ -119,7 +117,7 @@ statemachine import abstract class CPlayer extends CActor
 	public				var allowStopRunCheck			: bool;
 	public				var moveTargetDampValue			: float;
 	
-	
+	//public 				var orientationTargetCustomHeading 	: float;
 	
 	public 				var interiorCamera 				: bool;
 	public 				var movementLockType			: EPlayerMovementLockType;
@@ -129,40 +127,40 @@ statemachine import abstract class CPlayer extends CActor
 	default interiorCamera = false;
 	default scriptedCombatCamera =  true;
 		
-	
+	// OTHER
 	public				var inv 						: CInventoryComponent;
-	
+	// Array to store what was equipped in slots when we take items out of them.
 	public				saved var equipmentSlotHistory			: array<SItemUniqueId>;
 	
-	
+	// Quest Tracker	#B
 	private var currentTrackedQuestSystemObjectives : array<SJournalQuestObjectiveData>;
 	private var currentTrackedQuestObjectives : array<SJournalQuestObjectiveData>;
 	private var currentTrackedQuestGUID : CGUID;
-	private var NewObjGUIDTable : array<CGUID>;
+	private var HAXNewObjTable : array<CGUID>;
 	
-	
+	// SIGNS
 	public				var handAimPitch				: float;
 	private saved		var vehicleCachedSign			: ESignType;
 	
 	default vehicleCachedSign = ST_None;
 	
-	
+	// SOFT LOCK TARGETING
 	public editable		var softLockDist				: float;
-	public editable		var softLockFrameSize			: float;			
+	public editable		var softLockFrameSize			: float;			//% frame scale of camera to see if npcs are visible. E.g. 1.25 means the softlockframe 25% larger than the viewcam
 	public	 			var findMoveTargetDist			: float;
 	public				var softLockDistVehicle			: float;
-	private				var bBIsLockedToTarget			: bool;				
-	private				var bActorIsLockedToTarget		: bool;				
-	private				var bIsHardLockedTotarget		: bool;				
+	private				var bBIsLockedToTarget			: bool;				//Is CAMERA locked to the target
+	private				var bActorIsLockedToTarget		: bool;				//Is GERALT locked to the target
+	private				var bIsHardLockedTotarget		: bool;				//Did player trigger hard lock, can only be released through input or cinematics/dialogue
 	
 		default softLockDist =  12.f;
 		default softLockFrameSize = 1.25f;
 		default softLockDistVehicle = 30.f;
 		
-	
+	// TERRAIN TYPES - someone please elaborate what this is actually
 	private var terrTypeOne : ETerrainType;
 	private var terrTypeTwo : ETerrainType;
-	private var terrModifier : float;			
+	private var terrModifier : float;			// 0 - fully blended to terrTypeOne; 1 - fully blended to terrTypeTwo
 	private var prevTerrType : ETerrainType;
 	
 		default terrTypeOne = TT_Normal;
@@ -170,7 +168,7 @@ statemachine import abstract class CPlayer extends CActor
 		default terrModifier = 0.f;
 		default prevTerrType = TT_Normal;
 		
-	
+	// USABLE ITEMS
 	protected var currentlyUsedItem 			 : W3UsableItem;
 	protected var currentlyEquipedItem 			 : SItemUniqueId;
 	protected var currentlyUsedItemL 		     : W3UsableItem;
@@ -182,7 +180,7 @@ statemachine import abstract class CPlayer extends CActor
 	public saved var teleportedOnBoatToOtherHUB : bool;
 	default teleportedOnBoatToOtherHUB = false;
 	
-	
+	///////////////////////////////////////
 	
 	public var isAdaptiveBalance : bool;
 	default isAdaptiveBalance = false;
@@ -202,19 +200,21 @@ statemachine import abstract class CPlayer extends CActor
 		teleportedOnBoatToOtherHUB = val;
 	}
 	
-	
-	
-	
-	
+	//////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////  IMPORTED C++ FUNCTIONS  ///////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////
+	// Lock player's button interaction - use in EnterState
 	import final function LockButtonInteractions( channel : int );
 	
-	
+	// Unlock player's button interaction - use in LeaveState
 	import final function UnlockButtonInteractions( channel : int );
 
 	import final function GetActiveExplorationEntity() : CEntity;
+	//////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-			
+	/**
+		Called when this player is spawned
+	*/		
 	event OnSpawned( spawnData : SEntitySpawnData )
 	{	
 		var conf : int;
@@ -228,9 +228,9 @@ statemachine import abstract class CPlayer extends CActor
 		InitializeParryType();
 		SetCanPlayHitAnim( true );
 		
-		
+		// books ?
 		if(inv)
-			inv.Created();	
+			inv.Created();	//replacer might not have an inventory
 				
 		if(!spawnData.restored)
 			inputHandler = new CPlayerInput in this;
@@ -245,10 +245,10 @@ statemachine import abstract class CPlayer extends CActor
 		isRunning	= false;
 		SetIsWalking( false );
 		
-		
+		//Reactions
 		EnableBroadcastPresence(true);
 		
-		
+		//Anim Event Callbacks
 		AddAnimEventCallback('EquipItem',			'OnAnimEvent_QuickSlotItems');
 		AddAnimEventCallback('UseItem',				'OnAnimEvent_QuickSlotItems');
 		AddAnimEventCallback('HideItem',			'OnAnimEvent_QuickSlotItems');
@@ -259,24 +259,24 @@ statemachine import abstract class CPlayer extends CActor
 		AddAnimEventCallback('DisallowInput',		'OnAnimEvent_DisallowInput');
 		AddAnimEventCallback('DisallowHitAnim',		'OnAnimEvent_DisallowHitAnim');
 		AddAnimEventCallback('AllowHitAnim',		'OnAnimEvent_AllowHitAnim');
-		
+		//AddAnimEventCallback('AllowBlend',			'OnAnimEvent_AllowBlend');
 		AddAnimEventCallback('SetRagdoll',			'OnAnimEvent_SetRagdoll');
 		AddAnimEventCallback('InAirKDCheck',		'OnAnimEvent_InAirKDCheck');
 		AddAnimEventCallback('EquipMedallion',		'OnAnimEvent_EquipMedallion');
 		AddAnimEventCallback('HideMedallion',		'OnAnimEvent_HideMedallion');
 		
-		
+		//failsafe - restore stamina lock
 		ResumeEffects(EET_AutoStaminaRegen, 'Sprint');
 	}
 	
-	
+	//Dont use in game - debbugging and qa only 
 	public function Debug_ResetInput()
 	{
 		inputHandler = new CPlayerInput in this;
 		inputHandler.Initialize(false);
 	}
 	
-	
+	//---------------------------------------------- @BLOCKING @ACTIONS --------------------------------------------------------
 	
 	public function GetTutorialInputHandler() : W3PlayerTutorialInput
 	{
@@ -355,8 +355,8 @@ statemachine import abstract class CPlayer extends CActor
 	{
 		if ( inputHandler )
 		{
-			
-			
+			//if fists and a fistfist action then check if action allowed
+			//otherwise this is just a transition exploration -> fists -> something else, so it's ok!!
 			if ( weapon == PW_Fists )
 			{
 				return inputHandler.IsActionAllowed( EIAB_Fists );
@@ -369,7 +369,7 @@ statemachine import abstract class CPlayer extends CActor
 		return true;
 	}
 	
-	public function BlockAllActions(sourceName : name, lock : bool, optional exceptions : array<EInputActionBlock>, optional exceptUI : bool, optional saveLock : bool, optional playerPointer : CPlayer, optional isFromPlace : bool)
+	public function BlockAllActions(sourceName : name, lock : bool, optional exceptions : array<EInputActionBlock>, optional exceptUI : bool, optional saveLock : bool, optional onSpawnedNullPointerHackFix : CPlayer, optional isFromPlace : bool)
 	{
 		if(inputHandler)
 		{
@@ -383,11 +383,11 @@ statemachine import abstract class CPlayer extends CActor
 				exceptions.PushBack(EIAB_OpenJournal);
 				exceptions.PushBack(EIAB_OpenAlchemy);
 			}
-			inputHandler.BlockAllActions(sourceName, lock, exceptions, saveLock, playerPointer, false, isFromPlace);
+			inputHandler.BlockAllActions(sourceName, lock, exceptions, saveLock, onSpawnedNullPointerHackFix, false, isFromPlace);
 		}
 		if(lock)
 		{
-			
+			//DisableCombatState();
 		}
 	}
 	
@@ -401,7 +401,7 @@ statemachine import abstract class CPlayer extends CActor
 		inputHandler.BlockAllUIQuestActions(sourceName, lock);
 	}
 			
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	public function GetInputHandler() : CPlayerInput
 	{
@@ -443,17 +443,17 @@ statemachine import abstract class CPlayer extends CActor
 		abilityManager = new W3PlayerAbilityManager in this;	
 	}
 	
-	
+	//FIXME - what's this? 
 	event OnDamageFromBoids( damage : float )
 	{		
 		var damageAction : W3DamageAction = new W3DamageAction in theGame.damageMgr;
 		
 		damageAction.Initialize(NULL,this,NULL,'boid',EHRT_None,CPS_AttackPower,false,false,false,true);
-		damageAction.AddDamage(theGame.params.DAMAGE_NAME_PHYSICAL,6.f);		
+		damageAction.AddDamage(theGame.params.DAMAGE_NAME_PHYSICAL,6.f);		//FIXME URGENT - fixed value
 		damageAction.SetHitAnimationPlayType(EAHA_ForceNo);
 		
-		
-		
+		// FIXME - Temp? This is to prevent the sword sound from playing 
+		// when attacked by boids.
 		damageAction.SetSuppressHitSounds(true); 
 		
 		Log( "DAMAGE FROM BOID!!!!! " + damage );
@@ -464,7 +464,7 @@ statemachine import abstract class CPlayer extends CActor
 		delete damageAction;
 	}
 	
-	
+	//FIXME shouldn't this be in gameParams? Is this different for different player characters?
 	function InitializeParryType()
 	{
 		var i, j : int;
@@ -519,7 +519,7 @@ statemachine import abstract class CPlayer extends CActor
 		}	
 	}
 	
-	
+	// Override this in derived class
 	function IsLookInputIgnored() : bool
 	{
 		return false;
@@ -567,8 +567,8 @@ statemachine import abstract class CPlayer extends CActor
 			
 		leftStickVector = rawLeftJoyVec;
 		rightStickVector = rawRightJoyVec;
-		
-		
+		// take care of situation where stick is released, jumps beyond 0,0 and lands back - it happens in one frame (or it may sometimes oscillate for two frames!)
+		// for such cases use last valid
 		if ( VecDot2D( prevRawLeftJoyVec, leftStickVector ) < 0.0f )
 		{
 			leftStickVector = lastValidLeftJoyVec;
@@ -590,7 +590,7 @@ statemachine import abstract class CPlayer extends CActor
 		rawLengthR = VecLength( rightStickVector );
 		SetBehaviorVariable( 'lAxisLength', ClampF( rawLengthL, 0.0f, 1.0f ) );
 		
-		
+		// no need to normalize stickVectors for VecHeading computations
 		rawLeftJoyRot = VecHeading( leftStickVector );
 		rawRightJoyRot = VecHeading( rightStickVector );
 		
@@ -664,8 +664,8 @@ statemachine import abstract class CPlayer extends CActor
 			rawPlayerHeading = AngleDistance( theCamera.GetCameraHeading(), -rawLeftJoyRot );
 			if ( rawPlayerSpeed > 0.1f )
 			{
-				cachedRawPlayerHeading = rawPlayerHeading; 
-				
+				cachedRawPlayerHeading = rawPlayerHeading; //This is needed because when the analog stick is released the snap back unintentionally changes the heading
+				//lAxisPushedTimeStamp = theGame.GetEngineTimeAsSeconds();
 			}
 			if ( IsInCombatAction() )
 			{
@@ -674,7 +674,7 @@ statemachine import abstract class CPlayer extends CActor
 			}
 		}
 
-		
+		// PB: why do we need it at all?
 		rawPlayerAngle = AngleDistance( rawPlayerHeading, GetHeading() );
 
 		if ( !ProcessLockTargetSelectionInput( rightStickVector, rawLengthR ) )
@@ -777,7 +777,10 @@ statemachine import abstract class CPlayer extends CActor
 
 					if ( currTime > swipeMouseTimeStamp + 0.2f )
 					{
-							
+					/*	LogChannel( 'Swipe', "TimeStamp" );
+						if ( swipeMouseDist > 0 ) 
+							LogChannel( 'Swipe', "swipeMouseDist: " + swipeMouseDist );
+					*/		
 						swipeMouseDist = 0.f;
 						enableSwipeCheck = true;
 					}
@@ -785,7 +788,10 @@ statemachine import abstract class CPlayer extends CActor
 				}
 				else
 				{
-						
+				/*	LogChannel( 'Swipe', "rawLengthR = 0.f" );
+					if ( swipeMouseDist > 0 ) 
+						LogChannel( 'Swipe', "swipeMouseDist: " + swipeMouseDist );
+				*/		
 					swipeMouseDist = 0.f;
 					enableSwipeCheck = true;
 				}
@@ -826,33 +832,35 @@ statemachine import abstract class CPlayer extends CActor
 	public var lAxisReleaseCounterEnabled 	: bool;
 	private timer function LAxisReleaseCounter( time : float , id : int)
 	{
-		
+		//time = theTimer.timeDeltaUnscaled;
 		if ( bLAxisReleased )
 			lAxisReleasedAfterCounter = true;
 	}
 	
-	public var lAxisReleasedAfterCounterNoCA 	: bool; 
+	public var lAxisReleasedAfterCounterNoCA 	: bool; //MS: L-Axis counter that considers combatActionAllowed
 	public var lAxisReleaseCounterEnabledNoCA 	: bool;
 	private timer function LAxisReleaseCounterNoCA( time : float , id : int)
 	{
-		
+		//time = theTimer.timeDeltaUnscaled;
 		if ( bLAxisReleased )
 			lAxisReleasedAfterCounterNoCA = true;
 	}
 	
+	/**
 	
+	*/
 	timer function StopRunDelayedInputCheck( time : float, id : int)
 	{
-		
+		//StopRun();
 		allowStopRunCheck = true;
 	}	
 	
-	public function IsUITakeInput() : bool 
+	public function IsUITakeInput() : bool //#B
 	{
 		return bUITakesInput;
 	}
 
-	public function SetUITakeInput ( val : bool ) 
+	public function SetUITakeInput ( val : bool ) //#B
 	{
 		bUITakesInput = val;
 	}
@@ -872,7 +880,7 @@ statemachine import abstract class CPlayer extends CActor
 		return bActorIsLockedToTarget;
 	}	
 	
-	
+	//MS: Also serves as SetIsLockedToTarget
 	public function SetIsCameraLockedToTarget( flag : bool )
 	{
 		bBIsLockedToTarget = flag;
@@ -885,7 +893,7 @@ statemachine import abstract class CPlayer extends CActor
 	
 	public function IsLockedToTarget() : bool
 	{
-		return false;
+		return false;//bBIsLockedToTarget;
 	}
 	
 	public function EnableHardLock( flag : bool )
@@ -901,13 +909,13 @@ statemachine import abstract class CPlayer extends CActor
 		return bIsHardLockedTotarget;
 	}	
 	
-	
-	
+	//////////////////////////////////////////////////////////////////////////////////////////
+	//@REACTIONS
 	
 	function EnableBroadcastPresence( enable : bool )
 	{
 		if ( enable )
-			theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( this, 'PlayerPresenceAction', -1.f , 10.0f, 3.f, -1, true); 
+			theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( this, 'PlayerPresenceAction', -1.f , 10.0f, 3.f, -1, true); //reactionSystemSearch
 		else
 			theGame.GetBehTreeReactionManager().RemoveReactionEvent(this, 'PlayerPresenceAction');
 	}
@@ -925,12 +933,15 @@ statemachine import abstract class CPlayer extends CActor
 	{
 		EnableBroadcastPresence(true);
 		
-		
-		
+		//not needed for now
+		/*if ( thePlayer.GetCurrentMeleeWeaponType() == PW_Steel || thePlayer.GetCurrentMeleeWeaponType() == PW_Silver )
+			theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( this, 'DrawSwordAction', -1, 8.0f, 1.f, 99, true); //reactionSystemSearch
+		else
+			theGame.GetBehTreeReactionManager().RemoveReactionEvent( this, 'DrawSwordAction' );*/
 	}
 	
-	
-	
+	//////////////////////////////////////////////////////////////////////////////////////////
+	// DIALOGUE STATE EVENTS
 	
 	event OnBlockingSceneStarted( scene: CStoryScene )
 	{
@@ -938,8 +949,8 @@ statemachine import abstract class CPlayer extends CActor
 		ClearAttitudes( true, false, false );
 		RaiseForceEvent( 'ForceIdle' );
 		RemoveReactions();
-		theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( thePlayer, 'PlayerInScene', -1.f, 60.0f, -1, -1, true ); 
-		PushState( 'PlayerDialogScene' );		
+		theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( thePlayer, 'PlayerInScene', -1.f, 60.0f, -1, -1, true ); //reactionSystemSearch
+		PushState( 'PlayerDialogScene' );		//TODO - Exiting Work, fast finishing all tasks
 
 	}
 	
@@ -965,7 +976,7 @@ statemachine import abstract class CPlayer extends CActor
 		if ( !thePlayer.IsInCombat() )
 			thePlayer.SetPlayerCombatStance( PCS_Normal );
 	}
-	
+	//////////////////////////////////////////////////////////////////////////////////////////
 	
 	public function SetDeathType( type : EPlayerDeathType )
 	{
@@ -977,7 +988,9 @@ statemachine import abstract class CPlayer extends CActor
 		SetDeathType( PDT_Normal );
 	}
 	
-	
+	/**
+		Called when player is dead
+	*/
 	event OnDeath( damageAction : W3DamageAction  )
 	{
 		var attacker : CGameplayEntity;
@@ -1029,7 +1042,7 @@ statemachine import abstract class CPlayer extends CActor
 			else
 			{
 				RaiseForceEvent( 'Death' );
-				
+				//RaiseForceEvent( 'Ragdoll' );			
 				SetBehaviorVariable( 'Ragdoll_Weight', 1.f );
 			}
 			
@@ -1043,17 +1056,17 @@ statemachine import abstract class CPlayer extends CActor
 				guiManager.GetRootMenu().CloseMenu();
 			}
 			
-			
-			
+			// #J Unplugging for TRC's as a paused game will result in this giving :S results since the timer may fall WAYYYY behind the fade
+			// {
 			if (hud)
 			{
 				hud.StartDeathTimer(DEATH_SCREEN_OPEN_DELAY);
 			}
 			else
 			{
-				AddTimer('OpenDeathScreen',DEATH_SCREEN_OPEN_DELAY,false); 
+				AddTimer('OpenDeathScreen',DEATH_SCREEN_OPEN_DELAY,false); // Just in case hud isn't up for some strange reason
 			}
-			
+			//}
 			
 			if( hud )
 			{
@@ -1067,13 +1080,13 @@ statemachine import abstract class CPlayer extends CActor
 		}
 	}
 	
-	
-	
-	
-	
-	
-	
-	
+	//timer function OpenDeathScreen(dt : float, id : int)
+	//{
+	//	
+	//	theGame.RequestMenu( 'DeathScreenMenu' );
+	//	
+	//	theInput.StoreContext('Death');
+	//}
 
 
 	event OnUnconsciousEnd()
@@ -1084,12 +1097,16 @@ statemachine import abstract class CPlayer extends CActor
 		}
 	}
 
-	
-	
+	/**
+		Called when player is
+ in the water
+	*/
+	/*event OnEnterWater(){}
+	event OnLeaveWater(){}*/
 	
 	event OnDodgeBoost(){}
 		
-	
+	// Currently used for inputs but should be merged somewhere else in scripts
 	function StopRun()
 	{
 		SetSprintActionPressed(false,true);
@@ -1099,7 +1116,9 @@ statemachine import abstract class CPlayer extends CActor
 	function IsRunPressed() : bool
 	{
 		return true;
-		
+		/*
+		var action : SInputAction = theInput.GetAction( 'Sprint' );
+		return action.value > 0.7;*/
 	}
 	
 	
@@ -1126,7 +1145,7 @@ statemachine import abstract class CPlayer extends CActor
 	
 	function SetIsSprinting( flag : bool )
 	{
-		
+		// If we are not changing anything, skip this
 		if( flag == isSprinting )
 		{
 			if ( flag && disableSprintingTimerEnabled )
@@ -1139,7 +1158,7 @@ statemachine import abstract class CPlayer extends CActor
 		
 		if ( flag )
 		{
-			theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( thePlayer, 'PlayerSprintAction', -1, 10.0f, 0.5f, -1, true); 
+			theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( thePlayer, 'PlayerSprintAction', -1, 10.0f, 0.5f, -1, true); //reactionSystemSearch
 			BreakPheromoneEffect();
 			RemoveTimer( 'DisableSprintingTimer' );
 			AddTimer('SprintingTimer', 0.01, true);
@@ -1148,7 +1167,7 @@ statemachine import abstract class CPlayer extends CActor
 		else 
 		{
 			sprintingTime = 0.0f;
-			theGame.GetBehTreeReactionManager().RemoveReactionEvent( thePlayer, 'PlayerSprintAction' ); 
+			theGame.GetBehTreeReactionManager().RemoveReactionEvent( thePlayer, 'PlayerSprintAction' ); //reactionSystemSearch
 			thePlayer.ResumeEffects(EET_AutoStaminaRegen, 'Sprint');
 			EnableSprintingCamera( false );
 		}
@@ -1234,14 +1253,14 @@ statemachine import abstract class CPlayer extends CActor
 		runningCamera = flag;
 	}
 	
-	
+	//called in loop while the player is sprinting
 	protected timer function SprintingTimer(dt : float, id : int)
 	{
 		if ( !thePlayer.modifyPlayerSpeed )
 		{
 			sprintingTime	+= dt;
 			
-			
+			//first 3.0 sec of sprinting is free;
 			if ( ShouldDrainStaminaWhileSprinting() )
 			{
 				DrainStamina(ESAT_Sprint, 0, 0, '', dt);
@@ -1391,16 +1410,18 @@ statemachine import abstract class CPlayer extends CActor
 	{
 		if( flag )
 		{
-			
+			thePlayer.SetBehaviorVariable( 'inJumpState', 1.f );
+			//BlockAction(EIAB_Interactions, 'InsideCombatAction' );
 		}
 		else
 		{
-			
+			thePlayer.SetBehaviorVariable( 'inJumpState', 0.f );
+			//UnblockAction(EIAB_Interactions, 'InsideCombatAction' );
 		}
 		
 		bIsInCombatAction = flag;
 		SetBehaviorVariable( 'isInCombatActionForOverlay', (float)bIsInCombatAction );
-		
+		//LogChannel('xxx', flag);
 	}
 	
 	public function SetBIsInCombatActionFriendly(flag : bool)
@@ -1447,13 +1468,13 @@ statemachine import abstract class CPlayer extends CActor
 		return false;		
 	}
 	
-	
+	//returns true if player can parry given attack type
 	final function CanParryAttack() : bool
 	{		
 		return inputHandler.IsActionAllowed(EIAB_Parry) && ParryCounterCheck() && !IsCurrentlyDodging() && super.CanParryAttack(); 
 	}
 	
-	
+	//returns true if player can perform parry or counter actions
 	protected function ParryCounterCheck() : bool
 	{
 		var combatActionType  : int;
@@ -1476,7 +1497,7 @@ statemachine import abstract class CPlayer extends CActor
 		return false;
 	}
 	
-	
+	//IF PLAYER IS MOUNTED
 	function SetIsHorseMounted( isOn : bool )
 	{
 		isHorseMounted = isOn;
@@ -1487,7 +1508,7 @@ statemachine import abstract class CPlayer extends CActor
 		return isHorseMounted;
 	}
 	
-	
+	//IF PLAYER HAS A COMPANION
 	function SetIsCompanionFollowing( isOn : bool )
 	{
 		isCompanionFollowing = isOn;
@@ -1497,70 +1518,70 @@ statemachine import abstract class CPlayer extends CActor
 		return isCompanionFollowing;
 	}
 
-	function SetStartScreenIsOpened( isOpened : bool) : void 
+	function SetStartScreenIsOpened( isOpened : bool) : void // #B
 	{
 		bStartScreenIsOpened = isOpened;
 		
-		
+		// this should be moved to more appropriate place
 		if( isOpened )
 			theSound.EnterGameState( ESGS_MusicOnly );
 		else
 			theSound.LeaveGameState( ESGS_MusicOnly );
 	}
 	
-	function GetStartScreenIsOpened( ) : bool 
+	function GetStartScreenIsOpened( ) : bool //#B
 	{
 		return bStartScreenIsOpened;
 	}
 	
-	function SetEndScreenIsOpened( isOpened : bool) : void 
+	function SetEndScreenIsOpened( isOpened : bool) : void // #B
 	{
 		bEndScreenIsOpened = isOpened;
 		
-		
+		// this should be moved to more appropriate place
 		if( isOpened )
 			theSound.EnterGameState( ESGS_MusicOnly );
 		else
 			theSound.LeaveGameState( ESGS_MusicOnly );
 	}
 	
-	function GetEndScreenIsOpened( ) : bool 
+	function GetEndScreenIsOpened( ) : bool //#B
 	{
 		return bEndScreenIsOpened;
 	}
 
-	function SetStartScreenFadeDuration( fadeTime : float) : void 
+	function SetStartScreenFadeDuration( fadeTime : float) : void // #B
 	{
 		fStartScreenFadeDuration = fadeTime;
 	}	
 
-	function GetStartScreenFadeDuration( ) : float 
+	function GetStartScreenFadeDuration( ) : float // #B
 	{
 		return fStartScreenFadeDuration;
 	}
 	
-	function SetStartScreenFadeInDuration( fadeTime : float) : void 
+	function SetStartScreenFadeInDuration( fadeTime : float) : void // #B
 	{
 		fStartScreenFadeInDuration = fadeTime;
 	}	
 
-	function GetStartScreenFadeInDuration( ) : float 
+	function GetStartScreenFadeInDuration( ) : float // #B
 	{
 		return fStartScreenFadeInDuration;
 	}
 	
-	function SetStartScreenEndWithBlackScreen( value : bool ) : void 
+	function SetStartScreenEndWithBlackScreen( value : bool ) : void // #B
 	{
 		bStartScreenEndWithBlackScreen = value;
 	}	
 	
-	function GetStartScreenEndWithBlackScreen( ) : bool 
+	function GetStartScreenEndWithBlackScreen( ) : bool // #B
 	{
 		return bStartScreenEndWithBlackScreen;
 	}
 	
-	
-	
+	//--------------------------------- Fast Travel Popup #B --------------------------------------
+	//---------------------------------------------------------------------------------------------	
 	public function CanStartTalk() : bool
 	{
 		var stateName : name;
@@ -1568,18 +1589,18 @@ statemachine import abstract class CPlayer extends CActor
 		return ( stateName != 'CombatSteel' && stateName != 'CombatSilver' && stateName != 'CombatFists' );	
 	}
 		
-	
-	
-	
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// @movement
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	public function UpdateRequestedDirectionVariables_PlayerDefault()
 	{
 		UpdateRequestedDirectionVariables( rawPlayerHeading, GetHeading() );
 	}
 	
-	
-	
-	
+	//////////////////////////////////////////////////////////////////////////////////////////
+	// Combat Actions
+	////////////////////////////////////////////////////////////////////////////////////////// 
 	
 	function SetGuarded( flag : bool )
 	{
@@ -1594,13 +1615,30 @@ statemachine import abstract class CPlayer extends CActor
 				thePlayer.EnableManualCameraControl( true, 'Guard' );
 		}
 		
-		
+		/*if ( (W3ReplacerCiri)this )
+		{
+			if ( flag )
+			{
+				specialParryEntityTemplate = (CEntityTemplate)LoadResource('ciri_force');
+				specialParryEntity = theGame.CreateEntity(specialParryEntityTemplate, this.GetWorldPosition(), this.GetWorldRotation());
+				specialParryEntity.CreateAttachment(this);
+			}
+			else if( specialParryEntity )
+			{
+				specialParryEntity.Destroy();
+				specialParryEntity = NULL;
+			}
+		}*/
 	}
 	
+	//private var specialParryEntityTemplate : CEntityTemplate;
+	//private var specialParryEntity : CEntity;
 	
-	
-	
-	
+	/*
+	public function IsGuarded() : bool
+	{
+		return IsLockedToTarget();
+	}*/
 	
 	event OnDelayOrientationChange();
 	
@@ -1656,16 +1694,20 @@ statemachine import abstract class CPlayer extends CActor
 		return inputModuleNeededToRun;
 	}
 	
-
+/////////////////////////////////////////////////////////////////////////////////
 	
 	event OnAnimEvent_AllowInput( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
 		if ( animEventType == AET_DurationStart )
 		{
-			
+			//LogChannel( 'AllowInput', "True: AET_DurationStart" );
 			SetBIsInputAllowed( true, 'AnimEventAllowInputStart' );
 		}
-		
+		/*else if ( animEventType == AET_DurationEnd )
+		{
+			//LogChannel( 'AllowInput', "False: AET_DurationEnd" );
+			SetBIsInputAllowed( false, 'AnimEventAllowInputEnd' );
+		}*/
 	}
 	
 	event OnAnimEvent_DisallowInput( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
@@ -1729,21 +1771,21 @@ statemachine import abstract class CPlayer extends CActor
 			{
 				inv.MountItem( currentlyEquipedItemL, true );
 				
-				
-				
-				
+				// Start task, that will wait until item is spawned, then it will call OnUsed() on spawned item in case,
+				// that it will be allowed to do so.
+				// One allows to use item when calls AllowUseSelectedItem().
 				thePlayer.StartWaitForItemSpawnAndProccesTask();
 			}
 		}
 		else if( ( animEventName == 'UseItemL' || animEventName == 'ItemUseL') )
 		{
-			
-			
+			// Flag that we want to use selected item ASAP.
+			// This will be catched by WaitForItemSpawnAndProccesTask.
 			thePlayer.AllowUseSelectedItem();
 		}
 		else if( animEventName == 'HideItemL' )
 		{
-			
+			// Kill the task.
 			thePlayer.KillWaitForItemSpawnAndProccesTask();
 		
 			if ( currentlyUsedItemL )
@@ -1763,12 +1805,12 @@ statemachine import abstract class CPlayer extends CActor
 			if ( this == thePlayer && !thePlayer.IsOnBoat() )
 			{
 				TurnOnRagdoll();
-				
+				//enabledRagdoll = true;
 			}
 		}
 	}
 	
-	
+	//called from Knockdown anim to trigger ragdoll earlier if player is in air (no tripping anim part)
 	event OnAnimEvent_InAirKDCheck( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
 		if(IsInAir())
@@ -1792,13 +1834,13 @@ statemachine import abstract class CPlayer extends CActor
 		illusionMedallion.Clear();
 	}
 	
-
+/////////////////////////////////////////////////////////////////////////////////
 
 	
 	event OnDiving(dir : int){}
 	event OnDive(){}
 	
-	
+	//it's handled only inside swimming state, so it will return false while in AimThrow state
 	event OnCheckDiving()				{ return false; }
 	event OnAllowShallowWaterCheck()	{ return true; }
 	event OnCheckUnconscious()			{ return false; }
@@ -1808,17 +1850,34 @@ statemachine import abstract class CPlayer extends CActor
 	
 	event OnIsCameraUnderwater()
 	{
+		//uncomment if you want this check to work all the time, otherwise it will be only checked when geralt is in swimming state
+		/*
+		var cameraPosition : Vector;
+		var waterLevel : float;
+		var diff : float;
 		
+		cameraPosition = theCamera.GetCameraPosition();
+		waterLevel = theGame.GetWorld().GetWaterLevel(cameraPosition);
+		diff = cameraPosition.Z - waterLevel;
 		
+		if ( diff >= 0 )
+		{
+			return true;
+		}
+		else if ( diff < 0 )
+		{
+			return false;
+		}
+		*/
 		return false;
 	}
 	
 			
-	
-	
-	
-	
-	
+	////////////////////////////////////0////////////////////////////////////
+	//
+	// Jumping
+	//
+	///////////////////////////////////////////////////////////////////////////
 	
 	event OnHitGround()
 	{
@@ -1828,11 +1887,11 @@ statemachine import abstract class CPlayer extends CActor
 	{		
 	}
 	
-	
-	
-	
-	
-	
+	///////////////////////////////////////////////////////////////////////////
+	//
+	// Different terrain types handling
+	//
+	///////////////////////////////////////////////////////////////////////////
 	
 	private function SetTerrModifier( val : float )
 	{
@@ -1854,12 +1913,12 @@ statemachine import abstract class CPlayer extends CActor
 	
 	public function SteppedOnTerrain( type : ETerrainType )
 	{	
-		
+		// Check if we stepped on different terrain
 		if( type != terrTypeOne && type != terrTypeTwo )
 		{
 			if( terrTypeOne == prevTerrType )
 			{
-				
+				// We just stepped off terrain with type 'terrTypeOne' - blend from it to the new one
 				SetTerrTypeTwo( type );
 				SetTerrModifier( 0.01f );
 			}
@@ -1886,11 +1945,11 @@ statemachine import abstract class CPlayer extends CActor
 		prevTerrType = type;
 	}
 	
-	
-	
-	
-	
-	
+	/////////////////////////////////////////////////////////
+	//
+	// Players comments
+	//
+	/////////////////////////////////////////////////////////
 	
 	function PlayerCanComment() : bool
 	{
@@ -1930,21 +1989,39 @@ statemachine import abstract class CPlayer extends CActor
 		{
 			commentaryCooldown = 20.0f;
 		}
-		if( commentaryType == PC_MedalionWarning  )
+		if( commentaryType == PC_MedalionWarning /*&& !thePlayer.IsNotGeralt()*/ )
 		{
-			PlayVoiceset( 1, "warning"  );
+			PlayVoiceset( 1, "warning" /*input name*/ );
 			hud.ShowOneliner( "My medallion", activeActor );
 			AddTimer( 'TurnOffOneliner', 3.5f );
 			
 		}
-		else if( commentaryType == PC_MonsterReaction  )
+		else if( commentaryType == PC_MonsterReaction /*&& !thePlayer.IsNotGeralt()*/ )
 		{
 			PlayVoiceset( 1, "monster" );
 		}
-		
+		/*else if ( commentaryType == PC_NCFMClueCommentTrace )
+		{
+			PlayVoiceset( 1, "over there" );
+			hud.ShowOneliner( "I found a trace!", activeActor );
+			AddTimer( 'TurnOffOneliner', 3.5f );
+			
+		}
+		else if ( commentaryType == PC_NCFMClueCommentRemainings )
+		{
+			PlayVoiceset( 1, "what is it" );
+			hud.ShowOneliner( "What's that?", activeActor );
+			AddTimer( 'TurnOffOneliner', 3.5f );
+		}
+		else if ( commentaryType == PC_NCFMClueSoundDetected )
+		{
+			PlayVoiceset( 1, "sound detected" );
+			hud.ShowOneliner( "So, there you're hiding!", activeActor );
+			AddTimer( 'TurnOffOneliner', 3.5f );
+		}*/
 		else if( commentaryType == PC_ColdWaterComment )
 		{
-			
+			//PlayVoiceset( 1, "I am freezing" );
 			hud.ShowOneliner( "Damn, it's cold!", activeActor );
 			AddTimer( 'TurnOffOneliner', 3.5f );
 		}
@@ -1957,11 +2034,11 @@ statemachine import abstract class CPlayer extends CActor
 		hud.HideOneliner( this );
 	}
 	
-	
-	
-	
-	
-	
+	///////////////////////////////////////////////////////////////////////
+	//
+	// Other
+	//
+	///////////////////////////////////////////////////////////////////////
 	
 	public function CanPlaySpecificVoiceset() : bool 					{ return canPlaySpecificVoiceset; }
 	public function SetCanPlaySpecificVoiceset( val : bool ) 			{ canPlaySpecificVoiceset = val; }
@@ -1995,7 +2072,7 @@ statemachine import abstract class CPlayer extends CActor
 		inv.RemoveMoney(amount);
 	}
 
-	function GetThrowItemMode() : bool 
+	function GetThrowItemMode() : bool //#B
 	{
 		return false;
 	}
@@ -2020,22 +2097,22 @@ statemachine import abstract class CPlayer extends CActor
 		return false;
 	}
 	
-	
+	// #B
 	function OnRadialMenuItemChoose( selectedItem : string )
 	{
-		
+		// abstract
 	}
 	
-	
-	public function UpdateQuickSlotItems() : bool 
+	// #B
+	public function UpdateQuickSlotItems() : bool // #B deprecated
 	{
 		return false;
 	}
 	
-	
-	public function SetUpdateQuickSlotItems(bUpdate : bool )  
+	// #B
+	public function SetUpdateQuickSlotItems(bUpdate : bool )  // #B deprecated
 	{
-		
+		// abstract
 	}
 	
 	public function RemoveAllPotionEffects(optional skip : array<CBaseGameplayEffect>)
@@ -2055,7 +2132,7 @@ statemachine import abstract class CPlayer extends CActor
 		return true;
 	}
 	
-	
+	//--------------------------------- QUEST TRACKER #B --------------------------------------
 		
 	public function GetCurrentTrackedQuestSystemObjectives() : array<SJournalQuestObjectiveData>
 	{
@@ -2101,35 +2178,35 @@ statemachine import abstract class CPlayer extends CActor
 		currentTrackedQuestGUID = cTQG;
 	}
 	
-	
-	public function GUIDCheckIfNew(checkGUID : CGUID ):bool
+	//@FIXME BIDON - fix the journal to send proper data to ui.
+	public function HAXCheckIfNew(checkGUID : CGUID ):bool
 	{
 		var i : int;
-		for( i = 0; i < NewObjGUIDTable.Size(); i += 1)
+		for( i = 0; i < HAXNewObjTable.Size(); i += 1)
 		{
-			if( NewObjGUIDTable[i] == checkGUID)
+			if( HAXNewObjTable[i] == checkGUID)
 			{
 				return false;
 			}
 		}
 		
-		NewObjGUIDTable.PushBack(checkGUID);
+		HAXNewObjTable.PushBack(checkGUID);
 		return true;
 	}
 			
-	public function GetShowHud() : bool 
+	public function GetShowHud() : bool //#B
 	{
 		return true;
 	}
 
 	public function SetShowHud( value : bool ) : void
 	{
-		
+		//abstract
 	}
 	
+	//--------------------------------- COMPANION MODULE #B --------------------------------------
 	
-	
-	
+	//--------------------------------- DEBUG --------------------------------------
 	
 	function DebugKillAll()
 	{
@@ -2148,12 +2225,12 @@ statemachine import abstract class CPlayer extends CActor
 		obstacleComponent.SetEnabled( false );
 	}
 	
-	public function DEBUGGetDisplayRadiusMinimapIcons():bool 
+	public function DEBUGGetDisplayRadiusMinimapIcons():bool //#B
 	{
 		return _DEBUGDisplayRadiusMinimapIcons;
 	}
 
-	public function DEBUGSetDisplayRadiusMinimapIcons(inValue : bool):void 
+	public function DEBUGSetDisplayRadiusMinimapIcons(inValue : bool):void //#B
 	{
 		_DEBUGDisplayRadiusMinimapIcons = inValue;
 	}
@@ -2163,23 +2240,23 @@ statemachine import abstract class CPlayer extends CActor
 		inputHandler.Dbg_UnlockAllActions();
 	}
 		
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////  @critical states  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
-	
-	
+	//called when critical buff's animation ends
 	event OnCriticalStateAnimStop()
 	{
 		SetBehaviorVariable( 'bCriticalState', 0);
 		CriticalStateAnimStopped(false);
-		if ( this.IsRagdolled() ) 
+		if ( this.IsRagdolled() ) // failSafe
 			this.RaiseForceEvent('RecoverFromRagdoll');
 		return true;
 	}
 	
 	event OnRecoverFromRagdollEnd()
 	{
-		if ( this.IsRagdolled() ) 
+		if ( this.IsRagdolled() ) // failSafe
 			this.SetKinematic(true);
 	}
 	
@@ -2187,7 +2264,7 @@ statemachine import abstract class CPlayer extends CActor
 	{
 		var buff : CBaseGameplayEffect;
 		
-		
+		//reapply critical buff if any
 		buff = ChooseCurrentCriticalBuffForAnim();
 		if(buff)
 		{
@@ -2212,9 +2289,9 @@ statemachine import abstract class CPlayer extends CActor
 	{
 		return OnCheckUnconscious();
 	}
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
 	
 	function IsSailing() : bool
 	{

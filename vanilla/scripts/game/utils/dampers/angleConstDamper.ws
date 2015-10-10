@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 class AngleConstDamper extends ConstDamper
 {
 	public function Update( dt : float )

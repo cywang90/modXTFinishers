@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 class W3QuestCond_BaseStat extends CQCActorScriptedCondition
 {
@@ -21,7 +19,7 @@ class W3QuestCond_BaseStat extends CQCActorScriptedCondition
 		
 		perc = act.GetStatPercents(stat);
 		
-		
+		//if doesn't have that stat
 		if(perc == -1)
 			return false;
 			

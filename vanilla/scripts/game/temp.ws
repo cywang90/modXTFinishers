@@ -1,10 +1,10 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Temporary functions, to be accessed from console
+/** Feel free to change contents of this file
+/** Copyright © 2009
+/***********************************************************************/
 
 exec function radialslotsstatus ()
 {
@@ -60,7 +60,60 @@ exec function fillChest( optional tag : name )
 		container.GetInventory().AddAnItem('Scoiatael sword 2 schematic');
 		container.GetInventory().AddAnItem('Scoiatael sword 3 schematic');
 
-	
+	/*
+		container.GetInventory().AddAnItem('Recipe for Beast Oil 1');
+		container.GetInventory().AddAnItem('Recipe for Beast Oil 2');
+		container.GetInventory().AddAnItem('Recipe for Beast Oil 3');
+		container.GetInventory().AddAnItem('Recipe for Cursed Oil 1');
+		container.GetInventory().AddAnItem('Recipe for Cursed Oil 2');
+		container.GetInventory().AddAnItem('Recipe for Cursed Oil 3');
+		container.GetInventory().AddAnItem('Recipe for Hanged Man Venom 1');
+		container.GetInventory().AddAnItem('Recipe for Hanged Man Venom 2');
+		container.GetInventory().AddAnItem('Recipe for Hanged Man Venom 3');
+		container.GetInventory().AddAnItem('Recipe for Hybrid Oil 1');
+		container.GetInventory().AddAnItem('Recipe for Hybrid Oil 2');
+		container.GetInventory().AddAnItem('Recipe for Hybrid Oil 3');
+		container.GetInventory().AddAnItem('Recipe for Insectoid Oil 1');
+		container.GetInventory().AddAnItem('Recipe for Insectoid Oil 2');
+		container.GetInventory().AddAnItem('Recipe for Insectoid Oil 3');
+		container.GetInventory().AddAnItem('Recipe for Magicals Oil 1');
+		container.GetInventory().AddAnItem('Recipe for Magicals Oil 2');
+		container.GetInventory().AddAnItem('Recipe for Magicals Oil 3');
+		container.GetInventory().AddAnItem('Recipe for Necrophage Oil 1');
+		container.GetInventory().AddAnItem('Recipe for Necrophage Oil 2');
+		container.GetInventory().AddAnItem('Recipe for Necrophage Oil 3');
+		container.GetInventory().AddAnItem('Recipe for Specter Oil 1');
+		container.GetInventory().AddAnItem('Recipe for Specter Oil 2');
+		container.GetInventory().AddAnItem('Recipe for Specter Oil 3');
+		container.GetInventory().AddAnItem('Recipe for Vampire Oil 1');
+		container.GetInventory().AddAnItem('Recipe for Vampire Oil 2');
+		container.GetInventory().AddAnItem('Recipe for Vampire Oil 3');
+		container.GetInventory().AddAnItem('Recipe for Draconide Oil 1');
+		container.GetInventory().AddAnItem('Recipe for Draconide Oil 2');
+		container.GetInventory().AddAnItem('Recipe for Draconide Oil 3');
+		container.GetInventory().AddAnItem('Recipe for Ogre Oil 1');
+		container.GetInventory().AddAnItem('Recipe for Ogre Oil 2');
+		container.GetInventory().AddAnItem('Recipe for Ogre Oil 3');
+		container.GetInventory().AddAnItem('Recipe for Relic Oil 1');
+		container.GetInventory().AddAnItem('Recipe for Relic Oil 2');
+		container.GetInventory().AddAnItem('Recipe for Relic Oil 3');
+		container.GetInventory().AddAnItem('Short sword 1 schematic');
+		container.GetInventory().AddAnItem('Short sword 2 schematic');
+		container.GetInventory().AddAnItem('Skellige sword 1 schematic');
+		container.GetInventory().AddAnItem('Lynx School steel sword schematic');
+		container.GetInventory().AddAnItem('Nilfgaardian sword 1 schematic');
+		container.GetInventory().AddAnItem('Novigraadan sword 1 schematic');
+		container.GetInventory().AddAnItem('No Mans Land sword 3 schematic');
+		container.GetInventory().AddAnItem('Skellige sword 2 schematic');
+		container.GetInventory().AddAnItem('Gryphon School steel sword schematic');
+		container.GetInventory().AddAnItem('Viper Steel sword schematic');
+		container.GetInventory().AddAnItem('No Mans Land sword 4 schematic');
+		container.GetInventory().AddAnItem('Scoiatael sword 2 schematic');
+		container.GetInventory().AddAnItem('Novigraadan sword 4 schematic');
+		container.GetInventory().AddAnItem('Nilfgaardian sword 4 schematic');
+		container.GetInventory().AddAnItem('Scoiatael sword 3 schematic');
+		container.GetInventory().AddAnItem('Inquisitor sword 1 schematic');
+	*/
 	}
 }
 
@@ -127,8 +180,8 @@ exec function OpenDoor ( doorTag : name )
 	
 	for(i=0; i<nodes.Size(); i+=1)
 	{
-		
-		
+		// old door system
+		// TODO: Remove once transition to the new system is complete
 		door = (W3Door)nodes[i];
 		if(door)
 		{
@@ -140,7 +193,7 @@ exec function OpenDoor ( doorTag : name )
 		}
 		else
 		{
-			
+			// new door system
 			entity = (CEntity)nodes[i];
 			if( !entity )
 			{
@@ -173,7 +226,7 @@ exec function OpenDoor ( doorTag : name )
 	}
 	
 }
-exec function FixNoticeboard( boardTag : name ) 
+exec function FixNoticeboard( boardTag : name ) // #B
 {
 	var board : W3NoticeBoard;
 	var i : int;
@@ -259,7 +312,7 @@ exec function ForceGraphicalLOD( lodLevel : int )
 	w.ForceGraphicalLOD( lodLevel );
 }
 
-
+//makes all petards become proximity
 exec function proxy()
 {
 	if(FactsQuerySum('debug_petards_proximity') <= 0)
@@ -308,17 +361,17 @@ exec function testtut(optional scriptTag : name, optional x : float, optional y 
 {
 	var tut : STutorialMessage;
 	
-	
+	//enable tutorials
 	if(!dontEnableMessages)
 		TutorialMessagesEnable(true);
 		
-	
+	//create tutorial object
 	theGame.GetTutorialSystem().TutorialStart(false);
 	
-	
+	//hide previous message
 	theGame.GetTutorialSystem().HideTutorialHint('', true);
 		
-	
+	//fill tutorial object data
 	if(fullscreen)
 		tut.type = ETMT_Message;
 	else
@@ -349,7 +402,7 @@ exec function testtut(optional scriptTag : name, optional x : float, optional y 
 	tut.fullscreen = true;
 	tut.force = true;
 	
-	
+	//show tutorial
 	theGame.GetTutorialSystem().DisplayTutorial(tut);
 }
 
@@ -475,12 +528,12 @@ exec function testreward()
 	}
 }
 
-exec function untut() 
+exec function untut() // #B debug function to remove effect of "tutorial freeze", temporary solution
 {
 	theGame.Unpause( "TutorialPopup" );
 }
 
-exec function eqbomb(itemName : name, optional slotID : int ) 
+exec function eqbomb(itemName : name, optional slotID : int ) // #B debug function to remove effect of "tutorial freeze", temporary solution
 {
 	var items 	: array<SItemUniqueId>;
 	var inv : CInventoryComponent;
@@ -502,7 +555,7 @@ exec function eqbomb(itemName : name, optional slotID : int )
 exec function FD( n : float, f : float, dt : float, ds : float)
 {
 	
-	
+	//theGame.GetFocusModeController().SetFadeParameters( 5.0, 20.0f, 16.0f, 30.0f );
 	theGame.GetFocusModeController().SetFadeParameters( n, f, dt, ds );
 }
 
@@ -687,15 +740,15 @@ class CTestTrigger extends CGameplayEntity
 	
 	timer function entryTimer( time : float, id : int)
 	{
-		
-		
-		
-		
-		
-		
+		// old solution
+		//entryTime+=time;
+		//if(entryTime > 5 )
+		//{
+		//	PlayerKinematicGlobal();
+		//	entryTime = 0;
 			
-		
-		
+		//	RemoveTimer( 'entryTimer' );
+		//}
 	}
 	
 	event OnAreaEnter( area : CTriggerAreaComponent, activator : CComponent )
@@ -716,15 +769,15 @@ class CTestTrigger extends CGameplayEntity
 			}
 		}
 		
-		
-		
-		
+		// old solution
+		//PlayerDynamicGlobal();
+		//AddTimer( 'entryTimer', timerInterval, true );
 	}	
 	
 	event OnAreaExit( area : CTriggerAreaComponent, activator : CComponent )
 	{
-		
-		
+		// old solution
+		//entryTime = 0;
 	}
 };	
 
@@ -804,6 +857,13 @@ class W3KillTestTrigger extends CGameplayEntity
 	}
 };
 
+exec function autoloot()
+{
+	var boool : bool;
+	boool = GetWitcherPlayer().HAXE3GetAutoLoot();
+	GetWitcherPlayer().HAXE3SetAutoLoot(!boool);
+}
+
 exec function SM()
 {
 	var player : CR4Player;
@@ -866,7 +926,7 @@ exec function testtutorial(msgName : name, optional isNotHint : bool, optional d
 	theGame.GetTutorialSystem().DisplayTutorial(tut);
 }
 
-
+//Sub Zero wins... Printability
 exec function printability(tag : name)
 {
 	var abilities, tmp : array<name>;
@@ -887,7 +947,7 @@ exec function printability(tag : name)
 		LogChannel('Ability', "Logging abilities (" + size + ") of <<" + actor + ">>");
 		for(i = 0; i < size; i += 1)
 		{
-			
+			//merge the duplicates to know how many instances of any given ability we have
 			j = tmp.FindFirst(abilities[i]);
 			if(j >= 0)
 			{
@@ -908,7 +968,7 @@ exec function printability(tag : name)
 	}
 }
 
-exec function DebugActivateJournal() 
+exec function DebugActivateJournal() //#B DON'T USE IF DON'T KNOW WHAT ARE YOU DOING - MAY EXPLODE !!!111! 
 {
 	var manager : CWitcherJournalManager;
 	var entries : array< CJournalBase >;
@@ -922,7 +982,33 @@ exec function DebugActivateJournal()
 	
 	manager = theGame.GetJournalManager();
 	
-	
+	/*tags.PushBack('QuestPhasePrologue');
+	tags.PushBack('QuestPhaseChapter1');
+	tags.PushBack('QuestPhaseChapter2');
+	tags.PushBack('QuestPhaseChapter3');
+	tags.PushBack('QuestPhaseEpilogue');
+	tags.PushBack('QuestPhaseSidequests');
+	tags.PushBack('QuestPhaseMinorquests');
+	tags.PushBack('QuestPhaseGeneric');
+	tags.PushBack('DebugCharacterGroup');
+	tags.PushBack('DebugGlossaryGroup');
+	tags.PushBack('DebugTutorialGroup');
+	tags.PushBack('MonsterType1');	
+	tags.PushBack('MonsterType2');	
+	tags.PushBack('MonsterType5');	
+	tags.PushBack('MonsterType6');	
+	tags.PushBack('MonsterType7');	
+	tags.PushBack('MonsterType8');	
+	tags.PushBack('MonsterType9');	
+	tags.PushBack('MonsterType11');	
+	tags.PushBack('MonsterType12');	
+	tags.PushBack('MonsterType10');	
+	tags.PushBack('MonsterTypeHumans');	
+	tags.PushBack('StoryBookPrologue');	
+	tags.PushBack('StoryBookChapter1');	
+	tags.PushBack('StoryBookChapter2');	
+	tags.PushBack('StoryBookChapter3');	
+	tags.PushBack('StoryBookEpilogue');	*/
 
 	tags.PushBack('DebugCharacter');
 	tags.PushBack('DebugGlossary');
@@ -965,7 +1051,12 @@ exec function DebugActivateJournal()
 	tags.PushBack('bestiary_griffon');
 	tags.PushBack('bestiary_katakan');
 	tags.PushBack('Human');
-	
+	/*
+	tags.PushBack('StoryBookPrologue');	
+	tags.PushBack('StoryBookChapter1');	
+	tags.PushBack('StoryBookChapter2');	
+	tags.PushBack('StoryBookChapter3');	
+	tags.PushBack('StoryBookEpilogue');	*/
 	
 	for( i = 0; i < tags.Size(); i += 1 )
 	{
@@ -1008,7 +1099,12 @@ exec function DebugActivateJournal()
 								for( m = 0; m < tempContainer4.GetNumChildren(); m += 1 )
 								{
 									manager.ActivateEntry(tempContainer4.GetChild(m),JS_Active);
-									
+									/*if( (int)tempContainer4.GetNumChildren() > 0 )
+									{
+										LogChannel('DJOUR'," ");
+										LogChannel('DJOUR',"!!!!!! YOU MUST BE FUCKING KIDDING !!!!!");
+										LogChannel('DJOUR',"  ");
+									}*/
 								}
 							}
 						}
@@ -1153,7 +1249,7 @@ class W2BalanceCalc
 		statFocus = npc.GetStat(BCS_Focus);
 		statToxicity = npc.GetStat(BCS_Toxicity);
 		statMorale = npc.GetStat(BCS_Morale);
-		
+		//statSickness = npc.GetStatAdd('sickness'); ??
 		
 	}
 	function PrintActorStats(actor : CActor)
@@ -1207,33 +1303,226 @@ class W2BalanceCalc
 	}
 	function CalculateActorCost()
 	{
-		
+		/*costVitality  = statVitality  * costconstVitality;
+		costArmor  = statArmor  * costconstArmor;
+		costVitalityRegenCombat = statVitalityRegenCombat * costconstVitalityRegenCombat;
+		costDamage  = statDamage  * costconstDamage;
+		costBleedChance = statBleedChance * costconstBleedChance;
+		costPoisonChance = statPoisonChance * costconstPoisonChance;
+		costResBleed = statResBleed * costconstResBleed;
+		costResBurn = statResBurn * costconstResBurn;
+		costResPoison = statResPoison * costconstResPoison;
+		costResKnockdown = statResKnockdown * costconstResKnockdown;
+		costResStun = statResStun * costconstResStun;
+		costResAard = statResAard * costconstResAard;
+		costResIgni = statResIgni * costconstResIgni;
+		costResAxii = statResAxii * costconstResAxii;
+		costResYrden = statResYrden * costconstResYrden;
+		costResQuen = statResQuen * costconstResQuen;
+		costLevel = statLevel * costconstLevel;
+		costDamageRanged = statDamageRanged * costconstDamageRanged;
+		costShotAccuracy = statShotAccuracy * costconstShotAccuracy;
+		costIsAMage = statIsAMage * costconstIsAMage;
+		cost = 		costVitality+ 
+					costArmor +
+					costVitalityRegenCombat +
+					costDamage +
+					costBleedChance +
+					costPoisonChance +
+					costResBleed+
+					costResBurn +
+					costResPoison+
+					costResKnockdown +
+					costResStun +
+					costResAard+
+					costResIgni +
+					costResAxii+
+					costResYrden +
+					costResQuen+
+					costIsAMage+
+					costShotAccuracy+
+					costDamageRanged+
+					costLevel;*/
 	}
 	function SetPlayerStats()
 	{
-		
+		//Stats
 		statVitality = thePlayer.GetStatMax(BCS_Vitality);
 		statEssence = thePlayer.GetStatMax(BCS_Essence);
 		statStamina = thePlayer.GetStatMax(BCS_Stamina);
 		statFocus = thePlayer.GetStatMax(BCS_Focus);
 		statToxicity = thePlayer.GetStatMax(BCS_Toxicity);
 		statMorale = thePlayer.GetStatMax(BCS_Morale);
-		
+		//FIXME statSickness = ?;
 		
 
 	}
 	function SetCosts()
 	{
-		
+		/*costconstVitality = 10; 
+		costconstEndurance = 500;
+		costconstEnduranceRegenCombat = 500;
+		costconstEnduranceRegenNonCombat = 250;
+		costconstArmor = 10; 
+		costconstVitalityRegenCombat = 100;
+		costconstVitalityRegenNonCombat = 50;  
+		costconstDamage = 10; 
+		costconstAardDamage = 20; 
+		costconstIgniDamage = 20; 
+		costconstYrdenDamage = 20; 
+		costconstQuenDamage = 10;
+		costconstAardKnockChance = 100; 
+		costconstBleedChance = 50;
+		costconstPoisonChance = 50;
+		costconstIgniBurnChance = 50; 
+		costconstYrdenTime = 2;
+		costconstYrdenTraps = 100;
+		costconstIgniBurnTime = 10; 
+		costconstQuenTime = 10;
+		costconstResBleed = 50;
+		costconstResBurn = 50;
+		costconstResPoison = 50;
+		costconstResKnockdown = 50;
+		costconstResStun = 50;
+		costconstResAard = 50;
+		costconstResIgni = 50;
+		costconstResAxii = 50;
+		costconstResYrden = 50;
+		costconstResQuen = 50;
+		costconstAdrenalineGeneration = 5;
+		costconstMaxAxiiTargets = 100;
+		costconstMaxQuenTargets = 100;
+		costconstDaggerThrow = 100;
+		costconstHeliotrope = 500;
+		costconstDamagePetards = 10;
+		costconstDamageTraps = 10;
+		costconstPotionsTimeBonus = 10;
+		costconstOilsTimeBonus = 10;
+		costconstAdditionalPotion = 500;
+		costconstInstantKill = 250;
+		costconstBerserk = 500;
+		costconstBackDamageBonus = 1;
+		costconstRiposte = 250;
+		costconstDodgeRange = 1;
+		costconstBlockEndurance = 50;
+		costconstGroupAttacks = 200;
+		costconstGroupFinishers = 500;
+		costconstNumPetards = 100;
+		costconstLevel = 10;
+		costconstDamageRanged = 20;
+		costconstShotAccuracy = 2;
+		costconstIsAMage = 200;*/
 	}
 	function CalculateCostsForPlayer()
 	{
-		
+		/*costVitality  = statVitality  * costconstVitality;
+	costEndurance = statEndurance * costconstEndurance;
+	costEnduranceRegenCombat = statEnduranceRegenCombat * costconstEnduranceRegenCombat;
+	costEnduranceRegenNonCombat = statEnduranceRegenNonCombat * costconstEnduranceRegenNonCombat;
+	costArmor  = statArmor  * costconstArmor;
+	costVitalityRegenCombat = statVitalityRegenCombat * costconstVitalityRegenCombat;
+	costVitalityRegenNonCombat   = statVitalityRegenNonCombat   * costconstVitalityRegenNonCombat ;
+	costDamage  = statDamage  * costconstDamage;
+	costAardDamage  = statAardDamage  * costconstAardDamage;
+	costIgniDamage  = statIgniDamage  * costconstIgniDamage;
+	costYrdenDamage  = statYrdenDamage  * costconstYrdenDamage;
+	costQuenDamage = statQuenDamage * costconstQuenDamage;
+	costAardKnockChance  = statAardKnockChance  * costconstAardKnockChance;
+	costBleedChance = statBleedChance * costconstBleedChance;
+	costPoisonChance = statPoisonChance * costconstPoisonChance;
+	costIgniBurnChance  = statIgniBurnChance  * costconstIgniBurnChance;
+	costYrdenTime = statYrdenTime * costconstYrdenTime;
+	costYrdenTraps = statYrdenTraps * costconstYrdenTraps;
+	costIgniBurnTime  = statIgniBurnTime  * costconstIgniBurnTime;
+	costQuenTime = statQuenTime * costconstQuenTime;
+	costResBleed = statResBleed * costconstResBleed;
+	costResBurn = statResBurn * costconstResBurn;
+	costResPoison = statResPoison * costconstResPoison;
+	costResKnockdown = statResKnockdown * costconstResKnockdown;
+	costResStun = statResStun * costconstResStun;
+	costResAard = statResAard * costconstResAard;
+	costResIgni = statResIgni * costconstResIgni;
+	costResAxii = statResAxii * costconstResAxii;
+	costResYrden = statResYrden * costconstResYrden;
+	costResQuen = statResQuen * costconstResQuen;
+	costAdrenalineGeneration = statAdrenalineGeneration * costconstAdrenalineGeneration;
+	costMaxAxiiTargets = statMaxAxiiTargets * costconstMaxAxiiTargets;
+	costMaxQuenTargets = statMaxQuenTargets * costconstMaxQuenTargets;
+	costDaggerThrow = statDaggerThrow * costconstDaggerThrow;
+	costHeliotrope = statHeliotrope * costconstHeliotrope;
+	costDamagePetards = statDamagePetards * costconstDamagePetards;
+	costDamageTraps = statDamageTraps * costconstDamageTraps;
+	costPotionsTimeBonus = statPotionsTimeBonus * costconstPotionsTimeBonus;
+	costOilsTimeBonus = statOilsTimeBonus * costconstOilsTimeBonus;
+	costAdditionalPotion = statAdditionalPotion * costconstAdditionalPotion;
+	costInstantKill = statInstantKill * costconstInstantKill;
+	costBerserk = statBerserk * costconstBerserk;
+	costBackDamageBonus = statBackDamageBonus * costconstBackDamageBonus;
+	costRiposte = statRiposte * costconstRiposte;
+	costDodgeRange = statDodgeRange * costconstDodgeRange;
+	costBlockEnduranceCost = costconstBlockEndurance / statBlockEnduranceCost;
+	costGroupAttacks = statGroupAttacks * costconstGroupAttacks;
+	costGroupFinishers = statGroupFinishers * costconstGroupFinishers;
+	costNumPetards = statNumPetards * costconstNumPetards;
+	costLevel = statLevel * costconstLevel;
+	
+	
+	//Liczenie kosztu
+	cost = 	costVitality +
+			costEndurance+
+			costEnduranceRegenCombat+
+			costEnduranceRegenNonCombat+
+			costArmor +
+			costVitalityRegenCombat+
+			costVitalityRegenNonCombat  +
+			costDamage +
+			costAardDamage +
+			costIgniDamage +
+			costYrdenDamage +
+			costQuenDamage+
+			costAardKnockChance +
+			costBleedChance+
+			costPoisonChance+
+			costIgniBurnChance +
+			costYrdenTime+
+			costYrdenTraps+
+			costIgniBurnTime +
+			costQuenTime+
+			costResBleed+
+			costResBurn+
+			costResPoison+
+			costResKnockdown+
+			costResStun+
+			costResAard+
+			costResIgni+
+			costResAxii+
+			costResYrden+
+			costResQuen+
+			costAdrenalineGeneration+
+			costMaxAxiiTargets+
+			costMaxQuenTargets+
+			costDaggerThrow+
+			costHeliotrope+
+			costDamagePetards+
+			costDamageTraps+
+			costPotionsTimeBonus+
+			costOilsTimeBonus+
+			costAdditionalPotion+
+			costInstantKill+
+			costBerserk+
+			costBackDamageBonus+
+			costRiposte+
+			costDodgeRange+
+			costBlockEnduranceCost+
+			costGroupAttacks+
+			costGroupFinishers+
+			costNumPetards+
+			costLevel;*/
 	}
 	function PrintPlayerStats()
 	{
 		SetPlayerStats();
-		
+		//SetCosts();
 		CalculateCostsForPlayer();
 		Log("---------- Geralt stats START ------------");
 		Log("Vitality " + statVitality);
@@ -1270,7 +1559,7 @@ class W2BalanceCalc
 		
 		Log("Used Items:");
 		
-		
+		//Log("Difficulty = " + theGame.GetDifficultyLevel());
 		
 		Log("---------- Geralt stats END --------------");
 	}
@@ -1460,7 +1749,7 @@ class W3ProjectileShooterTest extends CActor
 		node = theGame.GetNodeByTag( targetTag );
 
 		projectile.Init( this );
-		projectile.ShootProjectileAtNode( 45.f, 20.f,  node, 1000.f );
+		projectile.ShootProjectileAtNode( 45.f, 20.f, /*0.f,*/ node, 1000.f );
 	}
 	
 };
@@ -1596,7 +1885,7 @@ exec function addbombs(optional notInfinite : bool)
 exec function freezetodeath()
 {
 	var arr : array<SItemUniqueId>;
-	
+	//arr = thePlayer.inv.AddAnItem('White Frost 1', 20);
 	arr = thePlayer.inv.AddAnItem('Freeze to death', 20);	
 	thePlayer.EquipItem(arr[0], EES_Quickslot1);
 	GetWitcherPlayer().SelectQuickslotItem( EES_Quickslot1 );
@@ -1611,8 +1900,8 @@ exec function addbolts(optional infinite : bool)
 		FactsAdd("debug_fact_inf_bolts");
 	}
 
-
-
+//	thePlayer.inv.AddAnItem('Bodkin Bolt',9);
+//	thePlayer.inv.AddAnItem('Harpoon Bolt', 9);
 	
 	thePlayer.inv.AddAnItem('Tracking Bolt',9);
 	thePlayer.inv.AddAnItem('Bait Bolt',9);
@@ -1629,7 +1918,7 @@ exec function addbolts(optional infinite : bool)
 	thePlayer.inv.AddAnItem('Explosive Bolt Legendary',9);
 }
 
-
+//adds items to test crafting panel
 exec function addcraft()
 {
 	thePlayer.inv.AddAnItem('Hardened leather', 10);
@@ -1648,7 +1937,7 @@ exec function addcraft()
 	thePlayer.AddMoney(50000);
 }
 
-
+//adds all non-school player steel swords to the player's inventory
 exec function addsteelswords()
 {
 	thePlayer.inv.AddAnItem('Long Steel Sword',1);
@@ -1694,7 +1983,7 @@ exec function addsteelswords()
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds all player school steel swords to the player's inventory
 exec function addsteelswords2()
 {
 	thePlayer.inv.AddAnItem('Bear School steel sword',1);
@@ -1713,7 +2002,7 @@ exec function addsteelswords2()
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds all player silver swords to the player's inventory
 exec function addwolfdlc(optional dontOpenInv : bool)
 {
 	thePlayer.inv.AddAnItem('Wolf Armor', 1);
@@ -1746,7 +2035,7 @@ exec function addwolfdlc(optional dontOpenInv : bool)
 	}
 }
 
-
+//adds all player silver swords to the player's inventory
 exec function addsilverswords(optional dontOpenInv : bool)
 {
 	thePlayer.inv.AddAnItem('Witcher Silver Sword',1);
@@ -1786,7 +2075,7 @@ exec function addsilverswords(optional dontOpenInv : bool)
 		theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds all player school steel swords to the player's inventory
 exec function addsilverswords2()
 {
 	thePlayer.inv.AddAnItem('Bear School silver sword',1);
@@ -1809,7 +2098,7 @@ exec function addsilverswords2()
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds all player crossbows to the player's inventory
 exec function addcrossbows()
 {
 	thePlayer.inv.AddAnItem('Crossbow 1',1);
@@ -1827,7 +2116,7 @@ exec function addcrossbows()
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds player torso armor to the player's inventory
 exec function addarmor()
 {
 	thePlayer.inv.AddAnItem('Heavy armor 01',1);
@@ -1839,7 +2128,7 @@ exec function addarmor()
 	thePlayer.inv.AddAnItem('Light armor 02',1);
 	thePlayer.inv.AddAnItem('Light armor 03',1);
 	thePlayer.inv.AddAnItem('Light armor 04',1);
-
+//	thePlayer.inv.AddAnItem('Light armor 05',1);
 	thePlayer.inv.AddAnItem('Light armor 06',1);
 	thePlayer.inv.AddAnItem('Light armor 07',1);
 	thePlayer.inv.AddAnItem('Light armor 08',1);
@@ -1849,13 +2138,13 @@ exec function addarmor()
 	thePlayer.inv.AddAnItem('Medium armor 03',1);
 	thePlayer.inv.AddAnItem('Medium armor 04',1);
 	thePlayer.inv.AddAnItem('Medium armor 05',1);
-
+//	thePlayer.inv.AddAnItem('Medium armor 06',1);
 	thePlayer.inv.AddAnItem('Medium armor 07',1);
-
-
+//	thePlayer.inv.AddAnItem('Medium armor 08',1);
+//	thePlayer.inv.AddAnItem('Medium armor 09',1);
 	thePlayer.inv.AddAnItem('Medium armor 10',1);
 	thePlayer.inv.AddAnItem('Medium armor 11',1);
-
+//	thePlayer.inv.AddAnItem('Wild Hunt armor 01',1);
 	thePlayer.inv.AddAnItem('Nilfgaardian Casual Suit 01',1);
 	thePlayer.inv.AddAnItem('Nilfgaardian Casual Suit 02',1);
 	thePlayer.inv.AddAnItem('Nilfgaardian Casual Suit 03',1);
@@ -1865,7 +2154,7 @@ exec function addarmor()
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds player torso armor to the player's inventory
 exec function addarmor2()
 {
 	thePlayer.inv.AddAnItem('Starting Armor',1);
@@ -1893,12 +2182,12 @@ exec function addarmor2()
 	thePlayer.inv.AddAnItem('Skellige Casual Suit 01',1);
 	thePlayer.inv.AddAnItem('Skellige Casual Suit 02',1);
 	thePlayer.inv.AddAnItem('sq108_heavy_armor',1);
-	
+	// thePlayer.inv.AddAnItem('Nithral body torso 01',1);
 	
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds player pants armor to the player's inventory
 exec function addpants()
 {
 	thePlayer.inv.AddAnItem('Starting Pants',1);
@@ -1929,7 +2218,7 @@ exec function addpants()
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds boots to the player's inventory
 exec function addboots()
 {
 	thePlayer.inv.AddAnItem('Starting Boots',1);
@@ -1958,7 +2247,7 @@ exec function addboots()
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds all player gloves to the player's inventory
 exec function addgloves()
 {
 	thePlayer.inv.AddAnItem('Starting Gloves',1);
@@ -1985,7 +2274,7 @@ exec function addgloves()
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds all set items of level 1
 exec function addsets()
 {
 	thePlayer.inv.AddAnItem('Wolf Boots 1',1);
@@ -2019,7 +2308,7 @@ exec function addsets()
 	thePlayer.inv.AddAnItem('Wolf School silver sword',1);
 }
 
-
+//adds books to the player's inventory
 exec function addbooks()
 {
 	addbooks_();
@@ -2073,7 +2362,7 @@ function addbooks_()
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds lore books to the player's inventory
 exec function addlore()
 {
 	thePlayer.inv.AddAnItem('lore_imperial_edict_i',1);
@@ -2120,7 +2409,7 @@ exec function addlore()
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds second batch of lore books to the player's inventory
 exec function addlore2()
 {
 	thePlayer.inv.AddAnItem('lore_elder_blood',1);
@@ -2163,7 +2452,7 @@ exec function addlore2()
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds all food items to the player's inventory
 exec function addfood()
 {
 	thePlayer.inv.AddAnItem( 'Beauclair White', 1 );
@@ -2240,7 +2529,7 @@ exec function addfood()
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds drink and alcohol items to the player's inventory
 exec function adddrinks(optional cnt : int, optional noMenu : bool)
 {
 	if(cnt == 0)
@@ -2273,7 +2562,7 @@ exec function adddrinks(optional cnt : int, optional noMenu : bool)
 		theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds all trophy items to the player's inventory
 exec function addtrophies()
 {
 	thePlayer.inv.AddAnItem('Nekkers Trophy',1);
@@ -2316,13 +2605,13 @@ exec function addtrophies()
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds all misc type items to the player's inventory
 exec function addmisc()
 {
 	thePlayer.inv.AddAnItem('Horn_of_Hornwales',1);
 	thePlayer.inv.AddAnItem('Painting_of_hemmelfart',1);
-	
-	
+	// thePlayer.inv.AddAnItem('Ring of Power',1);
+	// thePlayer.inv.AddAnItem('Grey Wizard pipe',1);
 	thePlayer.inv.AddAnItem('Weapon repair kit 1',1);
 	thePlayer.inv.AddAnItem('Weapon repair kit 2',1);
 	thePlayer.inv.AddAnItem('Weapon repair kit 3',1);
@@ -2334,21 +2623,21 @@ exec function addmisc()
 	thePlayer.inv.AddAnItem('q106_magic_oillamp',1);
 	thePlayer.inv.AddAnItem('Oil Lamp',1);
 	thePlayer.inv.AddAnItem('Illusion Medallion',1);
-	
+	// thePlayer.inv.AddAnItem('Leather patches',1);
 	thePlayer.inv.AddAnItem('q103_bell',1);
 	thePlayer.inv.AddAnItem('202_hornval_horn',1);
 	thePlayer.inv.AddAnItem('q203_eyeofloki',1);
-	
-	
+	// thePlayer.inv.AddAnItem('q311_spiral_key',1);
+	//thePlayer.inv.AddAnItem('q401_no_magic_dowser',1);
 	thePlayer.inv.AddAnItem('ciris_phylactery',1);
 	thePlayer.inv.AddAnItem('q403_ciri_meteor',1);
 	thePlayer.inv.AddAnItem('mh107_czart_lure',1);
-	
+	// thePlayer.inv.AddAnItem('imlerith_shield_debris',1);
 	
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds all horse type items to the player's inventory
 exec function addhorseitems()
 {
 	thePlayer.inv.AddAnItem('Horse Bag 1',1);
@@ -2421,7 +2710,7 @@ exec function WitcherHairstyle( number : int )
 	inv.MountItem(ids[0]);
 }
 
-
+//adds all upgrade items to the player's inventory
 exec function addupgrades(optional count : int, optional dontOpenUI : bool)
 {
 	if(count == 0)
@@ -2457,7 +2746,40 @@ exec function addupgrades(optional count : int, optional dontOpenUI : bool)
 	thePlayer.inv.AddAnItem('Rune elemental lesser', count);
 	thePlayer.inv.AddAnItem('Rune elemental', count);
 	thePlayer.inv.AddAnItem('Rune elemental greater', count);
+	thePlayer.inv.AddAnItem('Rune tvarog', count);
+	thePlayer.inv.AddAnItem('Rune pierog', count);
 	
+	thePlayer.inv.AddAnItem('Glyph aard lesser', count);
+	thePlayer.inv.AddAnItem('Glyph aard', count);
+	thePlayer.inv.AddAnItem('Glyph aard greater', count);
+	thePlayer.inv.AddAnItem('Glyph axii lesser', count);
+	thePlayer.inv.AddAnItem('Glyph axii', count);
+	thePlayer.inv.AddAnItem('Glyph axii greater', count);
+	thePlayer.inv.AddAnItem('Glyph igni lesser', count);
+	thePlayer.inv.AddAnItem('Glyph igni', count);
+	thePlayer.inv.AddAnItem('Glyph igni greater', count);
+	thePlayer.inv.AddAnItem('Glyph quen lesser', count);
+	thePlayer.inv.AddAnItem('Glyph quen', count);
+	thePlayer.inv.AddAnItem('Glyph quen greater', count);
+	thePlayer.inv.AddAnItem('Glyph yrden lesser', count);
+	thePlayer.inv.AddAnItem('Glyph yrden', count);
+	thePlayer.inv.AddAnItem('Glyph yrden greater', count);
+	thePlayer.inv.AddAnItem('Glyph warding lesser', count);
+	thePlayer.inv.AddAnItem('Glyph warding', count);
+	thePlayer.inv.AddAnItem('Glyph warding greater', count);
+	thePlayer.inv.AddAnItem('Glyph binding lesser', count);
+	thePlayer.inv.AddAnItem('Glyph binding', count);
+	thePlayer.inv.AddAnItem('Glyph binding greater', count);
+	thePlayer.inv.AddAnItem('Glyph mending lesser', count);
+	thePlayer.inv.AddAnItem('Glyph mending', count);
+	thePlayer.inv.AddAnItem('Glyph mending greater', count);
+	thePlayer.inv.AddAnItem('Glyph binding lesser', count);
+	thePlayer.inv.AddAnItem('Glyph binding', count);
+	thePlayer.inv.AddAnItem('Glyph binding greater', count);
+	thePlayer.inv.AddAnItem('Glyph reinforcement lesser', count);
+	thePlayer.inv.AddAnItem('Glyph reinforcement', count);
+	thePlayer.inv.AddAnItem('Glyph reinforcement greater', count);
+
 	if(!dontOpenUI)
 		theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
@@ -3149,7 +3471,7 @@ exec function addcraftedboots()
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds all boot schematics to the player's inventory
 exec function addschematicsboots()
 {
 	thePlayer.inv.AddAnItem('Boots 1 schematic',1);
@@ -3164,7 +3486,7 @@ exec function addschematicsboots()
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds all pants schematics to the player's inventory
 exec function addschematicspants()
 {
 	thePlayer.inv.AddAnItem('Pants 1 schematic',1);
@@ -3179,7 +3501,7 @@ exec function addschematicspants()
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 	
-
+//adds all glove schematics schematics to the player's inventory
 exec function addschematicsgloves()
 {
 	thePlayer.inv.AddAnItem('Gloves 1 schematic',1);
@@ -3195,7 +3517,7 @@ exec function addschematicsgloves()
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds all witcher armor schematics to the player's inventory
 exec function addschematicsarmor()
 {
 	thePlayer.inv.AddAnItem('Lynx Armor schematic',1);
@@ -3241,7 +3563,7 @@ exec function addschematicsarmor()
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds all component schematics to the player's inventory
 exec function addschematicscomponents()
 {
 	thePlayer.inv.AddAnItem('Steel ingot schematic',1);
@@ -3273,8 +3595,25 @@ exec function addschematicscomponents()
 	
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
-	
 
+exec function addsecondary()
+{
+	thePlayer.inv.AddAnItem('W_Axe01',1);
+	thePlayer.inv.AddAnItem('W_Axe02',1);
+	thePlayer.inv.AddAnItem('W_Axe03',1);
+	thePlayer.inv.AddAnItem('W_Axe04',1);
+	thePlayer.inv.AddAnItem('W_Axe05',1);
+	thePlayer.inv.AddAnItem('W_Axe06',1);
+	thePlayer.inv.AddAnItem('W_Club',1);
+	thePlayer.inv.AddAnItem('W_Mace01',1);
+	thePlayer.inv.AddAnItem('W_Mace02',1);
+	thePlayer.inv.AddAnItem('W_Pickaxe',1);
+	thePlayer.inv.AddAnItem('W_Poker',1);
+
+	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
+}
+
+//adds all upgrade schematics to the player's inventory
 exec function addschematicsupgrades()
 {
 	thePlayer.inv.AddAnItem('Witcher Bear Jacket Upgrade schematic 1',1);
@@ -3329,7 +3668,7 @@ exec function addschematicsupgrades()
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds all crossbow bolt schematics to the player's inventory
 exec function addschematicsbolts()
 {
 	thePlayer.inv.AddAnItem('Bodkin Bolt schematic',1);
@@ -3344,7 +3683,7 @@ exec function addschematicsbolts()
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds all mutagen items and potions to the player's inventory
 exec function addmutagens()
 {
 	thePlayer.inv.AddAnItem('Mutagen Sword',1);
@@ -3449,7 +3788,7 @@ exec function addmutagenrecipes()
 	GetWitcherPlayer().AddAlchemyRecipe('Recipe for Mutagen 28');
 }
 
-
+//adds all oil recipes to the player's inventory
 exec function addrecipesoils()
 {
 	thePlayer.inv.AddAnItem('Recipe for Beast Oil 1',1);
@@ -3489,7 +3828,7 @@ exec function addrecipesoils()
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds all bomb recipes to the player's inventory
 exec function addrecipesbombs()
 {
 	thePlayer.inv.AddAnItem('Recipe for Dancing Star 1',1);
@@ -3518,7 +3857,7 @@ exec function addrecipesbombs()
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds some potion recipes to the player's inventory
 exec function addrecipespotions()
 {
 	thePlayer.inv.AddAnItem('Recipe for Black Blood 1',1);
@@ -3561,7 +3900,7 @@ exec function addrecipespotions()
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds remaining potion recipes to the player's inventory
 exec function addrecipespotions2()
 {
 	thePlayer.inv.AddAnItem('Recipe for Trial Potion 1',1);
@@ -3581,7 +3920,7 @@ exec function addrecipespotions2()
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds all herbs recipes to the player's inventory
 exec function addherbs(optional cnt : int, optional noMenu : bool)
 {
 	if(cnt == 0)
@@ -3627,7 +3966,7 @@ exec function addherbs(optional cnt : int, optional noMenu : bool)
 		theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds all keys to the player's inventory
 exec function addkeys()
 {
 	thePlayer.inv.AddAnItem('q103_tamara_shrine_key',1);
@@ -3680,7 +4019,7 @@ exec function addkeys()
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds all valuable junk to the player's inventory
 exec function addvaluables()
 {
 	thePlayer.inv.AddAnItem('Amber',1);
@@ -3790,10 +4129,10 @@ function additemfood()
 
 function additemalchemy()
 {
-	
+	//thePlayer.inv.AddAnItem('Cotton',1);
 }
 
-
+//adds non-valuable junk to the player's inventory
 function additemcrafting()
 {
 	thePlayer.inv.AddAnItem('Cotton',1);
@@ -3815,7 +4154,7 @@ function additemcrafting()
 	thePlayer.inv.AddAnItem('Dye',1);
 	thePlayer.inv.AddAnItem('Sap',1);
 	thePlayer.inv.AddAnItem('Resin',1);
-	
+	//thePlayer.inv.AddAnItem('Bag of weed',1);
 	thePlayer.inv.AddAnItem('Flute_junk',1);
 	thePlayer.inv.AddAnItem('Mug',1);
 	thePlayer.inv.AddAnItem('Ladle',1);
@@ -3917,7 +4256,7 @@ function additemmetals()
 	thePlayer.inv.AddAnItem('Dark steel plate',1);
 	thePlayer.inv.AddAnItem('Meteorite ore',1);
 	thePlayer.inv.AddAnItem('Meteorite ingot',1);
-	
+	//thePlayer.inv.AddAnItem('Meteorite plate',1);
 	thePlayer.inv.AddAnItem('Meteorite silver ingot',1);
 	thePlayer.inv.AddAnItem('Meteorite silver plate',1);
 	thePlayer.inv.AddAnItem('Glowing ore',1);
@@ -3931,10 +4270,10 @@ function additemmetals()
 
 function additemrunesupgrades()
 {
-	
-	
-	
-	
+	//thePlayer.inv.AddAnItem('Zyceh rune',1);
+	//thePlayer.inv.AddAnItem('Zyceh rune rare',1);
+	//thePlayer.inv.AddAnItem('Cerse rune',1);
+	//thePlayer.inv.AddAnItem('Cerse rune rare',1);
 	thePlayer.inv.AddAnItem('Rune stribog lesser',1);
 	thePlayer.inv.AddAnItem('Rune stribog',1);
 	thePlayer.inv.AddAnItem('Rune stribog greater',1);
@@ -4094,11 +4433,11 @@ function additemsprecious()
 	thePlayer.inv.AddAnItem('Ornate silver shield replica',1);
 }
 
-
+//adds non-valuable junk to the player's inventory
 exec function addjunk()
 {
 	thePlayer.inv.AddAnItem('Ashes',1);
-	
+	// thePlayer.inv.AddAnItem('Assire var Anahid's Necklace',1);
 	thePlayer.inv.AddAnItem('Axe head',1);
 	thePlayer.inv.AddAnItem('Bag of grain',1);
 	thePlayer.inv.AddAnItem('Bandalur butter knife',1);
@@ -4141,14 +4480,13 @@ exec function addjunk()
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds remaining non-valuable junk to the player's inventory
 exec function addjunk2()
 {
 	thePlayer.inv.AddAnItem('Patchwork vest',1);
 	thePlayer.inv.AddAnItem('Perfume',1);
 	thePlayer.inv.AddAnItem('Philosophers stone',1);
 	thePlayer.inv.AddAnItem('Pickaxe head',1);
-	thePlayer.inv.AddAnItem('Plate',1);
 	thePlayer.inv.AddAnItem('Razor',1);
 	thePlayer.inv.AddAnItem('Rope',1);
 	thePlayer.inv.AddAnItem('Rusty hammer head',1);
@@ -4164,7 +4502,7 @@ exec function addjunk2()
 	thePlayer.inv.AddAnItem('Smoking pipe',1);
 	thePlayer.inv.AddAnItem('Temerian special forces insignia',1);
 	thePlayer.inv.AddAnItem('Valuable fossil',1);
-	
+	// thePlayer.inv.AddAnItem('Vattier de Rideaux's Dagger',1);
 	thePlayer.inv.AddAnItem('Vial',1);
 	thePlayer.inv.AddAnItem('Voodoo doll',1);
 	thePlayer.inv.AddAnItem('Wire',1);
@@ -4180,8 +4518,8 @@ exec function addjunk2()
 }
 
 
-
-
+//adds the 1st batch of quest items to the player's inventory
+//NOTE: This command takes a few seconds to execute.
 exec function addquestitems1()
 {
 	thePlayer.inv.AddAnItem('q001_crystal_skull',1);
@@ -4364,8 +4702,8 @@ exec function fff(x : float)
 }
 
 
-
-
+//adds the 2nd batch of quest items to the player's inventory
+//NOTE: This command takes a few seconds to execute.
 exec function addquestitems2()
 {
 	thePlayer.inv.AddAnItem('mq2037_drakkar_chest_key',1);
@@ -4562,8 +4900,8 @@ exec function addquestitems2()
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 	
-
-
+//adds the 3rd batch of quest items to the player's inventory
+//NOTE: This command takes a few seconds to execute.
 exec function addquestitems3()
 {
 	thePlayer.inv.AddAnItem('mq2049_book_1',1);
@@ -4613,7 +4951,7 @@ exec function addquestitems3()
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds all treasure hunt items to the player's inventory.
 exec function addtreasurehuntitems()
 {
 	thePlayer.inv.AddAnItem('th1001_journal_viper_part1',1);
@@ -4690,7 +5028,7 @@ exec function addtreasurehuntitems()
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//adds all character decorations to the player's inventory
 exec function addcharacterdecorations()
 {
 	thePlayer.inv.AddAnItem('Geralt mask 01',1);
@@ -4742,7 +5080,7 @@ exec function addcharacterdecorations()
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
 }
 
-
+//tests breaking item into parts
 exec function recycle()
 {
 	var id : array<SItemUniqueId>;
@@ -4751,7 +5089,7 @@ exec function recycle()
 	thePlayer.inv.RecycleItem( id[0], ECL_Journeyman );
 }
 
-
+//prints contents of player inventory to console
 exec function printinv(optional onlyEquipped : bool)
 {
 	PrintInventory(onlyEquipped);
@@ -4836,7 +5174,7 @@ exec function playstation(e : bool)
 	}
 }
 
-
+//hits player character for a given percentage of max health
 exec function hitme(d : int, optional playHitAnim : bool)
 {
 	var action : W3DamageAction;
@@ -4860,14 +5198,37 @@ exec function hitme(d : int, optional playHitAnim : bool)
 	delete action;
 }
 
+exec function hittarget(d : int, optional playHitAnim : bool)
+{
+	var action : W3DamageAction;
 
+	action = new W3DamageAction in theGame.damageMgr;
+	action.Initialize(NULL, thePlayer.GetTarget(), NULL, 'console', EHRT_Light, CPS_Undefined, false, false, false, false);
+	action.AddDamage(theGame.params.DAMAGE_NAME_DIRECT, (thePlayer.GetTarget().GetMaxHealth() * d /100) );
+	
+	action.SetSuppressHitSounds(true);
+	
+	if ( playHitAnim )
+	{
+		action.SetHitAnimationPlayType(EAHA_ForceYes);
+	}
+	else
+	{
+		action.SetHitAnimationPlayType(EAHA_ForceNo);
+	}
+	
+	theGame.damageMgr.ProcessAction(action);
+	delete action;
+}
+
+//hits player stamina
 exec function hitstamina(d : int)
 {
 	thePlayer.DrainStamina(ESAT_FixedValue, RoundMath((thePlayer.GetStatMax( BCS_Stamina )*d)/100), 1 );
 }
 
-
-
+//drinks potions into a given quickslot or to all of them (with 5)
+// drinking means removing them form inventory and adding to the quickslots - it doesn't apply the effect on the character!
 exec function drinkpots( index : int)
 {	
 	var witcher : W3PlayerWitcher;
@@ -4886,14 +5247,23 @@ exec function drinkpots( index : int)
 			break;
 		}
 		case 3 : 
-		
+		/*{
+			witcher.inv.AddAnItem('Swallow 1',10);	
+			break;
+		}*/
 		case 4 : 
-		
+		/*{
+			witcher.inv.AddAnItem('muttest',10);	
+			break;
+		}*/
 		case 5 :
 		{
 			witcher.inv.AddAnItem('White Honey 1',10);	
 			witcher.inv.AddAnItem('Cat 1',10);	
-			
+			/*ids = witcher.inv.AddAnItem('Swallow 1',10);	
+			witcher.PreparePotion(ids[0],EES_Potion3);
+			ids = witcher.inv.AddAnItem('muttest',10);	
+			witcher.PreparePotion(ids[0],EES_Potion4);*/
 			break;
 		}
 	}	
@@ -4913,11 +5283,43 @@ exec function drinkpot(potionName : name, slot : int)
 	{
 		case 1 : slot = EES_Potion1; break;
 		case 2 : slot = EES_Potion2; break;
-		
-		
+		case 3 : slot = EES_Potion3; break;
+		case 4 : slot = EES_Potion4; break;
 	}
 	
 	GetWitcherPlayer().EquipItemInGivenSlot(ids[0], slot, false);
+}
+
+exec function expots(optional isDoubleTap : bool)
+{
+	var witcher : W3PlayerWitcher;
+	var ids : array<SItemUniqueId>;
+	
+	witcher = GetWitcherPlayer();
+	
+	ids = witcher.inv.AddAnItem('Apple',100);
+	witcher.EquipItemInGivenSlot(ids[0], EES_Potion1, false);
+	
+	ids.Clear();
+	ids = witcher.inv.AddAnItem('Tawny Owl 3');
+	witcher.EquipItemInGivenSlot(ids[0], EES_Potion3, false);
+	
+	ids.Clear();
+	ids = witcher.inv.AddAnItem('Swallow 3');
+	witcher.EquipItemInGivenSlot(ids[0], EES_Potion2, false);
+	
+	ids.Clear();
+	ids = witcher.inv.AddAnItem('Thunderbolt 3');
+	witcher.EquipItemInGivenSlot(ids[0], EES_Potion4, false);
+	
+	witcher.inv.AddAnItem('Dwarven spirit',100);
+	
+	thePlayer.GetInputHandler().SetPotionSelectionMode(!isDoubleTap);
+}
+
+exec function potmode(isDoubleTap : bool)
+{
+	thePlayer.GetInputHandler().SetPotionSelectionMode(!isDoubleTap);
 }
 
 exec function addalchrec(nam : name)
@@ -4998,9 +5400,9 @@ exec function addalch3()
 	LogChannel('AlchemyTimers', "addalch3 <<<<<<<<");
 }
 
-
-
-
+//alchemy testing
+// this one adds items to inventory
+// use 'alch' to call the alchemy cooking panel
 exec function addalch(optional quantity : int )
 {
 	var dm : CDefinitionsManagerAccessor;
@@ -5013,7 +5415,7 @@ exec function addalch(optional quantity : int )
 
 	if(quantity == 0)
 		quantity = 50;
-	
+	//recipes - potions
 	GetWitcherPlayer().AddAlchemyRecipe('Recipe for Black Blood 1');
 	GetWitcherPlayer().AddAlchemyRecipe('Recipe for Blizzard 1');
 	GetWitcherPlayer().AddAlchemyRecipe('Recipe for Cat 1');
@@ -5028,8 +5430,8 @@ exec function addalch(optional quantity : int )
 	GetWitcherPlayer().AddAlchemyRecipe('Recipe for White Honey 1');
 	GetWitcherPlayer().AddAlchemyRecipe('Recipe for White Raffards Decoction 1');	
 	
-	
-	GetWitcherPlayer().AddAlchemyRecipe('Recipe for Anthropomorph Oil 1');
+	//recipes - oils
+	GetWitcherPlayer().AddAlchemyRecipe('Recipe for Beast Oil 1');
 	GetWitcherPlayer().AddAlchemyRecipe('Recipe for Cursed Oil 1');
 	GetWitcherPlayer().AddAlchemyRecipe('Recipe for Hanged Man Venom 1');
 	GetWitcherPlayer().AddAlchemyRecipe('Recipe for Hybrid Oil 1');
@@ -5038,26 +5440,25 @@ exec function addalch(optional quantity : int )
 	GetWitcherPlayer().AddAlchemyRecipe('Recipe for Necrophage Oil 1');
 	GetWitcherPlayer().AddAlchemyRecipe('Recipe for Specter Oil 1');
 	GetWitcherPlayer().AddAlchemyRecipe('Recipe for Vampire Oil 1');
+	GetWitcherPlayer().AddAlchemyRecipe('Recipe for Draconide Oil 1');
+	GetWitcherPlayer().AddAlchemyRecipe('Recipe for Ogre Oil 1');
+	GetWitcherPlayer().AddAlchemyRecipe('Recipe for Relic Oil 1');
 	
-	
+	//recipes - bombs
 	GetWitcherPlayer().AddAlchemyRecipe('Recipe for Dancing Star 1');
 	GetWitcherPlayer().AddAlchemyRecipe('Recipe for Devils Puffball 1');
 	GetWitcherPlayer().AddAlchemyRecipe('Recipe for Dwimeritum Bomb 1');
 	GetWitcherPlayer().AddAlchemyRecipe('Recipe for Dragons Dream 1');
-	GetWitcherPlayer().AddAlchemyRecipe('Recipe for Fungi Bomb 1');
 	GetWitcherPlayer().AddAlchemyRecipe('Recipe for Grapeshot 1');
-	GetWitcherPlayer().AddAlchemyRecipe('Recipe for Salt Bomb 1');
 	GetWitcherPlayer().AddAlchemyRecipe('Recipe for Samum 1');
-	GetWitcherPlayer().AddAlchemyRecipe('Recipe for Shrapnel Bomb 1');
 	GetWitcherPlayer().AddAlchemyRecipe('Recipe for Silver Dust Bomb 1');
-	GetWitcherPlayer().AddAlchemyRecipe('Recipe for Virus Bomb 1');
 	GetWitcherPlayer().AddAlchemyRecipe('Recipe for White Frost 1');
 	
 	GetWitcherPlayer().AddAlchemyRecipe('q305_antidote_for_venom_formula');
 	
 	LogChannel('AlchemyTimers', "addalch ||||||||1");
 
-	
+	//add all ings used by all recipes
 	dm = theGame.GetDefinitionsManager();
 	main = dm.GetCustomDefinition('alchemy_recipes');
 
@@ -5083,7 +5484,7 @@ exec function addalch(optional quantity : int )
 	{
 		if (dm.ItemHasTag(ing[i], 'MutagenIngredient'))
 		{
-			thePlayer.inv.AddAnItem(ing[i],1); 
+			thePlayer.inv.AddAnItem(ing[i],1); // These things don't stack. Adding 50 of them is a headache in training
 		}
 		else
 		{
@@ -5094,7 +5495,7 @@ exec function addalch(optional quantity : int )
 	LogChannel('AlchemyTimers', "addalch <<<<<<<<");
 }
 
-
+//prints contents of player inventory to console
 function PrintInventory(optional onlyEquipped : bool)
 {
 	var items : array<SItemUniqueId>;
@@ -5273,7 +5674,7 @@ function PrintInventory2Item( index : int )
 
 }
 
-
+//dynamic attribute test
 exec function craft(schemName : name, level : int, type : int)
 {
 	var cftman : W3CraftingManager;
@@ -5286,7 +5687,7 @@ exec function craft(schemName : name, level : int, type : int)
 	
 	GetWitcherPlayer().AddCraftingSchematic(schemName);
 	
-	
+	//fake craftsman
 	master = new W3CraftsmanComponent in theGame;
 	craftsmanDef.level = level;
 	craftsmanDef.type = type;
@@ -5361,7 +5762,7 @@ exec function useoil(n : name, optional type : int)
 	{
 		GetWitcherPlayer().GetItemEquippedOnSlot(slot, swordId);
 	}
-	else	
+	else	//Ciri
 	{
 		swordId = ((W3ReplacerCiri)thePlayer).GetEquippedSword(!type);
 	}
@@ -5400,7 +5801,7 @@ exec function oilstatsciri()
 	LogStats("Oil on silver sword: <<" + silverOil + ">>");
 }
 
-
+//oils test
 exec function testoil()
 {
 	var oilId : SItemUniqueId;
@@ -5424,6 +5825,27 @@ exec function testoil()
 	appliedOilItemName = GetWitcherPlayer().GetOilAppliedOnSword(true);
 	LogStats("Currently applied oil on steel sword is: <<" + appliedOilItemName + ">>");
 	LogStats("==============================================");
+}
+
+exec function addSlot()
+{
+	var swordId : SItemUniqueId;
+	GetWitcherPlayer().GetItemEquippedOnSlot( EES_SteelSword, swordId );
+	thePlayer.inv.AddSlot( swordId );
+}
+
+exec function enchantItem()
+{
+	var swordId : SItemUniqueId;
+	GetWitcherPlayer().GetItemEquippedOnSlot( EES_SteelSword, swordId );
+	thePlayer.inv.EnchantItem( swordId, 'Runeword 6', 'Runeword 6 _stats' );
+}
+
+exec function unenchantItem()
+{
+	var swordId : SItemUniqueId;
+	GetWitcherPlayer().GetItemEquippedOnSlot( EES_SteelSword, swordId );
+	thePlayer.inv.UnenchantItem( swordId );
 }
 
 exec function testoilciri()
@@ -5585,7 +6007,7 @@ exec function pc_snaptonavdata(val: bool)
 	thePlayer.GetMovingAgentComponent().SnapToNavigableSpace( val );
 }
 
-
+// Toggle god mode
 exec function god()
 {	
 	if( !thePlayer.IsInvulnerable() )
@@ -5593,30 +6015,30 @@ exec function god()
 		thePlayer.SetImmortalityMode( AIM_Invulnerable, AIC_Default, true );
 		thePlayer.SetCanPlayHitAnim(false);
 		thePlayer.AddBuffImmunity_AllNegative('god', true);
+		StaminaBoyInternal(true);
 	}
 	else
 	{
 		thePlayer.SetImmortalityMode( AIM_None, AIC_Default, true );	
 		thePlayer.SetCanPlayHitAnim(true);
 		thePlayer.RemoveBuffImmunity_AllNegative('god');
+		StaminaBoyInternal(false);
 	}
-	
-	StaminaBoyInternal(!FactsDoesExist("debug_fact_stamina_boy"));
 }
 
-
+// Toggle god mode
 exec function god2()
 {	
 	thePlayer.CheatGod2( !thePlayer.IsImmortal() );
 }
 
-
+// Toggle god mode
 exec function god3()
 {	
 	thePlayer.SetImmortalityMode(AIM_Unconscious,AIC_Default);
 }
 
-
+//edible test
 exec function eatapple()
 {		
 	var ids : array<SItemUniqueId>;
@@ -5690,7 +6112,7 @@ exec function statsplayer()
 exec function logstats()
 {
 	var i, size : int;
-	var skill : ESkill;
+	var bullshit : ESkill;
 	var inv				: CInventoryComponent;
 	var items			: array< SItemUniqueId >;
 	var itemsnames		: array< name >;
@@ -5742,9 +6164,9 @@ exec function logstats()
 	{
 		if(thePlayer.HasLearnedSkill(i))
 		{
-			skill = i;
+			bullshit = i;
 			if ( thePlayer.IsSkillEquipped(i) ) 
-			LogStats(GetLocStringByKeyExt(thePlayer.GetSkillLocalisationKeyName( skill ) ) + " ("+skill+")");
+			LogStats(GetLocStringByKeyExt(thePlayer.GetSkillLocalisationKeyName( bullshit ) ) + " ("+bullshit+")");
 		}
 	}
 	LogStats("");
@@ -5755,9 +6177,9 @@ exec function logstats()
 	{
 		if(thePlayer.HasLearnedSkill(i))
 		{
-			skill = i;
+			bullshit = i;
 			if ( thePlayer.IsSkillEquipped(i) ) 
-			LogStats(GetLocStringByKeyExt(thePlayer.GetSkillLocalisationKeyName( skill ) ) + " ("+skill+")");
+			LogStats(GetLocStringByKeyExt(thePlayer.GetSkillLocalisationKeyName( bullshit ) ) + " ("+bullshit+")");
 		}
 	}
 	LogStats("");
@@ -5768,9 +6190,9 @@ exec function logstats()
 	{
 		if(thePlayer.HasLearnedSkill(i))
 		{
-			skill = i;
+			bullshit = i;
 			if ( !thePlayer.IsSkillEquipped(i) ) 
-			LogStats(GetLocStringByKeyExt(thePlayer.GetSkillLocalisationKeyName( skill ) ) + " ("+skill+") | isEquipped=" + thePlayer.IsSkillEquipped(i) + " | canUse=" + thePlayer.CanUseSkill(i));
+			LogStats(GetLocStringByKeyExt(thePlayer.GetSkillLocalisationKeyName( bullshit ) ) + " ("+bullshit+") | isEquipped=" + thePlayer.IsSkillEquipped(i) + " | canUse=" + thePlayer.CanUseSkill(i));
 		}
 	}
 	LogStats("");
@@ -5893,13 +6315,14 @@ function Debug_stats(actor : CActor)
 	var buffs : array<CBaseGameplayEffect>;
 	var npc : CNewNPC;
 	var tempString : string;
+	var invChannels : array<EActorImmortalityChanel>;
 	
 	npc = (CNewNPC)actor;
 	
 	LogStats("");
 	LogStats("  ----------------------------== Printing stats for <<" + actor + ">> ==----------------------------");
 	
-	
+	//tags
 	tags = npc.GetTags();
 	tempString = "Tags: ";
 	for(i=0; i<size; i+=1)
@@ -5908,11 +6331,11 @@ function Debug_stats(actor : CActor)
 	}
 	LogStats(tempString);
 	
-	
+	//is alive
 	LogStats("isAlive = " + actor.IsAlive());
 	LogStats(" ");
 
-	
+	//difficulty mode stats (player is not affected so don't print it)
 	if(actor != thePlayer)
 	{
 		LogStats("Actor uses difficulty mode: " + actor.Debug_GetUsedDifficultyMode());
@@ -5921,7 +6344,7 @@ function Debug_stats(actor : CActor)
 		LogStats(" ");
 	}
 	
-	
+	//exp stats (player only)
 	if(actor == GetWitcherPlayer())
 	{
 		LogStats("Level: " + GetWitcherPlayer().GetLevel());
@@ -5938,14 +6361,14 @@ function Debug_stats(actor : CActor)
 		LogStats("True Level: " + ((CNewNPC)actor).GetLevelFromLocalVar());
 	}
 	
-	
+	//exp for killing
 	if(npc)
 	{
 		LogStats("XP for killing: " + npc.CalculateExperiencePoints(true));
 		LogStats("");
 	}
 	
-	
+	//character stats
 	LogStats( SpaceFill(BCS_Vitality,12) + " = " +  SpaceFill( NoTrailZeros(actor.GetStat(BCS_Vitality)), 7, ESFM_JustifyRight) + " / " + SpaceFill( NoTrailZeros(actor.GetStatMax(BCS_Vitality)), 7, ESFM_JustifyRight) );
 	LogStats( SpaceFill(BCS_Essence,12) + " = " + SpaceFill( NoTrailZeros(actor.GetStat(BCS_Essence)), 7, ESFM_JustifyRight) + " / " + SpaceFill( NoTrailZeros(actor.GetStatMax(BCS_Essence)), 7, ESFM_JustifyRight) );
 	
@@ -5964,14 +6387,14 @@ function Debug_stats(actor : CActor)
 	LogStats( SpaceFill(BCS_Air,12) + " = " + SpaceFill( NoTrailZeros(actor.GetStat(BCS_Air)), 7, ESFM_JustifyRight) + " / " + SpaceFill( NoTrailZeros(actor.GetStatMax(BCS_Air)), 7, ESFM_JustifyRight) );	
 	LogStats(" ");
 	
-	
+	//attack stats
 	val = actor.GetPowerStatValue(CPS_AttackPower);
 	LogStats("attack power: Base = " + SpaceFill(NoTrailZeros(val.valueBase), 4, ESFM_JustifyRight) + ", Mult = " + SpaceFill(NoTrailZeros(val.valueMultiplicative), 4, ESFM_JustifyRight) + ", Add = " + SpaceFill(NoTrailZeros(val.valueAdditive), 4, ESFM_JustifyRight) );
 	val = actor.GetPowerStatValue(CPS_SpellPower);
 	LogStats("spell power : Base = " + SpaceFill(NoTrailZeros(val.valueBase), 4, ESFM_JustifyRight) + ", Mult = " + SpaceFill(NoTrailZeros(val.valueMultiplicative), 4, ESFM_JustifyRight) + ", Add = " + SpaceFill(NoTrailZeros(val.valueAdditive), 4, ESFM_JustifyRight) );
 	LogStats(" ");
 	
-	
+	//critical hits
 	if(actor != thePlayer)
 	{
 		temp = CalculateAttributeValue(actor.GetAttributeValue(theGame.params.CRITICAL_HIT_CHANCE));
@@ -5993,7 +6416,7 @@ function Debug_stats(actor : CActor)
 	LogStats("critical hit damage bonus: +" + NoTrailZeros(CalculateAttributeValue(val) * 100) + "%");
 	LogStats(" ");
 	
-	
+	//regen stats
 	val = actor.GetAttributeValue(RegenStatEnumToName(CRS_Vitality));
 	LogStats("Vitality Regen        :   Base = " + SpaceFill(NoTrailZeros(val.valueBase), 4, ESFM_JustifyRight)  + ",   Mult = " + SpaceFill(NoTrailZeros(val.valueMultiplicative), 4, ESFM_JustifyRight)  + ",   Add = " + SpaceFill(NoTrailZeros(val.valueAdditive), 4, ESFM_JustifyRight) );
 	
@@ -6011,50 +6434,58 @@ function Debug_stats(actor : CActor)
 	LogStats("Stamina Regen         :   Base = " + SpaceFill(NoTrailZeros(val.valueBase), 4, ESFM_JustifyRight)  + ",   Mult = " + SpaceFill(NoTrailZeros(val.valueMultiplicative), 4, ESFM_JustifyRight)  + ",   Add = " + SpaceFill(NoTrailZeros(val.valueAdditive), 4, ESFM_JustifyRight) );
 	LogStats(" ");
 	
-	
+	// armor value
 	val = actor.GetTotalArmor();
 	LogStats("Armor:   Base = " + NoTrailZeros(val.valueBase) + ",   Mult = " + NoTrailZeros(val.valueMultiplicative) + ",   Add = " + NoTrailZeros(val.valueAdditive));
 	LogStats(" ");
 	
-	
+	//resists
 	actor.GetResistValue(CDS_SlashingRes, fVal1, fVal2);
-	LogStats( SpaceFill(CDS_SlashingRes, 28) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
+	LogStats( SpaceFill(CDS_SlashingRes, 31) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
 	actor.GetResistValue(CDS_PiercingRes, fVal1, fVal2);
-	LogStats( SpaceFill(CDS_PiercingRes, 28) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
+	LogStats( SpaceFill(CDS_PiercingRes, 31) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
 	actor.GetResistValue(CDS_BludgeoningRes, fVal1, fVal2);
-	LogStats( SpaceFill(CDS_BludgeoningRes, 28) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
+	LogStats( SpaceFill(CDS_BludgeoningRes, 31) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
 	actor.GetResistValue(CDS_RendingRes, fVal1, fVal2);
-	LogStats( SpaceFill(CDS_RendingRes, 28) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
+	LogStats( SpaceFill(CDS_RendingRes, 31) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
 	actor.GetResistValue(CDS_ElementalRes, fVal1, fVal2);
-	LogStats( SpaceFill(CDS_ElementalRes, 28) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
+	LogStats( SpaceFill(CDS_ElementalRes, 31) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
 	actor.GetResistValue(CDS_PhysicalRes, fVal1, fVal2);
-	LogStats( SpaceFill(CDS_PhysicalRes, 28) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
+	LogStats( SpaceFill(CDS_PhysicalRes, 31) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
 	actor.GetResistValue(CDS_BleedingRes, fVal1, fVal2);
-	LogStats( SpaceFill(CDS_BleedingRes, 28) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
+	LogStats( SpaceFill(CDS_BleedingRes, 31) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
 	actor.GetResistValue(CDS_PoisonRes, fVal1, fVal2);
-	LogStats( SpaceFill(CDS_PoisonRes, 28) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
+	LogStats( SpaceFill(CDS_PoisonRes, 31) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
 	actor.GetResistValue(CDS_FireRes, fVal1, fVal2);
-	LogStats( SpaceFill(CDS_FireRes, 28) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
+	LogStats( SpaceFill(CDS_FireRes, 31) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
 	actor.GetResistValue(CDS_FrostRes, fVal1, fVal2);
-	LogStats( SpaceFill(CDS_FrostRes, 28) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
+	LogStats( SpaceFill(CDS_FrostRes, 31) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
 	actor.GetResistValue(CDS_ShockRes, fVal1, fVal2);
-	LogStats( SpaceFill(CDS_ShockRes, 28) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
+	LogStats( SpaceFill(CDS_ShockRes, 31) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
 	actor.GetResistValue(CDS_ForceRes, fVal1, fVal2);
-	LogStats( SpaceFill(CDS_ForceRes, 28) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
+	LogStats( SpaceFill(CDS_ForceRes, 31) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
 	actor.GetResistValue(CDS_FreezeRes, fVal1, fVal2);
-	LogStats( SpaceFill(CDS_FreezeRes, 28) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
+	LogStats( SpaceFill(CDS_FreezeRes, 31) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
 	actor.GetResistValue(CDS_WillRes, fVal1, fVal2);
-	LogStats( SpaceFill(CDS_WillRes, 28) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
+	LogStats( SpaceFill(CDS_WillRes, 31) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
 	actor.GetResistValue(CDS_BurningRes, fVal1, fVal2);
-	LogStats( SpaceFill(CDS_BurningRes, 28) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
+	LogStats( SpaceFill(CDS_BurningRes, 31) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
 	actor.GetResistValue(CDS_DoTBurningDamageRes, fVal1, fVal2);
-	LogStats( SpaceFill(CDS_DoTBurningDamageRes, 28) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
+	LogStats( SpaceFill(CDS_DoTBurningDamageRes, 31) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
 	actor.GetResistValue(CDS_DoTPoisonDamageRes, fVal1, fVal2);
-	LogStats( SpaceFill(CDS_DoTPoisonDamageRes, 28) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
+	LogStats( SpaceFill(CDS_DoTPoisonDamageRes, 31) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
 	actor.GetResistValue(CDS_DoTBleedingDamageRes, fVal1, fVal2);
-	LogStats( SpaceFill(CDS_DoTBleedingDamageRes, 28) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
-		
+	LogStats( SpaceFill(CDS_DoTBleedingDamageRes, 31) + "Points = " + SpaceFill(NoTrailZeros(fVal1), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
 	
+	//other protective stats
+	LogStats("");
+	val = actor.GetAttributeValue('critical_hit_damage_reduction');
+	fVal2 = val.valueMultiplicative;
+	LogStats( SpaceFill("critical_hit_damage_reduction", 31) + "Points = " + SpaceFill(NoTrailZeros(0.f), 7, ESFM_JustifyRight) + ", Percents = " + NoTrailZeros(fVal2*100));
+	
+	LogStats("Hit severity reduction = " + NoTrailZeros(CalculateAttributeValue(actor.GetAttributeValue('hit_severity'))) );
+		
+	//buff immunities
 	LogStats("");
 	LogStats("Buff immunitites:");
 	size = EnumGetMax('EEffectType')+1;
@@ -6067,14 +6498,31 @@ function Debug_stats(actor : CActor)
 	}
 	LogStats("");
 	
-	
+	//immortality mode		
 	LogStats("Is invulnerable = " + actor.IsInvulnerable() );
+	if(actor.IsInvulnerable())
+	{
+		invChannels = actor.GetImmortalityModeChannels(AIM_Invulnerable);
+		tempString = "     Channels: ";
+		for(i=0; i<invChannels.Size(); i+=1)
+		{
+			tempString += invChannels[i] + ", ";
+		}
+		LogStats(tempString);
+	}
 	LogStats("Is immortal = " + actor.IsImmortal() );
+	if(actor.IsImmortal())
+	{
+		invChannels = actor.GetImmortalityModeChannels(AIM_Immortal);
+		tempString = "     Channels: ";
+		for(i=0; i<invChannels.Size(); i+=1)
+		{
+			tempString += invChannels[i] + ", ";
+		}
+		LogStats(tempString);
+	}	
 	
-	
-	LogStats("Hit severity reduction = " + NoTrailZeros(CalculateAttributeValue(actor.GetAttributeValue('hit_severity'))) );
-	
-	
+	//buffs
 	LogStats("");
 	LogStats("Current buffs:");
 	buffs = actor.GetBuffs();
@@ -6150,7 +6598,7 @@ exec function testunpause()
 
 exec function testlosscontroller()
 {
-	
+	//theGame.GetGuiManager().ignoreControllerDisconnectionEvents = false;
 	theGame.GetGuiManager().OnControllerDisconnected();
 }
 
@@ -6174,7 +6622,7 @@ exec function dcc()
 	thePlayer.AddTimer('Debug_DelayedConsoleCommand', 3);
 }
 
-
+// Spawn an entity in front of player, without consideration for ground level or distribution of placement
 exec function spawnRaw( nam : name, optional quantity : int, optional distance : float, optional isHostile : bool ) 
 {
 	var ent : CEntity;
@@ -6192,24 +6640,24 @@ exec function spawnRaw( nam : name, optional quantity : int, optional distance :
 	rot = thePlayer.GetWorldRotation();	
 	if(nam != 'boat')
 	{
-		rot.Yaw += 180;		
+		rot.Yaw += 180;		//the front placed entities will face the player
 	}
 	
-	
+	//camera direction
 	cameraDir = theCamera.GetCameraDirection();
 	
-	if( distance == 0 ) distance = 3; 
+	if( distance == 0 ) distance = 3; //place the entity 3 meters in front of the player
 	cameraDir.X *= distance;	
 	cameraDir.Y *= distance;
 	
-	
+	//player position
 	player = thePlayer.GetWorldPosition();
 	
-	
+	//center spawn pos
 	pos 	= cameraDir + player;	
 	pos.Z = player.Z;
 	
-	
+	//create the entity using given mapped path
 	template = (CEntityTemplate)LoadResource(nam);
 	
 	if ( nam == 'rider' ) 
@@ -6272,29 +6720,29 @@ exec function spawn(nam : name, optional quantity : int, optional distance : flo
 	rot = thePlayer.GetWorldRotation();	
 	if(nam != 'boat')
 	{
-		rot.Yaw += 180;		
+		rot.Yaw += 180;		//the front placed entities will face the player
 	}
 	
-	
+	//camera direction
 	cameraDir = theCamera.GetCameraDirection();
 	
-	if( distance == 0 ) distance = 3; 
+	if( distance == 0 ) distance = 3; //place the entity 3 meters in front of the player
 	cameraDir.X *= distance;	
 	cameraDir.Y *= distance;
 	
-	
+	//player position
 	player = thePlayer.GetWorldPosition();
 	
-	
+	//center spawn pos
 	pos = cameraDir + player;	
 	pos.Z = player.Z;
 	
-	
-	posFin.Z = pos.Z;			
-	s = quantity / 0.2;			
+	//const values used in the loop
+	posFin.Z = pos.Z;			//final spawn pos
+	s = quantity / 0.2;			//maintain a constant density of 0.2 unit per m2
 	r = SqrtF(s/Pi());
 	
-	
+	//create the entity using given mapped path
 	template = (CEntityTemplate)LoadResource(nam);
 	
 	if ( nam == 'rider' ) 
@@ -6318,22 +6766,22 @@ exec function spawn(nam : name, optional quantity : int, optional distance : flo
 
 	for(i=0; i<quantity; i+=1)
 	{		
-		x = RandF() * r;			
-		y = RandF() * (r - x);		
+		x = RandF() * r;			//add random value within range to X
+		y = RandF() * (r - x);		//add random value to Y so that the point is within the disk
 		
-		if(RandRange(2))					
+		if(RandRange(2))					//randomly select the sign for misplacement
 			sign = 1;
 		else
 			sign = -1;
 			
-		posFin.X = pos.X + sign * x;	
+		posFin.X = pos.X + sign * x;	//final X pos
 		
-		if(RandRange(2))					
+		if(RandRange(2))					//randomly select the sign for misplacement
 			sign = 1;
 		else
 			sign = -1;
 			
-		posFin.Y = pos.Y + sign * y;	
+		posFin.Y = pos.Y + sign * y;	//final Y pos
 		
 		if(nam == 'boat')
 		{
@@ -6360,9 +6808,9 @@ exec function spawn(nam : name, optional quantity : int, optional distance : flo
 		{
 			horseTag.PushBack('enemy_horse');
 			horse = theGame.CreateEntity(horseTemplate, posFin, rot,true,false,false,PM_DontPersist,horseTag);
-			
-			
-			
+			//horse.AddTag('horse_enemy');
+			//((CActor)horse).AddTag('enemy_horse');
+			//Sleep(0.01);
 			
 			l_aiTree = new CAIHorseDoNothingAction in ent;
 			l_aiTree.OnCreated();
@@ -6376,7 +6824,12 @@ exec function spawn(nam : name, optional quantity : int, optional distance : flo
 			((CActor)ent).SetTemporaryAttitudeGroup( 'hostile_to_player', AGP_Default );
 		}
 	}
+}/*
+exec function save()
+{
+	theGame.SaveGame( SGT_QuickSave, -1 );
 }
+*/
 exec function likeaboss()
 {
 	if(FactsQuerySum('player_is_the_boss') > 0)
@@ -6398,7 +6851,7 @@ exec function dismounttest()
 
 exec function sfmh()
 {
-	
+	//var npc : CNewNPC;
 	var results : array< CGameplayEntity >;
 	var size : int;
 	var i : int;
@@ -6408,8 +6861,8 @@ exec function sfmh()
 	
 	for( i = 0; i <= size; i += 1 )
 	{
-		
-		
+		//((CNewNPC)results[i]).ChangeStance( NS_Wounded );
+		//((CNewNPC)results[i]).ActionCancelAll();
 		((CNewNPC)results[i]).RaiseForceEvent( 'FocusHit' );
 		((CNewNPC)results[i]).SetBehaviorVariable( 'FlySpeed', 0 );
 		((CNewNPC)results[i]).SetBehaviorVariable( 'npcStance', 4 );
@@ -6420,7 +6873,7 @@ exec function sfmh()
 
 exec function panic()
 {
-	
+	//var npc : CNewNPC;
 	var results : array< CGameplayEntity >;
 	var size : int;
 	var i : int;
@@ -6529,6 +6982,8 @@ exec function addpotions()
 	arr = inv.AddAnItem('Golden Oriole 2');
 	thePlayer.inv.SingletonItemSetAmmo(arr[0], thePlayer.inv.SingletonItemGetMaxAmmo(arr[0]));
 	arr = inv.AddAnItem('Golden Oriole 3');
+	thePlayer.inv.SingletonItemSetAmmo(arr[0], thePlayer.inv.SingletonItemGetMaxAmmo(arr[0]));
+	arr = inv.AddAnItem('Killer Whale 1');
 	thePlayer.inv.SingletonItemSetAmmo(arr[0], thePlayer.inv.SingletonItemGetMaxAmmo(arr[0]));
 	arr = inv.AddAnItem('Maribor Forest 1');
 	thePlayer.inv.SingletonItemSetAmmo(arr[0], thePlayer.inv.SingletonItemGetMaxAmmo(arr[0]));
@@ -6658,7 +7113,7 @@ exec function addoils()
 exec function logskills()
 {
 	var i, size : int;
-	var skill : ESkill;
+	var bullshit : ESkill;
 
 	size = EnumGetMax('ESkill')+1;
 	LogSkills("");
@@ -6667,8 +7122,8 @@ exec function logskills()
 	{
 		if(thePlayer.HasLearnedSkill(i))
 		{
-			skill = i;
-			LogSkills(skill + ", isEquipped=" + thePlayer.IsSkillEquipped(i) + ", canUse=" + thePlayer.CanUseSkill(i));
+			bullshit = i;
+			LogSkills(bullshit + ", isEquipped=" + thePlayer.IsSkillEquipped(i) + ", canUse=" + thePlayer.CanUseSkill(i));
 		}
 	}
 	LogSkills("");
@@ -6831,11 +7286,14 @@ class ARDebugCameraDist extends ICustomCameraScriptedPivotDistanceController
 	}
 }
 
-
+/*exec function unlockactions()
+{
+	thePlayer.Dbg_UnlockAllActions();
+}*/
 
 exec function arcam()
 { 
-	
+	//TODO add fov
 	theGame.GetGameCamera().ChangePivotRotationController('Debug_AR_Test_Cam_Rot');
 	theGame.GetGameCamera().ChangePivotDistanceController('Debug_AR_Test_Cam_Dist');
 }
@@ -6847,7 +7305,7 @@ exec function imback()
 
 exec function idoeverything()
 {
-	
+	//DZ: Added to allow for unlocking all actions.
 	thePlayer.Dbg_UnlockAllActions();
 	thePlayer.SetIsMovable( true );
 }
@@ -6965,7 +7423,7 @@ exec function decdur( val : int )
 }
 
 
-
+// why double it?
 exec function buffme( type : EEffectType, optional duration : float, optional src : name )
 {
 	var params : SCustomEffectParams;
@@ -7050,7 +7508,7 @@ exec function spawnbarrels()
 	pos.X -= 4;
 	pos.Y -= 4;
 	ent = theGame.CreateEntity(template, pos, thePlayer.GetWorldRotation() );
-	
+	//
 	pos.X += 6;
 	pos.Y += 6;
 	ent = theGame.CreateEntity(template, pos, thePlayer.GetWorldRotation() );
@@ -7119,7 +7577,7 @@ exec function RainStrength()
 	Log( "Rain strength: " + rainStrength );
 }
 
-
+//test test
 exec function MegaBomb()
 {	
 	var angle : float;
@@ -7159,7 +7617,11 @@ exec function MegaBomb()
 		angle -= step;
 		if( angle < -90.0f )
 			angle = 90.0f;
-		
+		/*
+		range += step;
+		if( range > 180.0f )
+			range = 1.0f;
+		*/
 	}
 }
 
@@ -7190,7 +7652,7 @@ function AddAndEquipSkill(skill : ESkill) : bool
 {
 	var slot : int;
 
-	GetWitcherPlayer().AddSkill(skill);  
+	GetWitcherPlayer().AddSkill(skill);  // Lightning Reflex
 	slot = GetWitcherPlayer().GetFreeSkillSlot();
 	if(slot > -1)
 	{
@@ -7206,30 +7668,30 @@ exec function FB( level : int )
 	if ( level <= 1 )
 	{
 		thePlayer.AddAbility('Lvl10');
-		
-		
-		
+		//thePlayer.inv.AddAnItem('Novigraadan sword 2', 1);
+		//thePlayer.inv.AddAnItem('Silver sword 3', 1);
+		//thePlayer.inv.AddAnItem('Light armor 04', 1);
 	}
 	if ( level == 2 )
 	{
 		thePlayer.AddAbility('Lvl20');
-		
-		
-		
+		//thePlayer.inv.AddAnItem('Novigraadan sword 3', 1);
+		//thePlayer.inv.AddAnItem('Silver sword 6', 1);
+		//thePlayer.inv.AddAnItem('Medium armor 04', 1);
 	}
 	if ( level == 3 )
 	{
 		thePlayer.AddAbility('Lvl30');
-		
-		
-		
+		//thePlayer.inv.AddAnItem('Novigraadan sword 4', 1);
+		//thePlayer.inv.AddAnItem('Silver sword 8', 1);
+		//thePlayer.inv.AddAnItem('Heavy armor 04', 1);
 	}
 	if ( level >= 4 )
 	{
 		thePlayer.AddAbility('Lvl40');
-		
-		
-		
+		//thePlayer.inv.AddAnItem('Dwarven sword 1', 1);
+		//thePlayer.inv.AddAnItem('Dwarven silver sword 1', 1);
+		//thePlayer.inv.AddAnItem('Heavy armor 04', 1);
 	}
 }
 
@@ -7338,7 +7800,7 @@ exec function difflevel(i : EDifficultyMode)
 	temp_difflevel(i);
 }
 
-
+//sets difficulty mode
 function temp_difflevel(i : EDifficultyMode)
 {
 	theGame.SetDifficultyLevel(i);
@@ -7540,8 +8002,8 @@ exec function MoveAlongPath( speed : float, pathTag : name, optional actorTag : 
 		l_actor.ForceAIBehavior( l_aiTree, BTAP_Emergency);
 	}
 }
-
-
+//test test
+//test test
 exec function nopolice()
 {
 	FactsRemove( "guards_alerted" );
@@ -7580,6 +8042,12 @@ exec function AltCombatCamera( b : bool )
 	player.scriptedCombatCamera = b;
 }
 
+exec function tuthack()
+{
+	thePlayer.AddAbility('GeraltSkills_Testing');
+	thePlayer.Debug_ResetInput();
+}
+
 exec function togglemenus()
 {
 	theGame.ToggleMenus();
@@ -7592,12 +8060,12 @@ exec function toggleinput()
 
 exec function interiorcam( b : bool )
 {
-	
+	//thePlayer.OnInteriorStateChanged( b );
 }
 
 exec function slow(factor : float)
 {
-	
+	//debug slow mo affecting camera. Uses non-existing CFM to avoid making temp debug priority
 	theGame.SetTimeScale(factor, theGame.GetTimescaleSource(ETS_CFM_On), theGame.GetTimescalePriority(ETS_CFM_On), true );
 }
 
@@ -7639,7 +8107,7 @@ exec function SuppressReactions( toggle : bool, areaTag : name )
 	theGame.GetBehTreeReactionManager().SuppressReactions( toggle, areaTag );
 }
 
-
+// Make baron and miscreat enter "Cry mode"
 exec function CryStart()
 {
 	var baron		: CEntity;
@@ -7658,25 +8126,25 @@ exec function CryStart()
 
 exec function ultrafix()
 {
-	
+	//remove no save locks caused by critical states
 	thePlayer.Debug_ReleaseCriticalStateSaveLocks();
 	
-	
+	//input
 	thePlayer.Debug_ResetInput();
 	
+	//stamina (partially!)
+	thePlayer.GetBuff(EET_AutoStaminaRegen).Debug_HAX_FIX(thePlayer);
+	thePlayer.GetBuff(EET_AutoStaminaRegen).Debug_HAX_FIX(thePlayer);
 	
-	thePlayer.GetBuff(EET_AutoStaminaRegen).Debug_ResetCreatorHandle(thePlayer);
-	thePlayer.GetBuff(EET_AutoStaminaRegen).Debug_ResetCreatorHandle(thePlayer);
-	
-	
+	//death
 	thePlayer.CheatResurrect();
 	
-	
+	//black screen
 	theGame.ResetFadeLock( "exe_func_ultrafix" );
 	theGame.FadeInAsync( 0.f );
 }
 
-
+// Make baron and miscreat exit "Cry mode"
 exec function CryStop()
 {
 	var baron		: CEntity;
@@ -7723,11 +8191,11 @@ function skilleq_internal(skill : ESkill, optional id : int, optional level : in
 	
 	if(id < 0)
 	{
-		
+		//no free skill slot - unlock new
 		size = witcher.GetSkillSlotsCount();
 		for(i=0; i<size; i+=1)
 		{
-			if(witcher.Debug_UnlockSkillSlot(i))
+			if(witcher.Debug_HAX_UnlockSkillSlot(i))
 			{
 				id = witcher.GetSkillSlotIDFromIndex(i);
 				break;
@@ -7909,7 +8377,7 @@ exec function showAttRange( attRangeName : name, optional actorTag:name )
 	
 }
 
-exec function TestAdjustMove( val : bool ) 
+exec function TestAdjustMove( val : bool ) // TEST
 {
 	thePlayer.SetTestAdjustRequestedMovementDirection( val );
 }
@@ -8006,7 +8474,7 @@ exec function MovePlayerFwd( distance : float, speed : float, optional drawSteel
 		
 		thePlayer.OnEquipMeleeWeapon(PW_Silver, true);
 	}
-	
+	//it's important to execute this AFTER drawing sword; because of input context
 	if ( l_aiTreeDecorator )
 		l_actor.ForceAIBehavior( l_aiTreeDecorator, BTAP_Emergency);
 	else
@@ -8040,8 +8508,56 @@ exec function followNPC()
 		l_actor.ForceAIBehavior( l_aiTree, BTAP_Emergency);
 }
 
+/*exec function followAction()
+{
+	var l_actor 			: CActor;
+	var l_aiTreeDecorator	: CAIPlayerActionDecorator;
+	var l_aiTree			: CAIFollowAction;
 
+	if( thePlayer.IsUsingHorse() )
+		l_actor = (CActor)thePlayer.GetUsedHorseComponent().GetEntity();
+	else
+		l_actor = thePlayer;
+	
+	l_aiTree = new CAIFollowAction in l_actor;
+	l_aiTree.OnCreated();
 
+	l_aiTree.params.targetTag = 'bob';
+	l_aiTree.params.moveType = MT_Walk;
+	l_aiTree.params.moveSpeed = 1.0;
+	l_aiTree.params.followDistance = 2.0;
+
+	l_aiTreeDecorator = new CAIPlayerActionDecorator in l_actor;
+	l_aiTreeDecorator.OnCreated();
+	l_aiTreeDecorator.interruptOnInput = true;
+	l_aiTreeDecorator.scriptedAction = l_aiTree;	
+
+	//it's important to execute this AFTER drawing sword; because of input context
+	if ( l_aiTreeDecorator )
+		l_actor.ForceAIBehavior( l_aiTreeDecorator, BTAP_Emergency);
+	else
+		l_actor.ForceAIBehavior( l_aiTree, BTAP_Emergency);
+}*/
+/*
+exec function MoveNpcFwd( actor : CActor, distance : float, moveType : EMoveType )
+{
+	var l_actor 			: CActor;
+	var l_aiTree			: CAIMoveToPoint;
+	
+	l_actor = actor;
+	
+	l_aiTree = new CAIMoveToPoint in l_actor;
+	l_aiTree.OnCreated();
+	
+	l_aiTree.enterExplorationOnStart 		= false;
+	l_aiTree.params.destinationHeading 		= VecHeading(l_actor.GetHeadingVector());
+	l_aiTree.params.destinationPosition 	= l_actor.GetWorldPosition() + distance*l_actor.GetHeadingVector();
+	l_aiTree.params.maxIterationsNumber 	= 0;
+	
+	l_aiTree.params.moveType = moveType;
+		
+	l_actor.ForceAIBehavior( l_aiTree, BTAP_Emergency);
+}*/
 
 
 exec function magicBubble( toggle : bool, optional actorTag : name )
@@ -8305,7 +8821,7 @@ function printabs_f(optional tag : name, optional fromItems : bool, optional att
 	LogStats(logStr);
 	while(abs.Size() > 0)
 	{
-		LogStats(abs[0] + " x" + ArrayOfNamesCount(abs, abs[0]));
+		LogStats(SpaceFill(ArrayOfNamesCount(abs, abs[0]) + "x '" + abs[0] + "'", 50) + "typo check: '" + StrUpper(NameToString(abs[0])) + "'");
 		ArrayOfNamesRemoveAll(abs, abs[0]);
 	}
 	LogStats("");
@@ -8325,7 +8841,7 @@ function printabs_f(optional tag : name, optional fromItems : bool, optional att
 			else
 			{
 				val = actor.GetAttributeValue(atts[i], , true);
-				LogStats(SpaceFill(atts[i],35) + ", BASE= " + SpaceFill(NoTrailZeros(val.valueBase),8,ESFM_JustifyRight) + ", MUL= " + SpaceFill(NoTrailZeros(val.valueMultiplicative),8,ESFM_JustifyRight) + ", ADD= " + SpaceFill(NoTrailZeros(val.valueAdditive),8,ESFM_JustifyRight) );
+				LogStats(SpaceFill("'" + atts[i] + "'",35) + ", BASE= " + SpaceFill(NoTrailZeros(val.valueBase),8,ESFM_JustifyRight) + ", MUL= " + SpaceFill(NoTrailZeros(val.valueMultiplicative),8,ESFM_JustifyRight) + ", ADD= " + SpaceFill(NoTrailZeros(val.valueAdditive),8,ESFM_JustifyRight) );
 			}
 		}
 		
@@ -8356,7 +8872,7 @@ function damageitem_g(slot : EEquipmentSlots, perc : float)
 exec function alert()
 {
 	thePlayer.SetPlayerCombatStance( PCS_AlertNear );
-	
+	//thePlayer.SetPlayerCombatStance( PCS_Normal );
 }
 
 exec function muttest(optional mutPotName : name, optional slot : EEquipmentSlots)
@@ -9037,7 +9553,7 @@ exec function addAllSkills(val : int, optional level : int)
 		thePlayer.AddSkill(S_Alchemy_3);
 		thePlayer.AddSkill(S_Alchemy_4);
 		thePlayer.AddSkill(S_Alchemy_5);
-		
+		//swords
 		thePlayer.AddSkill(S_Sword_s01 );
 		thePlayer.AddSkill(S_Sword_s02 );
 		thePlayer.AddSkill(S_Sword_s03 );
@@ -9058,7 +9574,7 @@ exec function addAllSkills(val : int, optional level : int)
 		thePlayer.AddSkill(S_Sword_s19);
 		thePlayer.AddSkill(S_Sword_s20);
 		thePlayer.AddSkill(S_Sword_s21);
-		
+		//signs
 		thePlayer.AddSkill(S_Magic_s01 );
 		thePlayer.AddSkill(S_Magic_s02 );
 		thePlayer.AddSkill(S_Magic_s03 );
@@ -9079,7 +9595,7 @@ exec function addAllSkills(val : int, optional level : int)
 		thePlayer.AddSkill(S_Magic_s18);
 		thePlayer.AddSkill(S_Magic_s19);
 		thePlayer.AddSkill(S_Magic_s20);
-		
+		//alchemy
 		thePlayer.AddSkill(S_Alchemy_s01);
 		thePlayer.AddSkill(S_Alchemy_s02 );
 		thePlayer.AddSkill(S_Alchemy_s03 );
@@ -9101,7 +9617,7 @@ exec function addAllSkills(val : int, optional level : int)
 		thePlayer.AddSkill(S_Alchemy_s19);
 		thePlayer.AddSkill(S_Alchemy_s20);
 		
-		
+		//perk
 		thePlayer.AddSkill(S_Perk_01);
 		thePlayer.AddSkill(S_Perk_02);
 		thePlayer.AddSkill(S_Perk_03);
@@ -9114,6 +9630,11 @@ exec function addAllSkills(val : int, optional level : int)
 		thePlayer.AddSkill(S_Perk_10);
 		thePlayer.AddSkill(S_Perk_11);
 		thePlayer.AddSkill(S_Perk_12);
+		thePlayer.AddSkill(S_Perk_13);
+		thePlayer.AddSkill(S_Perk_17);
+		thePlayer.AddSkill(S_Perk_18);
+		thePlayer.AddSkill(S_Perk_19);
+		thePlayer.AddSkill(S_Perk_22);
 	}
 }
 
@@ -9267,9 +9788,9 @@ exec function givecards ( val : name )
 	}
 }
 
-exec function specials(optional off : bool)
+exec function specials(optional off : bool, optional force : bool)
 {
-	GetWitcherPlayer().Debug_EquipTestingSkills(!off);
+	GetWitcherPlayer().Debug_EquipTestingSkills(!off, force);
 }
 
 exec function remactlocks(optional action : EInputActionBlock, optional all : bool)
@@ -9310,7 +9831,13 @@ exec function testhorse( level : int)
 		break;
 	}
 	
-	
+	/*
+	if(GetWitcherPlayer().GetItemEquippedOnSlot(EES_SteelSword, id))
+	{
+		newID = GetWitcherPlayer().GetHorseManager().MoveItemToHorse(id);
+		GetWitcherPlayer().GetHorseManager().EquipItem(newID);
+	}
+	*/
 }
 
 exec function additemhorse(itemName : name, cnt : int)
@@ -9366,8 +9893,8 @@ exec function testBeast()
 	manager = theGame.GetJournalManager();
 	
 	resource = (CJournalResource)LoadResource( "BestiaryBasilisk" );
-	
-	
+	// alternatively instead of full path an alias used in LoadResource function i.e.
+	//resource = (CJournalResource)LoadResource( "JournalBasilisk" );
 	if ( resource )
 	{
 		entryBase = resource.GetEntry();
@@ -9375,7 +9902,7 @@ exec function testBeast()
 		{
 			manager.ActivateEntry( entryBase, JS_Active );
 
-			
+			// additionally activate all description entries from description group
 			manager.GetAllChildren( entryBase, childGroups );
 			for ( i = 0; i < childGroups.Size(); i += 1 )
 			{
@@ -9432,38 +9959,38 @@ exec function eq_silver( sword_id : int, optional dir : name)
 	var inv 		: CInventoryComponent = thePlayer.inv;
 	var temp_name 	: name;
 	
-	swords.PushBack( 'Viper School silver sword' );			
-	swords.PushBack( 'Viper School silver sword' );			
-	swords.PushBack( 'Lynx School silver sword' );			
-	swords.PushBack( 'Lynx School silver sword 1' );		
-	swords.PushBack( 'Lynx School silver sword 2' );		
-	swords.PushBack( 'Lynx School silver sword 3' );		
-	swords.PushBack( 'Gryphon School silver sword' );		
-	swords.PushBack( 'Gryphon School silver sword 1' );		
-	swords.PushBack( 'Gryphon School silver sword 2' );		
-	swords.PushBack( 'Gryphon School silver sword 3' );		
-	swords.PushBack( 'Bear School silver sword' );			
-	swords.PushBack( 'Bear School silver sword 1' );		
-	swords.PushBack( 'Bear School silver sword 2' );		
-	swords.PushBack( 'Bear School silver sword 3' );		
-	swords.PushBack( 'Wolf School silver sword' );			
-	swords.PushBack( 'Wolf School silver sword 1' );		
-	swords.PushBack( 'Wolf School silver sword 2' );		
-	swords.PushBack( 'Wolf School silver sword 3' );		
-	swords.PushBack( 'Dwarven silver sword 1' );			
-	swords.PushBack( 'Dwarven silver sword 2' );			
-	swords.PushBack( 'Gnomish silver sword 1' );			
-	swords.PushBack( 'Gnomish silver sword 2' );			
-	swords.PushBack( 'Elven silver sword 1' );				
-	swords.PushBack( 'Elven silver sword 2' );				
-	swords.PushBack( 'Silver sword 1' );					
-	swords.PushBack( 'Silver sword 2' );					
-	swords.PushBack( 'Silver sword 3' );					
-	swords.PushBack( 'Silver sword 4' );					
-	swords.PushBack( 'Silver sword 5' );					
-	swords.PushBack( 'Silver sword 6' );					
-	swords.PushBack( 'Silver sword 7' );					
-	swords.PushBack( 'Silver sword 8' );					
+	swords.PushBack( 'Viper School silver sword' );			//	0
+	swords.PushBack( 'Viper School silver sword' );			//	1
+	swords.PushBack( 'Lynx School silver sword' );			//	2
+	swords.PushBack( 'Lynx School silver sword 1' );		// 	3
+	swords.PushBack( 'Lynx School silver sword 2' );		//	4
+	swords.PushBack( 'Lynx School silver sword 3' );		//	5
+	swords.PushBack( 'Gryphon School silver sword' );		//	6
+	swords.PushBack( 'Gryphon School silver sword 1' );		//	7
+	swords.PushBack( 'Gryphon School silver sword 2' );		//	8
+	swords.PushBack( 'Gryphon School silver sword 3' );		//	9
+	swords.PushBack( 'Bear School silver sword' );			//	10
+	swords.PushBack( 'Bear School silver sword 1' );		//	11
+	swords.PushBack( 'Bear School silver sword 2' );		//	12
+	swords.PushBack( 'Bear School silver sword 3' );		//	13
+	swords.PushBack( 'Wolf School silver sword' );			//	14
+	swords.PushBack( 'Wolf School silver sword 1' );		//	15
+	swords.PushBack( 'Wolf School silver sword 2' );		//	16
+	swords.PushBack( 'Wolf School silver sword 3' );		//	17
+	swords.PushBack( 'Dwarven silver sword 1' );			//	18
+	swords.PushBack( 'Dwarven silver sword 2' );			//	19
+	swords.PushBack( 'Gnomish silver sword 1' );			//	20
+	swords.PushBack( 'Gnomish silver sword 2' );			//	21
+	swords.PushBack( 'Elven silver sword 1' );				//	22
+	swords.PushBack( 'Elven silver sword 2' );				//	23
+	swords.PushBack( 'Silver sword 1' );					//	24
+	swords.PushBack( 'Silver sword 2' );					//	25
+	swords.PushBack( 'Silver sword 3' );					//	26
+	swords.PushBack( 'Silver sword 4' );					//	27
+	swords.PushBack( 'Silver sword 5' );					//	28
+	swords.PushBack( 'Silver sword 6' );					//	29
+	swords.PushBack( 'Silver sword 7' );					//	31
+	swords.PushBack( 'Silver sword 8' );					//	32
 	
 	if ( dir == 'None' )
 	{
@@ -9977,8 +10504,17 @@ exec function activateAllGlossaryCharacters()
 	activateJournalCharacterEntryWithAlias("CharactersZoltan", manager);
 }
 
-
-
+// NOT USED IN THE GAME
+/*
+exec function activateAllGlossaryLocations()
+{
+	var manager : CWitcherJournalManager;
+	
+	manager = theGame.GetJournalManager();
+	
+	// no places available
+}
+*/
 
 exec function activateAllGlossaryEncyclopedia()
 {
@@ -9996,11 +10532,11 @@ exec function activateAllGlossaryStorybook()
 	
 	manager = theGame.GetJournalManager();
 	
-	
+	//activateJournalStoryBookPageEntryWithAlias("StoryBookPrologue", manager);
 	activateJournalStoryBookPageEntryWithAlias("StoryBookPrologueEntry01", manager);
 	activateJournalStoryBookPageEntryWithAlias("StoryBookPrologueEntry02", manager);
 	
-	
+	//activateJournalStoryBookPageEntryWithAlias("StoryBookChapter1", manager);
 	activateJournalStoryBookPageEntryWithAlias("StoryBookChapter1Entry01", manager);
 	activateJournalStoryBookPageEntryWithAlias("StoryBookChapter1Entry02", manager);
 	activateJournalStoryBookPageEntryWithAlias("StoryBookChapter1Entry03", manager);
@@ -10012,12 +10548,12 @@ exec function activateAllGlossaryStorybook()
 	activateJournalStoryBookPageEntryWithAlias("StoryBookChapter1Entry09", manager);
 	activateJournalStoryBookPageEntryWithAlias("StoryBookChapter1Entry10", manager);
 
-	
+	//activateJournalStoryBookPageEntryWithAlias("StoryBookChapter2", manager);
 	activateJournalStoryBookPageEntryWithAlias("StoryBookChapter2Entry01", manager);
 	activateJournalStoryBookPageEntryWithAlias("StoryBookChapter2Entry02", manager);
 	activateJournalStoryBookPageEntryWithAlias("StoryBookChapter2Entry03", manager);
 
-	
+	//activateJournalStoryBookPageEntryWithAlias("StoryBookChapter3", manager);
 	activateJournalStoryBookPageEntryWithAlias("StoryBookChapter3Entry01", manager);
 	activateJournalStoryBookPageEntryWithAlias("StoryBookChapter3Entry02", manager);
 	activateJournalStoryBookPageEntryWithAlias("StoryBookChapter3Entry03", manager);
@@ -10356,7 +10892,197 @@ exec function addgwintcards()
 	theGame.GetGwintManager().AddCardToCollection( 477 );
 }
 
-
+/* it adds virtual decks instead replacing existing ones - can be dangerous
+exec function testDeck( deck : int )
+{
+	var testDecka : SDeckDefinition;
+	var testDeckb : SDeckDefinition;
+	var testDeckc : SDeckDefinition;
+	var testDeckd : SDeckDefinition;
+	
+	if (deck == 1 || deck == 6)
+	{
+		testDecka.cardIndices.PushBack( 0 );
+		testDecka.cardIndices.PushBack( 0 );
+		testDecka.cardIndices.PushBack( 1 );
+		testDecka.cardIndices.PushBack( 1 );
+		testDecka.cardIndices.PushBack( 2 );
+		testDecka.cardIndices.PushBack( 2 );		
+		testDecka.cardIndices.PushBack( 3 );
+		testDecka.cardIndices.PushBack( 3 );
+		testDecka.cardIndices.PushBack( 4 );
+		testDecka.cardIndices.PushBack( 4 );
+		testDecka.cardIndices.PushBack( 5 );
+		testDecka.cardIndices.PushBack( 5 );
+		testDecka.cardIndices.PushBack( 6 );
+		testDecka.cardIndices.PushBack( 230 );
+		testDecka.cardIndices.PushBack( 231 );
+		testDecka.cardIndices.PushBack( 240 );
+		testDecka.cardIndices.PushBack( 245 );
+		testDecka.cardIndices.PushBack( 245 );
+		testDecka.cardIndices.PushBack( 245 );
+		testDecka.cardIndices.PushBack( 200 );
+		testDecka.cardIndices.PushBack( 250 );
+		testDecka.cardIndices.PushBack( 250 );
+		testDecka.cardIndices.PushBack( 250 );
+		testDecka.cardIndices.PushBack( 213 );
+		testDecka.cardIndices.PushBack( 265 );
+		testDecka.cardIndices.PushBack( 218 );
+		testDecka.cardIndices.PushBack( 260 );
+		testDecka.cardIndices.PushBack( 261 );
+		testDecka.cardIndices.PushBack( 241 );
+		testDecka.cardIndices.PushBack( 109 );
+		testDecka.cardIndices.PushBack( 116 );
+		testDecka.cardIndices.PushBack( 116 );
+		testDecka.cardIndices.PushBack( 10 );
+		testDecka.cardIndices.PushBack( 12 );		
+		testDecka.leaderIndex = 1001;
+		testDecka.unlocked = false;
+		theGame.GetGwintManager().SetFactionDeck(GwintFaction_Nilfgaard, testDecka);
+		theGame.GetGwintManager().UnlockDeck(GwintFaction_Nilfgaard);
+	}
+	else if (deck == 2 || deck == 6)
+	{
+		testDeckb.cardIndices.PushBack( 0 );
+		testDeckb.cardIndices.PushBack( 0 );
+		testDeckb.cardIndices.PushBack( 1 );
+		testDeckb.cardIndices.PushBack( 1 );
+		testDeckb.cardIndices.PushBack( 2 );
+		testDeckb.cardIndices.PushBack( 2 );		
+		testDeckb.cardIndices.PushBack( 3 );
+		testDeckb.cardIndices.PushBack( 3 );
+		testDeckb.cardIndices.PushBack( 4 );
+		testDeckb.cardIndices.PushBack( 4 );
+		testDeckb.cardIndices.PushBack( 5 );
+		testDeckb.cardIndices.PushBack( 5 );
+		testDeckb.cardIndices.PushBack( 6 );
+		testDeckb.cardIndices.PushBack( 150 );
+		testDeckb.cardIndices.PushBack( 151 );
+		testDeckb.cardIndices.PushBack( 152 );
+		testDeckb.cardIndices.PushBack( 125 );
+		testDeckb.cardIndices.PushBack( 125 );
+		testDeckb.cardIndices.PushBack( 125 );
+		testDeckb.cardIndices.PushBack( 116 );
+		testDeckb.cardIndices.PushBack( 109 );
+		testDeckb.cardIndices.PushBack( 105 );
+		testDeckb.cardIndices.PushBack( 100 );
+		testDeckb.cardIndices.PushBack( 175 );
+		testDeckb.cardIndices.PushBack( 175 );
+		testDeckb.cardIndices.PushBack( 175 );
+		testDeckb.cardIndices.PushBack( 100 );
+		testDeckb.cardIndices.PushBack( 100 );
+		testDeckb.cardIndices.PushBack( 109 );
+		testDeckb.cardIndices.PushBack( 109 );
+		testDeckb.cardIndices.PushBack( 116 );
+		testDeckb.cardIndices.PushBack( 116 );
+		testDeckb.cardIndices.PushBack( 10 );
+		testDeckb.cardIndices.PushBack( 12 );
+		testDeckb.leaderIndex = 2001;
+		testDeckb.unlocked = false;
+		theGame.GetGwintManager().SetFactionDeck(GwintFaction_NothernKingdom, testDeckb);
+		theGame.GetGwintManager().UnlockDeck(GwintFaction_NothernKingdom);
+	}
+	else if (deck == 3 || deck == 6)
+	{
+		testDecka.cardIndices.PushBack( 0 );
+		testDecka.cardIndices.PushBack( 0 );
+		testDecka.cardIndices.PushBack( 1 );
+		testDecka.cardIndices.PushBack( 1 );
+		testDecka.cardIndices.PushBack( 2 );
+		testDecka.cardIndices.PushBack( 2 );		
+		testDecka.cardIndices.PushBack( 3 );
+		testDecka.cardIndices.PushBack( 3 );
+		testDecka.cardIndices.PushBack( 4 );
+		testDecka.cardIndices.PushBack( 4 );
+		testDecka.cardIndices.PushBack( 5 );
+		testDecka.cardIndices.PushBack( 5 );
+		testDecka.cardIndices.PushBack( 6 );
+		testDeckc.cardIndices.PushBack( 313 );
+		testDeckc.cardIndices.PushBack( 312 );
+		testDeckc.cardIndices.PushBack( 305 );
+		testDeckc.cardIndices.PushBack( 335 );
+		testDeckc.cardIndices.PushBack( 336 );
+		testDeckc.cardIndices.PushBack( 337 );
+		testDeckc.cardIndices.PushBack( 300 );
+		testDeckc.cardIndices.PushBack( 350 );
+		testDeckc.cardIndices.PushBack( 351 );
+		testDeckc.cardIndices.PushBack( 352 );
+		testDeckc.cardIndices.PushBack( 365 );
+		testDeckc.cardIndices.PushBack( 366 );
+		testDeckc.cardIndices.PushBack( 367 );
+		testDeckc.cardIndices.PushBack( 320 );
+		testDeckc.cardIndices.PushBack( 321 );
+		testDeckc.cardIndices.PushBack( 322 );
+		testDeckc.cardIndices.PushBack( 325 );
+		testDeckc.cardIndices.PushBack( 326 );
+		testDeckc.cardIndices.PushBack( 327 );
+		testDeckc.cardIndices.PushBack( 309 );
+		testDeckb.cardIndices.PushBack( 10 );
+		testDeckb.cardIndices.PushBack( 12 );
+		testDeckc.leaderIndex = 3001;
+		testDeckc.unlocked = false;
+		theGame.GetGwintManager().SetFactionDeck(GwintFaction_Scoiatael, testDeckc);
+		theGame.GetGwintManager().UnlockDeck(GwintFaction_Scoiatael);
+	}
+	else if (deck == 4 || deck == 6)
+	{
+		testDeckd.cardIndices.PushBack( 0 );
+		testDeckd.cardIndices.PushBack( 0 );
+		testDeckd.cardIndices.PushBack( 1 );
+		testDeckd.cardIndices.PushBack( 1 );
+		testDeckd.cardIndices.PushBack( 2 );
+		testDeckd.cardIndices.PushBack( 2 );		
+		testDeckd.cardIndices.PushBack( 3 );
+		testDeckd.cardIndices.PushBack( 3 );
+		testDeckd.cardIndices.PushBack( 4 );
+		testDeckd.cardIndices.PushBack( 4 );
+		testDeckd.cardIndices.PushBack( 5 );
+		testDeckd.cardIndices.PushBack( 5 );
+		testDeckd.cardIndices.PushBack( 6 );
+		testDeckd.cardIndices.PushBack( 451 );
+		testDeckd.cardIndices.PushBack( 452 );
+		testDeckd.cardIndices.PushBack( 453 );
+		testDeckd.cardIndices.PushBack( 450 );
+		testDeckd.cardIndices.PushBack( 470 );
+		testDeckd.cardIndices.PushBack( 471 );
+		testDeckd.cardIndices.PushBack( 472 );
+		testDeckd.cardIndices.PushBack( 430 );
+		testDeckd.cardIndices.PushBack( 402 );
+		testDeckd.cardIndices.PushBack( 401 );
+		testDeckd.cardIndices.PushBack( 455 );
+		testDeckd.cardIndices.PushBack( 456 );
+		testDeckd.cardIndices.PushBack( 457 );
+		testDeckd.cardIndices.PushBack( 460 );
+		testDeckd.cardIndices.PushBack( 461 );
+		testDeckd.cardIndices.PushBack( 462 );
+		testDeckd.cardIndices.PushBack( 463 );
+		testDeckd.cardIndices.PushBack( 464 );
+		testDeckd.cardIndices.PushBack( 465 );
+		testDeckd.cardIndices.PushBack( 466 );
+		testDeckb.cardIndices.PushBack( 10 );
+		testDeckb.cardIndices.PushBack( 12 );
+		testDeckd.leaderIndex = 4001;
+		testDeckd.unlocked = false;
+		theGame.GetGwintManager().SetFactionDeck(GwintFaction_NoMansLand, testDeckd);
+		theGame.GetGwintManager().UnlockDeck(GwintFaction_NoMansLand);
+	}
+	else if (deck == 5 || deck == 6)
+	{
+		theGame.GetGwintManager().AddCardToCollection( 1002 );
+		theGame.GetGwintManager().AddCardToCollection( 1003 );
+		theGame.GetGwintManager().AddCardToCollection( 1004 );
+		theGame.GetGwintManager().AddCardToCollection( 2002 );
+		theGame.GetGwintManager().AddCardToCollection( 2003 );
+		theGame.GetGwintManager().AddCardToCollection( 2004 );
+		theGame.GetGwintManager().AddCardToCollection( 3002 );
+		theGame.GetGwintManager().AddCardToCollection( 3003 );
+		theGame.GetGwintManager().AddCardToCollection( 3004 );
+		theGame.GetGwintManager().AddCardToCollection( 4002 );
+		theGame.GetGwintManager().AddCardToCollection( 4003 );
+		theGame.GetGwintManager().AddCardToCollection( 4004 );
+	}
+}
+*/
 
 exec function testnotify()
 {	
@@ -10467,7 +11193,7 @@ exec function vcrafting( listAllItemDefs : bool )
 	theGame.GetDefinitionsManager().ValidateCraftingDefinitions( listAllItemDefs );
 }
 
-
+//set breakpoint to inspect entities around the player
 exec function gather(optional range : float)
 {
 	var ents : array<CGameplayEntity>;
@@ -10489,6 +11215,11 @@ exec function gather(optional range : float)
 	}
 	
 	breakpointMe = 0;
+}
+
+exec function hackknockdown()
+{
+	thePlayer.substateManager.m_SharedDataO.SetHackKnockBack( !thePlayer.substateManager.m_SharedDataO.hackKnockBackAlways );
 }
 
 exec function zzz()
@@ -10651,8 +11382,8 @@ exec function EnableSnapToNavMesh( source : name, enable : bool )
 	thePlayer.EnableSnapToNavMesh( source, enable );
 }
 
-
-
+// Purpose of this command is ONLY to allow to continue testing on saves with broken horse manager
+// DO NOT USE IT OTHERWISE
 exec function RestoreHorseManager() : bool
 {
 	return GetWitcherPlayer().RestoreHorseManager();
@@ -10676,6 +11407,16 @@ exec function horsePanic()
 		horseActor = (CActor)(horseComp.GetEntity());
 		horseActor.AddAbility( 'DisableHorsePanic' );
 	}
+}
+
+exec function pottip(itemName : name)
+{
+	var ids : array<SItemUniqueId>;
+	var null : array<SAttributeTooltip>;
+	
+	ids = thePlayer.inv.GetItemsByName(itemName);
+	if(ids.Size() > 0)
+		thePlayer.inv.GetPotionAttributesForTooltip(ids[0], null);
 }
 
 exec function showMouse(value:bool)
@@ -10715,14 +11456,14 @@ exec function primarec()
 		dm.GetCustomNodeAttributeValueName(main.subNodes[i], 'name_name', recipeName);
 		dm.GetCustomNodeAttributeValueName(main.subNodes[i], 'cookedItem_name', cookedItemName);
 		
-		
+		//skip quest items and blizzard potion (since patch 1.1)
 		if(dm.ItemHasTag(cookedItemName, 'Quest') || StrContains(NameToString(cookedItemName), " Blizzard"))
 			continue;
 		
 		logStr = GetLocStringByKeyExt(dm.GetItemLocalisationKeyName(recipeName)) + ";" + GetLocStringByKeyExt(dm.GetItemLocalisationKeyName(cookedItemName)) + ";";
 		logStr += dm.GetItemPrice(cookedItemName) + ";";
 		
-		
+		//ingredients
 		ingredients = dm.GetCustomDefinitionSubNode(main.subNodes[i],'ingredients');
 		for(k=0; k<ingredients.subNodes.Size(); k+=1)
 		{		
@@ -10749,12 +11490,12 @@ exec function primabooks()
 	
 	for(i=0; i<bookNames.Size(); i+=1)
 	{
-		
+		//skip alchemy & crafting recipes
 		itemCategory = dm.GetItemCategory(bookNames[i]);
 		if(itemCategory == 'alchemy_recipe' || itemCategory == 'crafting_schematic')
 			continue;
 			
-		
+		//skip treasure hunt maps
 		if(dm.ItemHasTag(bookNames[i], 'ThMap'))
 			continue;
 	
@@ -10912,6 +11653,115 @@ exec function simngp(flag : bool)
 	theGame.params.SetNewGamePlusLevel(0);
 }
 
+exec function countcards()
+{
+	var j : int;
+	var gwintCards : array<SItemUniqueId>;
+	var allCardsNames, foundCardsNames : array<name>;
+	var allStringNamesOfCards : array<string>;
+	var allStringNamesOfMissingCards : array<string>;
+	var foundCardsStringNames : array<string>;
+	var itemName : name;
+	var locKey : string;
+	var dm : CDefinitionsManagerAccessor;
+	var leaderCardsHack : array<name>;	
+	
+	leaderCardsHack.PushBack('gwint_card_emhyr_gold');
+	leaderCardsHack.PushBack('gwint_card_emhyr_silver');
+	leaderCardsHack.PushBack('gwint_card_emhyr_bronze');
+	leaderCardsHack.PushBack('gwint_card_foltest_gold');
+	leaderCardsHack.PushBack('gwint_card_foltest_silver');
+	leaderCardsHack.PushBack('gwint_card_foltest_bronze');
+	leaderCardsHack.PushBack('gwint_card_francesca_gold');
+	leaderCardsHack.PushBack('gwint_card_francesca_silver');
+	leaderCardsHack.PushBack('gwint_card_francesca_bronze');
+	leaderCardsHack.PushBack('gwint_card_eredin_gold');
+	leaderCardsHack.PushBack('gwint_card_eredin_silver');
+	leaderCardsHack.PushBack('gwint_card_eredin_bronze');
+		
+	dm = theGame.GetDefinitionsManager();
+	allCardsNames = theGame.GetDefinitionsManager().GetItemsWithTag(theGame.params.GWINT_CARD_ACHIEVEMENT_TAG);
+	gwintCards = thePlayer.inv.GetItemsByTag(theGame.params.GWINT_CARD_ACHIEVEMENT_TAG);
+
+	//Achievement hack for leaders as they use unique localisation key in XML
+	//allStringNamesOfCards.PushBack('gwint_name_emhyr2');
+	//allStringNamesOfCards.PushBack('gwint_name_emhyr3');
+	//allStringNamesOfCards.PushBack('gwint_name_emhyr4');
+	//allStringNamesOfCards.PushBack('gwint_name_foltest2');
+	//allStringNamesOfCards.PushBack('gwint_name_foltest3');
+	//allStringNamesOfCards.PushBack('gwint_name_foltest4');
+	//allStringNamesOfCards.PushBack('gwint_name_francesca2');
+	//allStringNamesOfCards.PushBack('gwint_name_francesca3');
+	//allStringNamesOfCards.PushBack('gwint_name_francesca4');
+	//allStringNamesOfCards.PushBack('gwint_name_eredin2');
+	//allStringNamesOfCards.PushBack('gwint_name_eredin3');
+	//allStringNamesOfCards.PushBack('gwint_name_eredin4');
+		
+	//Count only UNIQUE cards (with the same localisation key name)
+	for(j=0; j<allCardsNames.Size(); j+=1)
+	{
+		itemName = allCardsNames[j];
+		locKey = dm.GetItemLocalisationKeyName(allCardsNames[j]);
+		if (!allStringNamesOfCards.Contains(locKey) || (leaderCardsHack.Contains(itemName) && !allStringNamesOfCards.Contains(itemName)))
+		{
+			if (leaderCardsHack.Contains(itemName) && !allStringNamesOfCards.Contains(itemName))
+				allStringNamesOfCards.PushBack(itemName);
+			else
+				allStringNamesOfCards.PushBack(locKey);
+		}
+	}
+	
+	foundCardsNames.Clear();
+	for(j=0; j<gwintCards.Size(); j+=1)
+	{
+		itemName = thePlayer.inv.GetItemName(gwintCards[j]);
+		locKey = dm.GetItemLocalisationKeyName(itemName);
+		// Hack for Leader Cards as they have the same loc key name
+		
+		if(leaderCardsHack.Contains(itemName))
+		{
+			foundCardsStringNames.PushBack(itemName);
+		}
+		else if(!foundCardsStringNames.Contains(locKey))
+		{
+			foundCardsStringNames.PushBack(locKey);
+		}
+	}
+	
+	for(j=0; j<allStringNamesOfCards.Size(); j+=1)
+	{
+		if(!foundCardsStringNames.Contains(allStringNamesOfCards[j]))
+		{
+			allStringNamesOfMissingCards.PushBack(allStringNamesOfCards[j]);
+		}
+	}	
+	
+	LogChannel('GWENT', "-------------------------------------------------------------------");
+	LogChannel('GWENT', "Player has [ " + foundCardsStringNames.Size() + " ] unique Gwent cards");
+	LogChannel('GWENT', "Player is missing [ " + allStringNamesOfMissingCards.Size() + " ] unique Gwent cards");
+	LogChannel('GWENT', "-------------------------------------------------------------------");
+	for (j=0; j<allStringNamesOfMissingCards.Size(); j+=1)
+	{
+		LogChannel('GWENT', "Missing Card:   " + allStringNamesOfMissingCards[j]);
+	}
+	LogChannel('GWENT', "-------------------------------------------------------------------");
+}
+
+exec function addofir()
+{
+	thePlayer.inv.AddAnItem('Ofir Armor');
+	thePlayer.inv.AddAnItem('Crafted Ofir Armor');
+	thePlayer.inv.AddAnItem('Crafted Ofir Boots');
+	thePlayer.inv.AddAnItem('Crafted Ofir Gloves');
+	thePlayer.inv.AddAnItem('Crafted Ofir Pants');
+	thePlayer.inv.AddAnItem('Crafted Ofir Steel Sword');
+	thePlayer.inv.AddAnItem('Ofir Sabre 1');
+	thePlayer.inv.AddAnItem('Ofir Sabre 2');
+	thePlayer.inv.AddAnItem('Horse Saddle 6');
+	thePlayer.inv.AddAnItem('Ofir Horse Bag');
+	thePlayer.inv.AddAnItem('Ofir Horse Blinders');
+}
+
 exec function testGamma()
 {
 	theGame.RequestMenu('MainGammaMenu');
@@ -10921,4 +11771,302 @@ exec function testStash()
 {
 	theGame.GameplayFactsAdd("stashMode", 1);
 	theGame.RequestMenuWithBackground( 'InventoryMenu', 'CommonMenu' );
+}
+
+exec function spawnEthereals( optional count : int, optional dist : float, optional level : int )
+{
+	// 'etherealTest'
+	var ent : CEntity;
+	var pos, posTemp, playerPos : Vector;
+	var rot : EulerAngles;
+	var i : int;
+	var template : CEntityTemplate;
+
+	rot = thePlayer.GetWorldRotation();	
+	rot.Yaw += 180;
+
+	template = (CEntityTemplate)LoadResource('ethereal');
+
+	if( count == 0 ) count = 6;
+	
+	for(i=0; i<count; i+=1)
+	{		
+		if(i == 1)
+			rot.Yaw -= 60;
+		else if(i == 2)
+			rot.Yaw -= 60;
+		else if(i == 3)
+			rot = thePlayer.GetWorldRotation();	
+		else if(i == 4)
+			rot.Yaw -= 60;
+		else if(i == 5)
+			rot.Yaw -= 60;
+		
+		if(dist == 0) dist = 5.0;
+		
+		pos = thePlayer.GetWorldPosition() + VecFromHeading( thePlayer.GetHeading() - i * 60.0 ) * dist;
+		
+		ent = theGame.CreateEntity(template, pos, rot);
+		
+		((CActor)ent).SetTemporaryAttitudeGroup( 'hostile_to_player', AGP_Default );
+		
+		if( level )
+		{
+			if(level == 1)
+			{	
+				((CNewNPC)ent).AddAbility( 'EtherealSkill_1' );
+			}
+			else if(level == 2)
+			{
+				((CNewNPC)ent).AddAbility( 'EtherealSkill_1' );
+				((CNewNPC)ent).AddAbility( 'EtherealSkill_2' );
+			}
+			else if(level == 3)
+			{
+				((CNewNPC)ent).AddAbility( 'EtherealSkill_1' );
+				((CNewNPC)ent).AddAbility( 'EtherealSkill_2' );
+				((CNewNPC)ent).AddAbility( 'EtherealSkill_3' );
+			}
+			else if(level == 4)
+			{
+				((CNewNPC)ent).AddAbility( 'EtherealSkill_1' );
+				((CNewNPC)ent).AddAbility( 'EtherealSkill_2' );
+				((CNewNPC)ent).AddAbility( 'EtherealSkill_3' );
+				((CNewNPC)ent).AddAbility( 'EtherealSkill_4' );
+				((CNewNPC)ent).RaiseGuard();
+			}
+			else if(level == 5)
+			{
+				((CNewNPC)ent).AddAbility( 'EtherealSkill_1' );
+				((CNewNPC)ent).AddAbility( 'EtherealSkill_2' );
+				((CNewNPC)ent).AddAbility( 'EtherealSkill_3' );
+				((CNewNPC)ent).AddAbility( 'EtherealSkill_4' );
+				((CNewNPC)ent).AddAbility( 'EtherealSkill_5' );
+				((CNewNPC)ent).RaiseGuard();
+			}
+		}
+	}
+}
+
+exec function Addep1Items()
+{	
+	thePlayer.inv.AddAnItem('Crafted Ofir Boots');
+	thePlayer.inv.AddAnItem('Crafted Ofir Gloves');
+	thePlayer.inv.AddAnItem('Crafted Ofir Pants');
+	thePlayer.inv.AddAnItem('Crafted Ofir Steel Sword');
+	thePlayer.inv.AddAnItem('Ofir Sabre 1');
+	thePlayer.inv.AddAnItem('Ofir Sabre 2');
+	thePlayer.inv.AddAnItem('Horse Saddle 6');
+	thePlayer.inv.AddAnItem('Ofir Horse Bag');
+	thePlayer.inv.AddAnItem('Ofir Horse Blinders');
+
+	thePlayer.inv.AddAnItem('Ofir Armor');
+	thePlayer.inv.AddAnItem('Crafted Ofir Armor');
+	thePlayer.inv.AddAnItem('Olgierd Sabre');
+	thePlayer.inv.AddAnItem('Soltis Vodka');
+	thePlayer.inv.AddAnItem('Cornucopia');
+	thePlayer.inv.AddAnItem('Flaming Rose Armor');
+	thePlayer.inv.AddAnItem('Burning Rose Sword');
+	thePlayer.inv.AddAnItem('Geralt Kontusz');
+	thePlayer.inv.AddAnItem('Geralt Kontusz Boots');
+	thePlayer.inv.AddAnItem('EP1 Witcher Silver Sword');
+	thePlayer.inv.AddAnItem('EP1 Viper School steel sword');
+	thePlayer.inv.AddAnItem('EP1 Viper School silver sword');
+}
+
+exec function issa( dlc : name )
+{
+	Log( "Result: " + theGame.CanStartStandaloneDLC( dlc ) );
+}
+
+exec function ssa( dlc : name )
+{
+	Log( "Result: " + theGame.InitStandaloneDLCLoading( dlc, 0 ) );
+}
+
+exec function standalone_ep1()
+{
+	GetWitcherPlayer().StandaloneEp1_1();	
+}
+
+exec function censer( val : float )
+{
+	thePlayer.SetBehaviorVariable( 'censerSwinging', val, true );
+}
+
+exec function rwall()
+{
+	var witcher : W3PlayerWitcher;
+	
+	witcher = GetWitcherPlayer();
+	
+	witcher.UnequipItem( rw_internal("r1") );
+	witcher.UnequipItem( rw_internal("r2") );
+	witcher.UnequipItem( rw_internal("r4") );
+	witcher.UnequipItem( rw_internal("r5") );
+	witcher.UnequipItem( rw_internal("r6") );
+	witcher.UnequipItem( rw_internal("r8") );
+	witcher.UnequipItem( rw_internal("r10") );
+	witcher.UnequipItem( rw_internal("r11") );
+	witcher.UnequipItem( rw_internal("r12") );
+	
+	witcher.UnequipItem( rw_internal("r1", false, true) );
+	witcher.UnequipItem( rw_internal("r2", false, true) );
+	witcher.UnequipItem( rw_internal("r4", false, true) );
+	witcher.UnequipItem( rw_internal("r5", false, true) );
+	witcher.UnequipItem( rw_internal("r6", false, true) );
+	witcher.UnequipItem( rw_internal("r8", false, true) );
+	witcher.UnequipItem( rw_internal("r10", false, true) );
+	witcher.UnequipItem( rw_internal("r11", false, true) );
+	witcher.UnequipItem( rw_internal("r12", false, true) );
+	
+	witcher.UnequipItem( rw_internal("g1") );
+	witcher.UnequipItem( rw_internal("g2") );
+	witcher.UnequipItem( rw_internal("g3") );
+	witcher.UnequipItem( rw_internal("g4") );
+	witcher.UnequipItem( rw_internal("g5") );
+	witcher.UnequipItem( rw_internal("g6") );
+	witcher.UnequipItem( rw_internal("g7") );
+	witcher.UnequipItem( rw_internal("g10") );
+	witcher.UnequipItem( rw_internal("g12") );
+	witcher.UnequipItem( rw_internal("g14") );
+	witcher.UnequipItem( rw_internal("g15") );
+	witcher.UnequipItem( rw_internal("g17") );
+	witcher.UnequipItem( rw_internal("g18") );
+	witcher.UnequipItem( rw_internal("g20") );
+}
+
+exec function rw(typ : string, optional removeAllExisting : bool, optional onSilverSword : bool)
+{
+	rw_internal(typ, removeAllExisting, onSilverSword);
+}
+
+function rw_internal(typ : string, optional removeAllExisting : bool, optional onSilverSword : bool) : SItemUniqueId
+{
+	var type, word : string;
+	var witcher : W3PlayerWitcher;
+	var i, num : int;
+	var ids, items : array<SItemUniqueId>;
+	var itemId : SItemUniqueId;
+	var wordAsName : name;
+	var runewordCheck : array<name>;
+	
+	//parse param to runeword name
+	type = StrLeft(typ, 1);
+	num = StringToInt(StrRight(typ, StrLen(typ)-1));
+	witcher = GetWitcherPlayer();
+	
+	if(type == "r" || type == "R")
+	{
+		type = "Runeword";
+	}
+	else if(type == "g" || type == "G")
+	{
+		type = "Glyphword";
+	}
+	
+	word = type + " " + num;	
+	
+	//StringToName() - we remember [*]
+	if     (word == "Runeword 1"   || typ == "Napelnienie"   || typ == "Replenishment")	  	{wordAsName = 'Runeword 1'; type = "Runeword";}
+	else if(word == "Runeword 2"   || typ == "Przeciecie"    || typ == "Severance") 		{wordAsName = 'Runeword 2'; type = "Runeword";}
+	else if(word == "Runeword 4"   || typ == "Wigor"         || typ == "Invigoration") 		{wordAsName = 'Runeword 4'; type = "Runeword";}
+	else if(word == "Runeword 5"   || typ == "Utrwalenie"    || typ == "Preservation") 		{wordAsName = 'Runeword 5'; type = "Runeword";}
+	else if(word == "Runeword 6"   || typ == "Pierogi"       || typ == "Dumplings")			{wordAsName = 'Runeword 6'; type = "Runeword";}
+	else if(word == "Runeword 8"   || typ == "Spokoj"        || typ == "Placation") 		{wordAsName = 'Runeword 8'; type = "Runeword";}
+	else if(word == "Runeword 10"  || typ == "Odnowienie"    || typ == "Rejuvenation") 		{wordAsName = 'Runeword 10'; type = "Runeword";}
+	else if(word == "Runeword 11"  || typ == "Przedluzenie"  || typ == "Prolongation") 		{wordAsName = 'Runeword 11'; type = "Runeword";}
+	else if(word == "Runeword 12"  || typ == "Triumf"        || typ == "Elation") 			{wordAsName = 'Runeword 12'; type = "Runeword";}
+	else if(word == "Glyphword 1"  || typ == "Odbicie"       || typ == "Deflection") 		{wordAsName = 'Glyphword 1'; type = "Glyphword";}
+	else if(word == "Glyphword 2"  || typ == "Lekkosc"       || typ == "Levity") 			{wordAsName = 'Glyphword 2'; type = "Glyphword";}
+	else if(word == "Glyphword 3"  || typ == "Rownowaga"     || typ == "Balance") 			{wordAsName = 'Glyphword 3'; type = "Glyphword";}
+	else if(word == "Glyphword 4"  || typ == "Ciezar"        || typ == "Heft") 				{wordAsName = 'Glyphword 4'; type = "Glyphword";}
+	else if(word == "Glyphword 5"  || typ == "Ciern"         || typ == "Retribution") 		{wordAsName = 'Glyphword 5'; type = "Glyphword";}
+	else if(word == "Glyphword 6"  || typ == "Wycieczenie"   || typ == "Depletion") 		{wordAsName = 'Glyphword 6'; type = "Glyphword";}
+	else if(word == "Glyphword 7"  || typ == "Kolo"          || typ == "Rotation") 			{wordAsName = 'Glyphword 7'; type = "Glyphword";}
+	else if(word == "Glyphword 10" || typ == "Zawaladniecie" || typ == "Usurpation") 		{wordAsName = 'Glyphword 10'; type = "Glyphword";}
+	else if(word == "Glyphword 12" || typ == "Ogien"         || typ == "Ignition") 			{wordAsName = 'Glyphword 12'; type = "Glyphword";}
+	else if(word == "Glyphword 14" || typ == "Oczarowanie"   || typ == "Beguilement") 		{wordAsName = 'Glyphword 14'; type = "Glyphword";}
+	else if(word == "Glyphword 15" || typ == "Spetanie"      || typ == "Entanglement") 		{wordAsName = 'Glyphword 15'; type = "Glyphword";}
+	else if(word == "Glyphword 17" || typ == "Tarcza"        || typ == "Protection") 		{wordAsName = 'Glyphword 17'; type = "Glyphword";}
+	else if(word == "Glyphword 18" || typ == "Opetanie"      || typ == "Possession") 		{wordAsName = 'Glyphword 18'; type = "Glyphword";}
+	else if(word == "Glyphword 20" || typ == "Eksplozja"     || typ == "Eruption") 			{wordAsName = 'Glyphword 20'; type = "Glyphword";}
+	
+	runewordCheck = GetAllRunewordSchematics();
+	if(!runewordCheck.Contains(wordAsName))
+		return GetInvalidUniqueId();
+	
+	//get item to enchant
+	if(type == "Runeword")
+	{
+		if(!onSilverSword)
+		{
+			if(!witcher.GetItemEquippedOnSlot(EES_SteelSword, itemId))
+			{
+				ids = witcher.inv.AddAnItem('Gnomish sword 2', 1, true);
+				itemId = ids[0];
+			}
+		}
+		else
+		{
+			if(!witcher.GetItemEquippedOnSlot(EES_SilverSword, itemId))
+			{
+				ids = witcher.inv.AddAnItem('Azurewrath', 1, true);
+				itemId = ids[0];
+			}
+		}
+	}
+	else if(type == "Glyphword")
+	{
+		if(!witcher.GetItemEquippedOnSlot(EES_Armor, itemId))
+		{
+			ids = witcher.inv.AddAnItem('Medium armor 05r', 1, true);
+			itemId = ids[0];
+		}
+	}
+	
+	if(!witcher.inv.IsIdValid(itemId))
+		return GetInvalidUniqueId();
+	
+	//clear existing enchantments
+	if(removeAllExisting)
+	{
+		witcher.inv.GetAllItems(items);
+		for(i=0; i<items.Size(); i+=1)
+		{
+			witcher.inv.UnenchantItem(items[i]);
+		}
+	}
+	else
+	{
+		witcher.inv.UnenchantItem(itemId);
+	}
+	
+	while(witcher.inv.GetItemEnhancementSlotsCount(itemId) < 3)
+	{
+		witcher.inv.AddSlot(itemId);
+	}
+	
+	witcher.inv.EnchantItem(itemId, wordAsName, getEnchamtmentStatName(wordAsName));
+	witcher.EquipItem(itemId);
+	
+	return itemId;
+}
+
+
+exec function focusboy ( optional fp : int )
+{
+	if( !FactsDoesExist("debug_fact_focus_boy") )
+	{
+		if(fp==0)
+		{
+			fp = 1;
+		}
+		FactsAdd("debug_fact_focus_boy", fp);
+		Log("The fact value equals " + FactsQuerySum("debug_fact_focus_boy") + " ." );
+	}
+	else
+	{
+		FactsRemove("debug_fact_focus_boy");
+	}	
 }

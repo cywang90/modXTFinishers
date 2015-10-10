@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-latent quest function BossFight_Witches_WaitForWitchesToBeHit( witch1tag : string, witch2tag : string, witch3tag : string, desiredTimeWindow : float )
+﻿latent quest function BossFight_Witches_WaitForWitchesToBeHit( witch1tag : string, witch2tag : string, witch3tag : string, desiredTimeWindow : float )
 {
 	var res									: bool;
 	var fact1, fact2, fact3 				: string;
@@ -141,7 +137,7 @@ latent quest function BossFight_Witches_ClosePlayerInCage( cageTag : name, close
 						witches[i].AddEffectDefault( EET_BoostedEssenceRegen, NULL, "q111_witch_regen" );
 					}
 				}
-				
+				//witches[i].PlayEffect( '', thePlayer );
 			}
 			
 			params.effectType = EET_Bleeding;
@@ -159,7 +155,7 @@ latent quest function BossFight_Witches_ClosePlayerInCage( cageTag : name, close
 		for ( i = 0; i < witches.Size(); i += 1 )
 		{
 			witches[i].RemoveAllBuffsOfType( EET_BoostedEssenceRegen );
-			
+			//witches[i].StopEffect( '' );
 		}
 		cage.ApplyAppearance( "2_roots_off" );
 		cage.DestroyAfter( 1.0 );

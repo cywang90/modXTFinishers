@@ -1,13 +1,12 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Copyright © 2013-2014 CDProjektRed
+/** Author : Radosław Grabowski
+/***********************************************************************/
 
-
-
-
-
-
-
+//////////////////////////////////////////////////////////////////////////
+// CBoatBodyComponent states
 
 state Idle in CBoatBodyComponent
 {
@@ -31,8 +30,8 @@ state Cutscene in CBoatBodyComponent
 	}
 }
 
-
-
+//////////////////////////////////////////////////////////////////////////
+// CBoatComponent states
 
 state Idle in CBoatComponent
 {
@@ -56,3 +55,4 @@ state Cutscene in CBoatComponent
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////

@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2015
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 state Books in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
@@ -57,13 +55,13 @@ state Books in W3TutorialManagerUIHandler extends TutHandlerBaseState
 	{
 		if(IsCurrentHint(SELECT_BOOK) && thePlayer.inv.ItemHasTag(itemId, 'ReadableItem') )
 		{
-			
+			//if selected book
 			CloseHint(SELECT_BOOK);
 			ShowHint(USE, theGame.params.TUT_POS_INVENTORY_X, theGame.params.TUT_POS_INVENTORY_Y, ETHDT_Infinite);
 		}
 		else if(IsCurrentHint(USE) && !thePlayer.inv.ItemHasTag(itemId, 'ReadableItem') )
 		{
-			
+			//if had book selected but then changed selection to not a book
 			CloseHint(USE);
 			ShowHint(SELECT_BOOK, theGame.params.TUT_POS_INVENTORY_X, theGame.params.TUT_POS_INVENTORY_Y, ETHDT_Infinite);
 		}

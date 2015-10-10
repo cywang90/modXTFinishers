@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2012
+/** Author : Rafal Jarczewski
+/***********************************************************************/
 
 class W3QuestCond_BookHasBeenRead_Listener extends IGlobalEventScriptedListener
 {

@@ -1,13 +1,15 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 class W3QuestCond_PlayerLevel extends CQuestScriptedCondition
 {
 	editable var level : int;
+	editable var comparator : ECompareOp;
+	editable var useComparator : bool;
+	var returnValue : bool;
+
 
 	function Evaluate() : bool
 	{
@@ -31,6 +33,55 @@ class W3QuestCond_PlayerLevel extends CQuestScriptedCondition
 			return false;
 		}
 		
-		return witcher.levelManager.GetLevel() >= level;
+		if( useComparator )
+		{
+			switch ( comparator )
+			{
+				case CO_Lesser :
+				{
+					returnValue = witcher.levelManager.GetLevel() < level;
+				}
+				break; 
+				
+				case CO_LesserEq :
+				{
+					returnValue = witcher.levelManager.GetLevel() <= level;
+				}
+				break;
+				
+				case CO_Greater :
+				{
+					returnValue = witcher.levelManager.GetLevel() > level;
+				}
+				break;
+				
+				case CO_GreaterEq :
+				{
+					returnValue = witcher.levelManager.GetLevel() >= level;
+				}
+				break;	
+				
+				case CO_Equal :
+				{
+					returnValue = witcher.levelManager.GetLevel() == level;
+				}
+				break;	
+				
+				case CO_NotEqual :
+				{
+					returnValue = witcher.levelManager.GetLevel() != level;
+				}
+				break;			
+				
+			}
+			
+			return returnValue;
+		}
+		else
+		{
+			return witcher.levelManager.GetLevel() >= level;
+		}
+		
+
 	}
 }

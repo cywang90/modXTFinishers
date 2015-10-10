@@ -1,11 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
-
+﻿/////////////////////////////////////////////////
+// Temporary solution to maintain board system. 
+// To be removed to gui ASAP.
+///////////////////////////////////////////////// 
 
 state BoardObserving in CPlayer 
 {

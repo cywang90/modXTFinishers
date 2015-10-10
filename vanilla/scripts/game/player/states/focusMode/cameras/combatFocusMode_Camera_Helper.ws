@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 class FocusModeCameraShotHelper
 {
 	var headingOffset : float;
@@ -126,7 +122,22 @@ class FocusModeCameraShotHelper
 			initShot_number = 4;
 		}
 		
-		
+		/*if ( initShot_numer == 1 )
+		{
+			LogChannel('FM_SSS', "A");
+		}
+		else if ( initShot_numer == 2 )
+		{
+			LogChannel('FM_SSS', "B");
+		}
+		else if ( initShot_numer == 3 )
+		{
+			LogChannel('FM_SSS', "C");
+		}
+		else if ( initShot_numer == 4 )
+		{
+			LogChannel('FM_SSS', "D");
+		}*/
 		
 		if ( playerIsMainCharacter )
 		{
@@ -165,22 +176,22 @@ class FocusModeCameraShotHelper
 		InternalFindSSShotParamsVec( initShot_number, blending, mainCh.GetWorldPosition(), secChar.GetWorldPosition(), camSide, initPivot, initYaw, initPitch, initDistance, useCurrDistance );
 	}
 	
-	private final function InternalFindSSShotParamsVec( temp : int, blending : float, mainCh, secChar : Vector, camSide : bool, initPivot : Vector, initYaw, initPitch : float, initDistance : float, useCurrDistance : bool )
+	private final function InternalFindSSShotParamsVec( shotNum : int, blending : float, mainCh, secChar : Vector, camSide : bool, initPivot : Vector, initYaw, initPitch : float, initDistance : float, useCurrDistance : bool )
 	{
 		var pointA, pointB, pointC : Vector;
-		
+		//var data : SCombatCameraPredData;	
 		var ifactorA, ifactorC, ofactorA, ofactorC : Vector;
 		var issfactorA, issfactorC, ossfactorA, ossfactorC : Vector;
 		var factorSign, blendHalfIn, blendHalfOut : float;
 		
-		
-		
-		
-		
-		
-		
-		
-		
+		//if ( true )
+		//{
+		//	ssShot_yaw = initShot_yaw;
+		//	ssShot_pitch = -15.f;
+		//	ssShot_distance = 3.f;
+		//	ssShot_pivot = initPivot;
+		//	return;
+		//}
 		
 		if ( camSide )
 		{
@@ -198,24 +209,35 @@ class FocusModeCameraShotHelper
 		pointB = pointA + Vector( 0.f, 0.f, 1.8f );
 		pointC = secChar + Vector( 0.f, 0.f, 1.8f );
 		
+		/*data.inUseCurrentDistance = useCurrDistance;
+		data.inDistance = initDistance;
+		data.inUseCurrentPivot = false;
+		data.inUsePivotDirection = true;
+		data.inPivot = initPivot;
+		data.inPivotDirection = VecNormalize( secChar - mainCh );
 		
+		data.inYaw = initYaw;
+		data.inPitch = initPitch;
+		data.inPointA = pointA;
+		data.inPointB = pointB;
+		data.inPointC = pointC;*/
 		
 		ifactorA.X = 0.4f;
 		ifactorA.Y = 0.8f;
 		ifactorC.X = 0.5f;
 		ifactorC.Y = 0.5f;
 		
-		
-		if ( temp > 0 )
+		// Place for Marwin - case 2
+		if ( shotNum > 0 )
 		{
-			if ( temp == 1 || temp == 2 )
+			if ( shotNum == 1 || shotNum == 2 )
 			{
 				ifactorA.X = 0.4f;
 				ifactorA.Y = 0.8f;
 				ifactorC.X = 0.1f;
 				ifactorC.Y = 0.1f;
 			}
-			else if ( temp == 3 || temp == 4 )
+			else if ( shotNum == 3 || shotNum == 4 )
 			{
 				ifactorA.X = 0.2f;
 				ifactorA.Y = 0.8f;
@@ -224,41 +246,41 @@ class FocusModeCameraShotHelper
 			}
 		}
 		
-		
+		// Place for Marwin - case 1
 		if ( true )
 		{
-			if ( temp == 1 )
+			if ( shotNum == 1 )
+			{
+				ifactorA.X = 0.4f;// 0.4f;
+				ifactorA.Y = 0.55f;//0.8f;
+				ifactorC.X = 0.5f;//0.5f;
+				//ifactorA.X = theGame.GetGameplayConfigFloatValue( 'debugA' );// 0.4f;
+				//ifactorA.Y = theGame.GetGameplayConfigFloatValue( 'debugB' );//0.8f;
+				//ifactorC.X = theGame.GetGameplayConfigFloatValue( 'debugC' );//0.5f;
+				//ifactorC.Y = theGame.GetGameplayConfigFloatValue( 'debugC' );//0.5f;
+			}
+			else if ( shotNum == 2 )
 			{
 				ifactorA.X = 0.4f;
 				ifactorA.Y = 0.55f;
 				ifactorC.X = 0.5f;
-				
-				
-				
-				
+				//ifactorC.Y = theGame.GetGameplayConfigFloatValue( 'debugC' );//0.5f;
 			}
-			else if ( temp == 2 )
-			{
-				ifactorA.X = 0.4f;
-				ifactorA.Y = 0.55f;
-				ifactorC.X = 0.5f;
-				
-			}
-			else if ( temp == 3 )
+			else if ( shotNum == 3 )
 			{
 				ifactorA.X = 0.5f;
 				ifactorA.Y = 0.6f;
 				ifactorC.X = 0.5f;
-				
+				//ifactorC.Y = theGame.GetGameplayConfigFloatValue( 'debugC' );//0.5f;
 			}
-			else if ( temp == 4 )
+			else if ( shotNum == 4 )
 			{
 				ifactorA.X = 0.5f;
 				ifactorA.Y = 0.6f;
 				ifactorC.X = 0.5f;
-				
+				//ifactorC.Y = theGame.GetGameplayConfigFloatValue( 'debugC' );//0.5f;
 			}				
-			
+			//...
 		}
 		
 		ofactorA.X = LerpF( blending, ifactorA.X, ifactorC.X );
@@ -266,7 +288,9 @@ class FocusModeCameraShotHelper
 		ofactorC.X = LerpF( 1.f-blending, ifactorA.X, ifactorC.X );
 		ofactorC.Y = LerpF( 1.f-blending, ifactorA.Y, ifactorC.Y );
 		
-		
+		/*data.inPointSsA = Vector( -factorSign*ofactorA.X,  ofactorA.Y, 0.f );
+		data.inPointSsB = Vector( -factorSign*ofactorA.X, -ofactorA.Y, 0.f );
+		data.inPointSsC = Vector(  factorSign*ofactorC.X, -ofactorC.Y, 0.f );*/
 		
 		issfactorA.X = 1.f;
 		issfactorA.Y = 0.6f;
@@ -278,14 +302,14 @@ class FocusModeCameraShotHelper
 			issfactorA.Y = blendHalfIn * 0.6f;
 			issfactorC.Y = 0.f;
 			
-			
+			//LogChannel( 'FM_CAM2', "Blending :" + blending + "bIn: " + blendHalfIn );
 		}
 		else
 		{
 			issfactorA.Y = 0.f;
 			issfactorC.Y = blendHalfOut * 0.6f;
 			
-			
+			//LogChannel( 'FM_CAM2', "Blending :" + blending + "bOut: " + blendHalfOut );
 		}
 		
 		ossfactorA.X = LerpF( blending, issfactorA.X, issfactorC.X );
@@ -293,12 +317,17 @@ class FocusModeCameraShotHelper
 		ossfactorC.X = LerpF( 1.f-blending, issfactorA.X, issfactorC.X );
 		ossfactorC.Y = LerpF( 1.f-blending, issfactorA.Y, issfactorC.Y );
 		
+		/*data.inFactorSsA = Vector( ossfactorA.X, ossfactorA.Y, 0.f );
+		data.inFactorSsB = Vector( ossfactorA.X, ossfactorA.Y, 0.f );
+		data.inFactorSsC = Vector( ossfactorC.X, ossfactorC.Y, 0.f );*/
 		
+		//TODO MR: focus mode cam
+		//theGame.GetCombatCameraPrototype().CalcCameraParams( data );
 		
-		
-		
-		
-		
+		/*ssShot_yaw = data.outYaw;
+		ssShot_pitch = data.outPitch;
+		ssShot_distance = data.outDistance;
+		ssShot_pivot = data.outPivot;*/
 	}
 	
 	public final function CalcPivotPosition() : Vector
@@ -346,7 +375,7 @@ class FocusModeCameraShotHelper
 		
 		if ( initShot_number == 1 )
 		{
-			
+			// 3
 			currMain = e.GetWorldPosition();
 			currSec = destPoint;
 			camSide = false;
@@ -354,7 +383,7 @@ class FocusModeCameraShotHelper
 		}
 		else if ( initShot_number == 2 )
 		{
-			
+			// 4
 			currMain = e.GetWorldPosition();
 			currSec = destPoint;
 			camSide = true;
@@ -362,7 +391,7 @@ class FocusModeCameraShotHelper
 		}
 		else if ( initShot_number == 3 )
 		{
-			
+			// 1
 			currMain = destPoint;
 			currSec = e.GetWorldPosition();
 			camSide = true;
@@ -370,7 +399,7 @@ class FocusModeCameraShotHelper
 		}
 		else if ( initShot_number == 4 )
 		{
-			
+			// 2
 			currMain = destPoint;
 			currSec = e.GetWorldPosition();
 			camSide = false;
@@ -394,7 +423,7 @@ class FocusModeCameraShotHelper
 	
 	public final function UpdateBlendingSSShot()
 	{
-		
+		//var bPivot, bPivotA, bPivotB : Vector;
 		
 		if ( blendShot_started )
 		{
@@ -407,10 +436,10 @@ class FocusModeCameraShotHelper
 			
 			blendShot_progress = blendShot_timer / blendShot_duration;
 			
+			//bPivotA = InternalCalcPivotPosition( initShot_mainCharacter, initShot_secCharacter );
+			//bPivotB = InternalCalcPivotPosition( initShot_secCharacter, initShot_mainCharacter );
 			
-			
-			
-			
+			//ssShot_pivot = LerpV( bPivotA, bPivotB, blendShot_progress );
 			
 			RefreshSSShotParams( blendShot_progress );
 			

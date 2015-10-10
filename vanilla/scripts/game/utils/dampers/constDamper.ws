@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 class ConstDamper
 {
 	protected var destValue : float;

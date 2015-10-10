@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : Łukasz Szczepankowski
+/***********************************************************************/
 
 class W3QuestCond_playerKnowsSchematics_Listener extends IGlobalEventScriptedListener
 {

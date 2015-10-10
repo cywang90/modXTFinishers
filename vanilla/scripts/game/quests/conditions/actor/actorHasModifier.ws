@@ -1,12 +1,13 @@
-﻿/*
-Copyright © CD Projekt RED 2015
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2012
+/** Author : Tomasz Kozera
+/***********************************************************************/
+
+/**	
+	When editing this function make sure to make corresponding changes in AddNPCModifier quest function!
 */
-
-
-
-
-
-
 class W3QuestCond_HasModifier extends CQCActorScriptedCondition
 {
 	editable var modifier 		: EEffectType;
@@ -32,7 +33,7 @@ class W3QuestCond_HasModifier extends CQCActorScriptedCondition
 		var found : bool;
 		var buffs : array<CBaseGameplayEffect>;
 		
-		
+		//for fact potions check if it's the right fact
 		if(modifier == EET_Fact && IsNameValid(modifierParam1))
 		{
 			buffs = act.GetBuffs(EET_Fact, sourceName, sourceNamePartialSearch);
@@ -57,7 +58,7 @@ class W3QuestCond_HasModifier extends CQCActorScriptedCondition
 		
 		if (buffs.Size() > 0)
 		{
-			
+			// cases when we don't really need to check percentage
 			if ( timePercents == 0 )
 			{
 				if ( condition == CO_Greater || condition == CO_GreaterEq )

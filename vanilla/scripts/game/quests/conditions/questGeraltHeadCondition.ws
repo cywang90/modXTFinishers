@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿//This is searching for currently mount head instead of the current head in head manager to work with custom heads as well
 class W3QuestCond_PlayerHead extends CQuestScriptedCondition
 {
 	editable var headItemName : name;

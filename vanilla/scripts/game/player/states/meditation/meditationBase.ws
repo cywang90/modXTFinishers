@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 abstract state MeditationBase in W3PlayerWitcher extends ExtendedMovable
 {
@@ -15,7 +14,7 @@ abstract state MeditationBase in W3PlayerWitcher extends ExtendedMovable
 		return true;
 	}
 	
-	
+	//requests the entire meditation state to finish
 	public function StopRequested(optional closeUI : bool);
 	
 	event OnReactToBeingHit( damageAction : W3DamageAction )
@@ -25,9 +24,9 @@ abstract state MeditationBase in W3PlayerWitcher extends ExtendedMovable
 		
 		ret = virtual_parent.OnReactToBeingHit(damageAction);
 		
-		
+		//don't stop if damaged by toxicity
 		tox = (W3Effect_Toxicity)damageAction.causer;
-		if(!tox)		
+		if(!tox)		//for some reason this does not work without the use of local variable
 			StopRequested(true);
 			
 		return ret;

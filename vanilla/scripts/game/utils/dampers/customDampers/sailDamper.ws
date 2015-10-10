@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 class SailDamper
 {
 	private var destValue : float;
@@ -49,7 +45,7 @@ class SailDamper
 	
 	final function Update( dt : float, realDest : float  )
 	{
-		
+		//Temporary fix for the sail rotation (when switching the sign)
 		if(realDest < -edgeValue && currValue > edgeValue)
 		{
 			destValue = -destValue;

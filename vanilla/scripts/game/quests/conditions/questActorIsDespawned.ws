@@ -1,12 +1,15 @@
-﻿/*
-Copyright © CD Projekt RED 2015
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2012
+/** Author : Tomasz Kozera
+/***********************************************************************/
+
+/**	
+	Checks if all actors are despawned BUT NOT dead
+	
+	Cannot be an actor condition because if the actor is despawned then the CActor parameter is not set and the function is not called at all.
 */
-
-
-
-
-
-
 
 class W3QuestCond_ActorIsDespawned_Listener extends IGlobalEventScriptedListener
 {

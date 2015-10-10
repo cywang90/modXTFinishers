@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 class AngleDeltaDamper extends DeltaDamper
 {
 	public function Update( dt : float )

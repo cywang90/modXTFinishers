@@ -1,10 +1,10 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Copyright © 2012-2014 CDProjektRed
+/** Author : ?
+/**   		 Tomek Kozera
+/***********************************************************************/
 
 class W3ReplacerCommoner extends W3Replacer
 {
@@ -15,7 +15,7 @@ class W3ReplacerCommoner extends W3Replacer
 	{
 		super.OnSpawned( spawnData );
 		
-		
+		//blocking Geralt only actions
 		BlockAction( EIAB_Signs, 'being_replacer' );
 		BlockAction( EIAB_OpenInventory, 'being_replacer' );
 		BlockAction( EIAB_CallHorse, 'being_replacer' );
@@ -27,7 +27,7 @@ class W3ReplacerCommoner extends W3Replacer
 		BlockAction( EIAB_OpenAlchemy, 'being_replacer' );
 		BlockAction( EIAB_Dive, 'being_replacer' );
 		
-		
+		// initial state of player
 		GotoStateAuto();
 	}
 }

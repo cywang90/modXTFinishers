@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2014-2015
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 state Potions in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
@@ -20,7 +18,7 @@ state Potions in W3TutorialManagerUIHandler extends TutHandlerBaseState
 	{
 		var witcher : W3PlayerWitcher;
 		var currentTab : int;
-		var itemOne, itemTwo : SItemUniqueId;
+		var itemOne, itemTwo, itemThree, itemFour : SItemUniqueId;
 		
 		super.OnEnterState(prevStateName);
 		
@@ -33,15 +31,17 @@ state Potions in W3TutorialManagerUIHandler extends TutHandlerBaseState
 			witcher = GetWitcherPlayer();
 			witcher.GetItemEquippedOnSlot(EES_Potion1, itemOne);
 			witcher.GetItemEquippedOnSlot(EES_Potion2, itemTwo);
+			witcher.GetItemEquippedOnSlot(EES_Potion3, itemThree);
+			witcher.GetItemEquippedOnSlot(EES_Potion4, itemFour);
 			
-			if(witcher.inv.IsItemPotion(itemOne) || witcher.inv.IsItemPotion(itemTwo))
+			if(witcher.inv.IsItemPotion(itemOne) || witcher.inv.IsItemPotion(itemTwo) || witcher.inv.IsItemPotion(itemThree) || witcher.inv.IsItemPotion(itemFour))
 			{
 				skippingTabSelection = true;
 				
-				
+				//if potion already equipped only show info about using potions
 				ShowHint(ON_EQUIPPED, theGame.params.TUT_POS_INVENTORY_X, theGame.params.TUT_POS_INVENTORY_Y-0.1);
 				
-				
+				//but also fire additional tutorial about potion equipping for later time
 				TutorialScript('secondPotionEquip', '');
 			}
 			else
@@ -62,7 +62,7 @@ state Potions in W3TutorialManagerUIHandler extends TutHandlerBaseState
 		{
 			theGame.GetTutorialSystem().uiHandler.LockLeaveMenu(true);
 			
-			
+			//block alchemy - we don't want to get back here now
 			thePlayer.BlockAction(EIAB_OpenAlchemy, 'tut_forced_preparation');
 			
 			theGame.GetTutorialSystem().UnmarkMessageAsSeen(EQUIP_POTION);
@@ -110,7 +110,7 @@ state Potions in W3TutorialManagerUIHandler extends TutHandlerBaseState
 		}
 		else if(hintName == ON_EQUIPPED)
 		{
-			
+			//forced Thunderbolt tutorial
 			if(isForcedThunderbolt)
 			{
 				theGame.GetTutorialSystem().ForcedAlchemyCleanup();
@@ -132,7 +132,7 @@ state Potions in W3TutorialManagerUIHandler extends TutHandlerBaseState
 	
 	event OnPotionEquipped(potionItemName : name)
 	{
-		
+		//in forced tutorial we wait only for proper potion
 		if(isForcedThunderbolt && potionItemName != 'Thunderbolt 1')
 			return false;
 	

@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher script file
+/***********************************************************************/
+/** Copyright © 2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 class W3QuestCond_WasMeditating_Listener extends IGlobalEventScriptedListener
 {
@@ -99,7 +98,7 @@ class W3QuestCond_WasMeditating extends CQuestScriptedCondition
 			return;
 		}
 		
-		
+		//exit if not finished meditating
 		if(immediateTest)
 		{
 			if(FactsQuerySum( "MeditationStarted" ) <= 0)

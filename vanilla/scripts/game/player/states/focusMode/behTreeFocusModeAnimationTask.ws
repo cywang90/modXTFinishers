@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 class CBehTreeFocusModeAnimationTask extends IBehTreeTask
 {
 	var isReady : bool;
@@ -35,10 +31,10 @@ class CBehTreeFocusModeAnimationTask extends IBehTreeTask
 		direction = VecNormalize( thePlayer.GetWorldPosition() - npc.GetWorldPosition() );
 		heading = VecHeading( direction );
 		
-		
-		
-		
-		
+		//if ( false )
+		//{
+		//	heading = AngleNormalize180( heading - 180.f );
+		//}
 		
 		ResetAnimatedSlideSettings( ass );
 		ass.animation = hitAnimation;
@@ -48,7 +44,7 @@ class CBehTreeFocusModeAnimationTask extends IBehTreeTask
 		ass.blendOut = 0.2f;
 		
 		ret = npc.ActionAnimatedSlideToStatic( ass, position, heading, false, true );
-		
+		//npc.ActionPlaySlotAnimation( 'NPC_ANIM_SLOT', hitAnimation, 0.01f, 0.2f );
 		
 		if ( !ret )
 		{
@@ -65,7 +61,7 @@ class CBehTreeFocusModeAnimationTask extends IBehTreeTask
 		if ( animEventName == 'ApplyEffect' )
 		{
 			npc = GetNPC();		
-			
+			//FIXME pass attacker entity here!
 			npc.GetRootAnimatedComponent().FreezePose();
 			npc.Kill();
 			return true;
@@ -99,7 +95,7 @@ class CBehTreeFocusModeAnimationTaskDef extends IBehTreeTaskDefinition
 	}
 }
 
-
+/////////////////////////////////////////////////////////////////////////////////////////////
 
 class CBehTreeTaskFocusModeHandler extends IBehTreeTask
 {

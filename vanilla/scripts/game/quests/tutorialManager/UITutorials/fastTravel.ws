@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 state FastTravel in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
@@ -18,7 +16,7 @@ state FastTravel in W3TutorialManagerUIHandler extends TutHandlerBaseState
 		
 		CloseHint(INTERACTION);
 		theGame.GetTutorialSystem().MarkMessageAsSeen(INTERACTION);
-		FactsAdd("tut_FT_interaction_finish");	
+		FactsAdd("tut_FT_interaction_finish");	//add fact for quest to stop looping pause
 		ShowHint(FAST_TRAVEL, 0.58f, 0.6f, ETHDT_Infinite);
 	}
 		

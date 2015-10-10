@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author : Tomek Kozera, Wojciech Żerek
+/***********************************************************************/
 
 import class W3Boat extends CGameplayEntity
 {
@@ -35,7 +34,7 @@ import class W3Boat extends CGameplayEntity
 	
 		player = (CR4Player)activator.GetEntity();
 		
-		if( player )	
+		if( player )	//trigger channels don't work
 		{
 			if( area.GetName() == "FirstDiscoveryTrigger" )
 			{
@@ -66,7 +65,7 @@ import class W3Boat extends CGameplayEntity
 	
 		player = (CR4Player)activator.GetEntity();
 		
-		if( player )	
+		if( player )	//trigger channels don't work
 		{
 			if( area.GetName() == "OnBoatTrigger" )
 			{
@@ -121,9 +120,26 @@ import class W3Boat extends CGameplayEntity
 	
 	import final function SetTeleportedFromOtherHUB( val : bool );
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// PUBLIC FUNCTIONS ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	public function ToggleInteraction( enable : bool )
+	{
+		var components: array< CComponent >;
+		var i : int;
+		var inter : CInteractionComponent;
+		components = GetComponentsByClassName( 'CInteractionComponent' );
+		
+		for( i=0; i<components.Size(); i+=1 )
+		{
+			inter = (CInteractionComponent)components[i];
+			
+			if( inter )
+			{
+				inter.SetEnabled( enable );
+			}
+		}
+	}
 	
 	public function GetBoatComponent() : CBoatComponent
 	{
@@ -141,7 +157,7 @@ import class W3Boat extends CGameplayEntity
 	public function SetCanBeDestroyed( val : bool )	{ canBeDestroyed = val; }
 	public function GetCanBeDestroyed() : bool		{ return canBeDestroyed; }
 
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// PRIVATE FUNCTIONS ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }

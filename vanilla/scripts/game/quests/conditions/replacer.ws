@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 enum EPlayerReplacerType
 {
@@ -12,7 +10,7 @@ enum EPlayerReplacerType
 	EPRT_Ciri,
 }
 
-
+//check what type of replacer is player currently using
 class W3QuestCond_ReplacerCondition extends CQuestScriptedCondition
 {
 	editable var replacerType : EPlayerReplacerType;

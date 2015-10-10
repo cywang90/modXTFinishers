@@ -1,9 +1,5 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿
+// Functions used to turn  ON/OFF new profiler
 import function PROFILER_Init( bufforSize : int );
 import function PROFILER_InitEx( bufforSize : int, bufforSignalsSize : int );
 import function PROFILER_ScriptEnable();

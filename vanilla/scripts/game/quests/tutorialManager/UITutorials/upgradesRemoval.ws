@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2015
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 state UpgradesRemoval in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
@@ -50,7 +48,7 @@ state UpgradesRemoval in W3TutorialManagerUIHandler extends TutHandlerBaseState
 		if(hintName == DESCRIPTION)
 		{
 			highlights.Resize(1);
-			highlights[0].x = 0.1;
+			highlights[0].x = 0.06;
 			highlights[0].y = 0.13;
 			highlights[0].width = 0.3;
 			highlights[0].height = 0.53;
@@ -60,7 +58,7 @@ state UpgradesRemoval in W3TutorialManagerUIHandler extends TutHandlerBaseState
 		else if(hintName == ITEMS)
 		{
 			highlights.Resize(1);
-			highlights[0].x = 0.47;
+			highlights[0].x = 0.42;
 			highlights[0].y = 0.42;
 			highlights[0].width = 0.2;
 			highlights[0].height = 0.23;
@@ -70,12 +68,12 @@ state UpgradesRemoval in W3TutorialManagerUIHandler extends TutHandlerBaseState
 		else if(hintName == UPGRADES)
 		{
 			highlights.Resize(1);
-			highlights[0].x = 0.5;
+			highlights[0].x = 0.45;
 			highlights[0].y = 0.62;
 			highlights[0].width = 0.13;
 			highlights[0].height = 0.15;
 						
-			ShowHint(COST, theGame.params.TUT_POS_INVENTORY_X, 0.55f, ETHDT_Input, highlights);
+			ShowHint(COST, theGame.params.TUT_POS_INVENTORY_X, 0.50f, ETHDT_Input, highlights);
 		}
 		else if(hintName == COST)
 		{

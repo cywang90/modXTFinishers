@@ -1,10 +1,11 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Copyright © 2013 CDProjektRed
+/** Author : ?
+/**			 Tomasz Kozera
+			 Wojtek Żerek
+/***********************************************************************/
 
 state Sailing in CR4Player extends UseGenericVehicle
 {
@@ -20,9 +21,9 @@ state Sailing in CR4Player extends UseGenericVehicle
 	default angleToSeatFromBack	= 150.0f;
 	default angleToSeatFromForward = 30.0f;
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
+	// INIT, ENTER, LEAVE //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	protected function Init()
 	{
@@ -42,7 +43,7 @@ state Sailing in CR4Player extends UseGenericVehicle
 		
 		parent.SetOrientationTarget( OT_Camera );
 		
-		boatLogic = (CBoatComponent)vehicle; 
+		boatLogic = (CBoatComponent)vehicle; // what's this for? vehicleCleanup
 		ProcessBoatSailing();
 	}
 	
@@ -74,9 +75,9 @@ state Sailing in CR4Player extends UseGenericVehicle
 		theInput.GetContext();
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
+	// MAIN LOOP, DISMOUNTING //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	entry function ProcessBoatSailing()
 	{
@@ -92,10 +93,10 @@ state Sailing in CR4Player extends UseGenericVehicle
 			
 			Sleep( 0.2f );
 			
-			
-			
-			
-			
+			//FIXME change to actual boat direction so that it would work when the NPC is steering the boat
+			//axis = theInput.GetActionValue( 'GI_AxisLeftX' );
+			//if(axis < -0.1 || axis > 0.1)
+			//	boatLogic.SetSailDir( SignF( theInput.GetActionValue( 'GI_AxisLeftX' ) ) );
 		}
 		
 		parent.ClearCleanupFunction();
@@ -133,15 +134,15 @@ state Sailing in CR4Player extends UseGenericVehicle
 		{
 			angleDistance = NodeToNodeAngleDistance(target,parent);
 			if ( AbsF(angleDistance) < 45 )
-				boatHitDirection = 0; 
+				boatHitDirection = 0; // front
 			else if ( AbsF(angleDistance) > 135 )
-				boatHitDirection = 1; 
+				boatHitDirection = 1; // back
 			else if ( angleDistance > 45 )
-				boatHitDirection = 3; 
+				boatHitDirection = 3; // left
 			else if ( angleDistance < -45 )
-				boatHitDirection = 2; 
+				boatHitDirection = 2; // right
 			else
-				boatHitDirection = 0; 
+				boatHitDirection = 0; // front
 			
 		}
 		else
@@ -154,12 +155,17 @@ state Sailing in CR4Player extends UseGenericVehicle
 		virtual_parent.OnReactToBeingHit( damageAction );
 	}
 	
+	// MS: This is commented out because geralt falls through the boat when he ragdolls while mounted on boat
+	/*event OnDeath( damageAction : W3DamageAction )
+	{
+		virtual_parent.OnDeath( damageAction );
+		parent.SetKinematic(false);
+		parent.EnableCollisions( true );
+	}*/
 	
-	
-	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// CAMERA //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	private var angleDamper	: float;
 	private var offsetDamper : float;
@@ -171,7 +177,7 @@ state Sailing in CR4Player extends UseGenericVehicle
 	
 	private function InitCamera()
 	{
-		
+		//camera.ChangePivotPositionController( 'Boat_PC' );
 		camera.ChangePivotRotationController( 'Boat_RC' );
 		camera.ChangePivotDistanceController( 'Boat_DC' );
 	}
@@ -207,21 +213,63 @@ state Sailing in CR4Player extends UseGenericVehicle
 		var offsetZ : float;
 		var offsetUp : Vector;
 		var sailOffset : float;
+		var boatComponent: CBoatComponent;
 		
 		var boatPPC : CCustomCameraBoatPPC;
+		var cameraToBoatDot : float;
+		var turnFactorSum : float;
 		
 		parent.UpdateLookAtTarget();
 		
-		ShouldEnableBoatMusic();
+		boatComponent = (CBoatComponent)vehicle;
+		if( boatComponent )
+		{
+			boatComponent.localSpaceCameraTurnPercent = VecDot2D( camera.GetHeadingVector(), VecCross( boatComponent.GetHeadingVector(), Vector( 0.0f, 0.0f, 1.0f ) ) );
+			
+			// Clamp it
+			if( AbsF( boatComponent.localSpaceCameraTurnPercent ) < 0.1f )
+			{
+				boatComponent.localSpaceCameraTurnPercent = 0.0f;
+			}
+			
+			// If we look backward set max tilt
+			if( VecDot2D( camera.GetHeadingVector(), boatComponent.GetHeadingVector() ) < 0.0f )
+			{
+				boatComponent.localSpaceCameraTurnPercent = SgnF( boatComponent.localSpaceCameraTurnPercent );
+			}
+		}
 		
-		turnFactor	= theInput.GetActionValue( 'GI_AxisLeftX' );
+		ShouldEnableBoatMusic();
+
+		turnFactor	= theInput.GetActionValue( 'GI_AxisLeftX' );		
+		// Combie global space camera view with standard rudder turning
+		turnFactorSum = AbsF( turnFactor + boatComponent.localSpaceCameraTurnPercent );		
+		if( turnFactorSum > 1.0f )
+		{
+			turnFactorSum = AbsF( turnFactor * 2.0f + boatComponent.localSpaceCameraTurnPercent );
+			turnFactor = ( turnFactor * 2.0f ) / turnFactorSum + boatComponent.localSpaceCameraTurnPercent / turnFactorSum;
+		}
+		else
+		{
+			turnFactor = turnFactor + boatComponent.localSpaceCameraTurnPercent;
+		}	
+		
+		LogChannel('Boat', "Rudder turn factor: " + turnFactor );
+		
+		// Damp rudder turning
 		rudderDamper = rudderDamper + dt * 6.f * ( turnFactor - rudderDamper );	
+		LogChannel('Boat', "Rudder damper: " + rudderDamper );
+		
 		boatLogic.SetRudderDir( virtual_parent, rudderDamper );
 		
-		if ( this.vehicleCombatMgr.IsInCombatAction() )
+		if( this.vehicleCombatMgr.IsInCombatAction() )
+		{
 			moveData.pivotRotationController.SetDesiredHeading( moveData.pivotRotationValue.Yaw );	
+		}
 		else
+		{
 			moveData.pivotRotationController.SetDesiredHeading( parent.GetHeading() - rudderDamper * 20.f );		
+		}
 
 		if( vehicleCombatMgr.OnGameCameraTick( moveData, dt ) )
 		{
@@ -230,13 +278,13 @@ state Sailing in CR4Player extends UseGenericVehicle
 		
 		theGame.GetGameCamera().ChangePivotDistanceController( 'Boat_DC' );
 		theGame.GetGameCamera().ChangePivotRotationController( 'Boat_RC' );
+		//theGame.GetGameCamera().ChangePivotPositionController( 'Boat_PC' );
 		
-		
-		
+		// HACK
 		moveData.pivotRotationController = theGame.GetGameCamera().GetActivePivotRotationController();
 		moveData.pivotDistanceController = theGame.GetGameCamera().GetActivePivotDistanceController();
 		moveData.pivotPositionController = theGame.GetGameCamera().GetActivePivotPositionController();
-		
+		// END HACK	
 		
 		if( boatLogic.GameCameraTick( fovDistPitch, offsetZ, sailOffset, dt, false ) )
 		{
@@ -263,11 +311,11 @@ state Sailing in CR4Player extends UseGenericVehicle
 			return true;
 	}
 	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// PRIVATE FUNCTIONS ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
-	
-	function CanAccesFastTravel( target : W3FastTravelEntity ) : bool 
+	function CanAccesFastTravel( target : W3FastTravelEntity ) : bool // not actually private
 	{
 		return target.canBeReachedByBoat;
 	}
@@ -281,9 +329,9 @@ state Sailing in CR4Player extends UseGenericVehicle
 	}
 }
 
-
-
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// SAILING PASSIVE /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 state SailingPassive in CR4Player extends UseGenericVehicle
 {
@@ -339,12 +387,12 @@ state SailingPassive in CR4Player extends UseGenericVehicle
 		
 		parent.EnableCollisions( false );
 		
-		
+		//attach
 		theSound.SoundEvent( "boat_sail_temp_loop" );
 		theSound.EnterGameState(ESGS_Boat);	
 		parent.CreateAttachment( boatLogic.GetEntity(), 'seat_passenger' );	
 
-		
+		//idle
 		while( !dismountRequest )
 		{
 			FindTarget();
@@ -379,7 +427,7 @@ state SailingPassive in CR4Player extends UseGenericVehicle
 		
 		ShouldEnableBoatMusic();
 		
-		
+		//turnFactor	= theInput.GetActionValue( 'GI_AxisLeftX' );
 		rudderDamper = rudderDamper + dt * 6.f * ( turnFactor - rudderDamper );	
 		boatLogic.SetRudderDir( virtual_parent, rudderDamper );
 		
@@ -403,13 +451,13 @@ state SailingPassive in CR4Player extends UseGenericVehicle
 		
 		theGame.GetGameCamera().ChangePivotDistanceController( 'Boat_DC' );
 		theGame.GetGameCamera().ChangePivotRotationController( 'Boat_RC' );
+		//theGame.GetGameCamera().ChangePivotPositionController( 'Boat_PC' );
 		
-		
-		
+		// HACK
 		moveData.pivotRotationController = theGame.GetGameCamera().GetActivePivotRotationController();
 		moveData.pivotDistanceController = theGame.GetGameCamera().GetActivePivotDistanceController();
 		moveData.pivotPositionController = theGame.GetGameCamera().GetActivePivotPositionController();
-		
+		// END HACK			
 		
 		if( boatLogic.GameCameraTick( fovDistPitch, offsetZ, sailOffset, dt, true ) )
 		{
@@ -438,6 +486,11 @@ state SailingPassive in CR4Player extends UseGenericVehicle
 			return true;
 	}
 	
-	
-	
+	// MS: This is commented out because geralt falls through the boat when he ragdolls while mounted on boat
+	/*event OnDeath( damageAction : W3DamageAction )
+	{
+		virtual_parent.OnDeath( damageAction );
+		parent.SetKinematic(false);
+		parent.EnableCollisions( true );
+	}*/
 }

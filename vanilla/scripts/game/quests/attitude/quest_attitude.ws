@@ -1,12 +1,13 @@
-﻿/*
-Copyright © CD Projekt RED 2015
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2012
+/** Author : Rafal Jarczewski
+/***********************************************************************/
+
+/**
+	Changes group attitude to target attitude
 */
-
-
-
-
-
-
 quest function SetGroupAttitudeQuest( srcGroup : name, dstGroup : name, attitude : EAIAttitude )
 {
 	theGame.SetGlobalAttitude( srcGroup, dstGroup, attitude );
@@ -86,7 +87,7 @@ quest function ForceTargetQuest( npcTag : name, targetTag : name, unforce : bool
 			{
 				npcs[i].NoticeActor( actor );
 				npcs[i].SignalGameplayEventParamObject( 'ForceTarget', actor );
-				
+				//npc.SetTarget( actor, true );
 			}
 			else
 			{

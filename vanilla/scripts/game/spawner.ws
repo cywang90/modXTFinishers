@@ -1,8 +1,6 @@
-﻿/*
-Copyright © CD Projekt RED 2015
+﻿/**
+
 */
-
-
 class CSpawner extends CEntity
 {
 	editable var entityTemplate : CEntityTemplate;
@@ -56,7 +54,7 @@ class CSpawner extends CEntity
 		var npc : CNewNPC;
 		var tags : array<name>;
 	
-		
+		// Remove dead creatures from the table
 		for ( i = spawnedNPCs.Size() - 1; i >=0 ; i -= 1 )
 		{
 			if( !respawnNeeded[i] )
@@ -70,7 +68,7 @@ class CSpawner extends CEntity
 			}
 		}
 	
-		
+		// Spawn new creatures to fit the count
 		for ( i = 0; i < count; i += 1 )
 		{
 			if( respawnNeeded[i] && theGame.GetEngineTime() > respawnTime[i] )
@@ -89,19 +87,53 @@ class CSpawner extends CEntity
 					}
 					npc.SetBehaviorVariable( 'SpawnAnim', (int)spawnAnimation );
 					
-					
+					//add tags to entity
 					tags = npc.GetTags();
 					ArrayOfNamesAppendUnique(tags, spawnTags);					
 					npc.SetTags( tags );
 					
 					if ( npc.GetBehaviorVariable( 'SpawnAnim' ) == 1.f && npc.IsFlying() )
 					{
-						
+						//((CMovingPhysicalAgentComponent)npc.GetMovingAgentComponent()).SetAnimatedMovement( false );
 					}
 				}
 			}		
 		}
-		
+		//AddTimer( 'InitSpawned', 0.1, false );
 	}
-	
+	/*
+	timer function InitSpawned(tm: float, id : int)
+	{
+		var n,i,j : int;
+		var hostileSpawner : CSpawner;
+		var nodes : array<CNode>;
+		
+		if( IsNameValid( hostileSpawnerTag ) )
+		{
+			theGame.GetNodesByTag( hostileSpawnerTag, nodes );
+			for( n=0; n<nodes.Size(); n+=1 )
+			{				
+				hostileSpawner = (CSpawner)nodes[n];
+				if( hostileSpawner )
+				{
+					for( i=0; i<spawnedNPCs.Size(); i+=1 )
+					{
+						for( j=0; j<hostileSpawner.spawnedNPCs.Size(); j+=1 )
+						{
+							// spawnedNPCs[i].SetAttitude( hostileSpawner.spawnedNPCs[j], AIA_Hostile );
+							// hostileSpawner.spawnedNPCs[j].SetAttitude( spawnedNPCs[i], AIA_Hostile );
+						}
+					}
+				
+				}
+			}
+		}
+		
+		for ( i = 0; i < spawnedNPCs.Size(); i+=1 )
+		{
+			// spawnedNPCs[i].SetInitialHealth( initialHealth );
+			// spawnedNPCs[i].SetHealth( initialHealth, false, thePlayer );
+		}
+
+	}*/
 };

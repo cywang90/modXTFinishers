@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3ReplacerChanger extends W3GameplayTrigger
+﻿class W3ReplacerChanger extends W3GameplayTrigger
 {
 	editable var replacerTemplate : String;
 	var recentlyChanged : bool;

@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2013
+/** Author : Tomasz Kozera
+/***********************************************************************/
 
 class W3QuestCond_Container_GlobalListener extends IGlobalEventScriptedListener
 {
@@ -167,7 +166,7 @@ class W3QuestCond_Container extends CQuestScriptedCondition
 			return;
 		}
 
-		
+		//I don't check here if it's a container so that it could work with some potential custom situations like container that is a gameplay entity
 		theGame.GetNodesByTag( containerTag, entities );
 		
 		if ( entities.Size() == 0 )

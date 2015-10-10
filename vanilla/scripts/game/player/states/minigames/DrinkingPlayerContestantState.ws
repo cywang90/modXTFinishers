@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2012
+/** Author : Tomasz Kozera
+/***********************************************************************/
 
 state DrinkingPlayerContestant in CPlayer
 {
@@ -12,7 +11,7 @@ state DrinkingPlayerContestant in CPlayer
 	{
 		parent.DisableLookAt();
 		theSound.EnterGameState( ESGS_Minigame );
-		
+		//theSound.SoundState( "game_state", "minigames" );		// SET MINIGAME SOUND STATE
 		Init();
 	}
 	

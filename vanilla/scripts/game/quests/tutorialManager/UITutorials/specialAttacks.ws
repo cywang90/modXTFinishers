@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 state SpecialAttacks in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
@@ -17,8 +15,8 @@ state SpecialAttacks in W3TutorialManagerUIHandler extends TutHandlerBaseState
 		CloseHint(SPECIALS);
 		CloseHint(ALTERNATES);
 		
-		
-		
+		//no super - don't unregister listener when quitting
+		//instead unregister only if both seen
 		
 		if(theGame.GetTutorialSystem().HasSeenTutorial(SPECIALS) && theGame.GetTutorialSystem().HasSeenTutorial(ALTERNATES))
 		{

@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2015
+/** Author : collective mind of the CDP
+/***********************************************************************/
 
 import struct STargetingInfo
 {
@@ -26,7 +24,7 @@ import struct STargetingInfo
 	import var rsHeadingLimitCos	: float;
 }
 
-
+////////////////////////////////////////////////////////////////
 
 import struct STargetSelectionData
 {
@@ -36,7 +34,7 @@ import struct STargetSelectionData
 	import var softLockDistance		: float;
 };
 
-
+////////////////////////////////////////////////////////////////
 
 import struct SR4PlayerTargetingConsts
 {
@@ -44,7 +42,7 @@ import struct SR4PlayerTargetingConsts
 	import var softLockFrameSize	: float;
 }
 
-
+////////////////////////////////////////////////////////////////
 
 import struct SR4PlayerTargetingPrecalcs
 {
@@ -58,7 +56,7 @@ import struct SR4PlayerTargetingPrecalcs
 	import var cameraHeadingVector	: Vector;	
 }
 
-
+////////////////////////////////////////////////////////////////
 
 import struct SR4PlayerTargetingIn
 {
@@ -81,6 +79,7 @@ import struct SR4PlayerTargetingIn
 	import var isCombatMusicEnabled 			: bool;
 	import var isPcModeEnabled		 			: bool;
 	import var shouldUsePcModeTargeting			: bool;
+	import var isInParryOrCounter				: bool;
 	import var bufferActionType 				: EBufferActionType;
 	import var orientationTarget 				: EOrientationTarget;
 	import var coneDist 						: float;
@@ -97,7 +96,7 @@ import struct SR4PlayerTargetingIn
 	import var defaultSelectionWeights 			: STargetSelectionWeights;
 }
 
-
+////////////////////////////////////////////////////////////////
 
 import struct SR4PlayerTargetingOut
 {
@@ -107,7 +106,7 @@ import struct SR4PlayerTargetingOut
 	import var forceDisableUpdatePosition	: bool;	
 }
 
-
+////////////////////////////////////////////////////////////////
 
 import class CR4PlayerTargeting extends IScriptable
 {
@@ -118,7 +117,7 @@ import class CR4PlayerTargeting extends IScriptable
 	import final function WasVisibleInScaledFrame( entity : CEntity, frameSizeX : float, frameSizeY : float ) : bool;
 }
 
-
+////////////////////////////////////////////////////////////////
 
 exec function UseNativeTargeting( use : bool )
 {

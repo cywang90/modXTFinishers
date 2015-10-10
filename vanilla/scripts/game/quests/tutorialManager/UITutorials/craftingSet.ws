@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2015
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 state CraftingSet in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
@@ -15,7 +13,7 @@ state CraftingSet in W3TutorialManagerUIHandler extends TutHandlerBaseState
 	{
 		CloseHint(SET);
 		
-		
+		//remove listener only if saw message
 		if(theGame.GetTutorialSystem().HasSeenTutorial(SET))
 			super.OnLeaveState(nextStateName);
 	}

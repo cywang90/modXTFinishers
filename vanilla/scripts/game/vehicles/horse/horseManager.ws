@@ -1,20 +1,35 @@
-﻿/*
-Copyright © CD Projekt RED 2015
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Copyright © 2014-2015
+/** Author : Tomek Kozera
+/***********************************************************************/
+
+/*
+	#Y Use: 
+	EEquipmentSlots
+		EES_InvalidSlot
+		EES_HorseTrophy
+		EES_HorseSaddle
+		EES_HorseBlinders	
+		EES_HorseBag
 */
 
-
-
-
-
-
-
-
+/*
+	Horse Manager is a hack to access horse inventory and stats when the horse is despawned.
+	For this reason all horse items are actually held in Horse Manager and then added to horse whenever it spawns.
+	Also the Manager caches horse abilities so that we could get horse stats when it's despawned.
+	
+	Note: design of how and when all this is accessed has changed so many times that it would be a good idea to
+	burn this with napalm and rewrite. Or at least refactor...
+*/
 class W3HorseManager extends CPeristentEntity
 {
-	private autobind inv : CInventoryComponent = single;		
-	private saved var horseAbilities : array<name>;				
-	private saved var itemSlots : array<SItemUniqueId>;			
-	private saved var wasSpawned : bool;						
+	private autobind inv : CInventoryComponent = single;		//horse manager holds its own inventory. When horse is spawned manager syncs his inventory with horse's (horse's will match manager's)
+	private saved var horseAbilities : array<name>;				//since horse may not be spawned we need to cache it's abilities to show it's stats when horse is not present
+	private saved var itemSlots : array<SItemUniqueId>;			//horse's paperdoll
+	private saved var wasSpawned : bool;						//flag for marking if horse was spawned at least once
+	private saved var horseAppearance : name;					//used to save normal horse appearance when devil saddle is used (EP1)
 	
 	default wasSpawned = false;
 	
@@ -30,7 +45,17 @@ class W3HorseManager extends CPeristentEntity
 		return inv;
 	}
 	
+	public function SetHorseAppearance( appearance : name )
+	{
+		horseAppearance = appearance;
+	}
 	
+	public function GetHorseAppearance() : name
+	{
+		return horseAppearance;
+	}
+	
+	//called when horse spawns to update it's inventory with what was set in the manager and new abilities added to horse
 	public function ApplyHorseUpdateOnSpawn() : bool
 	{
 		var ids, items 		: array<SItemUniqueId>;
@@ -50,7 +75,7 @@ class W3HorseManager extends CPeristentEntity
 		
 		Debug_TraceInventories( "ApplyHorseUpdateOnSpawn ] BEFORE" );
 		
-		
+		//if spawned for the first time, get horse items and move with equip to horse manager
 		if (!wasSpawned)
 		{
 			for(i=items.Size()-1; i>=0; i-=1)
@@ -63,7 +88,7 @@ class W3HorseManager extends CPeristentEntity
 			wasSpawned = true;
 		}
 		
-		
+		//remove all items from horse - manager hadles that!
 		for(i=items.Size()-1; i>=0; i-=1)
 		{
 			if ( horseInv.ItemHasTag(items[i], 'HorseTail') || horseInv.ItemHasTag(items[i], 'HorseReins') )
@@ -71,7 +96,7 @@ class W3HorseManager extends CPeristentEntity
 			horseInv.RemoveItem(items[i]);
 		}
 		
-		
+		//add items in current horse equipment slots
 		for(i=0; i<itemSlots.Size(); i+=1)
 		{
 			if(inv.IsIdValid(itemSlots[i]))
@@ -81,11 +106,19 @@ class W3HorseManager extends CPeristentEntity
 			}
 		}
 	
-		
+		//cache current horse abilities (we'll need those when horse will be despawned)
 		horseAbilities.Clear();
 		horseAbilities = horse.GetAbilities(true);
 		
 		ReenableMountHorseInteraction( horse );
+		
+		//Check for demonic saddle and apply FX
+		eqId = GetItemInSlot(EES_HorseSaddle);
+		if ( GetInventoryComponent().GetItemName(eqId) == 'Devil Saddle' )
+		{
+			thePlayer.GetHorseWithInventory().PlayEffect('demon_horse');
+		}
+		
 
 		Debug_TraceInventories( "ApplyHorseUpdateOnSpawn ] AFTER" );
 				
@@ -102,7 +135,7 @@ class W3HorseManager extends CPeristentEntity
 		if ( horse )
 		{
 			hc = horse.GetHorseComponent();
-			if ( hc && !hc.GetUser() ) 
+			if ( hc && !hc.GetUser() ) // just to be sure there's no rider
 			{
 				components = horse.GetComponentsByClassName( 'CInteractionComponent' );
 				for ( i = 0; i < components.Size(); i += 1 )
@@ -140,7 +173,7 @@ class W3HorseManager extends CPeristentEntity
 		var dm : CDefinitionsManagerAccessor;
 		var min, max, val : SAbilityAttributeValue;
 	
-		
+		//if horse was never spawned but exists - cache horse abilities data. Otherwise we ignore horse data as we know nothing about the horse
 		if(horseAbilities.Size() == 0)
 		{
 			if(thePlayer.GetHorseWithInventory())
@@ -149,7 +182,7 @@ class W3HorseManager extends CPeristentEntity
 			}
 			else if(!excludeItems)
 			{
-				
+				//horse was never spawned so we don't know its stats - take only from items
 				for(i=0; i<itemSlots.Size(); i+=1)
 				{
 					if(itemSlots[i] != GetInvalidUniqueId())
@@ -163,14 +196,14 @@ class W3HorseManager extends CPeristentEntity
 		}
 		
 		dm = theGame.GetDefinitionsManager();
-		
+		//get attribute from horse stats
 		for(i=0; i<horseAbilities.Size(); i+=1)
 		{
 			dm.GetAbilityAttributeValue(horseAbilities[i], attributeName, min, max);
 			val += GetAttributeRandomizedValue(min, max);
 		}
 		
-		
+		//get from items
 		if(excludeItems)
 		{
 			for(i=0; i<itemSlots.Size(); i+=1)
@@ -191,29 +224,31 @@ class W3HorseManager extends CPeristentEntity
 		var ids      : array<SItemUniqueId>;
 		var slot     : EEquipmentSlots;
 		var itemName : name;
-		var resMount : bool;
+		var resMount, usePerk : bool;
 		var abls	 : array<name>;
 		var i		 : int;
 		var unequippedItem : SItemUniqueId;
+		var itemNameUnequip : name;
 	
-		
+		//if no item
 		if(!inv.IsIdValid(id))
 			return GetInvalidUniqueId();
 			
-		
+		//find proper slot
 		slot = GetHorseSlotForItem(id);
 		if(slot == EES_InvalidSlot)
 			return GetInvalidUniqueId();
 		
 		Debug_TraceInventories( "EquipItem ] " + inv.GetItemName( id ) + " - BEFORE" );
 		
-		
+		//unmount previous item if any
 		if(inv.IsIdValid(itemSlots[slot]))
 		{
+			itemNameUnequip = inv.GetItemName(itemSlots[slot]);
 			unequippedItem = UnequipItem(slot);
 		}
 			
-		
+		//mount item
 		itemSlots[slot] = id;
 		horse = thePlayer.GetHorseWithInventory();
 		if(horse)
@@ -227,15 +262,46 @@ class W3HorseManager extends CPeristentEntity
 				for (i=0; i < abls.Size(); i+=1)
 					horseAbilities.PushBack(abls[i]);
 			}
+			
+			if ( itemNameUnequip == 'Devil Saddle' ) 
+			{
+				horse.RemoveBuff(EET_WeakeningAura, true);
+				horse.ApplyAppearance(horseAppearance);
+				//horse.RemoveAbility('DisableHorsePanic');
+				horse.StopEffect('demon_horse');
+			}
+			
+			if ( itemName == 'Devil Saddle' ) 
+			{
+				horse.AddEffectDefault(EET_WeakeningAura, horse, 'horse saddle', false);
+				horseAppearance = horse.GetAppearance();
+				horse.ApplyAppearance('player_horse_with_devil_saddle');
+				//horse.AddAbility('DisableHorsePanic');
+				horse.PlayEffect('demon_horse');
+			}
 		}
 		else
 		{
 			inv.GetItemAbilities(id, abls);
 			for (i=0; i < abls.Size(); i+=1)
-					horseAbilities.PushBack(abls[i]);
+				horseAbilities.PushBack(abls[i]);
 		}
 		
+		//add horse trophy abilities to player
+		if ( slot == EES_HorseTrophy )
+		{
+			abls.Clear();
+			inv.GetItemAbilities(id, abls);
+			for (i=0; i < abls.Size(); i += 1)
+			{
+				if ( abls[i] == 'base_trophy_stats' )
+					continue;
+
+				thePlayer.AddAbility(abls[i]);
+			}
+		}
 		
+		// report global event
 		theGame.GetGlobalEventsManager().OnScriptedEvent( SEC_OnItemEquipped );
 		
 		if(inv.IsItemHorseBag(id))
@@ -266,19 +332,34 @@ class W3HorseManager extends CPeristentEntity
 		var ids : array<SItemUniqueId>;
 		var abls : array<name>;
 		var i : int;
+		var usePerk : bool;
 		var oldItem : SItemUniqueId;
 		var newId : SItemUniqueId;
 	
-		
+		//if not item
 		if(slot == EES_InvalidSlot)
 			return GetInvalidUniqueId();
 			
-		
+		//if nothing equipped
 		if(!inv.IsIdValid(itemSlots[slot]))
 			return GetInvalidUniqueId();
 			
-		
 		oldItem = itemSlots[slot];
+			
+		//remove trophy ability from player
+		if ( slot == EES_HorseTrophy )
+		{
+			inv.GetItemAbilities(oldItem, abls);
+			for (i=0; i < abls.Size(); i += 1)
+			{
+				if ( abls[i] == 'base_trophy_stats' )
+					continue;
+				
+				thePlayer.RemoveAbility(abls[i]);
+			}
+		}
+			
+		//unmount		
 		if(inv.IsItemHorseBag( itemSlots[slot] ))
 			GetWitcherPlayer().UpdateEncumbrance();
 		
@@ -288,7 +369,15 @@ class W3HorseManager extends CPeristentEntity
 		
 		Debug_TraceInventories( "UnequipItem ] " + itemName + " - BEFORE" );
 		
+		if ( itemName == 'Devil Saddle' ) 
+		{
+			horse.RemoveBuff(EET_WeakeningAura, true);
+			horse.ApplyAppearance(horseAppearance);
+			//horse.RemoveAbility('DisableHorsePanic');
+			horse.StopEffect('demon_horse');
+		}
 		
+		// Remove item from horse inventory
 		if( horse )
 		{
 			ids = horse.GetInventory().GetItemsByName( itemName );
@@ -296,20 +385,19 @@ class W3HorseManager extends CPeristentEntity
 			horse.GetInventory().RemoveItem( ids[ 0 ] );
 		}
 		
-		
+		// Remove item abilities
+		abls.Clear();
+		ids = inv.GetItemsByName( itemName );
+		inv.GetItemAbilities( ids[ 0 ], abls );
+		for( i = 0; i < abls.Size(); i += 1 )
 		{
-			ids = inv.GetItemsByName( itemName );
-			inv.GetItemAbilities( ids[ 0 ], abls );
-			for( i = 0; i < abls.Size(); i += 1 )
-			{
-				horseAbilities.Remove( abls[ i ] );
-			}
+			horseAbilities.Remove( abls[ i ] );
 		}
 		
-		
+		// Remove item from manager inventory
 		newId = inv.GiveItemTo(thePlayer.inv, oldItem, 1, false, true, false);
 
-		
+		// Report global event
 		theGame.GetGlobalEventsManager().OnScriptedEvent( SEC_OnItemEquipped );
 		
 		Debug_TraceInventories( "UnequipItem ] " + itemName + " - AFTER" );
@@ -342,9 +430,9 @@ class W3HorseManager extends CPeristentEntity
 	
 	public function Debug_TraceInventories( optional heading : string )
 	{
-		
-		return; 
-		
+		//----------------------------------------------------------
+		return; // COMMENT OUT THIS LINE TO TURN ON THE DEBUG OUTPUT
+		//----------------------------------------------------------
 	
 		if( heading != "" )
 		{
@@ -357,7 +445,7 @@ class W3HorseManager extends CPeristentEntity
 			LogChannel( 'Dbg_HorseInv', "----------------------------------" );
 			
 			Debug_TraceInventory( thePlayer.GetHorseWithInventory().GetInventory() );
-			
+			//Debug_TraceInventory( thePlayer.GetHorseWithInventory().GetInventory(), 'horse_bag' ); // Use this to filter specific categories
 			
 			LogChannel( 'Dbg_HorseInv', "" );
 		}
@@ -368,7 +456,7 @@ class W3HorseManager extends CPeristentEntity
 			LogChannel( 'Dbg_HorseInv', "----------------------------------" );
 			
 			Debug_TraceInventory( inv );
-			
+			//Debug_TraceInventory( inv, 'horse_bag' ); // Use this to filter specific categories
 			
 			LogChannel( 'Dbg_HorseInv', "" );
 		}
@@ -389,7 +477,7 @@ class W3HorseManager extends CPeristentEntity
 		return inv.GetHorseSlotForItem(id);
 	}
 	
-		
+		//returns removed amount
 	public final function HorseRemoveItemByName(itemName : name, quantity : int)
 	{
 		var ids : array<SItemUniqueId>;
@@ -402,7 +490,7 @@ class W3HorseManager extends CPeristentEntity
 		inv.RemoveItemByName(itemName, quantity);
 	}
 	
-	
+	//returns removed amount
 	public final function HorseRemoveItemByCategory(itemCategory : name, quantity : int)
 	{
 		var ids : array<SItemUniqueId>;
@@ -419,7 +507,7 @@ class W3HorseManager extends CPeristentEntity
 		Debug_TraceInventories( "HorseRemoveItemByCategory ] " + itemCategory + " - AFTER" );
 	}
 	
-	
+	//returns removed amount
 	public final function HorseRemoveItemByTag(itemTag : name, quantity : int)
 	{
 		var ids : array<SItemUniqueId>;
@@ -434,6 +522,20 @@ class W3HorseManager extends CPeristentEntity
 		inv.RemoveItemByTag(itemTag, quantity);
 		
 		Debug_TraceInventories( "HorseRemoveItemByTag ] " + itemTag + " - AFTER" );
+	}
+	
+	public function RemoveAllItems()
+	{
+		var playerInvId : SItemUniqueId;
+		
+		playerInvId = UnequipItem(EES_HorseBlinders);
+		thePlayer.inv.RemoveItem(playerInvId);
+		playerInvId = UnequipItem(EES_HorseSaddle);
+		thePlayer.inv.RemoveItem(playerInvId);
+		playerInvId = UnequipItem(EES_HorseBag);
+		thePlayer.inv.RemoveItem(playerInvId);
+		playerInvId = UnequipItem(EES_HorseTrophy);
+		thePlayer.inv.RemoveItem(playerInvId);
 	}
 	
 	public function GetAssociatedInventory() : CInventoryComponent

@@ -1,9 +1,8 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2012
+/** Author : Rafal Jarczewski
+/** 		 Bartosz Bigaj
+/***********************************************************************/
 
 class W3QuestCond_IsItemQuantityMet_GlobalListener extends IGlobalEventScriptedListener
 {
@@ -51,7 +50,7 @@ class W3QuestCond_IsItemQuantityMet extends CQuestScriptedCondition
 	
 	function RegisterGlobalListener( flag : bool )
 	{
-		
+		//player by default if not set
 		if(!IsNameValid(entityTag))
 			entityTag = 'PLAYER';
 	
@@ -173,7 +172,7 @@ class W3QuestCond_IsItemQuantityMet extends CQuestScriptedCondition
 			{
 				itemQuantity = inventory.GetItemQuantityByTag( itemTag, includeHorseInventory );
 			}
-			else	
+			else	//no item name, category or tag - count all
 			{
 				itemQuantity = inventory.GetAllItemsQuantity( includeHorseInventory );
 			}

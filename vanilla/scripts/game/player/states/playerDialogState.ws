@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2012
+/** Author : Maciej Mach
+/***********************************************************************/
 
 state PlayerDialogScene in CPlayer extends Base
 {
@@ -12,7 +11,7 @@ state PlayerDialogScene in CPlayer extends Base
 	
 	event OnEnterState( prevStateName : name )
 	{
-		
+		/*semi? HaXx*/
 		var player : W3PlayerWitcher;
 		var sign : W3SignEntity;
 		var horse : CNewNPC;
@@ -40,7 +39,7 @@ state PlayerDialogScene in CPlayer extends Base
 		if ( scabbardsComp )
 			scabbardsComp.SetBehaviorVariable( 'inScene', 1.f );
 
-		
+		/*HaXx*/
 		
 		player.GetMovingAgentComponent().ResetMoveRequests();
 		
@@ -57,13 +56,13 @@ state PlayerDialogScene in CPlayer extends Base
 		scabbardsComp = (CAnimatedComponent)( thePlayer.GetComponent( "scabbards_skeleton" ) );
 		if ( scabbardsComp )
 			scabbardsComp.SetBehaviorVariable( 'inScene', 0.f );
-		
+		//theSound.LeaveGameState( ESGS_Dialog );
 		parent.rawPlayerHeading = parent.GetHeading();
 		
 		parent.SetBehaviorMimicVariable( 'gameplayMimicsMode', (float)(int)PGMM_Default );
 	}
 	
-	
+	// Actor finished taking part in blocking scene
 	event OnBlockingSceneEnded( optional output : CStorySceneOutput)
 	{
 		var ciri : W3ReplacerCiri;

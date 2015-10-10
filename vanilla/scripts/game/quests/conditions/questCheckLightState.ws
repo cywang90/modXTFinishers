@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : Shadi Dadenji
+/***********************************************************************/
 
 class W3QuestCond_CheckLightState_Listener extends IGlobalEventScriptedListener
 {
