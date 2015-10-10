@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-abstract class W3AdvancedProjectile extends CThrowable
+﻿abstract class W3AdvancedProjectile extends CThrowable
 {
 	editable var projSpeed 				: float;
 	editable var projAngle 				: float;
@@ -10,9 +6,10 @@ abstract class W3AdvancedProjectile extends CThrowable
 	editable var projSilverDMG			: float;
 	editable var ignoreArmor			: bool;
 	editable var projEfect 				: EEffectType;
+	editable var persistFxAfterCollision				: bool;
 
 	
-	
+	//protected var owner    : CGameplayEntity;
 	protected var isActive : bool;
 	protected var collidedEntities : array<CGameplayEntity>;
 	
@@ -22,6 +19,7 @@ abstract class W3AdvancedProjectile extends CThrowable
 	default projAngle = 5.f;
 	default projDMG = 20.f;
 	default projEfect = EET_Undefined;
+	default persistFxAfterCollision = false;
 	
 	public function SetLifeSpan( _duration: float )
 	{
@@ -44,28 +42,28 @@ abstract class W3AdvancedProjectile extends CThrowable
 		Destroy();
 	}
 	
-	
+	// Shoots the projectile at the specified position
 	final function ShootProjectileAtPosition( angle : float, velocity : float, target : Vector, optional range : float, optional collisionGroups : array<name> )
 	{
 		super.ShootProjectileAtPosition( angle, velocity, target, range, collisionGroups );
 		this.OnProjectileShot(target);
 	}
 	
-	
+	// Shoots projectile at given node, projectile will follow the node
 	final function ShootProjectileAtNode( angle : float, velocity : float, target : CNode, optional range : float, optional collisionGroups : array<name> )
 	{
 		super.ShootProjectileAtNode( angle, velocity, target, range, collisionGroups);
 		this.OnProjectileShot(target.GetWorldPosition());
 	}
 	
-	
+	// Shoots projectile at given node, projectile will follow the node
 	final function ShootProjectileAtBone( angle : float, velocity : float, target : CEntity, targetBone : name, optional range : float, optional collisionGroups : array<name> )
 	{
 		super.ShootProjectileAtBone( angle, velocity, target, targetBone, range, collisionGroups );
 		this.OnProjectileShot(target.GetWorldPosition());
 	}	
 	
-	
+	// Shoots the projectila at specified position using cake shape overlap test
 	final function ShootCakeProjectileAtPosition( cakeAngle : float, cakeHeight : float, shootAngle : float, velocity : float, target : Vector, range : float, optional collisionGroups : array<name> )
 	{
 		super.ShootCakeProjectileAtPosition( cakeAngle, cakeHeight, shootAngle, velocity, target, range, collisionGroups);
@@ -106,7 +104,7 @@ class W3BoulderProjectile extends W3AdvancedProjectile
 	
 	event OnProjectileCollision( pos, normal : Vector, collidingComponent : CComponent, hitCollisionsGroups : array< name >, actorIndex : int, shapeIndex : int )
 	{
-		
+		//var victim : CGameplayEntity;
 		
 		if ( !isActive )
 		{
@@ -123,8 +121,8 @@ class W3BoulderProjectile extends W3AdvancedProjectile
 		if ( victim == thePlayer && ( GetAttitudeBetween( victim, caster ) == AIA_Friendly || ( thePlayer.IsCurrentlyDodging() && ( thePlayer.IsCiri() || thePlayer.GetBehaviorVariable( 'isRolling' ) == 1.f ) ) ) )
 			victim = NULL;
 		
-		
-		
+		//if( ((CActor)victim).IsCurrentlyDodging() )
+		//	victim = NULL;
 		
 		if ( victim && !hitCollisionsGroups.Contains( 'Static' ) && !projectileHitGround && !collidedEntities.Contains(victim) )
 		{
@@ -136,7 +134,7 @@ class W3BoulderProjectile extends W3AdvancedProjectile
 		}
 		else if ( hitCollisionsGroups.Contains( 'Water' ) )
 		{
-			ProjectileHitGround();
+			ProjectileHitGround();// for now
 		}
 	}
 	
@@ -156,7 +154,7 @@ class W3BoulderProjectile extends W3AdvancedProjectile
 		{
 			action.AddEffectInfo(projEfect);
 		}
-		action.AddDamage(theGame.params.DAMAGE_NAME_BLUDGEONING, projDMG );	
+		action.AddDamage(theGame.params.DAMAGE_NAME_BLUDGEONING, projDMG );	//FIXME URGENT - fixed value, take from NPC params instead along with damage type and buffs
 		action.SetIgnoreArmor( ignoreArmor );
 		action.SetCanPlayHitParticle(false);
 		theGame.damageMgr.ProcessAction( action );
@@ -168,7 +166,7 @@ class W3BoulderProjectile extends W3AdvancedProjectile
 	protected function PlayCollisionEffect( optional victim : CGameplayEntity )
 	{
 		if ( victim == thePlayer && thePlayer.GetCurrentlyCastSign() == ST_Quen && ((W3PlayerWitcher)thePlayer).IsCurrentSignChanneled() )
-		{}
+		{}//if player is casting quen do not play effect
 		else
 			this.PlayEffect(onCollisionFxName);
 	}
@@ -215,7 +213,7 @@ class W3TraceGroundProjectile extends W3AdvancedProjectile
 	default effectName = 'effect';
 	default onRangedReachedDestroyAfter = 5.f;
 
-	
+	//import var caster : CEntity;
 
 	protected var comp : CEffectDummyComponent;
 	
@@ -239,7 +237,7 @@ class W3TraceGroundProjectile extends W3AdvancedProjectile
 		StopAllEffects();
 		StopProjectile();
 		AddTimer('TimeDestroy', onRangedReachedDestroyAfter, false);
-		
+		//Destroy();
 	}
 	
 	timer function Sampling ( dt : float, optional id : int)
@@ -253,7 +251,7 @@ class W3TraceGroundProjectile extends W3AdvancedProjectile
 		}
 		
 		newPosition = comp.GetLocalPosition();
-		
+		//comp.SetPosition( newPosition );
 		
 		
 		if ( doTrace ( comp, zDiff) )
@@ -319,10 +317,10 @@ class W3ElementalIfrytProjectile extends W3TraceGroundProjectile
 {
 	private var action : W3DamageAction;
 	
-	
+	//FIXME looks very much like W3BoulderProjectile
 	event OnProjectileCollision( pos, normal : Vector, collidingComponent : CComponent, hitCollisionsGroups : array< name >, actorIndex : int, shapeIndex : int )
 	{
-		
+		//var victim : CGameplayEntity;
 		
 		if ( !isActive )
 		{
@@ -343,7 +341,7 @@ class W3ElementalIfrytProjectile extends W3TraceGroundProjectile
 		{
 			action = new W3DamageAction in this;
 			action.Initialize((CGameplayEntity)caster,victim,this,caster.GetName(),EHRT_Light,CPS_SpellPower,false,true,false,false);
-			action.AddDamage(theGame.params.DAMAGE_NAME_FIRE, 200.f );		
+			action.AddDamage(theGame.params.DAMAGE_NAME_FIRE, 200.f );		//FIXME URGENT - fixed value, take from NPC params instead along with damage type and buffs
 			action.AddEffectInfo(EET_Burning, 2.0);
 			action.SetCanPlayHitParticle(false);
 			theGame.damageMgr.ProcessAction( action );
@@ -359,10 +357,10 @@ class W3EredinFrostProjectile extends W3TraceGroundProjectile
 {
 	private var action : W3DamageAction;
 	
-	
+	//FIXME looks very much like W3BoulderProjectile
 	event OnProjectileCollision( pos, normal : Vector, collidingComponent : CComponent, hitCollisionsGroups : array< name >, actorIndex : int, shapeIndex : int )
 	{
-		
+		//var victim : CGameplayEntity;
 		
 		if ( !isActive )
 		{
@@ -383,7 +381,7 @@ class W3EredinFrostProjectile extends W3TraceGroundProjectile
 		{
 			action = new W3DamageAction in this;
 			action.Initialize((CGameplayEntity)caster,victim,this,caster.GetName(),EHRT_Heavy,CPS_SpellPower,false,true,false,false);
-			action.AddDamage(theGame.params.DAMAGE_NAME_FROST, projDMG );		
+			action.AddDamage(theGame.params.DAMAGE_NAME_FROST, projDMG );		//FIXME URGENT - fixed value, take from NPC params instead along with damage type and buffs
 			action.AddEffectInfo( projEfect, 2.0 );
 			action.SetCanPlayHitParticle(false);
 			theGame.damageMgr.ProcessAction( action );
@@ -399,10 +397,10 @@ class W3ElementalDaoProjectile extends W3TraceGroundProjectile
 {
 	private var action : W3DamageAction;
 	
-	
+	//FIXME looks very much like W3BoulderProjectile and W3ElementalIfrytProjectile
 	event OnProjectileCollision( pos, normal : Vector, collidingComponent : CComponent, hitCollisionsGroups : array< name >, actorIndex : int, shapeIndex : int )
 	{
-		
+		//var victim : CGameplayEntity;
 		
 		if ( !isActive )
 		{
@@ -424,7 +422,7 @@ class W3ElementalDaoProjectile extends W3TraceGroundProjectile
 			action = new W3DamageAction in this;
 			action.Initialize((CGameplayEntity)caster,victim,this,caster.GetName(),EHRT_None,CPS_AttackPower,false,true,false,false);
 			action.AddEffectInfo(EET_Knockdown);
-			action.AddDamage(theGame.params.DAMAGE_NAME_ELEMENTAL, 200.f );	
+			action.AddDamage(theGame.params.DAMAGE_NAME_ELEMENTAL, 200.f );	//FIXME URGENT - fixed value, take from NPC params instead along with damage type and buffs
 			theGame.damageMgr.ProcessAction( action );
 			collidedEntities.PushBack(victim);
 			isActive = false;
@@ -450,10 +448,10 @@ class W3StoneProjectile extends W3AdvancedProjectile
 		AddTimer('Rotate',0.0000001f,true);
 	}
 	
-	
+	//FIXME looks very much like W3BoulderProjectile, W3ElementalIfrytProjectile, W3ElementalDaoProjectile
 	event OnProjectileCollision( pos, normal : Vector, collidingComponent : CComponent, hitCollisionsGroups : array< name >, actorIndex : int, shapeIndex : int )
 	{
-		
+		//var victim : CGameplayEntity;
 		
 		if ( !isActive )
 		{
@@ -475,7 +473,7 @@ class W3StoneProjectile extends W3AdvancedProjectile
 			action = new W3DamageAction in this;
 			action.Initialize((CGameplayEntity)caster,victim,this,caster.GetName(),EHRT_None,CPS_AttackPower,false,true,false,false);
 			action.AddEffectInfo(EET_Knockdown);
-			action.AddDamage(theGame.params.DAMAGE_NAME_BLUDGEONING, 200.f );		
+			action.AddDamage(theGame.params.DAMAGE_NAME_BLUDGEONING, 200.f );		//FIXME URGENT - fixed value, take from NPC params instead along with damage type and buffs
 			theGame.damageMgr.ProcessAction( action );
 			collidedEntities.PushBack(victim);
 			isActive = false;
@@ -507,9 +505,9 @@ class W3StoneProjectile extends W3AdvancedProjectile
 	
 	timer function Rotate( dt : float , id : int)
 	{
-		
+		//comp.SetLocalRotation(EulerAngles(0,0,0));
 		var rot : EulerAngles;
-		
+		//var pos : Vector;
 		
 		if( !comp )
 		{
@@ -519,7 +517,7 @@ class W3StoneProjectile extends W3AdvancedProjectile
 		rot = comp.GetLocalRotation();
 		rot.Yaw += 0.5;
 		comp.SetRotation( rot );
-		
+		//comp.SetPosition( pos );
 	}
 }
 
@@ -541,7 +539,7 @@ class W3EnvironmentProjectile extends W3AdvancedProjectile
 		AddTimer('Rotate',0.0000001f,true);
 	}
 	
-	
+	//FIXME looks very much like W3BoulderProjectile, W3ElementalIfrytProjectile, W3ElementalDaoProjectile
 	event OnProjectileCollision( pos, normal : Vector, collidingComponent : CComponent, hitCollisionsGroups : array< name >, actorIndex : int, shapeIndex : int )
 	{
 		if ( !isActive )
@@ -559,15 +557,15 @@ class W3EnvironmentProjectile extends W3AdvancedProjectile
 		if ( victim == thePlayer && ( GetAttitudeBetween( victim, caster ) == AIA_Friendly || ( thePlayer.IsCurrentlyDodging() && ( thePlayer.IsCiri() || thePlayer.GetBehaviorVariable( 'isRolling' ) == 1.f ) ) ) )
 			victim = NULL;
 		
-		
-		
+		//if ( victim && IsNameValid( ignoreVictimsWithTag ) && victim.HasTag( ignoreVictimsWithTag ) )
+		//	victim = NULL;
 		
 		if ( victim && !collidedEntities.Contains(victim) && victim != caster )
 		{
 			action = new W3DamageAction in this;
 			action.Initialize(( CGameplayEntity )caster, victim, this, caster.GetName(), EHRT_None, CPS_AttackPower, false, true, false, false );
 			action.AddEffectInfo( EET_Stagger );
-			action.AddDamage( theGame.params.DAMAGE_NAME_BLUDGEONING, 200.f );		
+			action.AddDamage( theGame.params.DAMAGE_NAME_BLUDGEONING, 200.f );		//FIXME URGENT - fixed value, take from NPC params instead along with damage type and buffs
 			theGame.damageMgr.ProcessAction( action );
 			collidedEntities.PushBack(victim);
 			if ( IsNameValid( onCollisionFxName ))
@@ -591,7 +589,7 @@ class W3EnvironmentProjectile extends W3AdvancedProjectile
 			if ( IsNameValid( stopFxOnDeactivate ))
 				this.StopEffect(stopFxOnDeactivate);
 			isActive = false;
-			
+			//ClearColidedEntities();
 			return true;
 		}
 	}
@@ -605,7 +603,7 @@ class W3EnvironmentProjectile extends W3AdvancedProjectile
 			this.StopEffect(initFxName);
 		if ( IsNameValid( stopFxOnDeactivate ))
 			this.StopEffect(stopFxOnDeactivate);
-		
+		//isActive = false;
 		return true;
 	}
 	
@@ -623,7 +621,7 @@ class W3EnvironmentProjectile extends W3AdvancedProjectile
 		comp.SetRotation( rot );
 	}
 	
-	
+	//----------------- INTERACTION EVENTS -----------------//
 	
 	event OnAardHit( sign : W3AardProjectile )
 	{
@@ -655,7 +653,7 @@ class BeamProjectile extends W3AdvancedProjectile
 	editable var beamFx : name;
 	editable var pullEffectDuration	: float;
 	
-	
+	//protected var victim : CActor;
 	
 	default pullEffectDuration = 1.5f;
 	
@@ -728,17 +726,70 @@ class BeamProjectile extends W3AdvancedProjectile
 	}
 }
 
+class WebLineProjectile extends PoisonProjectile
+{	
+	protected function VictimCollision( victim : CGameplayEntity )
+	{
+		var params : SCustomEffectParams;
+		var customDamageValuePerSec : SAbilityAttributeValue;
+		var player : W3PlayerWitcher;
+		var quen : W3QuenEntity;
+		var damageData : W3DamageAction;
+
+		if ( victim != thePlayer )
+			return;
+		
+		player = (W3PlayerWitcher)thePlayer;
+		
+		if ( player.rangedWeapon.GetCurrentStateName() != 'State_WeaponWait' )
+			player.OnRangedForceHolster( true, true, false );
+			
+		PlayCollisionEffect( victim );
+		this.StopEffect(initFxName);
+		this.StopProjectile();
+		this.DestroyAfter(5.0f);
+		//DeactivateProjectile();
+		
+		quen = (W3QuenEntity)( player.GetSignEntity( ST_Quen ) );
+
+		if ( victim == thePlayer && quen )
+		{
+			damageData =  new W3DamageAction in this;
+			damageData.attacker = (CGameplayEntity)caster;
+			quen.OnTargetHit( damageData );
+			
+			if ( !((W3PlayerWitcher)thePlayer).IsCurrentSignChanneled() )
+			{
+				quen.ForceFinishQuen( true );
+			}
+		}
+		else
+		{
+			params.effectType = EET_Tangled;
+			params.creator = (CGameplayEntity)caster;
+			params.duration = 1.f;
+			params.effectValue = customDamageValuePerSec;
+			
+			((CActor)victim).AddEffectCustom(params);
+			collidedEntities.PushBack(victim);
+		}
+		isActive = false;
+	}	
+}
+
 class PoisonProjectile extends W3AdvancedProjectile
 {
 	editable var initFxName				: name;
 	editable var onCollisionFxName 		: name;
 	editable var spawnEntityOnGround	: bool;
 	editable var spawnEntityTemplate 	: CEntityTemplate;
+
 	
-	private var projectileHitGround : bool;
+	var projectileHitGround : bool;
 	
 	default projDMG = 40.f;
 	default projEfect = EET_Poison;
+
 	
 	event OnProjectileInit()
 	{
@@ -749,7 +800,7 @@ class PoisonProjectile extends W3AdvancedProjectile
 	
 	event OnProjectileCollision( pos, normal : Vector, collidingComponent : CComponent, hitCollisionsGroups : array< name >, actorIndex : int, shapeIndex : int )
 	{
-		
+		//var victim : CGameplayEntity;
 		
 		
 		if ( !isActive )
@@ -777,7 +828,7 @@ class PoisonProjectile extends W3AdvancedProjectile
 		}
 		else if ( hitCollisionsGroups.Contains( 'Water' ) )
 		{
-			ProjectileHitGround();
+			ProjectileHitGround();// for now
 		}
 	}
 	
@@ -807,7 +858,7 @@ class PoisonProjectile extends W3AdvancedProjectile
 	protected function PlayCollisionEffect( optional victim : CGameplayEntity)
 	{
 		if ( victim == thePlayer && thePlayer.GetCurrentlyCastSign() == ST_Quen && ((W3PlayerWitcher)thePlayer).IsCurrentSignChanneled() )
-		{}
+		{}//if player is casting quen do not play effect
 		else
 			this.PlayEffect(onCollisionFxName);
 	}
@@ -815,8 +866,11 @@ class PoisonProjectile extends W3AdvancedProjectile
 	protected function DeactivateProjectile()
 	{
 		isActive = false;
-		this.StopEffect(initFxName);
-		this.DestroyAfter(0.01);
+		if( !persistFxAfterCollision )
+		{
+			this.StopEffect(initFxName);	
+		}
+		this.DestroyAfter(1.f);
 	}
 	
 	protected function ProjectileHitGround()
@@ -826,7 +880,7 @@ class PoisonProjectile extends W3AdvancedProjectile
 		DeactivateProjectile();
 	}
 	
-	protected function SpawnEntity( onGround : bool )
+	function SpawnEntity( onGround : bool )
 	{
 		var ent : CEntity;
 		var damageAreaEntity : CDamageAreaEntity;
@@ -850,27 +904,81 @@ class PoisonProjectile extends W3AdvancedProjectile
 	
 	event OnRangeReached()
 	{
-		
-		
-		
+		//NEWPROJECTILES: comment this stuff - except: this.DestroyAfter(5.f);
+		//this.StopEffect(initFxName);
+		//isActive = false;
 		this.DestroyAfter(5.0f);
+	}
+}
+
+class SpawnMultipleEntitiesPoisonProjectile extends PoisonProjectile
+{
+	editable var numberOfSpawns			: int;
+	editable var minDistFromTarget		: int;
+	editable var maxDistFromTarget		: int;
+	
+	function SpawnEntity( onGround : bool )
+	{
+		var ent : CEntity;
+		var damageAreaEntity 	: CDamageAreaEntity;
+		var entPos, normal 				: Vector;
+		var i					: int;
+		
+		if ( spawnEntityTemplate )
+		{
+			for( i=0; i<numberOfSpawns; i+=1 )
+			{
+				entPos = this.GetWorldPosition();
+				if ( onGround )
+					theGame.GetWorld().StaticTrace( entPos + Vector(0,0,3), entPos - Vector(0,0,3), entPos, normal );
+				ent = theGame.CreateEntity( spawnEntityTemplate, FindRandomPosition(entPos), this.GetWorldRotation() );
+				damageAreaEntity = (CDamageAreaEntity)ent;
+				
+				if ( damageAreaEntity )
+				{
+					damageAreaEntity.owner = (CActor)caster;
+					this.StopEffect(initFxName);
+					projectileHitGround = true;
+				}
+			}
+		}
+		
+	}
+	
+	function FindRandomPosition( pos : Vector ) : Vector
+	{
+		var randVec : Vector = Vector( 0.f, 0.f, 0.f );
+		var outPos : Vector;
+		
+		randVec = VecRingRand( minDistFromTarget, maxDistFromTarget );
+		outPos = pos + randVec;
+		
+		return outPos;
 	}
 }
 
 class DebuffProjectile extends W3AdvancedProjectile
 {
 	editable var debuffType 				: EEffectType;
+	editable var hitReactionType 			: EHitReactionType;
 	editable var damageTypeName 			: name;
+	editable var destroyQuen 				: bool;
 	editable var customDuration				: float;
 	editable var initFxName 				: name;
 	editable var onCollisionFxName 			: name;
 	editable var specialFxOnVictimName 		: name;
 	editable var applyDebuffIfNoDmgWasDealt : bool;
 	editable var bounceOnVictimHit 			: bool;
+	editable var signalDamageInstigatedEvent: bool;
+	editable var destroyAfterFloat			: float;
+	editable var stopProjectileAfterCollision	: bool;
 	
 	default customDuration = 3;
+	default hitReactionType = EHRT_Light;
+	default destroyAfterFloat = 5.0f;
+	default stopProjectileAfterCollision = true;
 	
-	
+	//protected var victim : CActor;
 	
 	hint specialFxOnVictimName = "will be played on collision when applyDebuffIfNoDmgWasDealt is set to true";
 	
@@ -882,12 +990,13 @@ class DebuffProjectile extends W3AdvancedProjectile
 		isActive = true;
 	}
 	
-	
+	//FIXME looks very much like W3BoulderProjectile, W3ElementalIfrytProjectile, W3ElementalDaoProjectile, W3StoneProjectile, PoisonProjectile
 	event OnProjectileCollision( pos, normal : Vector, collidingComponent : CComponent, hitCollisionsGroups : array< name >, actorIndex : int, shapeIndex : int )
 	{
 		var action : W3DamageAction;
 		var params : SCustomEffectParams;
 		var ignore : bool;
+		
 		
 		if ( !isActive )
 		{
@@ -909,28 +1018,51 @@ class DebuffProjectile extends W3AdvancedProjectile
 		
 		if ( victim && !collidedEntities.Contains(victim) )
 		{
-			this.StopProjectile();
-			this.DestroyAfter(5.f);
-			this.StopEffect( initFxName );
+			if( stopProjectileAfterCollision )
+			{
+				this.StopProjectile();
+			}
+			this.DestroyAfter( destroyAfterFloat );
+			if( !persistFxAfterCollision )
+			{
+				this.StopEffect( initFxName );
+			}
 			this.PlayEffect(onCollisionFxName);
-			 
 			
+			//dealdmg
 			
 			action = new W3DamageAction in this;
-			action.Initialize((CGameplayEntity)caster,victim,this,caster.GetName(),EHRT_Light,CPS_AttackPower, false, true, false, false);
+			action.Initialize((CGameplayEntity)caster,victim,this,caster.GetName(),hitReactionType,CPS_AttackPower, false, true, false, false);
 			if ( this.projDMG > 0 )
 			{
-				action.AddDamage(damageTypeName, projDMG );	
+				/*
+				if ( damageTypeName == 'DirectDamage' && victim == thePlayer )
+				{
+					//if ( ((W3PlayerWitcher)victim).IsQuenActive( false ) )
+					if ( ((W3PlayerWitcher)victim).IsQuenActive( false ) || ((W3PlayerWitcher)victim).IsQuenActive( true ) )
+						action.AddDamage('ForceDamage', projDMG );
+					//else if ( ((W3PlayerWitcher)victim).IsQuenActive( true ) ) {}
+					else
+						action.AddDamage(damageTypeName, projDMG );
+				}
+				else*/
+					if ( ignoreArmor )
+						action.SetIgnoreArmor(true);
+					action.AddDamage(damageTypeName, projDMG );
 			}
 			
 			if ( customDuration > 0 && (CActor)victim )
 			{
-				params.effectType = debuffType;
-				params.creator = NULL;
-				params.sourceName = "debuff_projectile";
-				params.duration = customDuration;
-				
-				((CActor)victim).AddEffectCustom(params);
+				if ( !destroyQuen && (W3PlayerWitcher)victim && (((W3PlayerWitcher)victim).IsQuenActive( false ) || ((W3PlayerWitcher)victim).IsQuenActive( true )) ) {}
+				else
+				{
+					params.effectType = debuffType;
+					params.creator = NULL;
+					params.sourceName = "debuff_projectile";
+					params.duration = customDuration;
+					
+					((CActor)victim).AddEffectCustom(params);
+				}
 			}
 			else
 			{
@@ -940,9 +1072,18 @@ class DebuffProjectile extends W3AdvancedProjectile
 			
 			action.SetCanPlayHitParticle(false);
 			theGame.damageMgr.ProcessAction( action );
+			if ( signalDamageInstigatedEvent )
+			{
+				((CActor)caster).SignalGameplayEvent( 'DamageInstigated' );
+			}
+			if ( destroyQuen && ((W3PlayerWitcher)victim).IsQuenActive( false ) )
+			{
+				((W3PlayerWitcher)victim).FinishQuen( false );
+			}
+			
 			delete action;
 			
-			
+			//do rest
 			if ( applyDebuffIfNoDmgWasDealt )
 				victim.PlayEffect(specialFxOnVictimName);
 			
@@ -956,14 +1097,29 @@ class DebuffProjectile extends W3AdvancedProjectile
 			collidedEntities.PushBack(victim);
 			isActive = false;
 		}
-		else if ( !victim && !ignore )
+		else if ( hitCollisionsGroups.Contains( 'Terrain' ) || hitCollisionsGroups.Contains( 'Static' ) || hitCollisionsGroups.Contains( 'Water' ) )
+		{
+			if( stopProjectileAfterCollision )
+			{
+				this.StopProjectile();
+			}
+			this.DestroyAfter( destroyAfterFloat );
+			if( !persistFxAfterCollision )
+			{
+				this.StopEffect( initFxName );
+			}
+			this.PlayEffect(onCollisionFxName);
+			isActive = false;
+		}
+		/*
+		else if ( !victim && !ignore )//projectile Hit the ground
 		{
 			this.StopProjectile();
 			this.DestroyAfter(5.f);
 			this.StopEffect( initFxName );
 			this.PlayEffect(onCollisionFxName);
 			isActive = false;
-		}
+		}*/
 		return false;
 	}
 	
@@ -975,9 +1131,9 @@ class DebuffProjectile extends W3AdvancedProjectile
 	}
 }
 
-
-
-
+///////////////////////////////////////////////////////////////////////////////////////
+////////// FIREBALL + METEOR
+///////////////////////////////////////////////////////////////////////////////////////
 class W3FireballProjectile extends W3AdvancedProjectile
 {
 	editable var initFxName 			: name;
@@ -999,7 +1155,7 @@ class W3FireballProjectile extends W3AdvancedProjectile
 	
 	event OnProjectileCollision( pos, normal : Vector, collidingComponent : CComponent, hitCollisionsGroups : array< name >, actorIndex : int, shapeIndex : int )
 	{
-		
+		//var victim : CGameplayEntity;
 		
 		if ( !isActive )
 		{
@@ -1026,7 +1182,7 @@ class W3FireballProjectile extends W3AdvancedProjectile
 		}
 		else if ( hitCollisionsGroups.Contains( 'Water' ) )
 		{
-			ProjectileHitGround();
+			ProjectileHitGround();// for now
 		}
 	}
 	
@@ -1060,7 +1216,7 @@ class W3FireballProjectile extends W3AdvancedProjectile
 	protected function PlayCollisionEffect( optional victim : CGameplayEntity )
 	{
 		if ( victim == thePlayer && thePlayer.GetCurrentlyCastSign() == ST_Quen && ((W3PlayerWitcher)thePlayer).IsCurrentSignChanneled() )
-		{}
+		{}//if player is casting quen do not play effect
 		else
 			this.PlayEffect(onCollisionFxName);
 	}
@@ -1090,7 +1246,7 @@ class W3FireballProjectile extends W3AdvancedProjectile
 				projectileHitGround = true;
 			}
 		}
-		
+		// Damage actors in the area
 		else
 		{
 			actorsAround = GetActorsInRange( this, 2, , , true );
@@ -1104,9 +1260,9 @@ class W3FireballProjectile extends W3AdvancedProjectile
 	
 	event OnRangeReached()
 	{
-		
-		
-		
+		//NEWPROJECTILES: comment this stuff - except: this.DestroyAfter(5.f);
+		//this.StopEffect(initFxName);
+		//isActive = false;
 		this.DestroyAfter(5.f);
 	}
 }
@@ -1147,7 +1303,7 @@ class W3MeteorProjectile extends W3FireballProjectile
 	
 	protected function VictimCollision( victim : CGameplayEntity )
 	{
-		
+		//DeactivateProjectile(victim);
 	}
 	
 	protected function DeactivateProjectile( optional victim : CGameplayEntity)
@@ -1157,7 +1313,7 @@ class W3MeteorProjectile extends W3FireballProjectile
 		
 		Explode();
 		
-		
+		//deactivate markerEntity
 		if ( markerEntity )
 		{
 			markerEntity.StopAllEffects();
@@ -1223,7 +1379,7 @@ class W3MeteorProjectile extends W3FireballProjectile
 		theGame.CreateEntityAsync( createEntityHelper, markerEntityTemplate, targetCurrentPosition, EulerAngles(0,0,0) );
 	}
 }
-
+///////////////////////////////////////////// ice meteor ////////////////////////////////////////
 class W3IceMeteorProjectile extends W3MeteorProjectile
 {
 	protected function DealDamageToVictim( victim : CGameplayEntity )
@@ -1242,7 +1398,7 @@ class W3IceMeteorProjectile extends W3MeteorProjectile
 	}
 }
 
-
+///////////////////////////////////////////// lightning bolt ////////////////////////////////////////
 class W3LightningBoltProjectile extends W3AdvancedProjectile
 {
 	editable var initFxName : name;
@@ -1263,7 +1419,7 @@ class W3LightningBoltProjectile extends W3AdvancedProjectile
 	
 	event OnProjectileCollision( pos, normal : Vector, collidingComponent : CComponent, hitCollisionsGroups : array< name >, actorIndex : int, shapeIndex : int )
 	{
-		
+		//var victim : CGameplayEntity;
 		var ignore : bool;
 		
 		
@@ -1289,7 +1445,7 @@ class W3LightningBoltProjectile extends W3AdvancedProjectile
 		{
 			VictimCollision(victim);
 		}
-		else if ( !victim && !ignore ) 
+		else if ( !victim && !ignore ) // projectile hit the ground
 		{
 			ProjectileHitGround();
 		}
@@ -1320,7 +1476,7 @@ class W3LightningBoltProjectile extends W3AdvancedProjectile
 	protected function PlayCollisionEffect( optional victim : CGameplayEntity)
 	{
 		if ( victim == thePlayer && thePlayer.GetCurrentlyCastSign() == ST_Quen && ((W3PlayerWitcher)thePlayer).IsCurrentSignChanneled() )
-		{}
+		{}//if player is casting quen do not play effect
 		else
 			this.PlayEffect(onCollisionFxName);
 	}
@@ -1354,14 +1510,14 @@ class W3LightningBoltProjectile extends W3AdvancedProjectile
 	
 	event OnRangeReached()
 	{
-		
-		
-		
+		//NEWPROJECTILES: comment this stuff - except: this.DestroyAfter(5.f);
+		//this.StopEffect(initFxName);
+		//isActive = false;
 		this.DestroyAfter(5.f);
 	}
 }
 
-
+//////////////////////ICESPEAR/////////////////////
 class W3IceSpearProjectile extends W3AdvancedProjectile
 {
 	editable var initFxName 				: name;
@@ -1412,7 +1568,7 @@ class W3IceSpearProjectile extends W3AdvancedProjectile
 		{
 			VictimCollision();
 		}
-		else if ( !victim && !ignore ) 
+		else if ( !victim && !ignore ) // projectile hit the ground
 		{
 			ProjectileHitGround();
 		}
@@ -1493,7 +1649,7 @@ class W3IceSpearProjectile extends W3AdvancedProjectile
 	}
 	
 }
-	
+	////////////Ice Meteor///////////////
 class W3SpawnMeteor extends W3AdvancedProjectile
 {
 	editable 	var initFxName 				: name;
@@ -1535,7 +1691,7 @@ class W3SpawnMeteor extends W3AdvancedProjectile
 	
 	event OnProjectileCollision( pos, normal : Vector, collidingComponent : CComponent, hitCollisionsGroups : array< name >, actorIndex : int, shapeIndex : int )
 	{
-		
+		//var victim : CGameplayEntity;
 		
 		
 		if ( !isActive )
@@ -1563,7 +1719,7 @@ class W3SpawnMeteor extends W3AdvancedProjectile
 		}
 		else if ( hitCollisionsGroups.Contains( 'Water' ) )
 		{
-			ProjectileHitGround();
+			ProjectileHitGround();// for now
 		}
 	}
 	
@@ -1583,7 +1739,7 @@ class W3SpawnMeteor extends W3AdvancedProjectile
 	
 	protected function SummonCreatureEvent()
 	{
-		
+		//((CActor)caster).SignalGameplayEvent('SummonCreature');
 	}
 	
 	function ProjectileHitGround()
@@ -1591,7 +1747,7 @@ class W3SpawnMeteor extends W3AdvancedProjectile
 		var entities 		: array<CGameplayEntity>;
 		var landPos			: Vector;
 		var action			: W3DamageAction;
-		
+		//var victim 			: CActor;
 		
 		
 		
@@ -1600,7 +1756,7 @@ class W3SpawnMeteor extends W3AdvancedProjectile
 		GCameraShake( 3, 5, landPos );
 		this.SummonCreatureEvent();
 		
-		
+		//finding the player//
 		FindGameplayEntitiesInSphere( entities, landPos, 5, 1, 'PLAYER');
 		victim = (CActor)entities[0];
 		
@@ -1636,7 +1792,7 @@ class W3SpawnMeteor extends W3AdvancedProjectile
 		
 	}
 }
-
+////////////////////// AirDrain projectile for q501_Eredin - by J.Rokosz ///////////////////////////////////////////////////
 class W3AirDrainProjectile extends W3AdvancedProjectile
 {
 	editable var destructionEntity : CEntityTemplate;
@@ -1667,7 +1823,7 @@ class W3AirDrainProjectile extends W3AdvancedProjectile
 	
 	event OnProjectileCollision( pos, normal : Vector, collidingComponent : CComponent, hitCollisionsGroups : array< name >, actorIndex : int, shapeIndex : int )
 	{
-		
+		//var victim : CGameplayEntity;
 		
 		if ( !isActive )
 		{
@@ -1696,7 +1852,7 @@ class W3AirDrainProjectile extends W3AdvancedProjectile
 		}
 		
 		return false;
-		
+		//super.OnProjectileCollision(pos, normal, collidingComponent, collisionGroup, actorIndex, shapeIndex);
 		
 	}
 	
@@ -1704,11 +1860,11 @@ class W3AirDrainProjectile extends W3AdvancedProjectile
 	{
 		isActive = false;
 		this.StopEffect(initFxName);
-		
-			
-		
-			
-		
+		//if (fast )
+			//this.DestroyAfter(0.5f);
+		//else
+			//this.DestroyAfter(5.f);
+		// ApplyAppearance("empty");
 		PlayCollisionEffect();
 	}
 	
@@ -1724,7 +1880,7 @@ class W3AirDrainProjectile extends W3AdvancedProjectile
 		}
 		else
 		{
-			
+			//Destroy();
 		}
 		
 	}

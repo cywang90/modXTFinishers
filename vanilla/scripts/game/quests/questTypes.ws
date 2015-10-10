@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿//for use in arrays
 struct SItem
 {
 	editable var itemName : name;

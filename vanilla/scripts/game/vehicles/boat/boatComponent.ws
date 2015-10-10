@@ -1,10 +1,11 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Copyright © 2013-2014 CDProjektRed
+/** Author : Radosław Grabowski
+/**			 Tomek Kozera
+/**			 Wojtek Żerek
+/***********************************************************************/
 
 struct ParticleEffectNames
 {
@@ -36,15 +37,14 @@ import statemachine class CBoatComponent extends CVehicleComponent
 	private const var MAST_PARTICLE_THRESHOLD : float;
 	private const var TILT_PARTICLE_THRESHOLD : float;
 	private const var DIVING_PARTICLE_THRESHOLD : float;
-	private const var RUDDER_DIR_THRESHOLD : float;
 	private const var WATER_THRESHOLD : float;
 	private const var MAST_ROTX_THRESHOLD : float;
 	private const var MAST_ROT_SAIL_VAL : float;
 	
-	
+	// buoyancy points
 	private var fr,ba,ri,le: Vector;
 	
-	
+	// cached data
 	private var prevTurnFactorX : float;
 	private var previousGear: int;
 	
@@ -64,10 +64,10 @@ import statemachine class CBoatComponent extends CVehicleComponent
 	private var prevBackVelZ : float;
 	
 	private var prevFrontWaterPosZ : float;
-	
+	//debug
 	private var sphereSize : float;
 	
-	
+	// slots
 	private var mastSlotTransform : Matrix;
 	private var frontSlotTransform : Matrix;
 	private var backSlotTransform : Matrix;
@@ -78,13 +78,16 @@ import statemachine class CBoatComponent extends CVehicleComponent
 	private var boatMastTrailLoopStarted: bool; default boatMastTrailLoopStarted = false;
 	
 	public var dismountStateName: name;
-		
 	
+	public var localSpaceCameraTurnPercent : float;
+		
+	// Event called when component is attached
     event OnComponentAttached()
 	{
 		GotoStateAuto();
 	}
 	
+	default localSpaceCameraTurnPercent = 0.0f;
 	default isChangingSteer = false;
 	default rudderDir = 0.0f;
 	default sailDir = 0.45f;
@@ -93,7 +96,6 @@ import statemachine class CBoatComponent extends CVehicleComponent
 	default MAST_PARTICLE_THRESHOLD = 0.25f;
 	default TILT_PARTICLE_THRESHOLD = -0.4f;
 	default DIVING_PARTICLE_THRESHOLD = 0.01f;
-	default RUDDER_DIR_THRESHOLD = 0.05f;
 	default WATER_THRESHOLD = 0.15f;
 	default wasSailFillSoundPlayed = false;
 	default previousGear = 0;
@@ -105,35 +107,35 @@ import statemachine class CBoatComponent extends CVehicleComponent
 		
 	import function GetLinearVelocityXY() : float;
 	
-	
+	// Start drowning procedure
 	import final function TriggerDrowning( globalHitPosition : Vector );
-	import final function IsDrowning() : bool;								
+	import final function IsDrowning() : bool;								// MS TODO: change it please to IsDestroyed()
 	
-	
+	// Get boat body mass
 	import function GetBoatBodyMass() : float;
 	
 	import final function GetCurrentGear() : int;
 	import final function GetCurrentSpeed() : Vector;
 	import final function GetMaxSpeed() : float;
 
-	
-	
+	// Get buoyancy point status
+	// It is global position of controll point where point.W is global water level at that point
 	import final function GetBuoyancyPointStatus_Front() : Vector;
 	import final function GetBuoyancyPointStatus_Back()  : Vector;
 	import final function GetBuoyancyPointStatus_Right() : Vector;
 	import final function GetBuoyancyPointStatus_Left()  : Vector;
 	
-	
+	// Notify mounting/dismounting procedures
 	import final function MountStarted();
 	import final function DismountFinished();
 	
-	
-	
+	// Enables out of frustum teleportation for boats steered by NPCs
+	// This causes automatic boat teleportation when NPC in boat is to far from player
 	import function UseOutOfFrustumTeleportation( enable : bool );
 	
 	import final function GameCameraTick( out fovDistPitch : Vector, out offsetZ : float, out sailOffset : float, dt : float, passenger : bool ) : bool;
 	
-	
+	//stops boat before dismounting. When stopped sends the OnTriggerBoatDismountAnim event -  this has to be changed in order not to double code // vehicleCleanup
 	import function StopAndDismountBoat();
 	
 	event OnTriggerBoatDismountAnim()
@@ -144,13 +146,13 @@ import statemachine class CBoatComponent extends CVehicleComponent
 	
 	event OnDismountImediete()
 	{
-		
+		// Force instant dismount
 		IssueCommandToDismount( DT_instant );
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// INIT AND INTERACTION ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	event OnInit()
 	{
@@ -163,7 +165,7 @@ import statemachine class CBoatComponent extends CVehicleComponent
 		if( InitializeComponents( boatEntity ) )
 		{
 			InitializeSlots();
-			
+			//boatEntity.ApplyAppearance('destr');
 			boatEntity.ApplyAppearance('default');
 		}
 	}
@@ -191,9 +193,9 @@ import statemachine class CBoatComponent extends CVehicleComponent
 		return thePlayer.IsActionAllowed( EIAB_MountVehicle );
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// MOUNTING AND DISMOUNTING ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	event OnDrowningDismount()
 	{
@@ -219,7 +221,7 @@ import statemachine class CBoatComponent extends CVehicleComponent
 		UpdateHigherMast( 0.f );
 		super.OnMountStarted( entity, vehicleSlot );
 		
-		
+		// Call code functions
 		MountStarted();
 	}
 	
@@ -258,13 +260,13 @@ import statemachine class CBoatComponent extends CVehicleComponent
 		}
 		super.OnDismountFinished( entity, vehicleSlot );
 		
-		
+		// Call code functions
 		DismountFinished();
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// OTHER ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	function GetPassenger() : CActor
 	{
@@ -305,7 +307,7 @@ import statemachine class CBoatComponent extends CVehicleComponent
 			return false;
 		}
 		
-		
+		// get buyancy points
 		fr = GetBuoyancyPointStatus_Front();
 		ba = GetBuoyancyPointStatus_Back();
 		ri = GetBuoyancyPointStatus_Right();
@@ -316,18 +318,18 @@ import statemachine class CBoatComponent extends CVehicleComponent
 		rDiff = ri.Z - ri.W;
 		lDiff = le.Z - le.W;
 		
-		
+		// update sailDir by current tilt
 		tilt = le.Z - ri.Z;
 		sailDir = tilt*dt;
 		sailTilt = tilt;
 		
-		
+		// front
 		boatEntity.CalcEntitySlotMatrix( 'front_splash', frontSlotTransform );
 		currentFrontPosZ = (frontSlotTransform.W).Z;
 		currentFrontVelZ = currentFrontPosZ - prevFrontPosZ;
 		currentFrontAccZ = currentFrontVelZ - prevFrontVelZ;
 		
-		
+		// mast
 		boatEntity.CalcEntitySlotMatrix( 'mast_trail', mastSlotTransform );
 		currentMastPosZ = (mastSlotTransform.W).Z;
 		if( tilt > 0.f )
@@ -344,14 +346,14 @@ import statemachine class CBoatComponent extends CVehicleComponent
 		
 		if( isMoving )
 		{
-			
+			// stop idle particle
 			boatEntity.StopEffectIfActive( 'idle_splash' );
 			
-			
-			
+			// get current speed
+			// calculate current speed for sound params (analog)
 			currentSpeed = GetLinearVelocityXY() / sailingMaxSpeed;
 			
-			
+			// right tilt effect
 			if( IsInWater(ri) && rDiff < TILT_PARTICLE_THRESHOLD )
 			{
 				boatEntity.PlayEffectSingle( 'right_splash_stronger' );
@@ -361,7 +363,7 @@ import statemachine class CBoatComponent extends CVehicleComponent
 				boatEntity.StopEffectIfActive( 'right_splash_stronger' );
 			}
 			
-			
+			// left tilt effect
 			if( IsInWater(le) && lDiff < TILT_PARTICLE_THRESHOLD )
 			{
 				boatEntity.PlayEffectSingle( 'left_splash_stronger' );
@@ -371,7 +373,7 @@ import statemachine class CBoatComponent extends CVehicleComponent
 				boatEntity.StopEffectIfActive( 'left_splash_stronger' );
 			}
 			
-			
+			// effect from mast
 			if( currentMastVelZ < MAST_PARTICLE_THRESHOLD )
 			{
 				boatEntity.PlayEffectSingle( 'mast_trail' );
@@ -395,7 +397,7 @@ import statemachine class CBoatComponent extends CVehicleComponent
 				}
 			}
 			
-			
+			// front splash effect
 			if( IsDiving( currentFrontVelZ, prevFrontWaterPosZ, fDiff ) )
 			{
 				boatEntity.SoundEvent( "boat_stress" );
@@ -408,7 +410,7 @@ import statemachine class CBoatComponent extends CVehicleComponent
 		}
 		else
 		{
-			
+			// start idle particle
 			if( IsInWater(le) && IsInWater(ri) && IsInWater(fr) && IsInWater(ba) && !boatEntity.IsEffectActive('idle_splash') )
 			{
 				boatEntity.PlayEffect( 'idle_splash' );
@@ -416,23 +418,23 @@ import statemachine class CBoatComponent extends CVehicleComponent
 			
 			SwitchEffectsByGear( 0 );
 			
-			
+			// Stop particles
 			boatEntity.StopEffectIfActive( 'front_splash' );
 			boatEntity.StopEffectIfActive( 'mast_trail' );
 			boatEntity.StopEffectIfActive( 'right_splash_stronger' );
 			boatEntity.StopEffectIfActive( 'left_splash_stronger' );
 			
-			
+			// Stop wind effect
 			boatEntity.StopEffectIfActive( 'fake_wind_right' );
 			boatEntity.StopEffectIfActive( 'fake_wind_left' );
 			boatEntity.StopEffectIfActive( 'fake_wind_back' );
 			currentSpeed = 0.f;
 		}
 		
-		
+		// update particles based on current gear
 		currentGear = GetCurrentGear();
 		
-		
+		// update currentGear in beh graph for passenger animation
 		if( passenger )
 			UpdatePassengerSailAnimByGear( currentGear );
 		
@@ -441,32 +443,32 @@ import statemachine class CBoatComponent extends CVehicleComponent
 			SwitchEffectsByGear( currentGear );
 		}
 		
-		
+		// update mast position
 		UpdateMastPositionAndRotation( currentGear, tilt, isMoving );
 		
-		
+		//update sound params
 		UpdateSoundParams( currentSpeed );
 		
-		
-		
+		// last part
+		// cache part
 		previousGear = currentGear;
 		
-		
+		// cache water pos
 		prevFrontWaterPosZ = fr.W;
 		
-		
+		//front slot
 		prevFrontPosZ += currentFrontVelZ;
 		prevFrontVelZ = currentFrontVelZ;
 		
-		
+		// mast slot
 		prevMastPosZ += currentMastVelZ;
 		prevMastVelZ = currentMastVelZ;
 		
-		
+		// right slot
 		prevRightPosZ += currentRightVelZ;
 		prevRightVelZ = currentRightVelZ;
 		
-		
+		// custom idle animation for strong waves - only for not mounted player
 		if( thePlayer.IsOnBoat() && !thePlayer.IsUsingVehicle() )
 		{
 			if( GetWeatherConditionName() == 'WT_Rain_Storm' )
@@ -486,7 +488,7 @@ import statemachine class CBoatComponent extends CVehicleComponent
 		}
 	}
 	
-	final function SetRudderDir( rider : CActor, value : float ) 
+	final function SetRudderDir( rider : CActor, value : float ) // [-1,1]
 	{
 		var aimHorizontal : float;
 		var item : SItemUniqueId;
@@ -521,15 +523,22 @@ import statemachine class CBoatComponent extends CVehicleComponent
 		
 		change = AbsF(rudderDir - value);
 		
-		if ( change > RUDDER_DIR_THRESHOLD )
+		LogChannel('Boat', "Rudder change: " + change );
+		
+		if ( change != 0.0f )		
 		{
+			LogChannel('Boat', "Rudder SET dir: " + value );
+			
 			boatAnim.SetBehaviorVariable( 'rudderAngle', value );
 			rider.SetBehaviorVariable( 'rudderDir', value );
+			
 			if( !boatEntity.SoundIsActiveName( 'boat_steering_loop' ) )
 			{
 				boatEntity.SoundEvent( 'boat_steering_loop' );
 			}
 			steerSound = true;
+			
+			rudderDir = value;
 		}
 		else
 		{
@@ -538,8 +547,7 @@ import statemachine class CBoatComponent extends CVehicleComponent
 				boatEntity.SoundEvent( 'boat_steering_loop_stop' );
 				steerSound = false;
 			}
-		}
-		rudderDir = value;
+		}		
 	}
 	
 	private function IsDiving( curVel : float, cachedWaterPosZ : float, underWater : float ) : bool
@@ -547,7 +555,7 @@ import statemachine class CBoatComponent extends CVehicleComponent
 		var ret : bool;
 		ret = false;
 		
-		
+		//if( curAcc > DIVING_PARTICLE_THRESHOLD && curVel < 0.0f )
 		if( underWater < 0.f && cachedWaterPosZ > 0.f && curVel < -DIVING_PARTICLE_THRESHOLD )
 		{
 			ret = true;
@@ -560,7 +568,7 @@ import statemachine class CBoatComponent extends CVehicleComponent
 		var ret : bool;
 		ret = false;
 		
-		
+		// clear slot cached data only once when initialize
 		prevFrontPosZ = 0.0f;
 		prevFrontVelZ = 0.0f;
 		
@@ -573,8 +581,8 @@ import statemachine class CBoatComponent extends CVehicleComponent
 		prevLeftPosZ = 0.0f;
 		prevLeftVelZ = 0.0f;
 
-		
-		
+		// initialize slots
+		// front
 		if ( boatEntity.CalcEntitySlotMatrix( 'front_splash', frontSlotTransform ) )
 		{
 			prevFrontPosZ = (frontSlotTransform.W).Z;
@@ -586,7 +594,7 @@ import statemachine class CBoatComponent extends CVehicleComponent
 			return false;
 		}
 		
-		
+		// right
 		if ( boatEntity.CalcEntitySlotMatrix( 'right_splash', rightSlotTransform ) )
 		{
 			prevRightPosZ = (rightSlotTransform.W).Z;
@@ -598,7 +606,7 @@ import statemachine class CBoatComponent extends CVehicleComponent
 			return false;
 		}
 		
-		
+		// left
 		if ( boatEntity.CalcEntitySlotMatrix( 'left_splash', leftSlotTransform ) )
 		{
 			prevLeftPosZ = (leftSlotTransform.W).Z;
@@ -610,7 +618,7 @@ import statemachine class CBoatComponent extends CVehicleComponent
 			return false;
 		}
 		
-		
+		// back
 		if ( boatEntity.CalcEntitySlotMatrix( 'back_splash', backSlotTransform ) )
 		{
 			prevBackPosZ = (backSlotTransform.W).Z;
@@ -622,7 +630,7 @@ import statemachine class CBoatComponent extends CVehicleComponent
 			return false;
 		}
 		
-		
+		// mast
 		if ( boatEntity.CalcEntitySlotMatrix( 'mast_trail', mastSlotTransform ) )
 		{
 			prevMastPosZ = (mastSlotTransform.W).Z;
@@ -689,20 +697,20 @@ import statemachine class CBoatComponent extends CVehicleComponent
 	{
 		var scaler : float;
 		scaler = 0.8f;
-		
-		
-		
-		
+		// update sound params
+		// SOUND PARAMETERS should be always!! always !! in range 0 to 1 // min max
+		// debug with Pawel Daudzward cause its wwise param.
+		// value comes already normalized so we dont have to clamp it
 		value = ClampF(value, 0.f, 1.f );
 
-		
-		
-		
-		
+		// There have to be two of this calls here, because first one will set the RTCP value on the 
+		// game object created for entity (without the bone specified or slot, so that would usually 
+		// be in the position of the entity). The second one sets the RTCP value for a different game 
+		// object, created for a bone "mast_trail".
 		boatEntity.SoundParameter( "boat_speed", value );
 		boatEntity.SoundParameter( "boat_speed", value,'mast_trail', 0 , true);
 
-		
+		// clamp it later cause we are boosting some extra intensity
 		value = ClampF(value*scaler, 0.f, 1.f );
 		boatEntity.SoundParameter( "boat_sail_intensity", value );
 	}
@@ -726,14 +734,14 @@ import statemachine class CBoatComponent extends CVehicleComponent
 	
 	private function SwitchEffectsByGear( currentGear : int )
 	{
-		
+		// stop current effects for all moving slots
 		boatEntity.StopEffectIfActive( effects.rightSplash );
 		boatEntity.StopEffectIfActive( effects.leftSplash );
 		boatEntity.StopEffectIfActive( effects.backSplash );
 		
 		if( currentGear != 0 )
 		{
-			
+			// fill
 			switch( currentGear )
 			{
 				case 1:
@@ -753,7 +761,7 @@ import statemachine class CBoatComponent extends CVehicleComponent
 					break;
 			}
 			
-			
+			// play effect with new name
 			boatEntity.PlayEffectSingle( effects.rightSplash );
 			boatEntity.PlayEffectSingle( effects.leftSplash );
 			boatEntity.PlayEffectSingle( effects.backSplash );
@@ -766,7 +774,7 @@ import statemachine class CBoatComponent extends CVehicleComponent
 		
 		mastRot = CalcMastRotation( angle, isMoving, gear );
 		
-		
+		// Set mast position and rotation
 		if( isMoving )
 		{
 			if( !wasSailFillSoundPlayed )
@@ -793,6 +801,23 @@ import statemachine class CBoatComponent extends CVehicleComponent
 			wasSailFillSoundPlayed = false;
 		}
 	}
+	
+	event OnGatherBoatInput()
+	{
+		var accelerate : SInputAction;
+		var decelerate : SInputAction;
+		var stickTilt : Vector;
+		
+		accelerate = theInput.GetAction( 'GI_Accelerate' );
+		decelerate = theInput.GetAction( 'GI_Decelerate' );
+		
+		stickTilt.X = theInput.GetActionValue( 'GI_AxisLeftX' );
+		stickTilt.Y = theInput.GetActionValue( 'GI_AxisLeftY' );
+
+		SetInputValues( accelerate, decelerate, stickTilt, localSpaceCameraTurnPercent );
+	}
+	
+	import private final function SetInputValues( accelerate : SInputAction, decelerate : SInputAction, stickTilt : Vector, localSpaceCameraTurnPercent : float );
 	
 	private function CalcMastRotation( val : float, isMoving : bool, gear : int ) : float
 	{
@@ -832,18 +857,18 @@ import statemachine class CBoatComponent extends CVehicleComponent
 			
 			if( gear != -1 )
 			{
-				
+				// disable back fake wind effect
 				boatEntity.StopEffectIfActive( 'fake_wind_back' );
-				
+				// update wind effect
 				if( val <= -MAST_ROTX_THRESHOLD )
 				{
-					
+					// Play wind fake right
 					boatEntity.StopEffectIfActive( 'fake_wind_right' );
 					boatEntity.PlayEffectSingle( 'fake_wind_left' );
 				}
 				else if( val >= MAST_ROTX_THRESHOLD )
 				{
-					
+					// Play wind fake left
 					boatEntity.StopEffectIfActive( 'fake_wind_left' );
 					boatEntity.PlayEffectSingle( 'fake_wind_right' );
 				}
@@ -869,11 +894,11 @@ import statemachine class CBoatComponent extends CVehicleComponent
 		return sailTilt;
 	}
 	
-	
+	// Cutscene events
 	event OnCutsceneStarted(){}
 	event OnCutsceneEnded(){}
 	
-	
+	// Switches cutscene mode on/off
 	import function TriggerCutsceneStart();
 	import function TriggerCutsceneEnd();
 	

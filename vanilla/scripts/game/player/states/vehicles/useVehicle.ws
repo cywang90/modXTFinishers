@@ -1,29 +1,25 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// USE VEHICLE /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 import state UseVehicle in CPlayer extends Base
 {
 	event OnEnterState( prevStateName : name )
 	{
-		
+		//parent.LockButtonInteractions( PIL_Vehicle ); // WZ: its unlocked now in order to have follow interaction on horse. This is the only interaction allowed when using wehicle
 	}
 	
 	event OnLeaveState( nextStateName : name )
 	{
-		
+		//parent.UnlockButtonInteractions( PIL_Vehicle );
 	}
 	
 	event OnVehicleStateTick( dt : float ){}
 }
 
-
-
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// POST USE VEHICLE ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 import state PostUseVehicle in CPlayer extends Base
 {
@@ -40,14 +36,14 @@ import state PostUseVehicle in CPlayer extends Base
 	
 	event OnVehicleStateTick( dt : float ){}
 	
-	
+	// HACKS
 	import final function HACK_DeactivatePhysicsRepresentation();
 	import final function HACK_ActivatePhysicsRepresentation();
 }
 
-
-
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// USE GENERIC VEHICLE /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 state UseGenericVehicle in CR4Player extends UseVehicle
 {
@@ -228,12 +224,12 @@ state UseGenericVehicle in CR4Player extends UseVehicle
 			if ( rightStickLength >= 0.3 )
 				FindTarget();
 		}
-		else
+		else// if ( !parent.GetDisplayTarget() )
 		{
 			FindTarget();
 		}
 			
-		
+		//thePlayer.CombatModeDebug();	
 	}
 	
 	event OnHitStart()
@@ -261,16 +257,16 @@ state UseGenericVehicle in CR4Player extends UseVehicle
 			theSound.EnterGameState(ESGS_Boat);		
 	}
 	
+	/////////////////////
+	// PANIC ////////////
+	/////////////////////
 	
 	
 	
 	
-	
-	
-	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// TARGETING ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	function FindTarget()
 	{
@@ -285,7 +281,7 @@ state UseGenericVehicle in CR4Player extends UseVehicle
 		var cameraPosition		: Vector;
 		var cameraDirection		: Vector;
 
-		
+		//parent.GetVisibleEnemies( targets );
 		targets = parent.GetMoveTargets();
 
 		targetingInfo.source 				= parent;
@@ -297,8 +293,8 @@ state UseGenericVehicle in CR4Player extends UseVehicle
 		targetingInfo.distCheck				= true;
 		targetingInfo.invisibleCheck		= true;
 		targetingInfo.navMeshCheck			= false; 
-		targetingInfo.inFrameCheck 			= true; 
-		targetingInfo.frameScaleX 			= 1.0f; 
+		targetingInfo.inFrameCheck 			= true; //true 
+		targetingInfo.frameScaleX 			= 1.0f; //0.6f
 		targetingInfo.frameScaleY 			= 1.0f; 
 		targetingInfo.knockDownCheck 		= false; 
 		targetingInfo.knockDownCheckDist 	= 1.5f; 
@@ -400,12 +396,12 @@ state UseGenericVehicle in CR4Player extends UseVehicle
 		}
 		
 		if( ( parent.GetBIsCombatActionAllowed() || !parent.GetDisplayTarget() ) 
-			
+			//&& !parent.rangedWeapon.IsDeployedEntAiming()
 			&& !parent.IsActorLockedToTarget() )
 		{ 
 			parent.slideTarget = theChosenOne;
 			parent.moveTarget = theChosenOne;
-			
+			//parent.target = theChosenOne; // this is probably not needed (consulted with Marwin)
 			parent.SetDisplayTarget( theChosenOne );
 			parent.SetTarget( theChosenOne );
 		}
@@ -431,7 +427,7 @@ state UseGenericVehicle in CR4Player extends UseVehicle
 
 		if ( ( parent.rangedWeapon || thrownEntity ) 
 			&& ( parent.playerAiming.GetCurrentStateName() == 'Aiming' || parent.vehicleCbtMgrAiming ) )
-			return true; 
+			return true; // false
 		
 		if ( parent.IsCameraLockedToTarget() )
 		{
@@ -468,9 +464,9 @@ state UseGenericVehicle in CR4Player extends UseVehicle
 	}	
 }
 
-
-
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// VEHICLE COMBAT MANAGER //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 enum EVehicleCombatAction
 {
@@ -486,7 +482,7 @@ statemachine class W3VehicleCombatManager extends CEntity
 	protected var vehicle : CVehicleComponent;
 	protected var isInCombatAction : bool;
 	
-	protected var wasBombReleased	: bool; 
+	protected var wasBombReleased	: bool; //MS: failsafe for if the throwing animation was interrupted somehow, we shou;d destroy the bomb that's still attached			
 	
 	default autoState = 'Null';
 	
@@ -545,9 +541,9 @@ statemachine class W3VehicleCombatManager extends CEntity
 	event OnDrawWeaponRequest(){}
 }
 
-
-
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// VEHICLE COMBAT MANAGER - NULL ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 state Null in W3VehicleCombatManager
 {
@@ -581,7 +577,7 @@ state Null in W3VehicleCombatManager
 	
 	entry function ShouldEnterNextState()
 	{
-		SleepOneFrame(); 
+		SleepOneFrame(); //DO NOT REMOVE THIS; Immidiate call GotoState will fuck up statemachine
 		
 		if ( horseComp && !horseComp.IsFullyMounted() )
 		{
@@ -625,7 +621,7 @@ state Null in W3VehicleCombatManager
 			return false;
 		}
 		
-		
+		//disabled while in air
 		if(rider.IsInAir() || rider.GetWeaponHolster().IsOnTheMiddleOfHolstering())
 			return false;
 			
@@ -634,14 +630,14 @@ state Null in W3VehicleCombatManager
 		if(!rider.inv.IsIdValid(itemId))
 			return false;
 		
-		
+		//crossbow check
 		if( rider.inv.IsItemCrossbow(itemId) )
 		{
 			if ( rider.IsActionAllowed(EIAB_Crossbow) )
 			{
 				if( IsPressed(action))
 				{
-					if ( rider.GetBIsInputAllowed() )
+					if ( rider.GetBIsInputAllowed() )//&& thePlayer.GetBIsCombatActionAllowed() )
 					{
 						process = true;
 					}
@@ -659,7 +655,7 @@ state Null in W3VehicleCombatManager
 				thePlayer.DisplayActionDisallowedHudMessage(EIAB_Undefined, , , true);
 			}
 		}
-		
+		//bomb checks
 		else if( rider.inv.IsItemBomb(itemId) )
 		{
 			if(!rider.IsActionAllowed(EIAB_ThrowBomb) )
@@ -673,7 +669,7 @@ state Null in W3VehicleCombatManager
 						
 			if(IsPressed(action))
 			{
-				if(thePlayer.CanSetupCombatAction_Throw() && theInput.GetLastActivationTime( action.aName ) < 0.3f )	
+				if(thePlayer.CanSetupCombatAction_Throw() && theInput.GetLastActivationTime( action.aName ) < 0.3f )	//why last activation time?
 				{
 					process = true;
 				}
@@ -734,9 +730,9 @@ state Null in W3VehicleCombatManager
 		parent.GotoState('BeingHit');
 	}
 	
-	
-	
-	
+	///////////////////////////
+	// Action Starts
+	/////////////////////////
 	
 	function StartItemAction()
 	{
@@ -883,9 +879,9 @@ state BeingHit in W3VehicleCombatManager
 	}
 }
 
-
-
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// VEHICLE COMBAT MANAGER - IN AIR /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 state InAir in W3VehicleCombatManager
 {
@@ -900,10 +896,29 @@ state InAir in W3VehicleCombatManager
 	}
 }
 
-
-
-
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// VEHICLE COMBAT MANAGER - SWORD ATTACK ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*
+state HorseActionState in W3VehicleCombatManager
+{
+	protected var actionCooldown : float;
+	
+	private var actionTimeStamp : float;
+	
+	event OnLeaveState( nexStateName : name )
+	{
+		actionTimeStamp = theGame.GetEngineTimeAsSeconds();
+	}
+	
+	public function IsActionOffCooldown() : bool
+	{
+		if ( actionTimeStamp <= 0 )
+			return true;
+		
+		return ( actionTimeStamp + actionCooldown < theGame.GetEngineTimeAsSeconds() );
+	}
+}*/
 enum HorseAttackSide
 {
 	HAS_Right,
@@ -926,7 +941,7 @@ state SwordAttack in W3VehicleCombatManager
 	private const var CHANGE_SIDE_THRESHOLD	: float;	default CHANGE_SIDE_THRESHOLD = 0.02f;
 	
 	default speedMultCasuserId = -1;
-	default ATTACK_TIMEOUT = 10.f; 
+	default ATTACK_TIMEOUT = 10.f; // we need this stamina is only taken when there is enemy around
 	default ATTACK_STAMINA_PER_SEC = 16.f;
 	
 	event OnEnterState( prevStateName : name )
@@ -1026,7 +1041,7 @@ state SwordAttack in W3VehicleCombatManager
 			parent.PopState( true );
 		}
 
-		if( theInput.IsActionReleased( 'VehicleAttack' ) ) 
+		if( theInput.IsActionReleased( 'VehicleAttack' ) ) // it never goes inside!
 		{
 			ChooseAttackHeight();
 			rider.SetBehaviorVariable( 'attackRelease', 1.0 );
@@ -1261,7 +1276,7 @@ state SwordAttack in W3VehicleCombatManager
 					verticalVal = 0.0;
 				}
 			}
-			else 
+			else // on foot
 			{
 				if( riderPos.Z + 1.0 < targetPos.Z )
 				{
@@ -1419,7 +1434,7 @@ state SwordAttack in W3VehicleCombatManager
 			if( actor )
 			{
 				actor.DrainStamina(ESAT_FixedValue, 100, 1);
-
+//				damage.Init( rider, actor, NULL, "riderHit", EHRT_Heavy, CPS_Undefined, true, false, false, false, 'heavy_hit' );
 				damage.Init( rider, actor ,NULL, rider.GetInventory().GetItemFromSlot( 'r_weapon' ),'attack_heavy',rider.GetName(),EHRT_Heavy, false, false, 'attack_heavy', AST_Jab, ASD_NotSet, true, false, false, false );
 				if ( speed < 2 )
 				{
@@ -1459,7 +1474,7 @@ state SwordAttack in W3VehicleCombatManager
 	{
 		theGame.RemoveTimeScale( theGame.GetTimescaleSource( ETS_HorseMelee ) );
 		thePlayer.ResetAnimationSpeedMultiplier( speedMultCasuserId );
-		
+		//thePlayer.SetAnimationSpeedMultiplier( 1 );
 		theSound.SoundEvent( "gui_slowmo_end" );
 		isSlowMoOn = false;
 	}
@@ -1480,9 +1495,9 @@ state SwordAttack in W3VehicleCombatManager
 	}
 }
 
-
-
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// VEHICLE COMBAT MANAGER - CAST SIGN //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 state CastSign in W3VehicleCombatManager
 {
@@ -1610,9 +1625,9 @@ state CastSign in W3VehicleCombatManager
 	}
 }
 
-
-
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// VEHICLE COMBAT MANAGER - RANGED ATTACK //////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 state RangedAttack in W3VehicleCombatManager
 {
@@ -1691,13 +1706,13 @@ state RangedAttack in W3VehicleCombatManager
 			rot = VecToRotation( rider.GetLookAtPosition() - playerPos );
 			rider.GetVisualDebug().AddSphere( 'whyutrat4', 1.f, rider.GetLookAtPosition(), true, Color( 255, 0, 0 ), 0.2f );
 			
-			
-			
+			//if ( moveData.pivotRotationValue.Pitch < theGame.GetGameplayConfigFloatValue( 'debugC' ) )
+			//{
 				if ( rider.GetCurrentStateName() == 'SailingPassive' )
 					horizontalVal = AngleDistance( rider.GetHeading() + 180, rot.Yaw ) / 180.f;
 				else			
 					horizontalVal = AngleDistance( rider.GetHeading(), rot.Yaw ) / 180.f;
-			
+			//}		
 					
 			verticalVal = ClampF( rot.Pitch, -90.f, 90.f ) / -90.f;
 		}
@@ -1710,18 +1725,18 @@ state RangedAttack in W3VehicleCombatManager
 		
 			rider.SetOrientationTarget( OT_Camera );
 			
-			
-			
+			//if ( moveData.pivotRotationValue.Pitch < theGame.GetGameplayConfigFloatValue( 'debugC' ) )
+			//{
 				if ( rider.GetCurrentStateName() == 'SailingPassive' )
 					horizontalVal = AngleDistance( rider.GetHeading() + 180, moveData.pivotRotationValue.Yaw ) / 180.f;
 				else
 					horizontalVal = AngleDistance( rider.GetHeading(), moveData.pivotRotationValue.Yaw ) / 180.f;
-			
+			//}		
 					
 			verticalVal = ClampF( moveData.pivotRotationValue.Pitch, -90.f, 90.f ) / 90.f;
 		}
 		
-		
+		//rider.UpdateLookAtTarget(); it updates OnGameCameraTick inside player's state HorseRiding
 		rider.SetBehaviorVariable( 'aimHorizontal', horizontalVal );
 		rider.SetBehaviorVariable( 'aimVertical', verticalVal );
 		
@@ -1733,16 +1748,16 @@ state RangedAttack in W3VehicleCombatManager
 			return false;
 		}	
 		
+		//moveData.pivotPositionController.offsetZ = 2.5f;
+		//moveData.pivotPositionController.SetDesiredPosition( rider.GetWorldPosition() );
 		
+		//moveData.pivotRotationController.SetDesiredHeading( moveData.pivotRotationValue.Yaw );
+		//moveData.pivotRotationController.SetDesiredPitch( moveData.pivotRotationValue.Pitch );
 		
-		
-		
-		
-		
-		
-		localOffset = Vector( 1.4, 0, 0.15f );
+		//moveData.pivotDistanceController.SetDesiredDistance( 1.7f, 5.f );
+		localOffset = Vector( 1.4, 0, 0.15f );//1.3
 
-		
+		//DampVectorSpring( moveData.cameraLocalSpaceOffset, moveData.cameraLocalSpaceOffsetVel, localOffset, 0.2f, timeDelta );
 		DampVectorConst( moveData.cameraLocalSpaceOffset, localOffset, 4.f, timeDelta );
 		
 		return true;
@@ -1797,18 +1812,18 @@ state RangedAttack in W3VehicleCombatManager
 	
 	event OnHitStart()
 	{
-		
-		
+		//rider.OnRangedForceHolster( true, false ); 
+		//AbortItemAction();
 	}
 }
 
-
-
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// VEHICLE COMBAT MANAGER - THROW PROJECTILE ///////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 state ThrowProjectile in W3VehicleCombatManager extends RangedAttack 
 {
-	
+	//var projectileEnt : CThrowable;
 	var abortThrow		: bool;
 	var thrownEntity	: CThrowable;
 
@@ -1816,7 +1831,7 @@ state ThrowProjectile in W3VehicleCombatManager extends RangedAttack
 	{
 		super.OnEnterState( prevStateName );
 		
-		
+		//Disable slots on radial menu
 		rider.radialSlots.Clear();
 		rider.radialSlots.PushBack( 'Slot2' );
 		rider.radialSlots.PushBack( 'Slot3' );
@@ -1845,7 +1860,7 @@ state ThrowProjectile in W3VehicleCombatManager extends RangedAttack
 
 		parent.SetCleanupFunction( 'ThrowProjectileCleanup' );
 		
-		Delay();
+		OneFrameDelayHACK();
 	}
 
 	cleanup function ThrowProjectileCleanup()
@@ -1886,7 +1901,7 @@ state ThrowProjectile in W3VehicleCombatManager extends RangedAttack
 		}
 	}
 	
-	entry function Delay()
+	entry function OneFrameDelayHACK()
 	{
 		Sleep( 0.1f );
 		
@@ -2000,9 +2015,9 @@ state ThrowProjectile in W3VehicleCombatManager extends RangedAttack
 	}
 }
 
-
-
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// VEHICLE COMBAT MANAGER - THROW BOMB /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 state ThrowBomb in W3VehicleCombatManager extends ThrowProjectile
 {
@@ -2024,9 +2039,9 @@ state ThrowBomb in W3VehicleCombatManager extends ThrowProjectile
 	}	
 }
 
-
-
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// VEHICLE COMBAT MANAGER - SHOOT CROSSBOW /////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 state ShootCrossbow in W3VehicleCombatManager extends RangedAttack
 {
@@ -2110,7 +2125,7 @@ state ShootCrossbow in W3VehicleCombatManager extends RangedAttack
 		rider.WaitForBehaviorNodeDeactivation( 'WeaponShootDeact', 1.f );
 		aiming = false; 
 		rider.playerAiming.StopAiming();
-		
+		//rider.WaitForBehaviorNodeActivation( 'WeaponHolsterActiv', 20.f );
 
 		while ( rider.rangedWeapon && rider.rangedWeapon.GetCurrentStateName() != 'State_WeaponWait' )
 		{

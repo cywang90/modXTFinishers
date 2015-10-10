@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2013
+/** Author : Tomasz Kozera
+/***********************************************************************/
 
 class W3QuestCond_OilApplied_Listener extends IGlobalEventScriptedListener
 {
@@ -18,7 +16,7 @@ class W3QuestCond_OilApplied_Listener extends IGlobalEventScriptedListener
 	}
 }
 
-
+// Checks if given sword type is upgraded with given oil
 class W3QuestCond_OilApplied extends CQuestScriptedCondition
 {
 	editable var swordType 		: EQuestSword;

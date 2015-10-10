@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher script file
+/***********************************************************************/
+/** Copyright © 2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 class W3QuestCond_ItemSelected extends CQuestScriptedCondition
 {
@@ -16,7 +15,7 @@ class W3QuestCond_ItemSelected extends CQuestScriptedCondition
 		
 		id = thePlayer.GetSelectedItemId();
 		
-		
+		//any item
 		if(itemName == '')
 		{			
 			return thePlayer.inv.IsIdValid(id);

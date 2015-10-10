@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3QuestCond_PlayerIsOnBoat extends CQuestScriptedCondition
+﻿class W3QuestCond_PlayerIsOnBoat extends CQuestScriptedCondition
 {
 	editable var inverted : bool;
 	

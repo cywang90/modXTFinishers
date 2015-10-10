@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2015
+/** Author : Patryk Fiutowski
+/***********************************************************************/
 
 class W3QuestCond_HorsePanic extends CQCActorScriptedCondition
 {
@@ -27,7 +25,7 @@ class W3QuestCond_HorsePanic extends CQCActorScriptedCondition
 		
 		perc = horseComp.GetPanicPercent();
 		
-		
+		//if doesn't have that stat
 		if(perc == -1)
 			return false;
 			

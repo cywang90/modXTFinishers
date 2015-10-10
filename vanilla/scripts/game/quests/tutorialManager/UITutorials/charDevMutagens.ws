@@ -1,15 +1,13 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 state CharDevMutagens in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
 	private const var DESCRIPTION, SELECT_TAB, EQUIP, BONUSES, MATCH_SKILL_COLOR, MULTIPLE_SKILLS, WRONG_COLOR, POTIONS, MUTAGENS_JOURNAL : name;
 	private var isClosing : bool;
-	private var savedEquippedSkills : array<STutorialSavedSkill>;					
+	private var savedEquippedSkills : array<STutorialSavedSkill>;					//saved skills which were equipped before the started messing with them
 	
 		default DESCRIPTION 		= 'TutorialMutagenDescription';
 		default SELECT_TAB			= 'TutorialMutagenSelectTab';
@@ -178,9 +176,9 @@ state CharDevMutagens in W3TutorialManagerUIHandler extends TutHandlerBaseState
 	}
 }
 
-
-
-
+//Simulates mutagens tutorial.
+//If color is set it will add mutagen of given color
+//If equipSkillsFirst is set it will equip 3 skills first
 exec function tut_ch_m(optional color : ESkillColor, optional equipSkillsFirst : bool)
 {
 	GetWitcherPlayer().AddPoints(EExperiencePoint, 1500, false );

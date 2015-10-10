@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3CiriPhantom extends CGameplayEntity
+﻿class W3CiriPhantom extends CGameplayEntity
 {
 	private var owner : CActor;
 	private var target : CActor;
@@ -64,7 +60,7 @@ class W3CiriPhantom extends CGameplayEntity
 		
 	}
 	
-		
+		//This event sets the attack data and fires parry/counter/attack check
 	event OnPreAttackEvent(animEventName : name, animEventType : EAnimationEventType, data : CPreAttackEventData, animInfo : SAnimationEventAnimInfo )
 	{		
 		var parriedBy : array<CActor>;
@@ -73,14 +69,14 @@ class W3CiriPhantom extends CGameplayEntity
 		var inventory : CInventoryComponent;
 		var weaponEntity : CItemEntity;		
 	
+		//LogAttackEvents("PreAttack " + animEventType);
 		
-		
-		
+		//preparation, initialization of all the data
 		if(animEventType == AET_DurationStart)
 		{
 			owner.SetAttackData(data);
 		}
-		
+		//actual check if we parried / countered at the end of PreAttack event
 		else if(animEventType == AET_DurationEnd)
 		{
 			inventory = owner.GetInventory();
@@ -93,8 +89,8 @@ class W3CiriPhantom extends CGameplayEntity
 				return false;
 			}
 				
-			
-			
+			//hitTargets.PushBack(target);
+			//parriedBy = owner.TestParryAndCounter(data, weaponId);
 			data.canBeDodged = false;
 			data.attackName = 'attack_heavy';
 			Attack(target, data, weaponId, parriedBy, GetAnimNameFromEventAnimInfo( animInfo ), GetLocalAnimTimeFromEventAnimInfo( animInfo ), weaponEntity);
@@ -140,7 +136,7 @@ class W3CiriPhantom extends CGameplayEntity
 		return true;
 	}
 	
-	
+	///////////////////////////ANIM EVENTS//////////////////////////////
 	event OnAnimEvent_AllowBlend( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
 		if ( animEventType == AET_DurationStart )
@@ -154,7 +150,7 @@ class W3CiriPhantom extends CGameplayEntity
 		this.PlayEffectOnHeldWeapon('light_trail_fx');
 	}
 	
-	
+	////////////////////////////////////////////////////////////
 	
 	function PlayEffectOnHeldWeapon( effectName : name ) : bool
 	{

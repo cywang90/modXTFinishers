@@ -1,12 +1,13 @@
-﻿/*
-Copyright © CD Projekt RED 2015
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2012
+/** Author : Tomasz Kozera
+/***********************************************************************/
+
+/**	
+	When editing this function make sure to make corresponding changes in ChangeNPCState quest function!
 */
-
-
-
-
-
-
 class W3QuestCond_Health extends CQCActorScriptedCondition
 {
 	editable var condition : ECompareOp;

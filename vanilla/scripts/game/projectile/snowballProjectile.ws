@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3SnowballProjectile extends W3AdvancedProjectile
+﻿class W3SnowballProjectile extends W3AdvancedProjectile
 {
 	editable var damageTypeName : name;
 	editable var initFxName : name;
@@ -10,18 +6,18 @@ class W3SnowballProjectile extends W3AdvancedProjectile
 	editable var specialFxOnVictimName : name;
 	editable var applyDebuffIfNoDmgWasDealt : bool;
 	
-	
+	//protected var victim : CActor;
 	
 	hint specialFxOnVictimName = "will be played on collision when applyDebuffIfNoDmgWasDealt is set to true";
 	
 	event OnProjectileInit()
 	{
-		
+		//this.PlayEffect( initFxName );
 		damageTypeName = theGame.params.DAMAGE_NAME_PIERCING;
 		isActive = true;
 	}
 	
-	
+	//FIXME looks very much like W3BoulderProjectile, W3ElementalIfrytProjectile, W3ElementalDaoProjectile, W3StoneProjectile, PoisonProjectile
 	event OnProjectileCollision( pos, normal : Vector, collidingComponent : CComponent, hitCollisionsGroups : array< name >, actorIndex : int, shapeIndex : int )
 	{
 		var action : W3DamageAction;
@@ -46,13 +42,13 @@ class W3SnowballProjectile extends W3AdvancedProjectile
 			this.StopEffect( initFxName );
 			this.PlayEffect(onCollisionFxName);
 			 
-			
+			//dealdmg
 			
 			action = new W3DamageAction in this;
 			action.Initialize((CGameplayEntity)caster,victim,this,caster.GetName(),EHRT_Light,CPS_AttackPower, false, true, false, false);
 			if ( this.projDMG > 0 )
 			{
-				action.AddDamage(damageTypeName, projDMG );	
+				action.AddDamage(damageTypeName, projDMG );	//FIXME URGENT - take from NPC params instead along with damage type and buffs
 			}
 			action.AddEffectInfo(this.projEfect);
 			action.SetCanPlayHitParticle(false);
@@ -60,14 +56,14 @@ class W3SnowballProjectile extends W3AdvancedProjectile
 			theGame.damageMgr.ProcessAction( action );
 			delete action;
 			
-			
+			//do rest
 			if ( applyDebuffIfNoDmgWasDealt )
 				victim.PlayEffect(specialFxOnVictimName);
 			
 			collidedEntities.PushBack(victim);
 			isActive = false;
 		}
-		else if ( !victim )
+		else if ( !victim )//projectile Hit the ground
 		{
 			this.StopProjectile();
 			this.DestroyAfter(1.f);

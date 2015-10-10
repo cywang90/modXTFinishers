@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2015
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 state Map in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
@@ -22,7 +20,7 @@ state Map in W3TutorialManagerUIHandler extends TutHandlerBaseState
 		
 		isClosing = false;
 		
-		
+		//close hint asking to open map
 		CloseHint(OPEN_MAP);
 		
 		ShowHint(DESCRIPTION, 0.63f, 0.5f, ETHDT_Input);	

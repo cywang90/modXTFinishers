@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Copyright © 2012-2014 CDProjektRed
+/** Author : Patryk Fiutowski
+/***********************************************************************/
 
 statemachine class W3ReplacerCiri extends W3Replacer
 {
@@ -21,10 +20,10 @@ statemachine class W3ReplacerCiri extends W3Replacer
 	{
 		super.OnSpawned( spawnData );
 		
-		
+		//Fail safe
 		RemoveNotNeededWeaponsFromInventory();
 		
-		
+		//blocking Geralt only actions
 		BlockAction( EIAB_Signs, 'being_ciri' );
 		BlockAction( EIAB_OpenInventory, 'being_ciri' );
 		BlockAction( EIAB_OpenGwint, 'being_ciri' );
@@ -53,7 +52,7 @@ statemachine class W3ReplacerCiri extends W3Replacer
 		if ( !bloodExplode )
 			bloodExplode = (CEntityTemplate)LoadResource('blood_explode');
 		
-		
+		// We limit difficulty to Medium as Ciri.
 		theGame.UpdateStatsForDifficultyLevel( MinDiffMode( theGame.GetDifficultyMode(), EDM_Medium ) );
 		
 		if(!newGamePlusInitialized && FactsQuerySum("NewGamePlus") > 0)
@@ -63,12 +62,12 @@ statemachine class W3ReplacerCiri extends W3Replacer
 		
 		if ( spawnData.restored )
 		{
-			
+			// there is a possibility that in older save SlowMo was saved
 			theGame.RemoveTimeScale( 'CiriSpecialAttackHeavy' );
 			theGame.RemoveTimeScale( 'CiriPhantom' );
 		}
 		
-		
+		//failsafe for bug #119697
 		if ( !this.HasAbility( 'Ciri_CombatRegen' ) )
 		{
 			this.AddAbility( 'Ciri_CombatRegen' );
@@ -86,7 +85,7 @@ statemachine class W3ReplacerCiri extends W3Replacer
 		var questItems : array<name>;
 		var i : int;
 		
-		
+		//remove abilities added dynamically during playthrough
 		RemoveAbility('Ciri_Q205');
 		RemoveAbility('Ciri_Q305');
 		RemoveAbility('Ciri_Q403');
@@ -97,27 +96,27 @@ statemachine class W3ReplacerCiri extends W3Replacer
 		RemoveAbility('CiriBlink');
 		RemoveAbility('CiriCharge');
 		
+		//-- remove all quest items 1) and 2)
 		
-		
-		
-		
+		//1) some non-quest items might dynamically have 'Quest' tag added so first we remove all items that 
+		//currently have Quest tag
 		inv.RemoveItemByTag('Quest', -1);
 
-		
-		
+		//2) some quest items might lose 'Quest' tag during the course of the game so we need to check their 
+		//XML definitions rather than actual items in inventory
 		theGame.GetDefinitionsManager().GetItemsWithTag('Quest');
 		for(i=0; i<questItems.Size(); i+=1)
 		{
 			inv.RemoveItemByName(questItems[i], -1);
 		}
 		
-		
+		//remove active buffs
 		RemoveAllNonAutoBuffs();
 		
-		
+		//remove usable items
 		inv.RemoveItemByCategory('usable', -1);
 		
-		
+		//remove quest abilities
 		RemoveAbility('StaminaTutorialProlog');
     	RemoveAbility('TutorialStaminaRegenHack');
     	RemoveAbility('area_novigrad');
@@ -130,7 +129,7 @@ statemachine class W3ReplacerCiri extends W3Replacer
     	newGamePlusInitialized = true;
 	}
 	
-	
+	//All input mechanics are in here
 	public function ProcessCombatActionBuffer() : bool
 	{
 		var action	 			: EBufferActionType			= this.BufferCombatAction;
@@ -139,9 +138,9 @@ statemachine class W3ReplacerCiri extends W3Replacer
 		var actionResult : bool = true;
 		
 		
-		
+		//call super
 		if(super.ProcessCombatActionBuffer())
-			return true;		
+			return true;		//... and quit if processed
 			
 		switch ( action )
 		{
@@ -288,10 +287,10 @@ statemachine class W3ReplacerCiri extends W3Replacer
 			} break;
 			
 			default:
-				return false;	
+				return false;	//not processed
 		}
 		
-		
+		//if here then buffer got processed
 		this.CleanCombatActionBuffer();
 		
 		if (actionResult)
@@ -376,15 +375,30 @@ statemachine class W3ReplacerCiri extends W3Replacer
 		
 	}
 	
+	/*script*/ event OnPocessActionPost(action : W3DamageAction)
+	{
+		var attackAction : W3Action_Attack;
+		
+		super.OnPocessActionPost(action);
+		
+		attackAction = (W3Action_Attack)action;
+		
+		//gain energy when attacking
+		if(attackAction && attackAction.IsActionMelee() && action.DealsAnyDamage())
+		{
+			GainResource();
+		}
+	}
+	
 	public function DisplayCannotAttackMessage( actor : CActor ) : bool
 	{
 		DisplayHudMessage(GetLocStringByKeyExt("panel_hud_message_cant_attack_this_target"));
 		return true;
 	}
 	
-	
-	
-	
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////@Ciri @Events
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	event OnPerformSpecialAttack( enableAttack : bool ){}
 	event OnPerformSpecialAttackHeavy( enableAttack : bool ){}
@@ -394,7 +408,7 @@ statemachine class W3ReplacerCiri extends W3Replacer
 	event OnPerformDashAttack(){}
 	
 	
-	
+	////////////////ANIM EVENTS ///////////////////////////////////////
 	
 	event OnAnimEvent_ActionBlend( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
@@ -460,7 +474,7 @@ statemachine class W3ReplacerCiri extends W3Replacer
 			movementAdjustor.CancelAll();
 			slideTicket = movementAdjustor.CreateNewRequest( 'SlideToTarget' );
 			movementAdjustor.BindToEventAnimInfo( slideTicket, animInfo );
-			
+			//movementAdjustor.Continuous(slideTicket);
 			movementAdjustor.ScaleAnimation( slideTicket );
 			minSlideDistance = this.GetRadius() + slideNPC.GetRadius() + 0.01f;
 			movementAdjustor.SlideTowards( slideTicket, slideNPC, minSlideDistance, minSlideDistance );					
@@ -494,7 +508,7 @@ statemachine class W3ReplacerCiri extends W3Replacer
 	event OnCombatStart()
 	{
 		super.OnCombatStart();
-		
+		//OnEquipMeleeWeapon( PW_Steel, true );
 		
 		this.RemoveAllBuffsOfType(EET_StaminaDrain);
 		this.AddEffectDefault(EET_AutoStaminaRegen, this, this.GetName());
@@ -593,9 +607,9 @@ statemachine class W3ReplacerCiri extends W3Replacer
 		return true;
 	}
 	
-	
-	
-	
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////@CiriFunctions
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	protected function ShouldDrainStaminaWhileSprinting() : bool
 	{
@@ -609,7 +623,7 @@ statemachine class W3ReplacerCiri extends W3Replacer
 
 	public function GainResource()
 	{
-		
+		//don't add energy if you don't have special attacks yet
 		if(!HasAbility('CiriBlink') && !HasAbility('CiriCharge'))
 			return;
 		
@@ -767,7 +781,7 @@ statemachine class W3ReplacerCiri extends W3Replacer
 		
 		if ( collidedActor && !collidedEnemies.Contains(collidedActor) )
 		{
-			
+			//deal dmg, dismember etc.
 			action = new W3Action_Attack in this;
 			action.Init((CGameplayEntity)this,collidedActor,NULL,this.GetInventory().GetItemFromSlot( 'r_weapon' ),'attack_heavy',this.GetName(),EHRT_Heavy, false, false, 'attack_heavy', AST_Jab, ASD_NotSet, true, false, false, false );
 			action.SetCriticalHit();
@@ -825,7 +839,7 @@ statemachine class W3ReplacerCiri extends W3Replacer
 	{
 		if ( specialAttackCamera )
 		{
-			
+			//SpecialHeavyAttackCamera( moveData, timeDelta );
 		}
 		else if ( slidingToNewPosition )
 		{
@@ -837,7 +851,11 @@ statemachine class W3ReplacerCiri extends W3Replacer
 	}
 	
 	
-	
+	/*protected function UpdateCameraSprint( out moveData : SCameraMovementData, timeDelta : float )
+	{
+		if ( !IsInCombat() )
+			super.UpdateCameraSprint( moveData, timeDelta );
+	}*/
 	
 	protected function SpecialHeavyAttackCamera( out moveData : SCameraMovementData, timeDelta : float ) 
 	{
@@ -866,19 +884,19 @@ statemachine class W3ReplacerCiri extends W3Replacer
 		
 		super.ReduceDamage(damageData);
 		
-		
+		//damage prevented in super
 		if(!damageData.DealsAnyDamage())
 			return;
 		
 		actorAttacker = (CActor)damageData.attacker;
 		
-		
+		//dodging
 		if(actorAttacker)
 		{			
 			if(IsCurrentlyDodging() && damageData.CanBeDodged())
 			{
-				
-				
+				//check if we're dodging straight on attacker or +/- 30 degrees off. If so then the damage will not be prevented
+				//if(	( AbsF(AngleDistance(GetCombatActionHeading(), actorAttacker.GetHeading())) < 150 ) && ( !actorAttacker.GetIgnoreImmortalDodge() ) )
 				if(	( AbsF(AngleDistance(evadeHeading, actorAttacker.GetHeading())) < 150 ) )
 				{
 					if ( theGame.CanLog() )
@@ -894,13 +912,13 @@ statemachine class W3ReplacerCiri extends W3Replacer
 	}
 	
 		
-	
-	
-	
-	
-	
+	//////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// @Oils - custom implementation since she has no equipment slots
+	//
+	//////////////////////////////////////////////////////////////////////////////////////////
 		
-	
+	//Returns oil item name (oil item can no longer exist in inventory) of oil applied to given sword (Steel if steel==true, Silver otherwise)
 	public final function GetOilAppliedOnSword(steel : bool) : name
 	{
 		var sword : SItemUniqueId;
@@ -912,7 +930,7 @@ statemachine class W3ReplacerCiri extends W3Replacer
 		return '';
 	}
 	
-	
+	//gets 'equipped' steel or silver sword
 	public final function GetEquippedSword(steel : bool) : SItemUniqueId
 	{
 		var ids : array<SItemUniqueId>;
@@ -937,7 +955,7 @@ statemachine class W3ReplacerCiri extends W3Replacer
 		return GetInvalidUniqueId();
 	}
 	
-	
+	//returns true if Ciri has any sword to fight with
 	public final function HasSword() : bool
 	{
 		if(inv.IsIdValid( GetEquippedSword(true) ))
@@ -946,7 +964,7 @@ statemachine class W3ReplacerCiri extends W3Replacer
 		return inv.IsIdValid(inv.GetItemFromSlot('r_weapon'));
 	}
 	
-	
+	// Returns true if given sword type is upgraded with given oil
 	public final function IsEquippedSwordUpgradedWithOil(steel : bool, optional oilName : name) : bool
 	{
 		var sword : SItemUniqueId;
@@ -972,7 +990,7 @@ statemachine class W3ReplacerCiri extends W3Replacer
 				{
 					if(swordAbilities.Contains(abilities[i]))
 					{
-						
+						//there is an oil ability with oil tag that the sword has - that's enough
 						return true;
 					}					
 				}
@@ -980,7 +998,7 @@ statemachine class W3ReplacerCiri extends W3Replacer
 		}
 		else
 		{
-			
+			//checking for any oil
 			for(i=0; i<swordAbilities.Size(); i+=1)
 			{
 				if(dm.AbilityHasTag(swordAbilities[i], theGame.params.OIL_ABILITY_TAG))
@@ -999,7 +1017,7 @@ statemachine class W3ReplacerCiri extends W3Replacer
 		return false;
 	}
 	
-	
+	//applies oil on given player item - adds oil bonus ability to item abilities
 	public final function ApplyOil( oilId : SItemUniqueId, usedOnItem : SItemUniqueId )
 	{
 		var oilAbilities : array<name>;
@@ -1017,23 +1035,23 @@ statemachine class W3ReplacerCiri extends W3Replacer
 		heldWeapons = inv.GetHeldWeapons();
 		swordEquipped = heldWeapons.Contains(usedOnItem);
 		
-		
+		//remove previous oil
 		RemoveItemOil(usedOnItem);
 
-		
+		//add new oil
 		for(i=0; i<oilAbilities.Size(); i+=1)
 		{
 			if(dm.AbilityHasTag(oilAbilities[i], theGame.params.OIL_ABILITY_TAG))
 			{
 				inv.AddItemCraftedAbility(usedOnItem, oilAbilities[i]);
 				
-				
+				//When oil is equipped it adds its abilities to player. Since item is equipped it has already done that so we need to do it manually.
 				if(swordEquipped)
 					AddAbility(oilAbilities[i]);
 			} 
 		}
 		
-		
+		//set charges
 		ammo = CalculateAttributeValue(inv.GetItemAttributeValue(oilId, 'ammo'));
 		
 		inv.SetItemModifierInt(usedOnItem, 'oil_charges', RoundMath(ammo));
@@ -1041,7 +1059,7 @@ statemachine class W3ReplacerCiri extends W3Replacer
 				
 		LogOils("Added oil <<" + inv.GetItemName(oilId) + ">> to <<" + inv.GetItemName(usedOnItem) + ">>");
 		
-		
+		//fundamentals first achievement
 		SetFailedFundamentalsFirstAchievementCondition(true);
 		
 		theGame.GetGlobalEventsManager().OnScriptedEvent( SEC_OnOilApplied );		

@@ -1,11 +1,11 @@
-﻿/*
-Copyright © CD Projekt RED 2015
+﻿/***********************************************************************/
+/** Copyright © 2012-2014
+/** Author : Tomek Kozera
+/***********************************************************************/
+
+/**	
+	When editing this function make sure to make corresponding changes in ChangeNPCState quest function!
 */
-
-
-
-
-
 class W3QuestCond_IsInState extends CQCActorScriptedCondition
 {
 	editable var actorState : EQuestNPCStates;

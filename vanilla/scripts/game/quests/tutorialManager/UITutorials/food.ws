@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2015
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 state Food in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
@@ -29,7 +27,7 @@ state Food in W3TutorialManagerUIHandler extends TutHandlerBaseState
 		hasFood = false;
 		witcher = GetWitcherPlayer();
 		
-		
+		//check if has food already equipped
 		if(witcher.GetItemEquippedOnSlot(EES_Potion1, item))
 		{
 			if(witcher.inv.IsItemFood(item))
@@ -42,13 +40,25 @@ state Food in W3TutorialManagerUIHandler extends TutHandlerBaseState
 				hasFood = true;
 		}
 		
+		if(!hasFood && witcher.GetItemEquippedOnSlot(EES_Potion3, item))
+		{
+			if(witcher.inv.IsItemFood(item))
+				hasFood = true;
+		}
+		
+		if(!hasFood && witcher.GetItemEquippedOnSlot(EES_Potion4, item))
+		{
+			if(witcher.inv.IsItemFood(item))
+				hasFood = true;
+		}
+		
 		if(hasFood)
 		{
 			ShowHint(USAGE, theGame.params.TUT_POS_INVENTORY_X, theGame.params.TUT_POS_INVENTORY_Y-0.1f);
 		}
 		else
 		{
-			
+			//Add food if has none	
 			if( witcher.inv.GetItemQuantityByTag('Edibles') == 0 )
 			{
 				witcher.inv.AddAnItem('Bread', 1, true, false);
@@ -110,13 +120,13 @@ state Food in W3TutorialManagerUIHandler extends TutHandlerBaseState
 	{
 		if(IsCurrentHint(SELECT_FOOD) && thePlayer.inv.IsItemFood(itemId))
 		{
-			
+			//if selected food
 			CloseHint(SELECT_FOOD);
 			ShowHint(EQUIP_FOOD, theGame.params.TUT_POS_INVENTORY_X, theGame.params.TUT_POS_INVENTORY_Y-0.1f, ETHDT_Infinite);
 		}
 		else if(IsCurrentHint(EQUIP_FOOD) && !thePlayer.inv.IsItemFood(itemId))
 		{
-			
+			//if had food selected but then changed selection to not food or when aborted selection menu and moved around
 			CloseHint(EQUIP_FOOD);
 			ShowHint(SELECT_FOOD, theGame.params.TUT_POS_INVENTORY_X, theGame.params.TUT_POS_INVENTORY_Y-0.1f, ETHDT_Infinite);
 		}

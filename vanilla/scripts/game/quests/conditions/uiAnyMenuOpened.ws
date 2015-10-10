@@ -1,9 +1,6 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 class W3QuestCond_UIAnyMenuOpened extends CQuestScriptedCondition
 {

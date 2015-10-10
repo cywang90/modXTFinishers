@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-enum EStorySceneOutputAction
+﻿enum EStorySceneOutputAction
 {
 	SSOA_None,
 	SSOA_ReturnToPreviousState,
@@ -54,7 +50,7 @@ import statemachine class CStoryScenePlayer extends CEntity
 		
 		theGame.SetIsDialogOrCutscenePlaying(true);
 		
-		
+		//kill all npcs nearby that are in agony state to prevent them from agonizing in the background :)
 		box.Min = Vector(-30,-30,-30);
 		box.Max = Vector(30, 30, 30);
 		
@@ -64,9 +60,11 @@ import statemachine class CStoryScenePlayer extends CEntity
 			actor = (CActor)ents[i];
 			if(actor && actor.IsInAgony())
 				actor.SignalGameplayEvent('ForceEndAgony');
+				
+			ents[i].StopCutsceneForbiddenFXs();
 		}
 		
-		
+		//remove blizzard from player if he has one
 		thePlayer.RemoveAllBuffsOfType(EET_Blizzard);
 	}
 	
@@ -97,7 +95,7 @@ import statemachine class CStoryScenePlayer extends CEntity
 	
 	event OnMovieStarted()
 	{
-		
+		//theSound.SoundState( "game_state", "movie" );
 		if( m_isFinalboard )
 		{
 			theSound.EnterGameState( ESGS_MusicOnly );
@@ -141,7 +139,7 @@ state Gameplay in CStoryScenePlayer
 	{
 		if ( prevStateName == 'Blocking' )
 		{
-			
+			// State could be ESGS_Dialogue or ESGS_DialogueNight
 			theSound.LeaveGameState( theSound.GetCurrentGameState() );
 		}
 		else if ( prevStateName == 'Cutscene' )
@@ -231,7 +229,7 @@ state Movie in CStoryScenePlayer
 }
 
 
-
+/////////////////////////////////////////////////////////
 
 import class CStoryScene extends CResource
 {
@@ -273,7 +271,7 @@ import class CStorySceneSpawner extends CGameplayEntity
 	}
 }
 
-
+////////////////////////////////////////////////////////////////////////////
 
 enum EStorySceneGameplayAction
 {
@@ -301,7 +299,7 @@ import struct SStorySceneGameplayActionCallbackInfo
 
 	import var inActorPosition : Vector;
 	import var inActorHeading : Vector;
-	import var inGameplayAction : int; 
+	import var inGameplayAction : int; // Param 'inGameplayAction' is EStorySceneGameplayAction but it is called from code so it needs to be int
 	import var inActor : CActor;
 }
 
@@ -321,11 +319,11 @@ function DoStorySceneGameplayAction( out callbackInfo : SStorySceneGameplayActio
 	
 	action = callbackInfo.inGameplayAction;
 	
-	
+	// Items
 	callbackInfo.outChangeItems = action == SSGA_Walk_2m_GoTo_Combat || action == SSGA_Walk_5m_GoTo_Combat || action == SSGA_Walk_8m_GoTo_Combat
 		|| action == SSGA_Walk_2m_GoTo_Combat_Silver || action == SSGA_Walk_5m_GoTo_Combat_Silver || action == SSGA_Walk_8m_GoTo_Combat_Silver;
 	
-	
+	// Combat
 	combatActionSteel = action == SSGA_Walk_2m_GoTo_Combat || action == SSGA_Walk_5m_GoTo_Combat || action == SSGA_Walk_8m_GoTo_Combat || action == SSGA_GoTo_Combat_Pose;
 	combatActionSteel = combatActionSteel && callbackInfo.inActor == thePlayer;
 	combatActionSilver = action == SSGA_Walk_2m_GoTo_Combat_Silver || action == SSGA_Walk_5m_GoTo_Combat_Silver || action == SSGA_Walk_8m_GoTo_Combat_Silver || action == SSGA_GoTo_Combat_Pose_Silver;
@@ -354,7 +352,7 @@ function DoStorySceneGameplayAction( out callbackInfo : SStorySceneGameplayActio
 			thePlayer.GotoState( 'CombatFists', false );
 	}
 	
-	
+	// Walk
 	walkAction = action == SSGA_Walk_2m || action == SSGA_Walk_5m || action == SSGA_Walk_8m
 			  || action == SSGA_Walk_2m_GoTo_Combat || action == SSGA_Walk_5m_GoTo_Combat || action == SSGA_Walk_8m_GoTo_Combat
 			  || action == SSGA_Walk_2m_GoTo_Combat_Silver || action == SSGA_Walk_5m_GoTo_Combat_Silver || action == SSGA_Walk_8m_GoTo_Combat_Silver;
@@ -368,7 +366,7 @@ function DoStorySceneGameplayAction( out callbackInfo : SStorySceneGameplayActio
 		{
 			distance = 5.f;
 		}
-		else 
+		else // SSGA_Walk_8m
 		{
 			distance = 8.f;
 		}
@@ -410,6 +408,8 @@ function DoStorySceneGameplayAction( out callbackInfo : SStorySceneGameplayActio
 		{
 			l_aiTree.params.moveType = MT_Walk;
 			l_aiTree.params.maxIterationsNumber 	= 2;
+			l_aiTree.params.useTimeout				= true;
+			l_aiTree.params.timeoutValue 			= 3.f;
 			
 			callbackInfo.inActor.ForceAIBehavior( l_aiTree, BTAP_Emergency );
 		}
@@ -421,11 +421,11 @@ function DoStorySceneGameplayAction( out callbackInfo : SStorySceneGameplayActio
 	}
 	else if ( action == SSGA_EndInWork )
 	{
-		
+		// Work
 		callbackInfo.inActor.SignalGameplayEvent( 'AI_ForceLastWork' );
 		callbackInfo.inActor.ForceAIUpdate();
 		
-		callbackInfo.outDontUseSceneTeleport = true; 
+		callbackInfo.outDontUseSceneTeleport = true; // Teleport will be done by work system - it will know the proper place for job
 	}
 	else if ( action == SSGA_DelayWork )
 	{
@@ -443,4 +443,4 @@ function DoStorySceneGameplayAction( out callbackInfo : SStorySceneGameplayActio
 	}
 }
 
-
+////////////////////////////////////////////////////////////////////////////////////

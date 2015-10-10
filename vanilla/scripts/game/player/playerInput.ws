@@ -1,23 +1,29 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2013-2014
+/** Author : Tomasz Czarny
+/**			 Tomek Kozera
+/**			 Marwin So
+/***********************************************************************/
 
 class CPlayerInput 
 {
-	private saved 	var actionLocks 	: array<array<SInputActionLock>>;		
+	private saved 	var actionLocks 	: array<array<SInputActionLock>>;		//locks for actions
 	
 	private	var	totalCameraPresetChange : float;		default totalCameraPresetChange = 0.0f;
 	private var potAction 				: SInputAction;
 	private var potPress 				: bool;
 	private var	debugBlockSourceName	: name;			default	debugBlockSourceName	= 'PLAYER';
-	private var holdFastMenuInvoked     : bool;			default holdFastMenuInvoked = false;			
-	 
+	private var holdFastMenuInvoked     : bool;			default holdFastMenuInvoked = false;			//to handle touchpad press/hold releases
+	private var potionUpperHeld, potionLowerHeld : bool;		//set when potion switch button is being held
+	private var potionModeHold : bool;							//set when potion switching mode is set to Hold
 	
+		default potionModeHold = true;
+		
 	public function Initialize(isFromLoad : bool, optional previousInput : CPlayerInput)
 	{		
+		var missingLocksCount, i : int;
+		var dummy : array<SInputActionLock>;
+
 		if(previousInput)
 		{
 			actionLocks = previousInput.actionLocks;
@@ -28,6 +34,14 @@ class CPlayerInput
 			{
 				actionLocks.Grow(EnumGetMax('EInputActionBlock')+1);
 			}
+			else
+			{
+				missingLocksCount = EnumGetMax('EInputActionBlock') + 1 - actionLocks.Size();
+				for ( i = 0; i < missingLocksCount; i += 1 )
+				{
+					actionLocks.PushBack( dummy );
+				}
+			}
 		}
 		
 		theInput.RegisterListener( this, 'OnCommSprint', 'Sprint' );
@@ -35,15 +49,19 @@ class CPlayerInput
 		theInput.RegisterListener( this, 'OnCommWalkToggle', 'WalkToggle' );
 		theInput.RegisterListener( this, 'OnCommGuard', 'Guard' );
 		
-		
+		// horse
 		theInput.RegisterListener( this, 'OnCommSpawnHorse', 'SpawnHorse' );
 		
-		
-		
+		//potions
+		//theInput.RegisterListener( this, 'OnCommDrinkPot', 'DrinkPotion' ); -not used anymore, handles one on tap and second on double tap
 		theInput.RegisterListener( this, 'OnCommDrinkPotion1', 'DrinkPotion1' );
 		theInput.RegisterListener( this, 'OnCommDrinkPotion2', 'DrinkPotion2' );
+		theInput.RegisterListener( this, 'OnCommDrinkPotion3', 'DrinkPotion3' );
+		theInput.RegisterListener( this, 'OnCommDrinkPotion4', 'DrinkPotion4' );
+		theInput.RegisterListener( this, 'OnCommDrinkpotionUpperHeld', 'DrinkPotionUpperHold' );
+		theInput.RegisterListener( this, 'OnCommDrinkpotionLowerHeld', 'DrinkPotionLowerHold' );
 		
-		
+		//weapon draw/sheathe
 		theInput.RegisterListener( this, 'OnCommSteelSword', 'SteelSword' );
 		theInput.RegisterListener( this, 'OnCommSilverSword', 'SilverSword' );
 		theInput.RegisterListener( this, 'OnCommSheatheAny', 'SwordSheathe' );
@@ -58,7 +76,7 @@ class CPlayerInput
 		theInput.RegisterListener( this, 'OnSelectSign', 'SelectAxii' );
 		
 		
-		
+		//character panels
 		theInput.RegisterListener( this, 'OnCommDeckEditor', 'PanelGwintDeckEditor' );
 		theInput.RegisterListener( this, 'OnCommMenuHub', 'HubMenu' );
 		theInput.RegisterListener( this, 'OnCommPanelInv', 'PanelInv' );
@@ -80,14 +98,14 @@ class CPlayerInput
 		theInput.RegisterListener( this, 'OnExpFocus', 'Focus' );
 		theInput.RegisterListener( this, 'OnExpMedallion', 'Medallion' );
 		
-		
+		//boat
 		theInput.RegisterListener( this, 'OnBoatDismount', 'BoatDismount' );
 		
 		theInput.RegisterListener( this, 'OnDiving', 'DiveDown' );
 		theInput.RegisterListener( this, 'OnDiving', 'DiveUp' );
 		theInput.RegisterListener( this, 'OnDivingDodge', 'DiveDodge' );
 		
-		
+		// PC only
 		theInput.RegisterListener( this, 'OnCbtSpecialAttackWithAlternateLight', 'SpecialAttackWithAlternateLight' );
 		theInput.RegisterListener( this, 'OnCbtSpecialAttackWithAlternateHeavy', 'SpecialAttackWithAlternateHeavy' );
 		theInput.RegisterListener( this, 'OnCbtAttackWithAlternateLight', 'AttackWithAlternateLight' );
@@ -110,24 +128,24 @@ class CPlayerInput
 		theInput.RegisterListener( this, 'OnCbtComboDigitRight', 'ComboDigitRight' );
 		
 		
-		
+		// Ciri
 		theInput.RegisterListener( this, 'OnCbtCiriSpecialAttack', 'CiriSpecialAttack' );
 		theInput.RegisterListener( this, 'OnCbtCiriAttackHeavy', 'CiriAttackHeavy' );
 		theInput.RegisterListener( this, 'OnCbtCiriSpecialAttackHeavy', 'CiriSpecialAttackHeavy' );
 		theInput.RegisterListener( this, 'OnCbtCiriDodge', 'CiriDodge' );
 		theInput.RegisterListener( this, 'OnCbtCiriDash', 'CiriDash' );
 		
-		
+		//throwing items, casting signs
 		theInput.RegisterListener( this, 'OnCbtThrowItem', 'ThrowItem' );
 		theInput.RegisterListener( this, 'OnCbtThrowItemHold', 'ThrowItemHold' );
 		theInput.RegisterListener( this, 'OnCbtThrowCastAbort', 'ThrowCastAbort' );
 		
-		
+		//replacer only
 		theInput.RegisterListener( this, 'OnCiriDrawWeapon', 'CiriDrawWeapon' );
 		theInput.RegisterListener( this, 'OnCiriDrawWeapon', 'CiriDrawWeaponAlternative' );
 		theInput.RegisterListener( this, 'OnCiriHolsterWeapon', 'CiriHolsterWeapon' );
 		
-		
+		//debug
 		if( !theGame.IsFinalBuild() )
 		{
 			theInput.RegisterListener( this, 'OnDbgSpeedUp', 'Debug_SpeedUp' );
@@ -139,7 +157,7 @@ class CPlayerInput
 			theInput.RegisterListener( this, 'OnCommPanelFakeHud', 'PanelFakeHud' );
 		}
 		
-		
+		// other
 		theInput.RegisterListener( this, 'OnChangeCameraPreset', 'CameraPreset' );
 		theInput.RegisterListener( this, 'OnChangeCameraPresetByMouseWheel', 'CameraPresetByMouseWheel' );
 		theInput.RegisterListener( this, 'OnMeditationAbort', 'MeditationAbort');
@@ -148,14 +166,14 @@ class CPlayerInput
 		theInput.RegisterListener( this, 'OnIngameMenu', 'IngameMenu' );		
 	}
 	 
-	
+	// curently unused
 	function Destroy()
 	{
 	}
 	
-	
-	
-	
+	///////////////////////////
+	// Action blocking
+	///////////////////////////
 	
 	public function FindActionLockIndex(action : EInputActionBlock, sourceName : name) : int
 	{
@@ -168,8 +186,8 @@ class CPlayerInput
 		return -1;
 	}
 
-	
-	public function BlockAction(action : EInputActionBlock, sourceName : name, lock : bool, optional keepOnSpawn : bool, optional playerPointer : CPlayer, optional isFromQuest : bool, optional isFromPlace : bool)
+	// function to (un)block given input actions
+	public function BlockAction(action : EInputActionBlock, sourceName : name, lock : bool, optional keepOnSpawn : bool, optional onSpawnedNullPointerHackFix : CPlayer, optional isFromQuest : bool, optional isFromPlace : bool)
 	{		
 		var index : int;		
 		var isLocked, wasLocked : bool;
@@ -206,10 +224,10 @@ class CPlayerInput
 		
 		isLocked = (actionLocks[action].Size() > 0);
 		if(isLocked != wasLocked)
-			OnActionLockChanged(action, isLocked, sourceName, playerPointer);
+			OnActionLockChanged(action, isLocked, sourceName, onSpawnedNullPointerHackFix);
 	}
 	
-	
+	//For toxic gas tutorial - we MUST open radial then so ALL locks are released
 	public final function TutorialForceUnblockRadial() : array<SInputActionLock>
 	{
 		var ret : array<SInputActionLock>;
@@ -225,14 +243,14 @@ class CPlayerInput
 		return ret;
 	}
 	
-	
+	//Toxic tutorial restoring of radial open locks
 	public final function TutorialForceRestoreRadialLocks(radialLocks : array<SInputActionLock>)
 	{
 		actionLocks[EIAB_RadialMenu] = radialLocks;
 		thePlayer.UnblockAction(EIAB_Signs, 'ToxicGasTutorial' );
 	}
 	
-	private function OnActionLockChanged(action : EInputActionBlock, locked : bool, optional sourceName : name, optional playerPointer : CPlayer)
+	private function OnActionLockChanged(action : EInputActionBlock, locked : bool, optional sourceName : name, optional onSpawnedNullPointerHackFix : CPlayer)
 	{		
 		var player : CPlayer;
 		var lockType : EPlayerInteractionLock;
@@ -240,28 +258,28 @@ class CPlayerInput
 		var guiManager : CR4GuiManager;
 		var rootMenu : CR4MenuBase;
 		
-		
+		// ED: Submited this to catch unknown blocking sources
 		if( sourceName == debugBlockSourceName )
 		{
-			
+			// Put a breakpoint here:
 			sourceName	= sourceName;
 		}
 		
-		
+		//custom stuff
 		if(action == EIAB_FastTravel)
 		{
 			theGame.GetCommonMapManager().EnableFastTravelling(!locked);
 		}
 		else if(action == EIAB_Interactions)
 		{		
-			
+			//set lock flag
 			if(sourceName == 'InsideCombatAction')
 				lockType = PIL_CombatAction;
 			else
 				lockType = PIL_Default;
 			
 			if(!thePlayer)
-				player = playerPointer;
+				player = onSpawnedNullPointerHackFix;
 			else
 				player = thePlayer;
 			
@@ -273,16 +291,16 @@ class CPlayerInput
 					player.UnlockButtonInteractions(lockType);
 			}
 			
-			
+			//update interactions after flag change
 			hud = (CR4ScriptedHud)theGame.GetHud(); 
 			if ( hud ) 
 			{ 
 				hud.ForceInteractionUpdate(); 
 			}
 		}		
-		else if(action == EIAB_Movement && locked && thePlayer)	
+		else if(action == EIAB_Movement && locked && thePlayer)	//no thePlayer on session start
 		{  
-			
+			//if we block movement then force Idle state, unless you are in air (jumping) - in that case wait for touch down and then force it
 			if(thePlayer.IsUsingVehicle() && thePlayer.GetCurrentStateName() == 'HorseRiding')
 			{
 				((CActor)thePlayer.GetUsedVehicle()).GetMovingAgentComponent().ResetMoveRequests();
@@ -323,7 +341,7 @@ class CPlayerInput
 		}
 	}
 	
-	public function BlockAllActions(sourceName : name, lock : bool, optional exceptions : array<EInputActionBlock>, optional saveLock : bool, optional playerPointer : CPlayer, optional isFromQuest : bool, optional isFromPlace : bool)
+	public function BlockAllActions(sourceName : name, lock : bool, optional exceptions : array<EInputActionBlock>, optional saveLock : bool, optional onSpawnedNullPointerHackFix : CPlayer, optional isFromQuest : bool, optional isFromPlace : bool)
 	{
 		var i, size : int;
 		
@@ -333,11 +351,11 @@ class CPlayerInput
 			if ( exceptions.Contains(i) )
 				continue;
 			
-			BlockAction(i, sourceName, lock, saveLock, playerPointer, isFromQuest, isFromPlace);
+			BlockAction(i, sourceName, lock, saveLock, onSpawnedNullPointerHackFix, isFromQuest, isFromPlace);
 		}
 	}
 	
-	
+	//blocking all actions from all quest sources regardless of source
 	public final function BlockAllQuestActions(sourceName : name, lock : bool)
 	{
 		var action, j, size : int;
@@ -345,12 +363,12 @@ class CPlayerInput
 		
 		if(lock)
 		{
-			
+			//block works as regular block
 			BlockAllActions(sourceName, lock, , true, , true);
 		}
 		else
 		{
-			
+			//release all quest locks, regardless of sourceName
 			size = EnumGetMax('EInputActionBlock')+1;
 			for(action=0; action<size; action+=1)
 			{
@@ -375,7 +393,7 @@ class CPlayerInput
 		}
 	}
 	
-	
+	//blocking all UI actions from all quest sources regardless of source
 	public function BlockAllUIQuestActions(sourceName : name, lock : bool)
 	{
 		var i, j, action, size : int;
@@ -395,7 +413,7 @@ class CPlayerInput
 		}
 		else
 		{
-			
+			//release all quest locks, regardless of sourceName
 			uiActions.Resize(8);
 			uiActions[0] = EIAB_OpenInventory;
 			uiActions[1] = EIAB_MeditationWaiting;
@@ -432,7 +450,7 @@ class CPlayerInput
 		}
 	}
 	
-	
+	//forces releas of all action blocks
 	public function ForceUnlockAllInputActions(alsoQuestLocks : bool)
 	{
 		var i, j : int;
@@ -515,9 +533,9 @@ class CPlayerInput
 		return '';
 	}
 
-	
-	
-	
+	///////////////////////////
+	// Common Inputs
+	///////////////////////////	
 	event OnCommSprint( action : SInputAction )
 	{
 		if( IsPressed( action ) )
@@ -528,7 +546,26 @@ class CPlayerInput
 				thePlayer.rangedWeapon.OnSprintHolster();
 		}
 		
-		
+		/*if( thePlayer.CanFollowNpc() )
+		{
+			if( IsPressed( action ) )
+			{
+				if( VecDistanceSquared( thePlayer.GetWorldPosition(), thePlayer.GetActorToFollow().GetWorldPosition() ) < 25.0 )
+				{
+					thePlayer.FollowActor( thePlayer.GetActorToFollow() );
+				}
+				else
+				{
+					thePlayer.SignalGameplayEvent( 'StopPlayerAction' );
+					thePlayer.SetCanFollowNpc( false, NULL );
+				}
+			}
+			else if( IsReleased( action ) )
+			{
+				thePlayer.SignalGameplayEvent( 'StopPlayerAction' );
+				thePlayer.SetCanFollowNpc( false, NULL );
+			}
+		}*/
 	}
 	
 	event OnCommSprintToggle( action : SInputAction )
@@ -568,7 +605,7 @@ class CPlayerInput
 				
 				if( IsPressed(action) )
 				{
-					thePlayer.AddCounterTimeStamp(theGame.GetEngineTime());	
+					thePlayer.AddCounterTimeStamp(theGame.GetEngineTime());	//cache counter button press to further check counter button spamming by the thePlayer 		
 					thePlayer.SetGuarded(true);
 					thePlayer.OnPerformGuard();
 				}
@@ -584,9 +621,9 @@ class CPlayerInput
 		}
 	}	
 	
-	
-	
-	
+	///////////////////////////
+	// Horse
+	///////////////////////////	
 	
 	private var pressTimestamp : float;
 	private const var DOUBLE_TAP_WINDOW	: float;
@@ -639,11 +676,11 @@ class CPlayerInput
 		return false;
 	}
 	
+	///////////////////////////
+	// Opening UI Panels
+	///////////////////////////	
 	
-	
-	
-	
-	
+	// MenuHub (aka commonmenu.ws)
 	event OnCommMenuHub( action : SInputAction )
 	{
 		if(IsReleased(action))
@@ -661,7 +698,7 @@ class CPlayerInput
 		theGame.RequestMenu('CommonMenu');
 	}
 	
-	
+	//Character screen
 	
 	event OnCommPanelChar( action : SInputAction )
 	{
@@ -679,7 +716,7 @@ class CPlayerInput
 		theGame.RequestMenuWithBackground( 'CharacterMenu', 'CommonMenu' );		
 	}
 
-	
+	//Inventory screen
 	event OnCommPanelInv( action : SInputAction )
 	{		
 		if (IsReleased(action))
@@ -704,7 +741,7 @@ class CPlayerInput
 		}
 	}
 	
-	
+	//Gwint screen
 	event OnCommDeckEditor( action : SInputAction )
 	{
 		if( IsReleased(action) )
@@ -727,7 +764,7 @@ class CPlayerInput
 		}
 	}
 	
-	
+	//Meditation screen
 	event OnCommPanelMed( action : SInputAction )
 	{
 		if( IsReleased(action) )
@@ -750,7 +787,7 @@ class CPlayerInput
 			PushMapScreen();
 		}
 	}
-	
+	//Map screen
 	event OnCommPanelMap( action : SInputAction )
 	{
 		if( IsPressed(action) )
@@ -774,7 +811,7 @@ class CPlayerInput
 		}
 	}
 
-	
+	//Journal screen
 	event OnCommPanelJour( action : SInputAction )
 	{
 		if( IsReleased(action) )
@@ -790,7 +827,7 @@ class CPlayerInput
 		}
 		if( IsActionAllowed(EIAB_OpenJournal) )
 		{
-			
+			//theGame.RequestMenu( 'QuestListMenu' );
 			theGame.RequestMenuWithBackground( 'JournalQuestMenu', 'CommonMenu' );
 		}
 		else
@@ -841,7 +878,7 @@ class CPlayerInput
 		theGame.RequestMenuWithBackground( 'CraftingMenu', 'CommonMenu' );
 	}
 	
-	
+	//Bestiary screen
 	event OnCommPanelBestiary( action : SInputAction )
 	{
 		if( IsReleased(action) )
@@ -865,7 +902,7 @@ class CPlayerInput
 			thePlayer.DisplayActionDisallowedHudMessage(EIAB_OpenGlossary);
 		}
 	}
-	
+	//Alchemy screen
 	event OnCommPanelAlch( action : SInputAction )
 	{
 		if( IsReleased(action) )
@@ -888,7 +925,7 @@ class CPlayerInput
 			thePlayer.DisplayActionDisallowedHudMessage(EIAB_OpenAlchemy);
 		}
 	}
-	
+	//Alchemy screen
 	event OnCommPanelGlossary( action : SInputAction )
 	{
 		if( IsReleased(action) )
@@ -920,8 +957,8 @@ class CPlayerInput
 			{
 				return false;
 			}
-			
-			
+			//theGame.RequestMenu( 'ControlsHelp' );
+			//theGame.RequestMenu( 'JournalQuestMenu' );
 		}
 	}
 	
@@ -945,13 +982,13 @@ class CPlayerInput
 			{
 				return false;
 			}
-			
+			//theGame.RequestMenu( 'FakeHudMenu' );
 		}
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////  WEAPON DRAW  ///////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	private var processedSwordHold : bool;
 	
 	event OnCommSteelSword( action : SInputAction )
@@ -1071,9 +1108,9 @@ class CPlayerInput
 		else
 			OnCommDrinkPotion1(potAction);
 	}
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	event OnCbtComboDigitLeft( action : SInputAction )
 	{
@@ -1163,12 +1200,86 @@ class CPlayerInput
 		}
 	}
 	
-	event OnCommDrinkPotion1( action : SInputAction )
+	///////////////////////////
+	// Potions
+	///////////////////////////
+	
+	event OnCommDrinkpotionUpperHeld( action : SInputAction )
+	{
+		if(!potionModeHold)
+			return false;
+			
+		//requested hack for Ciri using Geralt's input context
+		if(thePlayer.IsCiri())
+			return false;
+			
+		if(IsReleased(action))
+			return false;
+		
+		potionUpperHeld = true;
+		GetWitcherPlayer().FlipSelectedPotion(true);
+	}
+	
+	event OnCommDrinkpotionLowerHeld( action : SInputAction )
+	{
+		if(!potionModeHold)
+			return false;
+			
+		//requested hack for Ciri using Geralt's input context
+		if(thePlayer.IsCiri())
+			return false;
+			
+		if(IsReleased(action))
+			return false;
+		
+		potionLowerHeld = true;
+		GetWitcherPlayer().FlipSelectedPotion(false);
+	}
+	
+	public final function SetPotionSelectionMode(b : bool)
+	{
+		potionModeHold = b;
+	}
+	
+	private final function DrinkPotion(action : SInputAction, upperSlot : bool) : bool
 	{
 		var witcher : W3PlayerWitcher;
-		var item : SItemUniqueId;
 		
+		if ( potionModeHold && IsReleased(action) )
+		{
+			if(!potionUpperHeld && !potionLowerHeld)
+			{
+				GetWitcherPlayer().OnPotionDrinkInput(upperSlot);
+			}
+			
+			if(upperSlot)
+				potionUpperHeld = false;
+			else
+				potionLowerHeld = false;
+		}		
+		else if(!potionModeHold && IsPressed(action))
+		{
+			witcher = GetWitcherPlayer();
+			if(!witcher.IsPotionDoubleTapRunning())
+			{
+				witcher.SetPotionDoubleTapRunning(true, upperSlot);
+				return true;
+			}
+			else
+			{
+				witcher.SetPotionDoubleTapRunning(false);
+				witcher.FlipSelectedPotion(upperSlot);				
+				return true;
+			}
+		}
 		
+		return false;
+	}	
+	
+	//upper left slot
+	event OnCommDrinkPotion1( action : SInputAction )
+	{
+		//requested hack for Ciri using Geralt's input context
 		if(thePlayer.IsCiri())
 			return false;
 		
@@ -1178,37 +1289,26 @@ class CPlayerInput
 			return false;
 		}
 		
-		if ( IsPressed(action) )
+		if ( theInput.LastUsedGamepad() )
 		{
-			witcher = GetWitcherPlayer();
-			
-			witcher.GetItemEquippedOnSlot(EES_Potion1, item);
-			if(witcher.inv.ItemHasTag(item, 'Edibles'))
-			{
-				witcher.ConsumeItem( item );
-			}
-			else
-			{			
-				if (witcher.ToxicityLowEnoughToDrinkPotion( EES_Potion1 ))
-				{
-					witcher.DrinkPreparedPotion( EES_Potion1 );
-				}
-				else
-				{
-					SendToxicityTooHighMessage();
-				}
-			}
-			
-			ShowItemInfo();
+			return DrinkPotion(action, true);
 		}
+		else
+		if ( IsReleased(action) )
+		{
+			GetWitcherPlayer().OnPotionDrinkKeyboardsInput(EES_Potion1);
+			return true;
+		}
+		
+		return false;
 	}
 	
+	//lower left slot
 	event OnCommDrinkPotion2( action : SInputAction )
 	{
 		var witcher : W3PlayerWitcher;
-		var item : SItemUniqueId;
 		
-		
+		//requested hack for Ciri using Geralt's input context
 		if(thePlayer.IsCiri())
 			return false;
 		
@@ -1218,75 +1318,69 @@ class CPlayerInput
 			return false;
 		}
 		
-		if ( IsPressed(action) )
+		if ( theInput.LastUsedGamepad() )
 		{
-			witcher = GetWitcherPlayer();
-			
-			witcher.GetItemEquippedOnSlot(EES_Potion2, item);
-			if(witcher.inv.ItemHasTag(item, 'Edibles'))
-			{
-				witcher.ConsumeItem( item );
-			}
-			else
-			{
-				if (witcher.ToxicityLowEnoughToDrinkPotion( EES_Potion2 ))
-				{
-					witcher.DrinkPreparedPotion( EES_Potion2 );
-				}
-				else
-				{
-					SendToxicityTooHighMessage();
-				}
-			}
-			
-			ShowItemInfo();
+			return DrinkPotion(action, false);
+		}
+		else
+		if ( IsReleased(action) )
+		{
+			GetWitcherPlayer().OnPotionDrinkKeyboardsInput(EES_Potion2);
+			return true;
 		}
 		
+		return false;
 	}
 	
-	private function SendToxicityTooHighMessage()
+	//upper right slot
+	event OnCommDrinkPotion3( action : SInputAction )
 	{
-		var messageText : string;
-		var language : string;
-		var audioLanguage : string;
+		//requested hack for Ciri using Geralt's input context
+		if(thePlayer.IsCiri())
+			return false;
 		
-		if (thePlayer.GetHudMessagesSize() < 2)
+		if( !IsActionAllowed( EIAB_QuickSlots ) )
 		{
-			messageText = GetLocStringByKeyExt("menu_cannot_perform_action_now") + " " + GetLocStringByKeyExt("panel_common_statistics_tooltip_current_toxicity");
-			
-			theGame.GetGameLanguageName(audioLanguage,language);
-			if (language == "AR")
-			{
-				messageText += (int)(thePlayer.abilityManager.GetStat(BCS_Toxicity, false)) + " / " +  (int)(thePlayer.abilityManager.GetStatMax(BCS_Toxicity)) + " :";
-			}
-			else
-			{
-				messageText += ": " + (int)(thePlayer.abilityManager.GetStat(BCS_Toxicity, false)) + " / " +  (int)(thePlayer.abilityManager.GetStatMax(BCS_Toxicity));
-			}
-			
-			thePlayer.DisplayHudMessage(messageText);
+			thePlayer.DisplayActionDisallowedHudMessage(EIAB_QuickSlots);
+			return false;
 		}
-		theSound.SoundEvent("gui_global_denied");
+		
+		if ( IsReleased(action) )
+		{
+			GetWitcherPlayer().OnPotionDrinkKeyboardsInput(EES_Potion3);
+			return true;
+		}
+		
+		return false;
 	}
 	
-	function ShowItemInfo()
+	//lower right slot
+	event OnCommDrinkPotion4( action : SInputAction )
 	{
-		var hud : CR4ScriptedHud;
-		var module : CR4HudModuleItemInfo;
-		hud = (CR4ScriptedHud)theGame.GetHud(); 
-		if ( hud ) 
-		{ 
-			module = (CR4HudModuleItemInfo)hud.GetHudModule("ItemInfoModule");
-			if( module )
-			{
-				module.ForceShowElement();
-			}
+		var witcher : W3PlayerWitcher;
+		
+		//requested hack for Ciri using Geralt's input context
+		if(thePlayer.IsCiri())
+			return false;
+		
+		if( !IsActionAllowed( EIAB_QuickSlots ) )
+		{
+			thePlayer.DisplayActionDisallowedHudMessage(EIAB_QuickSlots);
+			return false;
 		}
+		
+		if ( IsReleased(action) )
+		{
+			GetWitcherPlayer().OnPotionDrinkKeyboardsInput(EES_Potion4);
+			return true;
+		}
+		
+		return false;
 	}
 	
-	
-	
-	
+	///////////////////////////
+	// Exploration Inputs
+	///////////////////////////
 	
 	event OnDiving( action : SInputAction )
 	{
@@ -1365,9 +1459,28 @@ class CPlayerInput
 		}
 	}
 	
+	/*
+	Redundant with OnCbtCameraLockOrSpawnHorse
+	event OnExpSpawnHorse( action : SInputAction )
+	{
+		var test : bool = false;
+		if( IsPressed(action) && IsActionAllowed(EIAB_CallHorse))
+		{
+			test = false;
+			//thePlayer.OnSpawnHorse();	
+		}
+	}	*/
 	
-	
-	
+	/*event OnMountHorse( action : SInputAction )
+	{
+		if( IsPressed( action ) )
+		{
+			if( thePlayer.IsMountingHorseAllowed() )
+			{
+				thePlayer.OnVehicleInteraction( (CVehicleComponent)thePlayer.horseInteractionSource.GetComponentByClassName( 'CVehicleComponent' ) );
+			}
+		}
+	}*/
 	
 	event OnExpFistFightLight( action : SInputAction )
 	{
@@ -1378,7 +1491,7 @@ class CPlayerInput
 			fistsAllowed = IsActionAllowed(EIAB_Fists);
 			if( fistsAllowed && IsActionAllowed(EIAB_LightAttacks) )
 			{
-				
+				//thePlayer.PrepareToAttack( );
 				thePlayer.SetupCombatAction( EBAT_LightAttack, BS_Pressed );
 			}
 			else
@@ -1400,7 +1513,7 @@ class CPlayerInput
 			fistsAllowed = IsActionAllowed(EIAB_Fists);
 			if( fistsAllowed && IsActionAllowed(EIAB_HeavyAttacks) )
 			{
-				
+				//thePlayer.PrepareToAttack( );
 				thePlayer.SetupCombatAction( EBAT_HeavyAttack, BS_Pressed );
 			}
 			else
@@ -1413,7 +1526,18 @@ class CPlayerInput
 		}
 	}
 		
-	
+	/*
+	event OnExpMedallion( action : SInputAction )
+	{
+		if(IsActionAllowed(EIAB_ExplorationFocus))
+		{
+			if( IsPressed( action ) )
+			{
+				thePlayer.MedallionPing();
+			}
+		}
+	}
+	*/
 	
 	event OnExpFocus( action : SInputAction )
 	{
@@ -1421,14 +1545,14 @@ class CPlayerInput
 		{
 			if( IsPressed( action ) )
 			{
-				
+				// Let's turn focus into guard if the player should fight
 				if( thePlayer.GoToCombatIfNeeded() )
 				{
 					OnCommGuard( action );
 					return false;
 				}
 				theGame.GetFocusModeController().Activate();
-				
+				//thePlayer.MedallionPing();
 			}
 			else if( IsReleased( action ) )
 			{
@@ -1442,9 +1566,9 @@ class CPlayerInput
 		}
 	}
 	
-	
-	
-	
+	///////////////////////////
+	// Combat Inputs
+	///////////////////////////
 	
 	private function ShouldSwitchAttackType():bool
 	{
@@ -1487,7 +1611,7 @@ class CPlayerInput
 		
 		if ( thePlayer.IsCiri() )
 		{
-			if ( switchAttackType != isHeavy) 
+			if ( switchAttackType != isHeavy) // XOR
 			{
 				OnCbtCiriAttackHeavy(action);
 			}
@@ -1498,7 +1622,7 @@ class CPlayerInput
 		}
 		else
 		{
-			if ( switchAttackType != isHeavy) 
+			if ( switchAttackType != isHeavy) // XOR
 			{
 				OnCbtAttackHeavy(action);
 			}
@@ -1614,13 +1738,13 @@ class CPlayerInput
 		var isDeadlySwordHeld	: bool;	
 	
 		interactionTarget = theGame.GetInteractionsManager().GetActiveInteraction();
-		if ( interactionTarget && interactionTarget.GetName() == "Finish" )
+		if ( interactionTarget && interactionTarget.GetName() == "Finish" )//|| thePlayer.GetFinisherVictim() )
 		{
 			npc = (CNewNPC)( interactionTarget.GetEntity() );
 			
 			isDeadlySwordHeld = thePlayer.IsDeadlySwordHeld();
 			if( ( theInput.GetActionValue( 'AttackHeavy' ) == 1.f || theInput.GetActionValue( 'AttackLight' ) == 1.f  )
-				&& isDeadlySwordHeld )
+				&& isDeadlySwordHeld )//
 			{
 				theGame.RemoveTimeScale( theGame.GetTimescaleSource(ETS_FinisherInput) );
 				npc.SignalGameplayEvent('Finisher');
@@ -1661,7 +1785,7 @@ class CPlayerInput
 		CbSpecialAttackPC( action, true);
 	}
 	
-	function CbSpecialAttackPC( action : SInputAction, isHeavy : bool ) 
+	function CbSpecialAttackPC( action : SInputAction, isHeavy : bool ) // special attack for PC
 	{
 		var switchAttackType : bool;
 		
@@ -1676,12 +1800,12 @@ class CPlayerInput
 		{
 			if ( thePlayer.IsCiri() )
 			{
-				
+				// always heavy for Ciri
 				OnCbtCiriSpecialAttackHeavy(action);
 			}
 			else
 			{
-				if (switchAttackType != isHeavy) 
+				if (switchAttackType != isHeavy) // XOR
 				{
 					OnCbtSpecialAttackHeavy(action);
 				}
@@ -1699,7 +1823,7 @@ class CPlayerInput
 			}
 			else
 			{
-				
+				// to release hold actions
 				OnCbtSpecialAttackHeavy(action);
 				OnCbtSpecialAttackLight(action);
 			}
@@ -1790,7 +1914,7 @@ class CPlayerInput
 				thePlayer.SetAttackActionName(SkillEnumToName(S_Sword_s01));
 				thePlayer.PushCombatActionOnBuffer( EBAT_SpecialAttack_Light, BS_Released );
 				thePlayer.ProcessCombatActionBuffer();		
-				
+				//thePlayer.SetupCombatAction( EBAT_SpecialAttack_Light, BS_Released );
 				((W3PlayerWitcherStateCombatFists) GetState('Combat')).ResetTimeToEndCombat();
 				
 			}
@@ -1800,12 +1924,12 @@ class CPlayerInput
 				thePlayer.SetAttackActionName(SkillEnumToName(S_Sword_s02));
 				thePlayer.PushCombatActionOnBuffer( EBAT_SpecialAttack_Heavy, BS_Released );
 				thePlayer.ProcessCombatActionBuffer();		
-				
+				//thePlayer.SetupCombatAction( EBAT_SpecialAttack_Heavy, BS_Released );
 			}
 		}
 	}
 	
-	
+	// CiriSpecialAttack
 	event OnCbtCiriSpecialAttack( action : SInputAction )
 	{
 		if( !GetCiriPlayer().HasSword() ) 
@@ -1825,7 +1949,7 @@ class CPlayerInput
 		}
 	}
 	
-	
+	// CiriSpecialAttackHeavy
 	event OnCbtCiriAttackHeavy( action : SInputAction )
 	{
 		var specialAttackAction : SInputAction;
@@ -1854,7 +1978,7 @@ class CPlayerInput
 		}
 	}
 	
-	
+	// CiriSpecialAttackHeavy
 	event OnCbtCiriSpecialAttackHeavy( action : SInputAction )
 	{	
 		if( !GetCiriPlayer().HasSword() ) 
@@ -2029,7 +2153,13 @@ class CPlayerInput
 				thePlayer.DisplayActionDisallowedHudMessage(EIAB_Signs);
 				return false;
 			}
- if ( thePlayer.IsHoldingItemInLHand() && thePlayer.IsUsableItemLBlocked() )
+/*			if ( thePlayer.IsHoldingItemInLHand() && !thePlayer.IsUsableItemLBlocked() )
+			{
+				thePlayer.SetPlayerActionToRestore ( PATR_CastSign );
+				thePlayer.OnUseSelectedItem( true );
+				return true;
+			}
+			else*/ if ( thePlayer.IsHoldingItemInLHand() && thePlayer.IsUsableItemLBlocked() )
 			{
 				thePlayer.DisplayActionDisallowedHudMessage(EIAB_Undefined, false, false, true);
 				return false;
@@ -2047,9 +2177,9 @@ class CPlayerInput
 				{
 					if( GetInvalidUniqueId() != thePlayer.inv.GetItemFromSlot( 'l_weapon' ) && !thePlayer.IsUsableItemLBlocked())
 					{
-
-						
-						
+//						thePlayer.OnUseSelectedItem( true);
+						//thePlayer.DropItemFromSlot( 'l_weapon', false );
+						//thePlayer.RaiseEvent( 'ItemEndL' );
 					}
 					
 					thePlayer.SetupCombatAction( EBAT_CastSign, BS_Pressed );
@@ -2061,9 +2191,9 @@ class CPlayerInput
 			}
 		}
 	}
-	
-	
-	
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////  @BOMBS  ////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	event OnThrowBomb(action : SInputAction)
 	{
@@ -2075,7 +2205,7 @@ class CPlayerInput
 		
 		if( thePlayer.inv.SingletonItemGetAmmo(selectedItemId) == 0 )
 		{
-			
+			//sound to indicate you have no ammo
 			if(IsPressed(action))
 			{			
 				thePlayer.SoundEvent( "gui_ingame_low_stamina_warning" );
@@ -2118,7 +2248,7 @@ class CPlayerInput
 				}
 				else if(GetWitcherPlayer().GetBombDelay(GetWitcherPlayer().GetItemSlot(selectedItemId)) > 0 )
 				{
-					
+					//thePlayer.DisplayActionDisallowedHudMessage(EIAB_Undefined, , , true);					
 					return false;
 				}
 				if ( thePlayer.IsHoldingItemInLHand() && !thePlayer.IsUsableItemLBlocked() )
@@ -2127,9 +2257,9 @@ class CPlayerInput
 					thePlayer.OnUseSelectedItem( true );
 					return true;
 				}
-				if(thePlayer.CanSetupCombatAction_Throw() && theInput.GetLastActivationTime( action.aName ) < 0.3f )	
+				if(thePlayer.CanSetupCombatAction_Throw() && theInput.GetLastActivationTime( action.aName ) < 0.3f )	//why last activation time?
 				{
-					
+					//thePlayer.PrepareToAttack();
 					thePlayer.SetupCombatAction( EBAT_ItemUse, BS_Pressed );
 					return true;
 				}		
@@ -2155,7 +2285,7 @@ class CPlayerInput
 		
 		if( thePlayer.inv.SingletonItemGetAmmo(selectedItemId) == 0 )
 		{
-			
+			//sound to indicate you have no ammo
 			if(IsPressed(action))
 			{			
 				thePlayer.SoundEvent( "gui_ingame_low_stamina_warning" );
@@ -2173,7 +2303,7 @@ class CPlayerInput
 			}
 			else if(GetWitcherPlayer().GetBombDelay(GetWitcherPlayer().GetItemSlot(selectedItemId)) > 0 )
 			{
-				
+				//thePlayer.DisplayActionDisallowedHudMessage(EIAB_Undefined, , , true);					
 				return false;
 			}
 			if ( thePlayer.IsHoldingItemInLHand() && !thePlayer.IsUsableItemLBlocked() )
@@ -2182,7 +2312,7 @@ class CPlayerInput
 				thePlayer.OnUseSelectedItem( true );
 				return true;
 			}
-			if(thePlayer.CanSetupCombatAction_Throw() && theInput.GetLastActivationTime( action.aName ) < 0.3f )	
+			if(thePlayer.CanSetupCombatAction_Throw() && theInput.GetLastActivationTime( action.aName ) < 0.3f )	//why last activation time?
 			{
 				if( thePlayer.GetBIsCombatActionAllowed() )
 				{
@@ -2191,8 +2321,8 @@ class CPlayerInput
 				}
 			}		
 		
-			
-			
+			//get action locks, remove bomb throw lock and check if there any other more
+			//the reason is that ThrowItem always sets the lock not knowing if we'll do a hold later or not, so we have to skip this one lock instance		
 			locks = GetActionLocks(EIAB_ThrowBomb);
 			ind = FindActionLockIndex(EIAB_ThrowBomb, 'BombThrow');
 			if(ind >= 0)
@@ -2216,16 +2346,16 @@ class CPlayerInput
 		}
 	}
 	
-	
-	
-	
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////  END OF BOMBS  //////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	event OnCbtThrowItem( action : SInputAction )
 	{			
 		var isUsableItem, isCrossbow, isBomb, ret : bool;
 		var itemId : SItemUniqueId;		
 		
-		
+		//disabled while in air
 		if(thePlayer.IsInAir() || thePlayer.GetWeaponHolster().IsOnTheMiddleOfHolstering())
 			return false;
 			
@@ -2247,8 +2377,8 @@ class CPlayerInput
 			}
 		}
 		
-		
-		
+		//if ( ( isBomb || isUsableItem ) && thePlayer.rangedWeapon && thePlayer.rangedWeapon.GetCurrentStateName() != 'State_WeaponWait' )
+		//	thePlayer.OnRangedForceHolster( true, false );
 		
 		if( isCrossbow )
 		{
@@ -2258,29 +2388,38 @@ class CPlayerInput
 				{
 					if ( thePlayer.IsHoldingItemInLHand() && !thePlayer.IsUsableItemLBlocked() )
 					{
-
+/*						thePlayer.SetPlayerActionToRestore ( PATR_None );
+						thePlayer.OnUseSelectedItem( true );
+						
+						if ( thePlayer.GetBIsInputAllowed() )
+						{
+							thePlayer.SetIsAimingCrossbow( true );
+							thePlayer.SetupCombatAction( EBAT_ItemUse, BS_Pressed );						
+						}
+						
+						ret = true;*/
 						
 						thePlayer.SetPlayerActionToRestore ( PATR_Crossbow );
 						thePlayer.OnUseSelectedItem( true );
 						ret = true;						
 					}
-					else if ( thePlayer.GetBIsInputAllowed() && !thePlayer.IsCurrentlyUsingItemL() )
+					else if ( thePlayer.GetBIsInputAllowed() && !thePlayer.IsCurrentlyUsingItemL() )//&& thePlayer.GetBIsCombatActionAllowed() )
 					{
 						thePlayer.SetIsAimingCrossbow( true );
 						thePlayer.SetupCombatAction( EBAT_ItemUse, BS_Pressed );
-						
-						
+						//thePlayer.PushCombatActionOnBuffer( EBAT_ItemUse, BS_Pressed );
+						//thePlayer.ProcessCombatActionBuffer();
 						ret = true;
 					}
 				}
 				else
 				{
-
+//					if ( thePlayer.GetIsAimingCrossbow() )
 					if ( thePlayer.GetIsAimingCrossbow() && !thePlayer.IsCurrentlyUsingItemL() )
 					{
 						thePlayer.SetupCombatAction( EBAT_ItemUse, BS_Released );
-						
-						
+						//thePlayer.PushCombatActionOnBuffer( EBAT_ItemUse, BS_Released );
+						//thePlayer.ProcessCombatActionBuffer();					
 						thePlayer.SetIsAimingCrossbow( false );
 						ret = true;
 					}
@@ -2313,7 +2452,11 @@ class CPlayerInput
 					thePlayer.OnUseSelectedItem();
 					return true;
 				}
-
+/*				else if ( IsReleased(action) )
+				{
+					thePlayer.SetupCombatAction( EBAT_ItemUse, BS_Released );
+					return true;
+				}*/
 			}
 			else
 			{
@@ -2329,7 +2472,7 @@ class CPlayerInput
 		var isBomb, isCrossbow, isUsableItem : bool;
 		var itemId : SItemUniqueId;
 		
-		
+		//disabled while in air
 		if(thePlayer.IsInAir() || thePlayer.GetWeaponHolster().IsOnTheMiddleOfHolstering() )
 			return false;
 			
@@ -2355,7 +2498,7 @@ class CPlayerInput
 			}
 		}
 		
-		
+		//quit if action is blocked - for bomb we already checked actionLocks.Size() so there is no check here
 		if(IsPressed(action))
 		{
 			if( isCrossbow && !IsActionAllowed(EIAB_Crossbow) )
@@ -2386,8 +2529,8 @@ class CPlayerInput
 		}
 		else if( IsReleased(action) && thePlayer.IsThrowHold())
 		{
-			
-			
+			//thePlayer.PushCombatActionOnBuffer( EBAT_ItemUse, BS_Released );
+			//thePlayer.ProcessCombatActionBuffer();
 			thePlayer.SetupCombatAction( EBAT_ItemUse, BS_Released );
 			thePlayer.SetThrowHold( false );
 			return true;
@@ -2451,7 +2594,7 @@ class CPlayerInput
 		if ( target )
 		{
 			thePlayer.SetSlideTarget( target );
-			
+			//thePlayer.LockToTarget( true );
 		}
 	}
 
@@ -2460,7 +2603,7 @@ class CPlayerInput
 		if(thePlayer.IsCiri() && !GetCiriPlayer().HasSword())
 			return false;
 		
-		
+		// moved released to front due to bug where geralt would stay in guard stance if though the button is released
 		if( IsReleased(action) )
 		{
 			thePlayer.SetGuarded(false);
@@ -2493,7 +2636,7 @@ class CPlayerInput
 			if ( thePlayer.rangedWeapon && thePlayer.rangedWeapon.GetCurrentStateName() != 'State_WeaponWait' )
 				thePlayer.OnRangedForceHolster( true, true );
 			
-			thePlayer.AddCounterTimeStamp(theGame.GetEngineTime());	
+			thePlayer.AddCounterTimeStamp(theGame.GetEngineTime());	//cache counter button press to further check counter button spamming by the thePlayer 		
 			thePlayer.SetGuarded(true);				
 			thePlayer.OnPerformGuard();
 		}	
@@ -2573,18 +2716,27 @@ class CPlayerInput
 			med = (W3PlayerWitcherStateMeditation)GetWitcherPlayer().GetCurrentState();
 			if(med)
 			{
-				
-				
+				// If meditation is stopped with b button (as of writing this, only plugged into player input and not gameplay systems)
+				// the menu's should not be closed automatically.
 				med.StopRequested(false);
 			}
 		}
 	}
 	
+	public final function ClearLocksForNGP()
+	{
+		var i : int;
+		
+		for(i=actionLocks.Size()-1; i>=0; i-=1)
+		{			
+			OnActionLockChanged(i, false);
+			actionLocks[i].Clear();
+		}		
+	}
 	
-	
-	
-	
-	
+	///////////////////////////
+	// Debug
+	///////////////////////////
 	
 	public function Dbg_UnlockAllActions()
 	{
@@ -2683,7 +2835,7 @@ class CPlayerInput
 		}
 	}
 	
-	
+	//Nuke - kills all actors targeting thePlayer on the entire level
 	event OnDbgKillAllTargetingPlayer( action : SInputAction )
 	{
 		var i : int;
@@ -2704,9 +2856,9 @@ class CPlayerInput
 			}
 		}
 	}
-	
-	
-	
+	///////////////////////////
+	// @Boat
+	///////////////////////////
 	event OnBoatDismount( action : SInputAction )
 	{
 		var boatComp : CBoatComponent;
@@ -2728,15 +2880,15 @@ class CPlayerInput
 		}
 	}
 	
-	
-	
-	
+	///////////////////////////
+	// @Replacers
+	///////////////////////////
 	
 	event OnCiriDrawWeapon( action : SInputAction )
 	{
 		var duringCastSign : bool;
 	
-		
+		//draw weapon
 		if ( IsReleased(action) || ( IsPressed(action) && (thePlayer.GetCurrentMeleeWeaponType() == PW_None || thePlayer.GetCurrentMeleeWeaponType() == PW_Fists) ) )
 		{
 			if ( thePlayer.GetBIsInputAllowed() && thePlayer.GetBIsCombatActionAllowed()  )
@@ -2776,9 +2928,9 @@ class CPlayerInput
 		}
 	}
 	
-	
-	
-	
+	///////////////////////////
+	// @Replacers
+	///////////////////////////
 	event OnCommHoldFastMenu( action : SInputAction )
 	{
 		if(IsPressed(action))
@@ -2824,8 +2976,8 @@ class CPlayerInput
 	{
 		var openedPanel : name;
 		openedPanel = theGame.GetMenuToOpen(); 
-		
-		if( IsReleased(action) && openedPanel != 'GlossaryTutorialsMenu' && !theGame.GetGuiManager().IsAnyMenu() ) 
+		// #Y avoid opening menu on release after opening TutorialsMenu on hold
+		if( IsReleased(action) && openedPanel != 'GlossaryTutorialsMenu' && !theGame.GetGuiManager().IsAnyMenu() ) // #B very ugly :P
 		{
 			if ( theGame.IsBlackscreenOrFading() )
 			{

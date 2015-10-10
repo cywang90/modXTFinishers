@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-import struct SItemReward
+﻿import struct SItemReward
 {
 	import var item		: name;
 	import var amount	: int;

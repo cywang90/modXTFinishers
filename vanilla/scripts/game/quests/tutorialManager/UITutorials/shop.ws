@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 state Shop in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
@@ -55,6 +53,10 @@ state Shop in W3TutorialManagerUIHandler extends TutHandlerBaseState
 	
 	event OnBoughtItem()
 	{
-		
+		/*
+		CloseHint(BUY);
+		theGame.GetTutorialSystem().MarkMessageAsSeen(BUY);
+		ShowHint(CLOSE, theGame.params.TUT_POS_INVENTORY_X, theGame.params.TUT_POS_INVENTORY_Y, ETHDT_Infinite);
+		*/
 	}
 }

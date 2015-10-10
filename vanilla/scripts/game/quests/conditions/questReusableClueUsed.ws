@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : collective mind of the CDP
+/***********************************************************************/
 
 class W3QuestCond_ReusableClueUsed_Listener extends IGlobalEventScriptedListener
 {

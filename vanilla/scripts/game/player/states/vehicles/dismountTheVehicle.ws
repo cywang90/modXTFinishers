@@ -1,17 +1,13 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿// Please keep this as empty as possible
+// use RidingManager instead
 state DismountTheVehicle in CPlayer extends PostUseVehicle
 {
 	public var vehicle 			: CVehicleComponent;
 	public var dismountType 	: EDismountType;
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	event OnEnterState( prevStateName : name )
 	{
@@ -27,9 +23,9 @@ state DismountTheVehicle in CPlayer extends PostUseVehicle
 	
 	event OnLeaveState( nextStateName : name )
 	{ 
-		
-		
-		
+		//parent.RemoveAnimEventCallback('enable_physics');
+		//parent.RemoveAnimEventCallback('disableFeetIK');
+		//parent.RemoveAnimEventCallback('enableFeetIK');
 		
 		LogAssert( !vehicle, "DismountTheVehicle::OnLeaveState, 'vehicle' is still set" );
 		
@@ -48,12 +44,12 @@ state DismountTheVehicle in CPlayer extends PostUseVehicle
 		parent.SetBehaviorVariable( 'keepSpineUpright', 0.f );	
 		
 		HACK_ActivatePhysicsRepresentation();
-		
+		//parent.BreakAttachment();
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	final function SetupState( v : CVehicleComponent, inDismountType : EDismountType )
 	{
@@ -63,7 +59,7 @@ state DismountTheVehicle in CPlayer extends PostUseVehicle
 		dismountType 	= inDismountType;
 	}
 	
-	
+	// This is called when the state was interupted ( ie the dismount didn't have time to finish )
 	cleanup function DismountCleanup() 
 	{
 		vehicle = NULL;
@@ -84,16 +80,16 @@ state DismountTheVehicle in CPlayer extends PostUseVehicle
 	{
 		HACK_ActivatePhysicsRepresentation();
 		parent.BreakAttachment();
-		
+		//parent.SetUsedVehicle(NULL);
 	}
 	
 	event OnAnimEvent_disableFeetIK( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
-		
+		//parent.SetBehaviorVariable( 'disableFeetIK', 1.f );
 	}
 	
 	event OnAnimEvent_enableFeetIK( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
-		
+		//parent.SetBehaviorVariable( 'disableFeetIK', 0.f );
 	}
 }

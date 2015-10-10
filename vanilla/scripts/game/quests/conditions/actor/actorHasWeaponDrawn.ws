@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2012-2013
+/** Author : Tomasz Kozera
+/***********************************************************************/
 
 class W3QuestCond_HasWeaponDrawn extends CQCActorScriptedCondition
 {

@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2015
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 state Dismantling in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
@@ -36,7 +34,7 @@ state Dismantling in W3TutorialManagerUIHandler extends TutHandlerBaseState
 		CloseHint(DISMANTLING);
 		
 		theGame.GetTutorialSystem().MarkMessageAsSeen(DESCRIPTION);
-		GameplayFactsRemove("tut_dismantle_cond");	
+		GameplayFactsRemove("tut_dismantle_cond");	//not needed anymore, let's not store it in saves
 		
 		super.OnLeaveState(nextStateName);
 	}

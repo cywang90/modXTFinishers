@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-enum ESwitchStateCondition
+﻿enum ESwitchStateCondition
 {
 	SSC_TurnedOn,
 	SSC_TurnedOff,

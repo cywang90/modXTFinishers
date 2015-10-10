@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 class CurveDamper
 {
 	protected var curve : CCurve;
@@ -131,7 +127,7 @@ class CurveDamper
 	}
 }
 
-
+////////////////////////////////////////////////////////////////////
 
 class AngleCurveDamper extends CurveDamper
 {
@@ -141,7 +137,7 @@ class AngleCurveDamper extends CurveDamper
 	}
 }
 
-
+///////////////////////////////////////////////////////////////////
 
 class CurveDamper3d
 {

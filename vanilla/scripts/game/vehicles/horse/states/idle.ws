@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-state Idle in W3HorseComponent
+﻿state Idle in W3HorseComponent
 {
 	event OnEnterState( prevStateName : name )
 	{
@@ -23,7 +19,7 @@ state Idle in W3HorseComponent
 	event OnMountFinished( entity : CEntity )
 	{
 		parent.OnMountFinished( entity );
-		if ( entity == thePlayer ) 
+		if ( entity == thePlayer ) // Exploration is only player specific logic
 			parent.PushState( 'Exploration' );
 	}
 	

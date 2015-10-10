@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-statemachine import class W3HorseComponent extends CVehicleComponent
+﻿statemachine import class W3HorseComponent extends CVehicleComponent
 {
 	import var riderSharedParams : CHorseRiderSharedParams;
 	
@@ -46,7 +42,7 @@ statemachine import class W3HorseComponent extends CVehicleComponent
 	default isInCustomSpot = false;
 	default ignoreTestsCounter = 0;
 	default canTakeDamageFromFalling = true;
-	
+	//default dismountType = DT_normal;
 	default originalAttitudeGroup = 'None';
 	default autoState = 'Idle';
 	default controllable = true;
@@ -57,12 +53,12 @@ statemachine import class W3HorseComponent extends CVehicleComponent
 	import final function IsDismounted() : bool;
 	import final function IsFullyMounted() : bool;
 	
-	
+	//new game+
 	private saved var firstSpawn : bool;
 		default firstSpawn = true;
 	
 	private var panicDamper : SpringDamper;
-	private saved var panicMult : float; 
+	private saved var panicMult : float; // for quest custom stamina management
 	default panicMult = 1.0;
 	
 	const var PANIC_RANGE : float; default PANIC_RANGE = 8.f;
@@ -109,7 +105,7 @@ statemachine import class W3HorseComponent extends CVehicleComponent
 		
 		super.OnInit();
 		
-		
+		// this handles scenarios when player (in actor.ws) tries to mount to vehicle which is not spawned yet
 		if(thePlayer)
 			thePlayer.MountHorseIfNeeded();
 		
@@ -144,9 +140,9 @@ statemachine import class W3HorseComponent extends CVehicleComponent
 		physMAC.RegisterEventListener( this );
 		
 		
-		
-		physMAC.SetSlidingLimits( 0.45f, 0.7f );
-		physMAC.SetSlidingSpeed( 25.0f );
+		// setup controller sliding
+		physMAC.SetSlidingLimits( 0.45f, 0.7f );// 0.4 - 0.8
+		physMAC.SetSlidingSpeed( 25.0f );//25.f
 		physMAC.SetSliding( true );
 		physMAC.EnableAdditionalVerticalSlidingIteration( true );
 		
@@ -165,7 +161,7 @@ statemachine import class W3HorseComponent extends CVehicleComponent
 			}		
 		}
 		
-		
+		//on first player horse spawn in new game+ we need to reset appearance
 		if(IsPlayerHorse() && firstSpawn && FactsQuerySum("NewGamePlus") > 0)
 		{
 			horseNPC.SetAppearance('player_horse');
@@ -179,9 +175,9 @@ statemachine import class W3HorseComponent extends CVehicleComponent
 		Mount( thePlayer, VMT_MountIfPossible, EVS_driver_slot );
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// MOUNTING AND DISMOUNTING ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	event OnMountStarted( entity : CEntity, vehicleSlot : EVehicleSlot )
 	{
@@ -190,7 +186,7 @@ statemachine import class W3HorseComponent extends CVehicleComponent
 		horseActor = ((CActor)GetEntity());
 		lastRider = (CActor)entity;
 		
-		
+		//disable mount interaction
 		horseActor.GetComponent("horseMount").SetEnabled( false );
 		
 		if( entity == thePlayer )
@@ -221,7 +217,7 @@ statemachine import class W3HorseComponent extends CVehicleComponent
 		if( this.IsTamed() )
 		{
 			originalAttitudeGroup = horseActor.GetBaseAttitudeGroup();
-			
+			// horse must have same attitude group as rider in order to attack same guys as rider
 			horseActor.SetBaseAttitudeGroup( riderActor.GetBaseAttitudeGroup() );
 		}
 		
@@ -243,8 +239,13 @@ statemachine import class W3HorseComponent extends CVehicleComponent
 	
 	event OnDismountStarted( entity : CEntity )
 	{
-		
-		
+		// DESIGN: horse shouldn't change his attitude to orginal one.
+		/*
+		if ( this.IsTamed() )
+		{
+			// horse must go back to its previous attitude group in order to not be considered as an enemy
+			((CActor)GetEntity()).SetBaseAttitudeGroup( originalAttitudeGroup );
+		}*/
 
 		if ( entity == thePlayer && userCombatManager )
 			userCombatManager.OnDismountStarted();
@@ -273,7 +274,7 @@ statemachine import class W3HorseComponent extends CVehicleComponent
 		
 		if (isMountableByPlayer )
 		{
-			
+			//enable mount interaction
 			horseActor.GetComponent("horseMount").SetEnabled(true);
 		}
 		
@@ -311,9 +312,9 @@ statemachine import class W3HorseComponent extends CVehicleComponent
 		}
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// COLLISIONS //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	private var frontHit : bool;
 	private var backHit	: bool;
@@ -370,7 +371,7 @@ statemachine import class W3HorseComponent extends CVehicleComponent
 		
 		UpdateCollision();
 		
-		
+		//invalidate data
 		frontHit = false;
 		backHit = false;
 		
@@ -407,23 +408,35 @@ statemachine import class W3HorseComponent extends CVehicleComponent
 			return;
 		}
 		
-		
+		// Get collisions with other characters
 		collisionNum = mac.GetCollisionCharacterDataCount();
 		for( i = 0; i < collisionNum; i += 1 )
 		{
 			collisionData	= mac.GetCollisionCharacterData( i );
 			npc	= ( CNewNPC ) collisionData.entity;
-			if( npc ) 
+			if( npc ) // should be true
 			{
 				MakeNPCCollide( npc );
-				
+				/*
+				//collision with rider
+				if(npc.IsUsingHorse())
+				{
+					collidedWithRider = true;
+				}
+				else
+				{
+					horseComp = npc.GetHorseComponent();
+					if(horseComp.user)
+						collidedWithRider = true;
+				}
+				*/
 			}
 		}
 	}
 	
 	private function MakeNPCCollide( npc : CNewNPC )
 	{
-		npc.SignalGameplayEvent( 'AI_GetOutOfTheWay' ); 
+		npc.SignalGameplayEvent( 'AI_GetOutOfTheWay' ); // break the job if we can
 		
 		if ( lastRider == thePlayer )
 		{
@@ -482,13 +495,13 @@ statemachine import class W3HorseComponent extends CVehicleComponent
 		
 		staticPanic = RoundF(panicDamper.UpdateAndGet(dt, staticPanic));
 		
-		
-		
+		// Apply panic to horse
+		//horseActor.SetStaticPanic( staticPanic );
 		
 		if((panicVibrate || GetPanicPercent() >= 0.9) && thePlayer.GetUsedHorseComponent() == this)
 		{
 			panicVibrate = true;
-			theGame.VibrateControllerHard();	
+			theGame.VibrateControllerHard();	//horse panic
 		}
 		
 		if((panicVibrate && GetPanicPercent() < 0.9) || thePlayer.GetUsedHorseComponent() != this)
@@ -512,7 +525,7 @@ statemachine import class W3HorseComponent extends CVehicleComponent
 		{
 			staticPanic = 0;
 			panicDamper.Init(staticPanic,staticPanic);
-			
+			//horseActor.ResetStaticPanic();
 		}
 	}
 	
@@ -548,9 +561,9 @@ statemachine import class W3HorseComponent extends CVehicleComponent
 	event OnFrontPredictionCollision( pos : Vector, normal : Vector, disp : Vector, penetration : Float, actorHeight : Float, diffZ : Float, fromVirtualController : bool ) {}
 	event OnBackPredictionCollision( pos : Vector, normal : Vector, disp : Vector, penetration : Float, actorHeight : Float, diffZ : Float, fromVirtualController : bool ) {}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// COLLISIONS - CHARGE /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	event OnCharacterCollision( entity : CEntity )
 	{	
@@ -581,15 +594,15 @@ statemachine import class W3HorseComponent extends CVehicleComponent
 		if( !attacker )
 			attacker = (CActor)GetEntity();
 		
-		if( IsRequiredAttitudeBetween( attacker, collidedActor, true ) ) 
+		if( IsRequiredAttitudeBetween( attacker, collidedActor, true ) ) // is enemy?
 		{
-			if( collidedActor.IsUsingHorse() || ((CNewNPC)collidedActor).IsHorse() ) 
+			if( collidedActor.IsUsingHorse() || ((CNewNPC)collidedActor).IsHorse() ) // is not horse/rider?
 			{
 				return;
 			}
 			else
 			{
-				if( InternalGetSpeed() >= 3.0 ) 
+				if( InternalGetSpeed() >= 3.0 ) // is in trot or higher?
 				{
 					DealDamageToCollidedActor( attacker, collidedActor, sideCollision );
 				}
@@ -668,9 +681,9 @@ statemachine import class W3HorseComponent extends CVehicleComponent
 		return true;
 	}
 	 
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// FUNCTIONS FOR HORSE STATES //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	final function InternalSetRotation( value : float ) 		{ SetVariable( 'rotation', value ); }
 	final function InternalGetRotation() : float 				{ return GetVariable('rotation'); }
@@ -683,7 +696,7 @@ statemachine import class W3HorseComponent extends CVehicleComponent
 		((CActor)GetEntity()).GetMovingAgentComponent().SetGameplayRelativeMoveSpeed( value ); 
 		SetVariable('speed', value);
 	}
-	final function InternalGetSpeed() : float 					{ return ((CActor)GetEntity()).GetMovingAgentComponent().GetRelativeMoveSpeed(); } 
+	final function InternalGetSpeed() : float 					{ return ((CActor)GetEntity()).GetMovingAgentComponent().GetRelativeMoveSpeed(); } // [0,4]
 	
 	final function InternalSetSpeedMultiplier( value : float ) 	{ SetVariable( 'horseSpeedMult', value ); }
 	
@@ -727,9 +740,9 @@ statemachine import class W3HorseComponent extends CVehicleComponent
 	{
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// PUBLIC FUNCTIONS ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	public function SetManualControl( val : bool ) { manualControl = val; }
 	public function GetManualControl() : bool { return manualControl; }
@@ -794,23 +807,23 @@ statemachine import class W3HorseComponent extends CVehicleComponent
 		return riderSharedParams.mountStatus == VMS_dismounted;
 	}
 	
-	event OnForceJump()
+	event OnJumpHack()
 	{
 	}
 
-	
+	// Call this function to instantly tame the horse
 	function Tame( owner : CActor, tame : bool )
 	{
 		var horseActor 	: CActor;
 		horseActor  	= ((CActor)GetEntity());
-		
+		// Tame
 		if ( tame && IsTamed() == false )
 		{
 			horseActor.SetBaseAttitudeGroup( owner.GetBaseAttitudeGroup() );
 			horseActor.ResetAttitude( owner );
 		}
 		
-		
+		// UnTame
 		if ( tame == false && IsTamed() )
 		{
 			horseActor.SetBaseAttitudeGroup( 'animals_peacefull' );
@@ -880,11 +893,14 @@ statemachine import class W3HorseComponent extends CVehicleComponent
 		horseActor.SetIsInAir( false );
 	}
 	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// EVENTS //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
-	
-	
+	/*event OnRiderAttitudeChange()
+	{
+		
+	}*/
 	
 	event OnIgniHit( sign : W3IgniProjectile )
 	{
@@ -980,7 +996,18 @@ statemachine import class W3HorseComponent extends CVehicleComponent
 		return false;
 	}
 	
-	
+	/*public function UpdateHorseAction()
+	{
+		if ( isInHorseAction )
+		{
+			userCombatManager.OnHorseActionStart();
+		{
+		else
+		{
+			userCombatManager.OnHorseActionStop();
+		}
+		
+	}*/
 	
 	public function IsInHorseAction() : bool
 	{

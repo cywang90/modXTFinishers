@@ -1,8 +1,38 @@
-﻿/*
-Copyright © CD Projekt RED 2015
+﻿/* Available values for dialog action icons - for reference
+enum EDialogActionIcon
+{
+	DialogAction_NONE            	= 0x00000000, 
+    DialogAction_AXII            	= 0x00000001, // DEPRECATED: W2 only 
+    DialogAction_CONTENT_MISSING   	= 0x00000002, // W3 new
+    DialogAction_BRIBE            	= 0x00000010, // W3 
+    DialogAction_INTIMIDATION   	= 0x00000020, // DEPRECATED: W2 only 
+    DialogAction_PERSUASION        	= 0x00000040, // DEPRECATED: W2 only 
+    DialogAction_GETBACK        	= 0x00000080, // W3
+    DialogAction_GAME_DICES        	= 0x00000100, // W3 
+    DialogAction_GAME_FIGHT        	= 0x00000200, // W3 
+    DialogAction_GAME_WRESTLE    	= 0x00000400, // W3 
+    DialogAction_CRAFTING        	= 0x00001000, // DEPRECATED: W2 only 
+    DialogAction_SHOPPING        	= 0x00002000, // W3 
+    DialogAction_TimedChoice		= 0x00004000, // W3 new
+    DialogAction_EXIT            	= 0x00010000, // W3 
+    DialogAction_HAIRCUT       		= 0x00020000, // W3  
+    DialogAction_MONSTERCONTRACT	= 0x00040000, // W3 new 
+    DialogAction_BET            	= 0x00080000, // W3 new 
+    DialogAction_STORAGE        	= 0x00100000, // DEPRECATED: W2 only 
+    DialogAction_GIFT            	= 0x00200000, // W3 
+    DialogAction_GAME_DRINK        	= 0x00400000, // W3 
+    DialogAction_GAME_DAGGER    	= 0x00800000, // W3 new 
+    DialogAction_SMITH            	= 0x01000000, // W3 new 
+    DialogAction_ARMORER        	= 0x02000000, // W3 new 
+    DialogAction_RUNESMITH        	= 0x04000000, // W3 new 
+    DialogAction_TEACHER        	= 0x08000000, // W3 new 
+    DialogAction_FAST_TRAVEL    	= 0x10000000, // W3 new 
+    DialogAction_GAME_CARDS        	= 0x20000000, // W3 new 
+    DialogAction_SHAVING        	= 0x40000000, // W3 new
+    DialogAction_TimedChoice		= 0x80000000, // W3 new
+    DialogAction_AUCTION			= 0x80000000, // W3 new
+}
 */
-
-
 
 function GetDialogActionIcons(flag : int) : array<EDialogActionIcon>
 {
@@ -40,14 +70,53 @@ function GetDialogActionIcons(flag : int) : array<EDialogActionIcon>
 	if(flag & DialogAction_FAST_TRAVEL)			ret.PushBack(DialogAction_FAST_TRAVEL);
 	if(flag & DialogAction_GAME_CARDS)			ret.PushBack(DialogAction_GAME_CARDS);
 	if(flag & DialogAction_SHAVING)				ret.PushBack(DialogAction_SHAVING);
+	if(flag & DialogAction_AUCTION)				ret.PushBack(DialogAction_AUCTION);
 	
 	return ret;
 }
+
+
+class CPayFactBasedStorySceneChoiceAction extends CStorySceneChoiceLineActionScripted
+{
+	editable var valueFact : string;
+
+	function CanUseAction() : bool 
+	{
+		return thePlayer.GetMoney() >= FactsQuerySum( valueFact );
+	}
+	
+	function PerformAction()
+	{
+		thePlayer.RemoveMoney( FactsQuerySum( valueFact ) );
+		GetWitcherPlayer().AddPoints( EExperiencePoint, CeilF(FactsQuerySum( valueFact ) / 10), true );
+		theSound.SoundEvent("gui_bribe");
+	}
+	
+	function GetActionText() : string 				
+	{
+		var language, audioLanguage : string;
+		
+		theGame.GetGameLanguageName(audioLanguage,language);
+		if (language != "AR")
+		{
+			return "(" + FactsQuerySum( valueFact ) + ") ";
+		}
+		else
+		{
+			return " " + FactsQuerySum( valueFact ) + " ";
+		}
+	}
+	
+	function GetActionIcon() : EDialogActionIcon 	{ return DialogAction_BRIBE; }
+}
+
 
 class CPayStorySceneChoiceAction extends CStorySceneChoiceLineActionScripted
 {
 	editable var money : int;
 	editable var dontGrantExp : bool;
+	editable var actionIcon : EDialogActionIcon;
+			     default actionIcon = DialogAction_NONE;
 
 	function CanUseAction() : bool 
 	{
@@ -81,7 +150,14 @@ class CPayStorySceneChoiceAction extends CStorySceneChoiceLineActionScripted
 		}
 	}
 	
-	function GetActionIcon() : EDialogActionIcon 	{ return DialogAction_BRIBE; }
+	function GetActionIcon() : EDialogActionIcon 	
+	{ 
+		if (actionIcon != DialogAction_NONE)
+		{
+			return actionIcon;
+		}
+		return DialogAction_BRIBE; 
+	}
 }
 
 class CAxiiStorySceneChoiceAction extends CStorySceneChoiceLineActionScripted
@@ -190,7 +266,7 @@ class CHairCutSceneChoiceAction extends CStorySceneChoiceLineActionScripted
 	function PerformAction()
 	{
 		thePlayer.RemoveMoney( money );
-		theSound.SoundEvent("gui_bribe"); 
+		theSound.SoundEvent("gui_bribe"); // #B money sound
 	}
 	
 	function GetActionText() : string 				
@@ -223,7 +299,7 @@ class CShavingSceneChoiceAction extends CStorySceneChoiceLineActionScripted
 	function PerformAction()
 	{
 		thePlayer.RemoveMoney( money );
-		theSound.SoundEvent("gui_bribe"); 
+		theSound.SoundEvent("gui_bribe"); // #B money sound
 	}
 	
 	function GetActionText() : string
@@ -286,4 +362,32 @@ class CBetChoiceAction extends CStorySceneChoiceLineActionScripted
 class CGetBackChoiceAction extends CStorySceneChoiceLineActionScripted
 {
 	function GetActionIcon() : EDialogActionIcon 	{ return DialogAction_GETBACK; }
+}
+
+class CAuctionSceneChoiceAction extends CStorySceneChoiceLineActionScripted
+{
+	editable var money : int;
+
+	function GetActionIcon() : EDialogActionIcon 	{ return DialogAction_AUCTION; }
+	
+	function CanUseAction() : bool 
+	{
+		return thePlayer.GetMoney() >= money; 
+	}	
+	
+	function GetActionText() : string
+	{ 
+		var language, audioLanguage : string;
+		
+		theGame.GetGameLanguageName(audioLanguage,language);
+		if (language != "AR")
+		{
+			return "(" + money + ") ";
+		}
+		else
+		{
+			return " " + money + " ";
+		}
+	}	
+	
 }

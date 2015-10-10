@@ -1,9 +1,20 @@
-﻿/*
-Copyright © CD Projekt RED 2015
+﻿
+/*
+enum EAttackDirection
+{
+	AD_Front,
+	AD_Left,
+	AD_Right,
+	AD_Back
+};
+
+enum EAttackDistance
+{
+	ADIST_Small,
+	ADIST_Medium,
+	ADIST_Large
+};
 */
-
-
-
 
 import class CComboString extends CObject
 {

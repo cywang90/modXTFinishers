@@ -1,12 +1,13 @@
-﻿/*
-Copyright © CD Projekt RED 2015
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2012
+/** Author : Rafal Jarczewski
+/***********************************************************************/
+
+/**
+
 */
-
-
-
-
-
-
 quest function EntityComponentQuest( tag : name, componentName : name, bEnable : bool )
 {
 	var nodes : array<CNode>;
@@ -45,7 +46,7 @@ quest function EntityComponentQuest( tag : name, componentName : name, bEnable :
 	}
 }
 
-
+///////////////////////////////////////////////////////////////////////////////
 
 class W3QuestCond_EntityComponentEnabled_Listener extends IGlobalEventScriptedListener
 {
@@ -137,7 +138,7 @@ class W3QuestCond_EntityComponentEnabled extends CQuestScriptedCondition
 	}
 }
 
-
+///////////////////////////////////////////////////////////////////////////////
 
 class W3QuestCond_EntityComponentExists_Listener extends IGlobalEventScriptedListener
 {

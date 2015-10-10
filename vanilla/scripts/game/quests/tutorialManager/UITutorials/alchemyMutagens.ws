@@ -1,13 +1,11 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 state AlchemyMutagens in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
-	private const var MUTAGENS : name;	
+	private const var MUTAGENS : name;	//hints
 	private var currentlySelectedRecipe, requiredRecipeName, selectRecipe : name;
 	
 		default MUTAGENS 		= 'TutorialMutagenPotion';

@@ -1,16 +1,12 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿// CPlayerInteriorTracker
+//------------------------------------------------------------------------------------------------------------------
+// Eduard Lopez Plans	( 25/08/2014 )	 
+//------------------------------------------------------------------------------------------------------------------
 
 
-
-
-
-
-
-
-
-
+//>-----------------------------------------------------------------------------------------------------------------
+// We'll use this when we would need to create names at runtime to lock actions multiple times
+//------------------------------------------------------------------------------------------------------------------
 class CActionLockerByCounter
 {
 	private saved	var lockingNum	: int;					default	lockingNum	= 0;
@@ -18,14 +14,14 @@ class CActionLockerByCounter
 	private			var lockName	: name;
 	
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function Init( blockingAction : EInputActionBlock, blockingName : name )
 	{
 		action		= blockingAction;
 		lockName	= blockingName;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function Reset()
 	{
 		lockingNum	= 0;
@@ -33,7 +29,7 @@ class CActionLockerByCounter
 			thePlayer.UnblockAction( action, lockName );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function Lock( lock : bool )
 	{
 		if( lock )
@@ -55,8 +51,8 @@ class CActionLockerByCounter
 	}
 }
 
-
-
+//>-----------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------
 class CPlayerInteriorTracker
 {	
 	private saved var sprintLocker	: CActionLockerByCounter;
@@ -64,7 +60,7 @@ class CPlayerInteriorTracker
 	
 	private var currentInterior : CNode;
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function Init( restored : bool )
 	{
 		if( !sprintLocker )
@@ -85,25 +81,25 @@ class CPlayerInteriorTracker
 		}
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function LockSprint( lock : bool )
 	{
 		sprintLocker.Lock( lock );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function LockRun( lock : bool )
 	{
 		runLocker.Lock( lock );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function SetCurrentInterior( _interior : CNode )
 	{
 		currentInterior = _interior;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function GetCurrentInterior() : CNode
 	{
 		return currentInterior;

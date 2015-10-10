@@ -1,11 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿//layer must be AutoStatic, Gameplay to work properly
 import statemachine class W3BoatSpawner extends CGameplayEntity
 {
-	public saved var spawnedBoat : EntityHandle;	
+	public saved var spawnedBoat : EntityHandle;	//pointer to boat spawned by this spawner	
 	editable var respawnDistance : float;
 	var isAttemptingBoatSpawn : bool;
 	
@@ -19,8 +15,8 @@ import statemachine class W3BoatSpawner extends CGameplayEntity
 	{
 		if(!isAttemptingBoatSpawn)
 		{
-			if(!EntityHandleGet(spawnedBoat) && GetCurrentStateName() != 'SpawnBoatLatent' )
-				GotoState('SpawnBoatLatent');
+			if(!EntityHandleGet(spawnedBoat) && GetCurrentStateName() != 'SpawnBoatLatentHack' )
+				GotoState('SpawnBoatLatentHack');
 			else
 				GotoStateAuto();
 		}
@@ -33,15 +29,15 @@ import statemachine class W3BoatSpawner extends CGameplayEntity
 		if(!isAttemptingBoatSpawn)
 		{
 			currentStateName = GetCurrentStateName();	
-			if(!EntityHandleGet(spawnedBoat) && currentStateName != 'SpawnBoatLatent' )
-				GotoState('SpawnBoatLatent');
+			if(!EntityHandleGet(spawnedBoat) && currentStateName != 'SpawnBoatLatentHack' )
+				GotoState('SpawnBoatLatentHack');
 			else
 				GotoStateAuto();
 		}
 	}
 	
-	
-	
+	//ACHTUNG!! actual stream out range is 53% bigger then the one set in entity
+	//Currently setting to 100 to get real value of 153 meters which is a little bit smaller than boat streaming range (160m).
 	event OnStreamOut()
 	{
 		var boat : CEntity;
@@ -52,7 +48,7 @@ import statemachine class W3BoatSpawner extends CGameplayEntity
 		{
 			distToBoat =  VecDistance2D(GetWorldPosition(), boat.GetWorldPosition());
 			
-			
+			//if boat is far away from spawner
 			if(distToBoat > respawnDistance)
 			{
 				theGame.AddDynamicallySpawnedBoatHandle(spawnedBoat);
@@ -66,13 +62,13 @@ import statemachine class W3BoatSpawner extends CGameplayEntity
 	timer function DelayedSpawnBoat( td : float , id : int)
 	{
 		RemoveTimer( 'DelayedSpawnBoat' );
-		( ( W3BoatSpawnerStateSpawnBoatLatent )GetState( 'SpawnBoatLatent' ) ).OnDelayedSpawnedBoat();
+		( ( W3BoatSpawnerStateSpawnBoatLatentHack )GetState( 'SpawnBoatLatentHack' ) ).OnDelayedSpawnedBoat();
 	}
 }
 
 state Idle in W3BoatSpawner {}
 
-state SpawnBoatLatent in W3BoatSpawner
+state SpawnBoatLatentHack in W3BoatSpawner
 {
 	event OnEnterState(prevStateName : name)
 	{
@@ -89,12 +85,12 @@ state SpawnBoatLatent in W3BoatSpawner
 	
 	event OnDelayedSpawnedBoat()
 	{
-		Entry_SpawnBoatLatent();
+		Hack_Entry_Name_Collision_Bug_W3BoatSpawner_SpawnBoatLatentHack();
 		parent.isAttemptingBoatSpawn = false;
 		GotoStateAuto();
 	}
 	
-	entry function Entry_SpawnBoatLatent()
+	entry function Hack_Entry_Name_Collision_Bug_W3BoatSpawner_SpawnBoatLatentHack()
 	{
 		var entityTemplate : CEntityTemplate;
 		var boat : W3Boat;

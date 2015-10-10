@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2015
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 state OpenInventory in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
@@ -18,10 +16,10 @@ state OpenInventory in W3TutorialManagerUIHandler extends TutHandlerBaseState
 		
 		super.OnEnterState(prevStateName);
 		
-		
+		//close hint asking to open menus
 		CloseHint(OPEN_FAST_MENU);
 		
-		
+		//hint about going to inv panel
 		highlights.Resize(1);
 		highlights[0].x = 0.295;
 		highlights[0].y = 0.4;

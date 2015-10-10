@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 state IngameMenuBestiary in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
@@ -43,7 +41,7 @@ state IngameMenuBestiary in W3TutorialManagerUIHandler extends TutHandlerBaseSta
 		}
 	}
 	
-	
+	//abort
 	event OnMenuClosing(menuName : name)
 	{		
 		if(menuName == 'GlossaryParent')
@@ -53,7 +51,7 @@ state IngameMenuBestiary in W3TutorialManagerUIHandler extends TutHandlerBaseSta
 		}
 		else if(menuName == 'CommonMenu' && theGame.GameplayFactsQuerySum("closingHubMenu") > 0)
 		{
-			
+			//if closing hub menu
 			QuitState();
 		}
 	}

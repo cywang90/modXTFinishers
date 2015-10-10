@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2012-2013
+/** Author : Rafal Jarczewski, Tomek Kozera
+/***********************************************************************/
 
 class W3QuestCond_IsItemEquipped_Listener extends IGlobalEventScriptedListener
 {

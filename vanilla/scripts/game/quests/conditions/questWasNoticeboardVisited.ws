@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3QuestCond_WasNoticeboardVisited extends CQuestScriptedCondition
+﻿class W3QuestCond_WasNoticeboardVisited extends CQuestScriptedCondition
 {
 	editable var entityName : name;
 	

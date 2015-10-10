@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2015
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 state OpenWorldMap in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
@@ -18,10 +16,10 @@ state OpenWorldMap in W3TutorialManagerUIHandler extends TutHandlerBaseState
 		
 		super.OnEnterState(prevStateName);
 		
-		
+		//close hint asking to open menus
 		CloseHint(OPEN_FAST_MENU);
 		
-		
+		//hint about going to map panel
 		highlights.Resize(1);
 		highlights[0].x = 0.4;
 		highlights[0].y = 0.4;

@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 state Runes in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
@@ -44,13 +42,13 @@ state Runes in W3TutorialManagerUIHandler extends TutHandlerBaseState
 	{
 		if(IsCurrentHint(SELECT) && thePlayer.inv.ItemHasTag(itemId, 'WeaponUpgrade'))
 		{
-			
+			//if selected rune
 			CloseHint(SELECT);
 			ShowHint(RUNE, theGame.params.TUT_POS_INVENTORY_X, theGame.params.TUT_POS_INVENTORY_Y, ETHDT_Infinite);
 		}
 		else if(IsCurrentHint(RUNE) && !thePlayer.inv.ItemHasTag(itemId, 'WeaponUpgrade'))
 		{
-			
+			//if had rune selected but then changed selection to not a rune or when aborted selection menu and moved around
 			CloseHint(RUNE);
 			ShowHint(SELECT, theGame.params.TUT_POS_INVENTORY_X, theGame.params.TUT_POS_INVENTORY_Y, ETHDT_Infinite);
 		}

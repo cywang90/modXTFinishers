@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 class AngleSpringDamper extends SpringDamper
 {
 	protected function CalcDiff( c : float, d : float ) : float
