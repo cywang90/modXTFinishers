@@ -105,7 +105,7 @@ class XTFinishersVanillaFinisherHandler extends XTFinishersAbstractReactionStart
 		}
 		
 		if (thePlayer.forceFinisher && actorVictim.IsHuman()) {
-			context.finisher.forced = true;
+			context.finisher.debug = true;
 			context.finisher.active = true;
 			return;
 		}
@@ -119,8 +119,8 @@ class XTFinishersVanillaFinisherHandler extends XTFinishersAbstractReactionStart
 		result = ((CR4Player)context.action.attacker) && attackAction && attackAction.IsActionMelee();
 		result = result && (actorVictim.IsHuman() && !actorVictim.IsWoman());
 		result = result && RandRangeF(100) < finisherChance;
-		result = result && (!areEnemiesAttacking || context.finisher.forced);
-		result = result && AbsF(victimToPlayerVector.Z) < 0.4f;
+		result = result && (context.finisher.forced || !areEnemiesAttacking);
+		result = result && (context.finisher.debug || AbsF(victimToPlayerVector.Z) < 0.4f);
 		result = result && !thePlayer.IsInAir();
 		result = result && (thePlayer.IsWeaponHeld('steelsword') || thePlayer.IsWeaponHeld('silversword'));
 		result = result && !thePlayer.IsSecondaryWeaponHeld();
@@ -129,12 +129,12 @@ class XTFinishersVanillaFinisherHandler extends XTFinishersAbstractReactionStart
 		result = result && !context.effectsSnapshot.HasEffect(EET_Knockdown);
 		result = result && !context.effectsSnapshot.HasEffect(EET_Ragdoll);
 		result = result && !context.effectsSnapshot.HasEffect(EET_Frozen);
-		result = result && !actorVictim.HasAbility('DisableFinishers');
-		result = result && actorVictim.GetAttitude(thePlayer) == AIA_Hostile;
+		result = result && (context.finisher.debug || !actorVictim.HasAbility('DisableFinishers'));
+		result = result && (context.finisher.debug || actorVictim.GetAttitude(thePlayer) == AIA_Hostile);
 		result = result && !thePlayer.IsUsingVehicle();
 		result = result && thePlayer.IsAlive();
 		result = result && !thePlayer.IsCurrentSignChanneled();
-		result = result && (theGame.GetWorld().NavigationCircleTest(actorVictim.GetWorldPosition(), 2.f) || context.finisher.forced) ;
+		result = result && (context.finisher.forced || theGame.GetWorld().NavigationCircleTest(actorVictim.GetWorldPosition(), 2.f)) ;
 		
 		if (result) {
 			if (!actorVictim.IsAlive()) {
@@ -285,6 +285,7 @@ class XTFinishersVanillaDismemberHandler extends XTFinishersAbstractReactionStar
 				if (playerAttacker && playerAttacker.forceDismember) {
 					dismemberChance = thePlayer.forceDismemberChance;
 					context.dismember.explosion = thePlayer.forceDismemberExplosion;
+					context.dismember.debug = true;
 				}
 				
 				if (attackAction) {

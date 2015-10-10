@@ -36,6 +36,7 @@ struct XTFinishersFinisherContext {
 	var auto : bool;										// is AUTOMATIC finisher
 	var instantKill : bool;									// is INSTANT-KILL finisher
 	var forced : bool;										// is FORCED finisher
+	var debug : bool;										// is DEBUG finisher (i.e. forced thru dev console)
 	var animName : name;
 };
 
@@ -44,6 +45,7 @@ struct XTFinishersDismemberContext {
 	var explosion : bool;									// is dismember explosion
 	var auto : bool;										// is AUTOMATIC finisher
 	var forced : bool;										// is FORCED dismember
+	var debug : bool;										// is DEBUG dismember (i.e. forced thru dev console)
 };
 
 struct XTFinishersFinisherCamContext {
