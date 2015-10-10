@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3SE_PerformableAction extends W3SwitchEvent
+﻿class W3SE_PerformableAction extends W3SwitchEvent
 {
 	editable inlined var performableAction : IPerformableAction;
 	

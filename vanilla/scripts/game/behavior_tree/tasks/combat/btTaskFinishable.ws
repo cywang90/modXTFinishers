@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskFinishable extends IBehTreeTask
+﻿class CBTTaskFinishable extends IBehTreeTask
 {
 	var finisherAnimName : name;
 	

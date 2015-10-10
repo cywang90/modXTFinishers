@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskHasAbility extends IBehTreeTask
+﻿class CBTTaskHasAbility extends IBehTreeTask
 {
 	var abilityName : name;
 	var behVariableName : name;
@@ -38,7 +34,7 @@ class CBTTaskHasAbility extends IBehTreeTask
 			}
 			return true;
 		}
-		else if( failAnim && npc.IsAbilityBlocked(abilityName) )
+		else if( failAnim && npc.IsAbilityBlocked(abilityName) )//&& !turnOffOnDeactivate)
 		{
 			turnOffOnDeactivate = true;
 			return true;

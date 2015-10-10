@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-import struct SSceneChoice
+﻿import struct SSceneChoice
 {
 	import var description : string;
 	import var emphasised : bool;
@@ -14,41 +10,42 @@ import struct SSceneChoice
 
 class CR4HudModuleDialog extends CR4HudModuleBase
 {
-	private var m_fxSentenceSetSFF			: CScriptedFlashFunction;
-	private var m_fxPreviousSentenceSetSFF	: CScriptedFlashFunction;
-	private var m_fxPreviousSentenceHideSFF	: CScriptedFlashFunction;
-	private var m_fxSentenceHideSFF			: CScriptedFlashFunction;
-	private var m_fxChoiceTimeoutSetSFF		: CScriptedFlashFunction;
-	private var m_fxChoiceTimeoutHideSFF	: CScriptedFlashFunction;
-	private var m_fxSkipConfirmShowSFF		: CScriptedFlashFunction;
-	private var m_fxSkipConfirmHideSFF		: CScriptedFlashFunction;
-	private var m_fxSetBarValueSFF			: CScriptedFlashFunction;
-	private var m_fxSetCanBeSkipped			: CScriptedFlashFunction;
+	private var m_fxSentenceSetSFF					: CScriptedFlashFunction;
+	private var m_fxPreviousSentenceSetSFF			: CScriptedFlashFunction;
+	private var m_fxPreviousSentenceHideSFF			: CScriptedFlashFunction;
+	private var m_fxSentenceHideSFF					: CScriptedFlashFunction;
 	
-	private var monsterBarganingPopupMenu   : CR4MenuPopup;
-	private var m_guiManager			 	: CR4GuiManager;	
+	private var m_fxChoiceTimeoutSetSFF				: CScriptedFlashFunction;
+	private var m_fxChoiceTimeoutHideSFF			: CScriptedFlashFunction;
+	private var m_fxSkipConfirmShowSFF				: CScriptedFlashFunction;
+	private var m_fxSkipConfirmHideSFF				: CScriptedFlashFunction;
+	private var m_fxSetBarValueSFF					: CScriptedFlashFunction;
+	private var m_fxSetCanBeSkipped					: CScriptedFlashFunction;
+	private var m_fxSetAlternativeDialogOptionView  : CScriptedFlashFunction;
 	
-
+	private var monsterBarganingPopupMenu   		: CR4MenuPopup;
+	private var m_guiManager			 			: CR4GuiManager;
 	
-	
+	// Bet and Monster Hunt Negotiation variables
 	private var m_LastNegotiationResult		: ENegotiationResult;
 	private var currentReward				: name;
 	private var currentRewardMultiply		: float;
 	private var isBet 						: bool;
+	private var isReverseHaggling 			: bool;
 	public var isPopupOpened 				: bool;
 	private var isGwentMode 				: bool;
 	public var anger 						: float;
-	private var currentGold					: int;			
-	private var minimalHagglingReward		: int;			
-	private var maxHaggleValue 				: int;			
-	private var NPCsPrettyClose				: float;		
-	private var NPCsTooMuch					: float;		
-	
+	private var currentGold					: int;			//currently selected value of haggle
+	private var minimalHagglingReward		: int;			//minimal value of the haggle bar
+	private var maxHaggleValue 				: int;			//maximal value of the haggle bar
+	private var NPCsPrettyClose				: float;		//multiplier of minimalHagglingReward which is a border between "deal" and "pretty close"
+	private var NPCsTooMuch					: float;		//multiplier of minimalHagglingReward which is a border between "pretty close" and "too much"
+	private var LowestPriceControlFact		: string;
 	default anger = 0;
 	
 	protected var lastSetChoices 			: array< SSceneChoice >;
 
-	event  OnConfigUI()
+	event /* flash */ OnConfigUI()
 	{
 		var flashModule : CScriptedFlashSprite;
 		m_anchorName = "ScaleOnly";	
@@ -56,16 +53,17 @@ class CR4HudModuleDialog extends CR4HudModuleBase
 		
 		m_guiManager = theGame.GetGuiManager();
 		
-		m_fxSentenceSetSFF			= flashModule.GetMemberFlashFunction( "SentenceSet" );
-		m_fxPreviousSentenceSetSFF	= flashModule.GetMemberFlashFunction( "PreviousSentenceSet" );
-		m_fxPreviousSentenceHideSFF	= flashModule.GetMemberFlashFunction( "PreviousSentenceHide" );
-		m_fxSentenceHideSFF			= flashModule.GetMemberFlashFunction( "SentenceHide" );
-		m_fxChoiceTimeoutSetSFF		= flashModule.GetMemberFlashFunction( "ChoiceTimeoutSet" );
-		m_fxChoiceTimeoutHideSFF	= flashModule.GetMemberFlashFunction( "ChoiceTimeoutHide" );
-		m_fxSkipConfirmShowSFF		= flashModule.GetMemberFlashFunction( "SkipConfirmShow" );
-		m_fxSkipConfirmHideSFF		= flashModule.GetMemberFlashFunction( "SkipConfirmHide" );
-		m_fxSetBarValueSFF			= flashModule.GetMemberFlashFunction( "setBarValue" );
-		m_fxSetCanBeSkipped			= flashModule.GetMemberFlashFunction( "setCanBeSkipped" );
+		m_fxSentenceSetSFF				   = flashModule.GetMemberFlashFunction( "SentenceSet" );
+		m_fxPreviousSentenceSetSFF		   = flashModule.GetMemberFlashFunction( "PreviousSentenceSet" );
+		m_fxPreviousSentenceHideSFF		   = flashModule.GetMemberFlashFunction( "PreviousSentenceHide" );
+		m_fxSentenceHideSFF				   = flashModule.GetMemberFlashFunction( "SentenceHide" );
+		m_fxChoiceTimeoutSetSFF			   = flashModule.GetMemberFlashFunction( "ChoiceTimeoutSet" );
+		m_fxChoiceTimeoutHideSFF		   = flashModule.GetMemberFlashFunction( "ChoiceTimeoutHide" );
+		m_fxSkipConfirmShowSFF			   = flashModule.GetMemberFlashFunction( "SkipConfirmShow" );
+		m_fxSkipConfirmHideSFF			   = flashModule.GetMemberFlashFunction( "SkipConfirmHide" );
+		m_fxSetBarValueSFF				   = flashModule.GetMemberFlashFunction( "setBarValue" );
+		m_fxSetCanBeSkipped				   = flashModule.GetMemberFlashFunction( "setCanBeSkipped" );
+		m_fxSetAlternativeDialogOptionView = flashModule.GetMemberFlashFunction( "setAlternativeDialogOptionView" );
 		
 		UpdateCanBeSkipped(theGame.GetStorySceneSystem().IsSkippingLineAllowed());
 		
@@ -89,10 +87,9 @@ class CR4HudModuleDialog extends CR4HudModuleBase
 	public function OnMissingContentDialogClosed()
 	{
 		SendDialogChoicesToUI(lastSetChoices, false);
-		
 	}
 
-	event  OnDialogOptionSelected( index : int )
+	event /* flash */ OnDialogOptionSelected( index : int )
 	{
 		var system : CStorySceneSystem = theGame.GetStorySceneSystem();
 		LogChannel('DIALOG', "***************************" );
@@ -101,7 +98,7 @@ class CR4HudModuleDialog extends CR4HudModuleBase
 		system.SendSignal( SSST_Highlight, index );
 	}
 
-	event  OnDialogOptionAccepted( index : int )
+	event /* flash */ OnDialogOptionAccepted( index : int )
 	{
 		var system : CStorySceneSystem = theGame.GetStorySceneSystem();
 		var acceptedChoice : SSceneChoice;
@@ -145,7 +142,7 @@ class CR4HudModuleDialog extends CR4HudModuleBase
 		}
 	}
 	
-	event  OnDialogSkipped( value : int )
+	event /* flash */ OnDialogSkipped( value : int )
 	{
 		var system : CStorySceneSystem = theGame.GetStorySceneSystem();
 		
@@ -156,11 +153,16 @@ class CR4HudModuleDialog extends CR4HudModuleBase
 		system.SendSignal( SSST_Skip, value );
 	}
 
-	function OnDialogSentenceSet( text : string )
+	function OnDialogSentenceSet( text : string, optional alternativeUI : bool )
 	{
 		if( theGame.isDialogDisplayDisabled )
 		{
 			text = "";
+		}
+		else
+		if (alternativeUI)
+		{
+			text = "<FONT COLOR='#5ACCF6'>" + GetLocStringByKeyExt("Witold") + ": " + text + "</FONT>";
 		}
 		m_fxSentenceSetSFF.InvokeSelfOneArg( FlashArgString( text ) );
 	}
@@ -184,10 +186,10 @@ class CR4HudModuleDialog extends CR4HudModuleBase
 		m_fxSentenceHideSFF.InvokeSelf();
 	}
 
-	function OnDialogChoicesSet( choices : array< SSceneChoice > )
+	function OnDialogChoicesSet( choices : array< SSceneChoice >, alternativeUI : bool )
 	{
+		m_fxSetAlternativeDialogOptionView.InvokeSelfOneArg( FlashArgBool(alternativeUI) );
 		SendDialogChoicesToUI(choices, true);
-		
 		m_guiManager.RequestMouseCursor(true);
 		theGame.ForceUIAnalog(true);
 	}
@@ -203,7 +205,7 @@ class CR4HudModuleDialog extends CR4HudModuleBase
 		var progress 				: float;
 		
 		hasContentMissing = false;
-
+		
 		flashValueStorage = GetModuleFlashValueStorage();
 		
 		choiceFlashArray = flashValueStorage.CreateTempFlashArray();
@@ -248,7 +250,7 @@ class CR4HudModuleDialog extends CR4HudModuleBase
 		
 		flashValueStorage.SetFlashArray( "hud.dialog.choices", choiceFlashArray );
 		
-		
+		//reset gwent mode special case
 		SetGwentMode( false );
 	}
 
@@ -293,20 +295,21 @@ class CR4HudModuleDialog extends CR4HudModuleBase
 		theGame.GetReward( rewardName, rewrd );
 		currentReward = rewardName;
 		isBet = false;
+		isReverseHaggling = false;
 		isPopupOpened = true;
 		m_fxSetBarValueSFF.InvokeSelfOneArg(FlashArgNumber(0));
 		
 		
 		popupData.SetMessageTitle( GetLocStringByKeyExt("panel_hud_dialogue_title_negotiation"));
 		popupData.dialogueRef = this;
-		popupData.BlurBackground = false; 
+		popupData.BlurBackground = false; // @TODO UI #Y - implement bluring state
 		popupData.m_DisplayGreyBackground = false;		
 		
-		if( anger == 0 ) 
+		if( anger == 0 ) //#B first time 
 		{
 			currentRewardMultiply = 1.f;
 			minimalHagglingReward = FloorF(minimalGold);
-			maxMult = RandRangeF(0.5, 0.2);						
+			maxMult = RandRangeF(0.5, 0.2);						//max increase from base value
 			maxHaggleValue = FloorF( minimalGold * (1.f + maxMult) );
 			currentGold = minimalHagglingReward;
 			if ( alwaysSuccessful )
@@ -316,8 +319,8 @@ class CR4HudModuleDialog extends CR4HudModuleBase
 			}
 			else
 			{
-				NPCsPrettyClose = 1.f + RandRangeF(0.7, 0.f) * maxMult;		
-				NPCsTooMuch = NPCsPrettyClose + 0.3 * maxMult;				
+				NPCsPrettyClose = 1.f + RandRangeF(0.7, 0.f) * maxMult;		//we can haggle 0% to +70% of available range
+				NPCsTooMuch = NPCsPrettyClose + 0.3 * maxMult;				//too much is always 30% above that
 			}
 			
 			LogHaggle("");
@@ -344,13 +347,80 @@ class CR4HudModuleDialog extends CR4HudModuleBase
 		theGame.RequestMenu('PopupMenu', popupData);		
 	}
 	
+	
+	function OpenLowerPriceNegotiationPopup( controlFact : string, bestBarginModifier : float, optional lowestPriceModifier : float )
+	{
+		var popupData : DialogueMonsterBarganingSliderData;
+		var maxMult : float;		
+		
+		/*
+		if(theGame.GetTutorialSystem() && theGame.GetTutorialSystem().IsRunning())		
+		{
+			theGame.GetTutorialSystem().uiHandler.OnOpeningMenu('MonsterHuntNegotiationMenu');
+		}
+		*/
+		popupData = new DialogueMonsterBarganingSliderData in this;
+		
+		popupData.ScreenPosX = 0.05;
+		popupData.ScreenPosY = 0.5;
+		
+		isBet = false;
+		isReverseHaggling = true;
+		isPopupOpened = true;
+		m_fxSetBarValueSFF.InvokeSelfOneArg(FlashArgNumber(0));
+		
+		
+		popupData.SetMessageTitle( GetLocStringByKeyExt("panel_hud_dialogue_title_negotiation"));
+		popupData.dialogueRef = this;
+		popupData.BlurBackground = false; // @TODO UI #Y - implement bluring state
+		popupData.m_DisplayGreyBackground = false;		
+		
+		if( anger == 0 ) //#B first time 
+		{
+			if( lowestPriceModifier > bestBarginModifier )
+			{
+				bestBarginModifier = lowestPriceModifier;
+			}
+			LowestPriceControlFact = controlFact;
+			
+			currentRewardMultiply = 1.f;					//max increase from base value
+			maxHaggleValue = FactsQuerySum( LowestPriceControlFact );
+			minimalHagglingReward = FloorF( maxHaggleValue * lowestPriceModifier );
+			currentGold = maxHaggleValue;
+			
+			NPCsPrettyClose	= 1.0f * bestBarginModifier;
+			NPCsTooMuch = NPCsPrettyClose * 0.7f;
+			
+			LogHaggle("");
+			LogHaggle("Haggling for " + maxHaggleValue);
+			LogHaggle("min/base gold: " + minimalHagglingReward);
+			LogHaggle("deal/pretty close border (" + NoTrailZeros(NPCsPrettyClose) + "): " + NoTrailZeros(NPCsPrettyClose * (maxHaggleValue - minimalHagglingReward ) + minimalHagglingReward));
+			LogHaggle("pretty close/too much border (" + NoTrailZeros(NPCsTooMuch) + "): " + NoTrailZeros(NPCsTooMuch * (maxHaggleValue - minimalHagglingReward ) + minimalHagglingReward));
+			LogHaggle("");	
+			
+			popupData.currentValue = maxHaggleValue;
+		}
+		else
+		{
+			popupData.currentValue = currentGold;
+		}
+		
+		popupData.minValue = minimalHagglingReward;
+		
+		popupData.baseValue = maxHaggleValue;
+		popupData.anger = anger;
+		popupData.maxValue = maxHaggleValue;
+		theGame.RequestMenu('PopupMenu', popupData);		
+	}	
+	
+	
 	function OpenBetPopup( rewardName : name, overrideCurrent : int )
 	{
 		var rewrd				: SReward;
 		var popupData 			: BettingSliderData;
 		var flashValueStorage 	: CScriptedFlashValueStorage;
 		
-		
+		//bypassing betting popup if this is gwent and we have no money (to play for free)
 		if ( isGwentMode && thePlayer.GetMoney() == 0 )
 		{
 			thePlayer.SetRewardMultiplier(rewardName, 0);
@@ -370,18 +440,19 @@ class CR4HudModuleDialog extends CR4HudModuleBase
 		currentReward = rewardName;
 		currentRewardMultiply = 0;
 		isBet = true;
+		isReverseHaggling = false;
 		isPopupOpened = true;
 		
 		popupData.SetMessageTitle( GetLocStringByKeyExt("panel_hud_dialogue_title_bet"));
 		popupData.dialogueRef = this;
-		popupData.BlurBackground = false;  
+		popupData.BlurBackground = false;  // @TODO UI #Y - implement bluring state
 		
 		popupData.minValue = 1;
 		popupData.maxValue = rewrd.gold;
 		
 		if( overrideCurrent > 0 )
 		{
-			popupData.currentValue = Max (1, Min( rewrd.gold, thePlayer.GetMoney() )) * overrideCurrent / 100;
+			popupData.currentValue = Max (1, Min( rewrd.gold, thePlayer.GetMoney() ) * overrideCurrent / 100);
 		}
 		else
 		{
@@ -403,53 +474,93 @@ class CR4HudModuleDialog extends CR4HudModuleBase
 		
 		theGame.GetReward( currentReward, rewrd );
 		
-		if( isBet )
-		{
-			currentRewardMultiply = ( value / rewrd.gold ) * 2; 
-			thePlayer.RemoveMoney( RoundF( value ) ); 
-			thePlayer.SetRewardMultiplier(currentReward, currentRewardMultiply);
-			isBet = false;
-		}
-		else
-		{
+		if( isReverseHaggling )
+		{	
 			currentGold = FloorF(value);
-			currentRewardMultiply = ( value / rewrd.gold );
-			LogHaggle("Offering " + NoTrailZeros(value) + ", mult of " + NoTrailZeros(currentRewardMultiply));
+			currentRewardMultiply = (value - minimalHagglingReward) / (maxHaggleValue-minimalHagglingReward);
 			
-			if( currentRewardMultiply > NPCsTooMuch )
+			if( currentRewardMultiply < NPCsTooMuch )
 			{
 				m_LastNegotiationResult = TooMuch;
 				a = RandRangeF(60,40);				
-				LogHaggle("Too Much. Increasing anger from " + NoTrailZeros(anger) + " to " + NoTrailZeros(anger+a));
 				anger += a;
 			}		
-			else if( currentRewardMultiply > NPCsPrettyClose )
+			else if( currentRewardMultiply < NPCsPrettyClose )
 			{
 				m_LastNegotiationResult = PrettyClose;
 				a = RandRangeF(20,10);
-				LogHaggle("Pretty Close. Increasing anger from " + NoTrailZeros(anger) + " to " + NoTrailZeros(anger+a));
 				anger += a;
 			}
 			else
 			{
 				m_LastNegotiationResult = WeHaveDeal;
 				anger = 0;
+				FactsSet( LowestPriceControlFact, FloorF(value), -1 );
 				LogHaggle("Deal!");
-				thePlayer.SetRewardMultiplier(currentReward, currentRewardMultiply);
 			}
-			LogHaggle("");
 			
-			
+			//too angry, only get base value
 			if( anger >= 100 )
 			{
 				m_LastNegotiationResult = GetLost;
 				anger = 0;
 				LogHaggle("NPC is furious - game over.");
 				LogHaggle("");
-				thePlayer.SetRewardMultiplier(currentReward, 1.f);
 			}
 			
-			isBet = false;
+			isBet = false;			
+			
+		}
+		else
+		{
+			if( isBet )
+			{
+				currentRewardMultiply = ( value / rewrd.gold ) * 2; // #B because it's a bet and you get what you bet + your money back
+				thePlayer.RemoveMoney( RoundF( value ) ); // Remove the money bet from the inventory
+				thePlayer.SetRewardMultiplier(currentReward, currentRewardMultiply);
+				isBet = false;
+			}
+			else
+			{
+				currentGold = FloorF(value);
+				currentRewardMultiply = ( value / rewrd.gold );
+				LogHaggle("Offering " + NoTrailZeros(value) + ", mult of " + NoTrailZeros(currentRewardMultiply));
+				
+				if( currentRewardMultiply > NPCsTooMuch )
+				{
+					m_LastNegotiationResult = TooMuch;
+					a = RandRangeF(60,40);				
+					LogHaggle("Too Much. Increasing anger from " + NoTrailZeros(anger) + " to " + NoTrailZeros(anger+a));
+					anger += a;
+				}		
+				else if( currentRewardMultiply > NPCsPrettyClose )
+				{
+					m_LastNegotiationResult = PrettyClose;
+					a = RandRangeF(20,10);
+					LogHaggle("Pretty Close. Increasing anger from " + NoTrailZeros(anger) + " to " + NoTrailZeros(anger+a));
+					anger += a;
+				}
+				else
+				{
+					m_LastNegotiationResult = WeHaveDeal;
+					anger = 0;
+					LogHaggle("Deal!");
+					thePlayer.SetRewardMultiplier(currentReward, currentRewardMultiply);
+				}
+				LogHaggle("");
+				
+				//too angry, only get base value
+				if( anger >= 100 )
+				{
+					m_LastNegotiationResult = GetLost;
+					anger = 0;
+					LogHaggle("NPC is furious - game over.");
+					LogHaggle("");
+					thePlayer.SetRewardMultiplier(currentReward, 1.f);
+				}
+				
+				isBet = false;
+			}
 		}
 		
 		if( (m_LastNegotiationResult == WeHaveDeal || m_LastNegotiationResult == GetLost) && theGame.GetTutorialSystem() && theGame.GetTutorialSystem().IsRunning())
@@ -457,7 +568,23 @@ class CR4HudModuleDialog extends CR4HudModuleBase
 			theGame.GetTutorialSystem().uiHandler.OnClosingMenu('MonsterHuntNegotiationMenu');
 		}
 		
-		
+		/*if( monsterBarganingPopupMenuParent )
+		{
+			if( anger == 0 )
+			{
+				monsterBarganingPopupMenuParent.RequestClose();
+				isPopupOpened = false;
+				return;
+			}
+			monsterBarganingPopupMenuParent.SetBarValue(anger);
+			m_fxSetBarValueSFF.InvokeSelfOneArg(FlashArgNumber(anger));
+			monsterBarganingPopupMenu = monsterBarganingPopupMenuParent;
+		}
+		else
+		{
+			m_fxSetBarValueSFF.InvokeSelfOneArg(FlashArgNumber(anger));
+			monsterBarganingPopupMenuParent.SetBarValue(anger);
+		}*/
 		m_fxSetBarValueSFF.InvokeSelfOneArg(FlashArgNumber(anger));
 		isPopupOpened = false;
 	}	
@@ -473,22 +600,24 @@ class CR4HudModuleDialog extends CR4HudModuleBase
 	}
 }
 
-
+/*
+	Quantity popup. Used inside Inventory menu
+*/
 class DialogueSliderData extends SliderPopupData
 {
 	public var dialogueRef:CR4HudModuleDialog;
 	
-	protected  function GetContentRef() : string 
+	protected /* override */ function GetContentRef() : string 
 	{
 		return "QuantityPopupRef";
 	}
 	
-	protected  function DefineDefaultButtons():void
+	protected /* override */ function DefineDefaultButtons():void
 	{
 		AddButtonDef("panel_button_common_accept","enter-gamepad_A", IK_Enter );
 	}
 	
-	public function  OnUserFeedback( KeyCode:string ) : void
+	public function /* override */ OnUserFeedback( KeyCode:string ) : void
 	{
 		if (KeyCode == "enter-gamepad_A")
 		{
@@ -500,7 +629,7 @@ class DialogueSliderData extends SliderPopupData
 
 class BettingSliderData extends DialogueSliderData
 {
-	public  function GetGFxData(parentFlashValueStorage : CScriptedFlashValueStorage) : CScriptedFlashObject
+	public /* override */ function GetGFxData(parentFlashValueStorage : CScriptedFlashValueStorage) : CScriptedFlashObject
 	{
 		var l_flashObject : CScriptedFlashObject;
 		l_flashObject = super.GetGFxData(parentFlashValueStorage);
@@ -509,11 +638,11 @@ class BettingSliderData extends DialogueSliderData
 		return l_flashObject;
 	}
 
-	public function  OnUserFeedback( KeyCode:string ) : void
+	public function /* override */ OnUserFeedback( KeyCode:string ) : void
 	{
 		if (KeyCode == "enter-gamepad_A")
 		{
-			
+			//player can't bet more than he has
 			if ( currentValue > thePlayer.GetMoney() )
 			{
 				theGame.GetGuiManager().ShowNotification( GetLocStringByKeyExt("panel_shop_notification_not_enough_money") );
@@ -533,17 +662,17 @@ class DialogueMonsterBarganingSliderData extends DialogueSliderData
 	public var baseValue:int;
 	public var anger:float;
 
-	protected  function GetContentRef() : string 
+	protected /* override */ function GetContentRef() : string 
 	{
 		return "QuantityMonsterBarganingPopupRef";
 	}
 	
-	protected  function DefineDefaultButtons():void
+	protected /* override */ function DefineDefaultButtons():void
 	{
 		AddButtonDef("panel_button_common_accept","enter-gamepad_A", IK_Enter );
 	}
 	
-	public function  OnUserFeedback( KeyCode:string ) : void
+	public function /* override */ OnUserFeedback( KeyCode:string ) : void
 	{
 		if (KeyCode == "enter-gamepad_A")
 		{
@@ -555,7 +684,7 @@ class DialogueMonsterBarganingSliderData extends DialogueSliderData
 		}
 	}
 	
-	public  function GetGFxData(parentFlashValueStorage : CScriptedFlashValueStorage) : CScriptedFlashObject
+	public /* override */ function GetGFxData(parentFlashValueStorage : CScriptedFlashValueStorage) : CScriptedFlashObject
 	{
 		var l_flashObject : CScriptedFlashObject;
 		

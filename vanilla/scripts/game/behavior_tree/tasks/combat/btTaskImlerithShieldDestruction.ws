@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskImlerithShieldDestruction extends IBehTreeTask
+﻿class CBTTaskImlerithShieldDestruction extends IBehTreeTask
 {	
 	var firstTreshold : float;
 	var secondTreshold : float;
@@ -55,7 +51,13 @@ class CBTTaskImlerithShieldDestruction extends IBehTreeTask
 		return BTNS_Active;
 	}
 	
-	
+	/*function OnDeactivate()
+	{
+		if( dropShield )
+		{
+			GetNPC().SignalGameplayEvent( 'LeaveCurrentCombatStyle' );
+		}
+	}*/
 	
 	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo ) : bool
 	{

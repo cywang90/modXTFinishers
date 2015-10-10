@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskChance extends IBehTreeTask
+﻿class CBTTaskChance extends IBehTreeTask
 {
 	var ifNot : bool;
 	var chance : int;

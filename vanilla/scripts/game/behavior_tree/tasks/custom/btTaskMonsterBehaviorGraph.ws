@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBehTreeTaskMonsterBehaviorGraph extends IBehTreeTask
+﻿class CBehTreeTaskMonsterBehaviorGraph extends IBehTreeTask
 {
 	var graphName : name;
 	var res : bool;

@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 class CBTTaskPlaySyncedAnimation extends IBehTreeTask
 {
 	private var isRunning				: bool;
@@ -38,7 +34,7 @@ class CBTTaskPlaySyncedAnimation extends IBehTreeTask
 		owner.EnableCharacterCollisions( false );
 		owner.SetCanPlayHitAnim( false );
 		
-		
+		// Add immortality so the monster cannot be killed while he plays the finisher death anim
 		owner.SetImmortalityMode( AIM_Invulnerable, AIC_Combat );
 		return BTNS_Active;
 	}
@@ -85,6 +81,8 @@ class CBTTaskPlaySyncedAnimation extends IBehTreeTask
 			syncInstance.StopSequence( sequenceIndex );
 		}
 		
+		if ( !finisherSyncAnim )
+			owner.EnableCharacterCollisions( true );
 		
 		isRunning = false;
 		shouldStartAnimation = false;
@@ -95,7 +93,7 @@ class CBTTaskPlaySyncedAnimation extends IBehTreeTask
 		completeSuccess = false;
 		
 		owner.SetImmortalityMode( AIM_None, AIC_Combat );
-		owner.EnableCharacterCollisions( true );
+		
 		
 		owner.SetCanPlayHitAnim( true );
 	}

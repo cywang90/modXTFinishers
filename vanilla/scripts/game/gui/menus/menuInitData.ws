@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3MenuInitData extends CObject
+﻿class W3MenuInitData extends CObject
 {
 	public var ignoreSaveSystem:bool;
 	

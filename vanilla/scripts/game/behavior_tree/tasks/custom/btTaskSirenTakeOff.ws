@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskSirenTakeOff extends IBehTreeTask
+﻿class CBTTaskSirenTakeOff extends IBehTreeTask
 {
 	var eventReceived : bool;
 

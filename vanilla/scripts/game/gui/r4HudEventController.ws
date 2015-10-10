@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CHudEvent
+﻿class CHudEvent
 {
 	var moduleName		: string;
 	var eventName		: string;
@@ -28,7 +24,7 @@ class CNotifyPlayerEnteredInteriorEvent extends CHudEvent
 
 class CNotifyPlayerExitedInteriorEvent extends CHudEvent
 {
-	
+	// just for consistency
 }
 
 class CNotifyPlayerMountedBoatEvent extends CHudEvent
@@ -37,10 +33,10 @@ class CNotifyPlayerMountedBoatEvent extends CHudEvent
 
 class CNotifyPlayerDismountedBoatEvent extends CHudEvent
 {
-	
+	// just for consistency
 }
 
-class CNotifyInputContextChangedEvent extends CHudEvent 
+class CNotifyInputContextChangedEvent extends CHudEvent // #B
 {
 	var	inputContextName : name;
 }
@@ -56,7 +52,18 @@ class COnGasAreaEvent extends CHudEvent
 	var	entered : bool;
 }
 
+class COnSetCoatOfArmsEvent extends CHudEvent
+{
+	var	set : bool;
+}
 
+class COnManageHudTimeOutEvent extends CHudEvent
+{
+	var action : EHudTimeOutAction;
+	var timeOut : float;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class CR4HudEventController
 {
@@ -255,7 +262,7 @@ class CR4HudEventController
 		LogChannel( 'HudEventsQueue', "queued event [" + hudEvent.moduleName + "] [" + hudEvent.eventName + "]" );
 	}
 
-	public function RunEvent_ControlsFeedbackModule_Update( inputContextName : name ) 
+	public function RunEvent_ControlsFeedbackModule_Update( inputContextName : name ) // #B 
 	{
 		var hudEvent : CNotifyInputContextChangedEvent;
 		var controlsFeedbackModule : CR4HudModuleControlsFeedback;
@@ -340,7 +347,64 @@ class CR4HudEventController
 		LogChannel( 'HudEventsQueue', "queued event [" + hudEvent.moduleName + "] [" + hudEvent.eventName + "]" );
 	}
 	
+	public function RunEvent_WolfHeadModule_SetCoatOfArms( value : bool )
+	{
+		var hudEvent : COnSetCoatOfArmsEvent;
+		var wolfHeadModule : CR4HudModuleWolfHead;
+		var hud : CR4ScriptedHud;
+		
+		hud = (CR4ScriptedHud)theGame.GetHud();
+		if ( hud )
+		{
+			wolfHeadModule = ( CR4HudModuleWolfHead )hud.GetHudModule( "WolfHeadModule" );
+			if( wolfHeadModule )
+			{
+				wolfHeadModule.SetCoatOfArms( value );
+				return;
+			}
+		}
+
+		CheckDelayedEvent();
+		
+		hudEvent = new COnSetCoatOfArmsEvent in this;
+		hudEvent.moduleName = "WolfHeadModule";
+		hudEvent.eventName	= "SetCoatOfArms";
+		hudEvent.set = value;
+		delayedEvents.PushBack( hudEvent );
+		
+		LogChannel( 'HudEventsQueue', "queued event [" + hudEvent.moduleName + "] [" + hudEvent.eventName + "]" );
+	}
 	
+	public function RunEvent_TimeLeftModule_ManageHudTimeOut( action : EHudTimeOutAction, timeOut : float )
+	{
+		var hudEvent : COnManageHudTimeOutEvent;
+		var timeLeftModule : CR4HudModuleTimeLeft;
+		var hud : CR4ScriptedHud;
+		
+		hud = (CR4ScriptedHud)theGame.GetHud();
+		if ( hud )
+		{
+			timeLeftModule = ( CR4HudModuleTimeLeft )hud.GetHudModule( "TimeLeftModule" );
+			if( timeLeftModule )
+			{
+				timeLeftModule.ManageHudTimeOut( action, timeOut );
+				return;
+			}
+		}
+
+		CheckDelayedEvent();
+		
+		hudEvent = new COnManageHudTimeOutEvent in this;
+		hudEvent.moduleName = "TimeLeftModule";
+		hudEvent.eventName	= "ManageHudTimeOut";
+		hudEvent.action = action;
+		hudEvent.timeOut = timeOut;
+		delayedEvents.PushBack( hudEvent );
+		
+		LogChannel( 'HudEventsQueue', "queued event [" + hudEvent.moduleName + "] [" + hudEvent.eventName + "]" );
+	}
+	
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	private function CheckDelayedEvent()
 	{
@@ -396,12 +460,16 @@ class CR4HudEventController
 		var notifyPlayerDismountedBoatEvent : CNotifyPlayerDismountedBoatEvent;
 		var onBossIndicatorShownEvent : CNotifyBossIndicatorShownEvent;
 		var onGasAreaEvent : COnGasAreaEvent;
+		var onSetCoatOfArmsEvent : COnSetCoatOfArmsEvent;
+		var onManageHudTimeOutEvent : COnManageHudTimeOutEvent;
 
 		var minimapModule : CR4HudModuleMinimap2;
 		var questsModule : CR4HudModuleQuests;
 		var controlsFeedbackModule : CR4HudModuleControlsFeedback;
 		var bossFocusModule : CR4HudModuleBossFocus;
 		var oxygenBarModule : CR4HudModuleOxygenBar;
+		var wolfHeadModule : CR4HudModuleWolfHead;
+		var timeLeftModule : CR4HudModuleTimeLeft;
 	
 		switch( delayedEvent.moduleName )
 		{
@@ -473,6 +541,24 @@ class CR4HudEventController
 				{
 					onGasAreaEvent = (COnGasAreaEvent)delayedEvent;
 					oxygenBarModule.SetIsInGasArea( onGasAreaEvent.entered );
+				}
+				break;
+				
+			case "WolfHeadModule":
+				wolfHeadModule = ( CR4HudModuleWolfHead )module;
+				if ( module )
+				{
+					onSetCoatOfArmsEvent = ( COnSetCoatOfArmsEvent )delayedEvent;
+					wolfHeadModule.SetCoatOfArms( onSetCoatOfArmsEvent.set );
+				}
+				break;
+
+			case "TimeLeftModule":
+				timeLeftModule = ( CR4HudModuleTimeLeft )module;
+				if ( module )
+				{
+					onManageHudTimeOutEvent = ( COnManageHudTimeOutEvent )delayedEvent;
+					timeLeftModule.ManageHudTimeOut( onManageHudTimeOutEvent.action, onManageHudTimeOutEvent.timeOut );
 				}
 				break;
 

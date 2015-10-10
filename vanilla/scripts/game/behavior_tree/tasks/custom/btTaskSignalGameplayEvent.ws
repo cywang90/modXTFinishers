@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 class CBTTaskSignalGameplayEvent extends IBehTreeTask
 {
 	var onActivate : bool;

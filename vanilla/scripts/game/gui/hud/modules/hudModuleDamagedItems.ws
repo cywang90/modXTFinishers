@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file - HUD Module Damaged items
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author : Bartosz Bigaj
+/***********************************************************************/
 
 class CR4HudModuleDamagedItems extends CR4HudModuleBase
 {	
@@ -13,7 +12,7 @@ class CR4HudModuleDamagedItems extends CR4HudModuleBase
 	private var inv							: CInventoryComponent;
 	private var isDisplayed					: bool;
 
-	event  OnConfigUI()
+	event /* flash */ OnConfigUI()
 	{
 		var flashModule : CScriptedFlashSprite;
 		var hud : CR4ScriptedHud;
@@ -43,7 +42,7 @@ class CR4HudModuleDamagedItems extends CR4HudModuleBase
 			return true;
 		}
 		
-		CheckDamagedItems(); 
+		CheckDamagedItems(); // #B we could add come kind of timer here
 	}
 
 	private function CheckDamagedItems()

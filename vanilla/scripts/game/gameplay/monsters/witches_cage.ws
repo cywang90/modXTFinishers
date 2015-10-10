@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-statemachine class W3WitchesCage extends CEntity
+﻿statemachine class W3WitchesCage extends CEntity
 {
 	default autoState = 'TurnedOff';
 }

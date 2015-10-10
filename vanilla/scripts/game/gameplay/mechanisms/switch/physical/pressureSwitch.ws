@@ -1,9 +1,8 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2012-2014
+/** Author : Tomek Kozera
+/**			 Małgorzata Napiontek	
+/***********************************************************************/
 
 class W3PressureSwitch extends W3PhysicalSwitch
 {
@@ -40,7 +39,7 @@ class W3PressureSwitch extends W3PhysicalSwitch
 		TurnOffIfPossible( entity );
 	}
 	
-	
+	// Experimental - Łukasz Szczepankowski - problem here is that "entity' must be an actor in order to make projectile works.
 	event OnAardHit( sign : W3AardProjectile )
 	{
 			var entity : CEntity;
@@ -72,16 +71,16 @@ class W3PressureSwitch extends W3PhysicalSwitch
 		{
 			entity = entities[ i ];
 			
-			
+			// check if entity is correct
 			if ( (W3ActorRemains)entity )
 			{
-				
+				// check if entity has an empty inventory
 				inventory = (CInventoryComponent)entity.GetComponentByClassName( 'CInventoryComponent' );
 				if ( inventory )
 				{
 					if ( inventory.IsEmpty() )
 					{
-						
+						// if so remove it since it was taken
 						entities.Remove( entity );
 						TurnOffIfPossible( NULL );
 						continue;
@@ -103,7 +102,7 @@ class W3PressureSwitch extends W3PhysicalSwitch
 			
 				AddTimer( 'OnCheckInventoryEntities', 0.2f, true, , , true );
 			
-				
+				// just in case
 				RemoveTimer( 'OnDelayedTurnOff' );
 				RemoveTimer( 'OnDelayedTurnOn' );
 			}
@@ -122,8 +121,8 @@ class W3PressureSwitch extends W3PhysicalSwitch
 		{
 			if ( IsOn() )
 			{
-				
-				
+				// everything is ok, there are no entites and switch is on
+				// so we need to turn it off
 				LogChannel( 'pressure', "turning off" );
 				Turn( false, (CActor)entity, false, false );
 			
@@ -134,8 +133,8 @@ class W3PressureSwitch extends W3PhysicalSwitch
 			}
 			else if ( IsSwitchingOn() )
 			{
-				
-				
+				// there are no entities, but switch is just switching on
+				// so we need to turn it off when it gets on
 				LogChannel( 'pressure', "turning off delayed" );
 				delayedTurnOffEntity = entity;
 				AddTimer( 'OnDelayedTurnOff', 0.2f, , , , true );

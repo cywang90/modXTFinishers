@@ -1,22 +1,18 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 
 class CBTTasFollowerShouldAttack extends IBehTreeTask
 {
 	protected var storageHandler : CAIStorageHandler;
 	protected var combatDataStorage : CHumanAICombatStorage;
 	
-	
+	//Init
 	function Initialize()
 	{
 		storageHandler = InitializeCombatStorage();
 		combatDataStorage = (CHumanAICombatStorage)storageHandler.Get();
 	}
 	
-	
+	///////////////////////////////////////////////////////////////////////////
 	
 	function IsAvailable() : bool
 	{

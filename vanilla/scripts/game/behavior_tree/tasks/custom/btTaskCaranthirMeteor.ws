@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2014
+/** Author : Paweł Kapała
+/***********************************************************************/
 class CBTTaskCaranthirMeteor extends CBTTaskProjectileAttack
 {	
 	var riftResourceName 					: name;
@@ -54,7 +53,7 @@ class CBTTaskCaranthirMeteor extends CBTTaskProjectileAttack
 			combatTargetPos = GetActionTarget().GetWorldPosition();
 		}
 		npcToTargetVector = npc.GetWorldPosition() - combatTargetPos;
-		
+		//npcToTargetVector = 2/3;
 		combatTargetPos = combatTargetPos + 3*VecNormalize(npcToTargetVector);
 		
 		((CActor)npc).GetVisualDebug().AddSphere( 'lineTestEnd', 0.15, npc.GetWorldPosition(), true, Color( 255, 0, 0 ), 1.0 );

@@ -1,13 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CR4HudModuleOxygenBar extends CR4HudModuleBase
+﻿class CR4HudModuleOxygenBar extends CR4HudModuleBase
 {
 	private var m_fxSetOxygeneSFF 			: CScriptedFlashFunction;
 	
-	
-	
+	// Updates
+	// -------------------------------------------------------------------------------
 	
 	private var oxygenePerc		: float;	
 		
@@ -18,7 +14,7 @@ class CR4HudModuleOxygenBar extends CR4HudModuleBase
 	private var bIsBarFull : bool;		default bIsBarFull = true;
 	private saved var isInGasArea		: bool;		default isInGasArea = false;
 	
-	 event OnConfigUI()
+	/* flash */ event OnConfigUI()
 	{
 		var flashModule : CScriptedFlashSprite;
 		var hud : CR4ScriptedHud;
@@ -30,7 +26,7 @@ class CR4HudModuleOxygenBar extends CR4HudModuleBase
 		flashModule = GetModuleFlash();
 		m_fxSetOxygeneSFF = flashModule.GetMemberFlashFunction( "setOxygene" );
 
-		
+		//ShowElement(false);
 		
 		hud = (CR4ScriptedHud)theGame.GetHud();
 						
@@ -48,7 +44,11 @@ class CR4HudModuleOxygenBar extends CR4HudModuleBase
 		
 		check = forceShowElement || player.OnCheckDiving() || (!bIsBarFull && player.IsSwimming()) || isInGasArea || (!bIsBarFull && FactsQuerySum("player_was_in_gas_area"));
 		
-		
+		/*if( check != bOxygeneBar )
+		{
+			bOxygeneBar = !bOxygeneBar;
+			ShowElement(bOxygeneBar); //#B OnUpdate
+		}*/
 		if( check )
 		{
 			UpdateOxygene();
@@ -72,7 +72,7 @@ class CR4HudModuleOxygenBar extends CR4HudModuleBase
 	public function EnableElement( enable : bool )
 	{
 		bOxygeneBar = !enable;
-		ShowElement(enable); 
+		ShowElement(enable); //#B to kill probably
 	}
 
 	public function ForceShowElement( force : bool )

@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author : Łukasz Szczepankowski
+/***********************************************************************/
 
 
 struct SRiddleNodePositionDef
@@ -103,7 +101,7 @@ class W3RiddleNode extends CGameplayEntity
 				
 			}
 			
-			
+			//StopEffects();
 			SetPosition ();
 		}
 		else

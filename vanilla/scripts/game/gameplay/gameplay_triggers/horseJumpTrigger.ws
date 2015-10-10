@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CHorseJumpTrigger extends CGameplayEntity
+﻿class CHorseJumpTrigger extends CGameplayEntity
 {
 	var lastActivation : float;
 	var triggerHeading, playerHeading : float;
@@ -56,7 +52,7 @@ class CHorseJumpTrigger extends CGameplayEntity
 				angleDist = AngleDistance( triggerHeading, playerHeading );
 				if( AbsF( angleDist ) < 15.0 )
 				{
-					horseComp.OnForceJump();
+					horseComp.OnJumpHack();
 					lastActivation = theGame.GetEngineTimeAsSeconds(); 
 				}
 			}

@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskShoot extends CBTTaskPlayAnimationEventDecorator
+﻿class CBTTaskShoot extends CBTTaskPlayAnimationEventDecorator
 {
 	public var useCombatTarget 	: bool;
 	public var attackRange		: float;
@@ -120,7 +116,7 @@ class CBTTaskShoot extends CBTTaskPlayAnimationEventDecorator
 		
 		distanceToTarget = VecDistance(npc.GetWorldPosition(),targetPos);
 		
-		
+		//desiredHeadingVec = target.GetWorldPosition() - npc.GetWorldPosition();
 		desiredHeadingVec = arrow.GetHeadingVector();
 		
 		
@@ -155,7 +151,7 @@ class CBTTaskShoot extends CBTTaskPlayAnimationEventDecorator
 		
 		if ( projShot && dodgeable )
 		{
-			
+			// used to dodge projectile before it hits
 			projectileFlightTime = distanceToTarget / arrow.projSpeed;
 			
 			((CActor)target).SignalGameplayEventParamFloat('Time2DodgeProjectile', projectileFlightTime );

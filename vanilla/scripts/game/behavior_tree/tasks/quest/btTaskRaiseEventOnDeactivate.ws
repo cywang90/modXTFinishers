@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class BTTaskRaiseEventOnDeactivate extends IBehTreeTask
+﻿class BTTaskRaiseEventOnDeactivate extends IBehTreeTask
 {
 	public var eventName : name;
 	

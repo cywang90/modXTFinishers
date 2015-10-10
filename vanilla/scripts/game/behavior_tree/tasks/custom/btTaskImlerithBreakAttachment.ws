@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskImlerithBreakAttachment extends IBehTreeTask
+﻿class CBTTaskImlerithBreakAttachment extends IBehTreeTask
 {
 	var rigidMeshComp : CRigidMeshComponent;
 	
@@ -13,7 +9,7 @@ class CBTTaskImlerithBreakAttachment extends IBehTreeTask
 			GetNPC().shieldDebris.BreakAttachment();
 			rigidMeshComp = (CRigidMeshComponent)GetNPC().shieldDebris.GetComponentByClassName( 'CRigidMeshComponent' );
 			rigidMeshComp.SetEnabled( true );
-			
+			//rigidMeshComp.ApplyForceAtPointToPhysicalObject( Vector( 0, 0, -10 ), GetNPC().shieldDebris.GetWorldPosition() );
 			
 			return true;
 		}

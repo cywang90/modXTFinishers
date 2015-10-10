@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-statemachine class CBoatRacingGateEntity extends CGameplayEntity
+﻿statemachine class CBoatRacingGateEntity extends CGameplayEntity
 {
 	public editable var nextGate : EntityHandle;
 	public editable var factOnReaching : string;
@@ -15,7 +11,7 @@ statemachine class CBoatRacingGateEntity extends CGameplayEntity
 	default isReached = false;
 	default autoState = 'Inactive';
 	
-	
+	///////////////////////////////////////////////////////
 	
 	event OnSpawned( spawnData : SEntitySpawnData )
 	{
@@ -78,7 +74,7 @@ state Active in CBoatRacingGateEntity
 	event OnEnterState( prevStateName : name )
 	{
 		parent.PlayEffect( 'active' );
-		parent.PlayEffect( 'active2' ); 
+		parent.PlayEffect( 'active2' ); // delete when proper fxes are in
 		
 		EnableTrigger( true );
 		EnableMappin( true );
@@ -109,11 +105,11 @@ state Active in CBoatRacingGateEntity
 	
 	private function EnableMappin( toggle : bool )
 	{
-		
+		// todo
 	}
 	
 	private function EnableHudMarker( toggle : bool )
 	{
-		
+		// todo
 	}
 }

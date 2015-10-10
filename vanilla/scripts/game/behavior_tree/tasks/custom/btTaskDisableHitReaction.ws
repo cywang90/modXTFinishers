@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Disable Hit Reaction
+/***********************************************************************/
+/** Copyright © 2013
+/** Author : Andrzej Kwiatkowski
+/***********************************************************************/
 
 class CBTTaskDisableHitReaction extends IBehTreeTask
 {
@@ -40,13 +39,15 @@ class CBTTaskDisableHitReactionDef extends IBehTreeTaskDefinition
 	default overrideForThisTask = true;
 };
 
-
+//Disable hit reaction and critical state reaction
 class CBTTaskSetUnstoppable extends IBehTreeTask
 {
 	var onActivate 				: bool;
 	var onDeactivate 			: bool;
+	var onSuccess 				: bool;
 	var overrideForThisTask 	: bool;
 	var makeUnpushable			: bool;
+	var enable 	 				: bool;
 	
 	var m_savedPriority			: EInteractionPriority;
 	
@@ -55,7 +56,7 @@ class CBTTaskSetUnstoppable extends IBehTreeTask
 		
 		if ( onActivate || overrideForThisTask )
 		{
-			GetNPC().SetUnstoppable( true );
+			GetNPC().SetUnstoppable( enable );
 			if( makeUnpushable )
 			{
 				m_savedPriority  = GetNPC().GetInteractionPriority();
@@ -70,7 +71,7 @@ class CBTTaskSetUnstoppable extends IBehTreeTask
 	{
 		if ( overrideForThisTask )
 		{
-			GetNPC().SetUnstoppable( false );
+			GetNPC().SetUnstoppable( !enable );
 			if( makeUnpushable )
 			{
 				GetNPC().SetInteractionPriority( m_savedPriority );
@@ -78,8 +79,15 @@ class CBTTaskSetUnstoppable extends IBehTreeTask
 		}
 		else if ( onDeactivate )
 		{
-			GetNPC().SetUnstoppable( true );
+			GetNPC().SetUnstoppable( enable );
 		}
+	}
+	
+	function OnCompletion( success : bool )
+	{
+		
+		if ( onSuccess && success )
+			GetNPC().SetUnstoppable( enable );
 	}
 };
 
@@ -89,10 +97,13 @@ class CBTTaskSetUnstoppableDef extends IBehTreeTaskDefinition
 
 	editable var onActivate 			: bool;
 	editable var onDeactivate 			: bool;
+	editable var onSuccess 				: bool;
 	editable var overrideForThisTask 	: bool;
 	editable var makeUnpushable			: bool;
+	editable var enable  				: bool;
 	
 	hint makeUnpushable = "increase interaction priority to make the npc unpushable";
 	
 	default overrideForThisTask = true;
+	default enable = true;
 };

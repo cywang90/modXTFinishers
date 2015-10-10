@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskChangeAppearance extends IBehTreeTask
+﻿class CBTTaskChangeAppearance extends IBehTreeTask
 {
 	public var appearanceName		: name;
 	public var onActivate 			: bool;

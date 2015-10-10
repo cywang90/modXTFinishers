@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 class CBehTreeCombatStyleManager extends IBehTreeTask
 {
 	private var storageHandler : CAIStorageHandler;
@@ -89,7 +85,7 @@ class CBehTreeCombatStyleManager extends IBehTreeTask
 	
 	function OnDeactivate()
 	{
-		
+		//ProjectileFailSafe();
 	}
 	
 	function ProjectileFailSafe()
@@ -111,7 +107,7 @@ class CBehTreeCombatStyleManager extends IBehTreeTask
 	
 	function CheckIfShouldSwitchToMelee( sqrDist : float )
 	{
-		if ( sqrDist <= 36 ) 
+		if ( sqrDist <= 36 ) //6^2
 		{
 			combatDataStorage.LeaveCurrentCombatStyle();
 		}
@@ -123,7 +119,7 @@ class CBehTreeCombatStyleManager extends IBehTreeTask
 	
 	function CheckIfShouldSwitchToRange( sqrDist : float )
 	{
-		if ( sqrDist > 100 ) 
+		if ( sqrDist > 100 ) //10^2
 		{
 			if( rangedWeaponType == 'bow' )
 				combatDataStorage.SetPreferedCombatStyle( EBG_Combat_Bow );

@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class BTTaskHandleHorseCollision extends BTTaskGameplayEventListener
+﻿class BTTaskHandleHorseCollision extends BTTaskGameplayEventListener
 {	
 	function IsAvailable() : bool
 	{

@@ -1,12 +1,11 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Witcher Script file - Trigger for blocking gameplay actions  
+/***********************************************************************/
+/** Copyright © 2013
+/** Author : Bartosz Bigaj
+/***********************************************************************/
 
-
-
-
-
-class W3BlockGameplayActionsTrigger extends CGameplayEntity 
+class W3BlockGameplayActionsTrigger extends CGameplayEntity //#B for now it can block only meditation
 {
 	private editable var blockedActions	: array< EInputActionBlock >;
 	private editable var sourceName 	: name;
@@ -26,10 +25,10 @@ class W3BlockGameplayActionsTrigger extends CGameplayEntity
 		
 		if(sheatheWeaponIfDrawn)
 		{
-			
+			//force sheathe weapon
 			thePlayer.OnMeleeForceHolster(true);
 				
-			
+			//go to exploration state
 			thePlayer.DisableCombatState();
 		}
 	

@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** gameplayLightComponent - City lights turn on/off based on TOD
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author : Shadi Dadenji
+/***********************************************************************/
 
 
 import class CCityLightManager extends IGameSystem

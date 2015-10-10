@@ -1,11 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Copyright © 2012-2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
-
-
-
-
+// increases attack power
 class W3Potion_Thunderbolt extends W3RaisePowerStatEffect
 {
 	default effectType = EET_Thunderbolt;

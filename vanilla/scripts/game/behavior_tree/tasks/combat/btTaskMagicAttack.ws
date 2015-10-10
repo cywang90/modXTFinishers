@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Copyright © 2013 CD Projekt RED
+/** Author : Patryk Fiutowski, Andrzej Kwiatkowski
+/***********************************************************************/
 
 abstract class CBTTaskCollisionAttack extends CBTTaskAttack
 {
@@ -69,8 +68,8 @@ abstract class CBTTaskMagicAttack extends CBTTaskCollisionAttack
 					theGame.GetEntitiesByTag( fxDummyEntityTag, fxDummyEntity );
 					if ( fxDummyEntity.Size() > 0 )
 					{
-						
-						
+						//AK: fx can be played only between 2 entities anyway, tag is custom set,
+						//it's on implementation side to ensure that tag is unique and returns one result.
 						actor.PlayEffect( effectName, fxDummyEntity[0] );
 						fxDummyEntity[0].PlayEffect( dummyEntityEffectName );
 					}
@@ -102,8 +101,13 @@ abstract class CBTTaskMagicAttackDef extends CBTTaskCollisionAttackDef
 	default dodgeable = true;
 }
 
+struct SFxOnAnimEvent
+{
+	editable var fxOnAnimEvent : name;
+	editable var animEvent : name;
+}
 
-
+// magic melee attack
 class CBTTaskMagicMeleeAttack extends CBTTaskMagicAttack
 {
 	public var resourceName : name;
@@ -113,6 +117,18 @@ class CBTTaskMagicMeleeAttack extends CBTTaskMagicAttack
 	private var dealDmgOnDeactivate : bool;
 	
 	private var couldntLoadResource : bool;
+	
+	private var effectHitName		: name;
+	
+	private var entity 		: CEntity;
+	
+	private var fxOnAnimEvent : array<SFxOnAnimEvent>;
+	
+	var foundPos			: bool;
+	var pos					: Vector;
+	var rot					: EulerAngles;
+	
+	default foundPos = false;
 	
 	function IsAvailable() : bool
 	{
@@ -159,9 +175,8 @@ class CBTTaskMagicMeleeAttack extends CBTTaskMagicAttack
 	function SpawnEffect( attackData : CPreAttackEventData ) : bool
 	{
 		var effectName 	: name;
-		var entity 		: CEntity;
-		var pos			: Vector;
-		var rot			: EulerAngles;
+		//var pos			: Vector;
+		//var rot			: EulerAngles;
 		
 		switch ( attackData.swingType )
 		{
@@ -169,8 +184,8 @@ class CBTTaskMagicMeleeAttack extends CBTTaskMagicAttack
 			{
 				switch ( attackData.swingDir )
 				{
-					case ASD_LeftRight: 	effectName = 'left'; 	break;
-					case ASD_RightLeft: 	effectName = 'right'; 	break;
+					case ASD_LeftRight: 	effectName = 'left'; effectHitName = 'blood_left';	break;
+					case ASD_RightLeft: 	effectName = 'right'; effectHitName = 'blood_right'; 	break;
 					default: break;
 				}
 				break;
@@ -179,8 +194,8 @@ class CBTTaskMagicMeleeAttack extends CBTTaskMagicAttack
 			{
 				switch ( attackData.swingDir )
 				{
-					case ASD_UpDown: 		effectName = 'down';	break;
-					case ASD_DownUp: 		effectName = 'up';		break;
+					case ASD_UpDown: 		effectName = 'down'; effectHitName = 'blood_down';	break;
+					case ASD_DownUp: 		effectName = 'up'; effectHitName = 'blood_up';		break;
 					default: break;
 				}
 				break;
@@ -189,8 +204,8 @@ class CBTTaskMagicMeleeAttack extends CBTTaskMagicAttack
 			{
 				switch ( attackData.swingDir )
 				{
-					case ASD_LeftRight: 	effectName = 'diagonal_up_left'; 	break;
-					case ASD_RightLeft: 	effectName = 'diagonal_up_right'; 	break;
+					case ASD_LeftRight: 	effectName = 'diagonal_up_left'; effectHitName = 'blood_diagonal_up_left'; 	break;
+					case ASD_RightLeft: 	effectName = 'diagonal_up_right'; effectHitName = 'blood_diagonal_up_right'; 	break;
 					default: break;
 				}
 				break;
@@ -199,8 +214,8 @@ class CBTTaskMagicMeleeAttack extends CBTTaskMagicAttack
 			{
 				switch ( attackData.swingDir )
 				{
-					case ASD_LeftRight: 	effectName = 'diagonal_down_left';	break;
-					case ASD_RightLeft: 	effectName = 'diagonal_down_right';	break;
+					case ASD_LeftRight: 	effectName = 'diagonal_down_left'; effectHitName = 'blood_diagonal_down_left';	break;
+					case ASD_RightLeft: 	effectName = 'diagonal_down_right'; effectHitName = 'blood_diagonal_down_right';	break;
 					default: break;
 				}
 				break;
@@ -213,10 +228,13 @@ class CBTTaskMagicMeleeAttack extends CBTTaskMagicAttack
 		
 		if( effectName )
 		{
-			GetEffectPositionAndRotation(pos, rot);
-			
+			if (!foundPos)
+			{
+				GetEffectPositionAndRotation(pos, rot);
+			}
+			// spawn entity and play effect on it;
 			entity = theGame.CreateEntity( effectEntityTemplate, pos, rot );
-			
+			//entity.CreateAttachment(GetCombatTarget());
 			if ( entity )
 			{
 				entity.PlayEffect(effectName);
@@ -236,13 +254,61 @@ class CBTTaskMagicMeleeAttack extends CBTTaskMagicAttack
 		pos.Z += 0.7;
 		rot = owner.GetWorldRotation();
 	}
+	
+	function OnGameplayEvent( eventName : name ) : bool
+	{
+		var witcher : W3PlayerWitcher = GetWitcherPlayer();
+		
+		if ( eventName == 'DamageInstigated' )
+		{
+			if ( IsNameValid( effectHitName ) && ( GetLocalTime() > fxTimeCooldown ))
+			{
+				if ( witcher == GetCombatTarget() && ( witcher.IsQuenActive( true ) || witcher.IsQuenActive( false ) ) )
+					return false;
+				
+				fxTimeCooldown = GetLocalTime() + applyFXCooldown;
+				entity.PlayEffect(effectHitName);
+			}
+		}
+		
+		return super.OnGameplayEvent(eventName);
+	}
+	
+	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo ) : bool
+	{
+		var res 			: bool;
+		var target 			: CNode = GetCombatTarget();
+		var owner 			: CActor = GetNPC();
+		var l_entity		: CEntity;
+		var i 				: int;
+		
+		
+		GetEffectPositionAndRotation(pos, rot);
+		//pos.Z -= 0.7;
+		foundPos = true;
+		// spawn entity and play effect on it;
+		l_entity = theGame.CreateEntity( effectEntityTemplate, pos, rot );
+		
+		res = super.OnAnimEvent(animEventName,animEventType, animInfo);
+		
+		for ( i = 0 ; i < fxOnAnimEvent.Size() ; i += 1 )
+		{
+			if( animEventName == fxOnAnimEvent[i].animEvent )
+			{
+				l_entity.PlayEffect( fxOnAnimEvent[i].fxOnAnimEvent, target );
+				return true;
+			}
+		}
+		return false;
+	}
 }
 
 class CBTTaskMagicMeleeAttackDef extends CBTTaskMagicAttackDef
 {
 	default instanceClass = 'CBTTaskMagicMeleeAttack';
-
+	
 	editable inlined var resourceName	 	: CBehTreeValCName;
+	editable var fxOnAnimEvent 				: array<SFxOnAnimEvent>;
 }
 
 class CBTTaskMagicRangeAttack extends CBTTaskMagicAttack
@@ -286,7 +352,7 @@ class CBTTaskMagicRangeAttackDef extends CBTTaskMagicAttackDef
 	default instanceClass = 'CBTTaskMagicRangeAttack';
 }
 
-
+// magic fx attack
 class CBTTaskMagicFXAttack extends CBTTaskMagicAttack
 {
 	public var resourceName : name;
@@ -347,9 +413,9 @@ class CBTTaskMagicFXAttack extends CBTTaskMagicAttack
 		if( effectName )
 		{
 			GetEffectPositionAndRotation(pos, rot);
-			
+			// spawn entity and play effect on it;
 			entity = theGame.CreateEntity( effectEntityTemplate, pos, rot );
-			
+			//entity.CreateAttachment(GetCombatTarget());
 			if ( entity )
 			{
 				entity.PlayEffect(effectName);

@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 enum ENewDoorOperation
 {
 	NDO_Open,
@@ -31,6 +27,7 @@ class W3NewDoor extends W3LockableEntity
 	private var updateTimeLeft				: float;
 	private var playerInsideTrapdoorTrigger : bool;		default playerInsideTrapdoorTrigger = false;
 	default updateDuration = 2;
+	private var enableDeniedAreaInCombat	: bool; default enableDeniedAreaInCombat = true;
 
 	event OnSpawned( spawnData : SEntitySpawnData ) 
 	{
@@ -41,6 +38,11 @@ class W3NewDoor extends W3LockableEntity
 	function GetOpeningAngle() : float
 	{
 		return openAngle;
+	}
+	
+	function EnableDeniedAreaInCombat( enable : bool )
+	{
+		enableDeniedAreaInCombat = enable;
 	}
 	
 	event OnPlayerOpenedDoors()
@@ -96,7 +98,7 @@ class W3NewDoor extends W3LockableEntity
 				}
 			}
 			if( !doorsCmp.IsInteractive() )
-			{
+			{//if pushable
 				doorsCmp.AddDoorUser( activatorPlayer );		
 			}
 		}
@@ -139,7 +141,7 @@ class W3NewDoor extends W3LockableEntity
 		}
 	}
 	
-	
+	// called from CDoorComponent when "opened" state is reached
 	event OnOpened()
 	{		
 		lockedDA.SetEnabled( false );		
@@ -147,7 +149,10 @@ class W3NewDoor extends W3LockableEntity
 	
 	event OnCombatStarted()
 	{
-		lockedDA.SetEnabled( true );
+		if ( enableDeniedAreaInCombat )
+		{
+			lockedDA.SetEnabled( true );
+		}
 	}
 	
 	event OnCombatEnded()
@@ -242,7 +247,7 @@ class W3NewDoor extends W3LockableEntity
 	{
 		var i, size : int;
 		
-		
+		// todo check if locked on opening/closing?
 		size = operations.Size();
 		for ( i = 0; i < size; i += 1 )
 		{

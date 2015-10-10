@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2012-2013
+/** Author : Rafal Jarczewski, Tomek Kozera
+/***********************************************************************/
 
 struct SCraftsman
 {
@@ -50,7 +49,7 @@ class W3CraftsmanComponent extends W3MerchantComponent
 			{
 				return true;
 			}
-			else if ( ECT_Crafter == type && ( craftsmanData[i].type == ECT_Smith || craftsmanData[i].type == ECT_Armorer ) )
+			else if ( ECT_Crafter == type && ( craftsmanData[i].type == ECT_Smith || craftsmanData[i].type == ECT_Armorer || craftsmanData[i].type == ECT_Enchanter ) )
 			{
 				return true;
 			}
@@ -82,12 +81,13 @@ class W3CraftsmanComponent extends W3MerchantComponent
 		
 		owner = (W3MerchantNPC) this.GetEntity();
 		
-		
+		//Removes all the tags that the entity might have had to avoid duplicates
 		owner.RemoveTag( 'Blacksmith' );
 		owner.RemoveTag( 'Armorer' );
 		owner.RemoveTag( 'Apprentice' );
 		owner.RemoveTag( 'Specialist' );
 		owner.RemoveTag( 'Master' );
+		owner.RemoveTag( 'type_enchanter' );
 		
 		if( owner )
 		{
@@ -102,6 +102,13 @@ class W3CraftsmanComponent extends W3MerchantComponent
 				owner.AddTag( 'Armorer' );
 				SetCrafterLevelTag( ECT_Armorer );
 			}
+			
+			if( IsCraftsmanType( ECT_Enchanter ) )
+			{
+				owner.AddTag( 'type_enchanter' );
+				SetCrafterLevelTag( ECT_Enchanter );
+			}
+
 		}
 		
 	}
@@ -128,4 +135,68 @@ class W3CraftsmanComponent extends W3MerchantComponent
 		}
 	}
 	
+	protected function LoadSchematicsXMLData() : array<SEnchantmentSchematic>
+	{
+		var dm : CDefinitionsManagerAccessor;
+		var main, ingredients : SCustomNode;
+		var tmpName : name;
+		var tmpInt : int;
+		var schem : SEnchantmentSchematic;
+		var i : int;
+		var schematics : array<SEnchantmentSchematic>;
+		
+		dm = theGame.GetDefinitionsManager();
+		main = dm.GetCustomDefinition('crafting_schematics');
+		
+		for(i=0; i<main.subNodes.Size(); i+=1)
+		{
+			dm.GetCustomNodeAttributeValueName(main.subNodes[i], 'name_name', tmpName);
+			
+			if(!StrContains(NameToString(tmpName), "Runeword") && !StrContains(NameToString(tmpName), "Glyphword"))
+				continue;
+				
+			schem.schemName = tmpName;
+			
+			if(dm.GetCustomNodeAttributeValueInt(main.subNodes[i], 'level', tmpInt))
+				schem.level = tmpInt;	
+				
+			schematics.PushBack(schem);		
+			
+			//clear
+			schem.level = -1;
+			schem.schemName = '';
+			tmpName = '';
+		}
+		
+		return schematics;
+	}
+	
+	function GetEnchanterItems(addRuneword : bool, addGlyphword : bool) : array< CName >
+	{		
+		var level   	: ECraftsmanLevel;
+		var resultList  : array< CName >;
+		var schematics	: array<SEnchantmentSchematic>;
+		var i 			: int;
+		var isRuneword	: bool;
+		
+		level = GetCraftsmanLevel( ECT_Enchanter );
+		
+		// TEMP:
+		// level = ECL_Grand_Master;
+		
+		schematics = LoadSchematicsXMLData();
+		
+		for(i=0; i<schematics.Size(); i+=1)
+		{
+			if(schematics[i].level > level)
+				continue;
+				
+			isRuneword = StrStartsWith(NameToString(schematics[i].schemName), "Runeword");
+			
+			if((isRuneword && addRuneword) || (!isRuneword && addGlyphword))
+				resultList.PushBack(schematics[i].schemName);
+		}
+		
+		return resultList;
+	}
 }

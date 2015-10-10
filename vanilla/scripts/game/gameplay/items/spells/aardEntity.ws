@@ -1,9 +1,6 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2012-2013 Patryk Fiutowski, Tomek Kozera
+/***********************************************************************/
 
 struct SAardEffects
 {
@@ -70,7 +67,7 @@ statemachine class W3AardEntity extends W3SignEntity
 	{
 		if(IsAlternateCast())
 		{
-			
+			//in case of 360 aard don't call super since we don't want any attachment done			
 			
 			if((CPlayer)owner.GetActor())
 				GetWitcherPlayer().FailFundamentalsFirstAchievementCondition();
@@ -85,7 +82,7 @@ statemachine class W3AardEntity extends W3SignEntity
 		projectileCollision.PushBack( 'Door' );
 		projectileCollision.PushBack( 'Static' );		
 		projectileCollision.PushBack( 'Character' );
-		projectileCollision.PushBack( 'ParticleCollider' ); 
+		projectileCollision.PushBack( 'ParticleCollider' ); //Added so it can collide with Aard, but Geralt isn't blocked. Used for QFM_Hit_By_Aard on otherwise non-colliding objects. DZ
 		
 		if ( owner.ChangeAspect( this, S_Magic_s01 ) )
 		{
@@ -98,11 +95,11 @@ statemachine class W3AardEntity extends W3SignEntity
 		}
 	}
 
-	
+	//ignore
 	event OnAardHit( sign : W3AardProjectile ) {}
 
-	
-	
+	// HACK: postponing ProcessThrow to MainTick
+	// We do this to avoid calling StaticTrace during physics fetch - ProcessThrow is triggered by animation event.
 	
 	var processThrow_alternateCast : bool;
 	
@@ -110,7 +107,7 @@ statemachine class W3AardEntity extends W3SignEntity
 	{
 		if ( owner.IsPlayer() )
 		{
-			
+			// player's ProcessThrow() is already called on MainTick
 			ProcessThrow_MainTick( alternateCast );
 		}
 		else
@@ -125,15 +122,15 @@ statemachine class W3AardEntity extends W3SignEntity
 		ProcessThrow_MainTick( processThrow_alternateCast );
 	}
 	
-	
+	// HACK ends here
 	
 	protected function ProcessThrow_MainTick( alternateCast : bool )
 	{
-		var projectile	: W3SignProjectile;
+		var projectile	: W3AardProjectile;
 		var spawnPos, collisionPos, collisionNormal, waterCollTestPos : Vector;
 		var spawnRot : EulerAngles;
 		var heading : Vector;
-		var distance, waterZ : float;
+		var distance, waterZ, staminaDrain : float;
 		var ownerActor : CActor;
 		var dispersionLevel : int;
 		var attackRange : CAIAttackRange;
@@ -148,7 +145,7 @@ statemachine class W3AardEntity extends W3SignEntity
 			GCameraShake(effects[fireMode].cameraShakeStrength, true, this.GetWorldPosition(), 30.0f);
 		}
 		
-		
+		//set distance 
 		if ( owner.CanUseSkill( S_Magic_s20 ) )
 		{
 			switch(owner.GetSkillLevel(S_Magic_s20))
@@ -209,19 +206,19 @@ statemachine class W3AardEntity extends W3SignEntity
 				attackRange = theGame.GetAttackRangeForEntity( this, 'blast' );
 		}
 		
-		
+		// set spawning position
 		spawnPos = GetWorldPosition();
 		spawnRot = GetWorldRotation();
 		heading = this.GetHeadingVector();
 		
-		
-		
-		
+		//we move the projectile back as a hackfix for situations where:
+		// geralt would stand facing a wall and thus create projectile inside wall causing it to work on the other side of the collision
+		// geralt would stande close to a fireplace and his projectile would be created 'beyond' it and thus not work with it
 		if ( alternateCast )
 		{
 			spawnPos.Z -= 0.5;
 			
-			projectile = (W3SignProjectile)theGame.CreateEntity( aspects[fireMode].projTemplate, spawnPos - heading * 0.7, spawnRot );				
+			projectile = (W3AardProjectile)theGame.CreateEntity( aspects[fireMode].projTemplate, spawnPos - heading * 0.7, spawnRot );				
 			projectile.ExtInit( owner, skillEnum, this );	
 			projectile.SetAttackRange( attackRange );
 			projectile.SphereOverlapTest( distance, projectileCollision );			
@@ -230,14 +227,19 @@ statemachine class W3AardEntity extends W3SignEntity
 		{			
 			spawnPos -= 0.7 * heading;
 			
-			projectile = (W3SignProjectile)theGame.CreateEntity( aspects[fireMode].projTemplate, spawnPos, spawnRot );				
+			projectile = (W3AardProjectile)theGame.CreateEntity( aspects[fireMode].projTemplate, spawnPos, spawnRot );				
 			projectile.ExtInit( owner, skillEnum, this );							
 			projectile.SetAttackRange( attackRange );
-			
+			// shoot cake 3.5 m height and 30 m/s fast
 			projectile.ShootCakeProjectileAtPosition( aspects[fireMode].cone, 3.5f, 0.0f, 30.0f, spawnPos + heading * distance, distance, projectileCollision );			
 		}
 		
-		
+		if(ownerActor.HasAbility('Glyphword 6 _Stats', true))
+		{
+			staminaDrain = CalculateAttributeValue(ownerActor.GetAttributeValue('glyphword6_stamina_drain_perc'));
+			projectile.SetStaminaDrainPerc(staminaDrain);			
+		}
+		//FX - different fx when hitting water
 		if(alternateCast)
 		{
 			movingAgent = (CMovingPhysicalAgentComponent)ownerActor.GetMovingAgentComponent();
@@ -249,13 +251,13 @@ statemachine class W3AardEntity extends W3SignEntity
 			waterCollTestPos.Z += waterTestOffsetZ;
 			collisionGroupNames.PushBack('Terrain');
 			
-			
+			//water Z
 			waterZ = theGame.GetWorld().GetWaterLevel(waterCollTestPos, true);
 			
-			
+			//terrain collision
 			if(theGame.GetWorld().StaticTrace(GetWorldPosition(), waterCollTestPos, collisionPos, collisionNormal, collisionGroupNames))
 			{
-				
+				//if water level is the highest of all
 				if(waterZ > collisionPos.Z && waterZ > waterCollTestPos.Z)
 					hitsWater = true;
 				else
@@ -263,16 +265,17 @@ statemachine class W3AardEntity extends W3SignEntity
 			}
 			else
 			{
-				
+				//no terrain - just water level check
 				hitsWater = (waterCollTestPos.Z <= waterZ);
 			}
 		}
 		
 		PlayAardFX(hitsWater);
+		ownerActor.OnSignCastPerformed(ST_Aard, alternateCast);
 		AddTimer('DelayedDestroyTimer', 0.1, true, , , true);
 	}
 	
-	
+	//plays aard fx
 	public final function PlayAardFX(hitsWater : bool)
 	{
 		var dispersionLevel : int;
@@ -283,10 +286,10 @@ statemachine class W3AardEntity extends W3SignEntity
 			
 			if(dispersionLevel == 1)
 			{			
-				
+				//base
 				PlayEffect( effects[fireMode].baseCommonThrowEffectUpgrade1 );
 			
-				
+				//terrain specific
 				if(hitsWater)
 					PlayEffect( effects[fireMode].throwEffectWaterUpgrade1 );
 				else
@@ -294,10 +297,10 @@ statemachine class W3AardEntity extends W3SignEntity
 			}
 			else if(dispersionLevel == 2)
 			{			
-				
+				//base
 				PlayEffect( effects[fireMode].baseCommonThrowEffectUpgrade2 );
 			
-				
+				//terrain specific
 				if(hitsWater)
 					PlayEffect( effects[fireMode].throwEffectWaterUpgrade2 );
 				else
@@ -305,10 +308,10 @@ statemachine class W3AardEntity extends W3SignEntity
 			}
 			else if(dispersionLevel == 3)
 			{			
-				
+				//base
 				PlayEffect( effects[fireMode].baseCommonThrowEffectUpgrade3 );
 			
-				
+				//terrain specific
 				if(hitsWater)
 					PlayEffect( effects[fireMode].throwEffectWaterUpgrade3 );
 				else
@@ -317,20 +320,20 @@ statemachine class W3AardEntity extends W3SignEntity
 		}
 		else
 		{
-			
+			//base
 			PlayEffect( effects[fireMode].baseCommonThrowEffect );
 		
-			
+			//terrain specific
 			if(hitsWater)
 				PlayEffect( effects[fireMode].throwEffectWater );
 			else
 				PlayEffect( effects[fireMode].throwEffectSoil );
 		}
 		
-		
+		//bonus sp fx
 		if(owner.CanUseSkill(S_Magic_s12))
 		{
-			
+			//different fx based on what is the current range of aard
 			switch(dispersionLevel)
 			{
 				case 0:
@@ -348,10 +351,10 @@ statemachine class W3AardEntity extends W3SignEntity
 			}
 		}
 		
-		
+		//bonus dmg fx
 		if(owner.CanUseSkill(S_Magic_s06))
 		{
-			
+			//different fx based on what is the current range of aard
 			switch(dispersionLevel)
 			{
 				case 0:
@@ -429,7 +432,7 @@ state AardConeCast in W3AardEntity extends NormalCast
 	}
 }
 
-state AardCircleCast in W3AardEntity extends NormalCast	
+state AardCircleCast in W3AardEntity extends NormalCast
 {
 	event OnThrowing()
 	{

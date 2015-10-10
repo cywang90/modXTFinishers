@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-import class CSwitchableFoliageComponent extends CComponent
+﻿import class CSwitchableFoliageComponent extends CComponent
 {
 	private var currEntryName : name;
 
@@ -17,6 +13,6 @@ import class CSwitchableFoliageComponent extends CComponent
 		return currEntryName;
 	}
 
-	
+	// Set tree resource entry by name
 	import private final function SetEntry( entryName : name );
 }

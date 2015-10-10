@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskSpawnEntityAttack extends CBTTaskAttack
+﻿class CBTTaskSpawnEntityAttack extends CBTTaskAttack
 {
 	var offsetVector	 	: Vector;
 	var ressourceName		: name;
@@ -103,7 +99,7 @@ class CBTTaskSpawnEntityAttackDef extends CBTTaskAttackDef
 {
 	default instanceClass = 'CBTTaskSpawnEntityAttack';
 
-	
+	//editable var projEntityVal	 : name;
 	editable var ressourceName		: CBehTreeValCName;
 	editable var spawnAnimEventName	: name;
 	editable var entityTemplate		: CEntityTemplate;

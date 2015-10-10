@@ -1,16 +1,12 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
-
-
-
-
-
-
+﻿//----------------------------------------------------------------------
+// W3ScentComponent
+//----------------------------------------------------------------------
+//>---------------------------------------------------------------------
+// Entity with this component attracts monsters/animals
+//----------------------------------------------------------------------
+// Copyright © 2014 CDProjektRed
+// Author : R.Pergent - 01-July-2014
+//----------------------------------------------------------------------
 enum EFoodGroup
 {
 	FG_Corpse 		= 1,
@@ -21,9 +17,9 @@ enum EFoodGroup
 }
 class W3ScentComponent extends CR4Component
 {
-	
-	
-	
+	//>---------------------------------------------------------------------
+	// VARIABLES
+	//----------------------------------------------------------------------
 	protected editable 	var 	foodGroup					: EFoodGroup;
 	protected editable 	var		attractionRange				: float;
 	protected editable  var		deadAttractionRange			: float;
@@ -37,17 +33,17 @@ class W3ScentComponent extends CR4Component
 	hint deadAttractionRange		= "Should the attraction range be different when the actor is dead (-1 means no change)";
 	hint bleedingAttractionRange	= "Should the attraction range be different when the actor bleeds (-1 means no change)";
 	
-	
-	
-	
-	
+	// Private
+	//>---------------------------------------------------------------------
+	// GETTERS
+	//----------------------------------------------------------------------
 	public function GetFoodGroup() 		: EFoodGroup				{		return foodGroup;			}
-	
-	
-	
+	//>---------------------------------------------------------------------
+	// SETTERS
+	//----------------------------------------------------------------------
 	public function SetAttractionRange ( _Value : float )			{	attractionRange = _Value;		}
-	
-	
+	//>---------------------------------------------------------------
+	//----------------------------------------------------------------
 	public function IsInGroup( _FoodGroup : int ) : bool
 	{
 		var enumInt	: int;		
@@ -58,8 +54,8 @@ class W3ScentComponent extends CR4Component
 		}
 		return false;
 	}
-	
-	
+	//>---------------------------------------------------------------
+	//----------------------------------------------------------------
 	public function IsDetected( _ByWhom : CActor ) : bool
 	{
 		var l_pos, l_actorPos	: Vector;
@@ -78,8 +74,8 @@ class W3ScentComponent extends CR4Component
 		
 		return true;
 	}
-	
-	
+	//>---------------------------------------------------------------
+	//----------------------------------------------------------------
 	public function GetAttractionRange()	: float
 	{
 		var l_actor 			: CActor;

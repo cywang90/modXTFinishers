@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Copyright © 2013
+/** Author : Łukasz Szczepankowski
+/***********************************************************************/
 
 class W3MusicBandActivatorArea extends CEntity
 {
@@ -88,7 +87,7 @@ class W3MusicBandActivatorArea extends CEntity
 		
 		activeMusicians.Clear();
 		
-		
+		// check actors inside trigger within range of 50m
 		activeArea.GetGameplayEntitiesInArea( entitites, 50.0f, true );
 		for ( i=0; i < entitites.Size(); i+=1 )
 		{

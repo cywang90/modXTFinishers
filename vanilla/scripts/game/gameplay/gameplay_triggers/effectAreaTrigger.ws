@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3EffectAreaTrigger extends CGameplayEntity
+﻿class W3EffectAreaTrigger extends CGameplayEntity
 {
 	editable var effect 						: EEffectType;
 	editable var useDefaultValuesFromXML 		: bool;

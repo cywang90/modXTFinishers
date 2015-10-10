@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 struct SIdleAEntryGeneratorParam
 {
 	editable var creatureEntry 		: SCreatureEntryEntryGeneratorNodeParam;

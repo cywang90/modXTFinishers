@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskReactionSystemLogReport extends IBehTreeTask
+﻿class CBTTaskReactionSystemLogReport extends IBehTreeTask
 {
 	var reactionName : string;
 	var message : string;

@@ -1,14 +1,10 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTCondHasActorWeaponDrawn extends IBehTreeTask
+﻿class CBTCondHasActorWeaponDrawn extends IBehTreeTask
 {	
 	function IsAvailable() : bool
 	{
 		var actor : CActor = GetActor();
 		
-		if( actor.HasWeaponDrawn( false ) ) 
+		if( actor.HasWeaponDrawn( false ) ) // dont treat fists as weapon
 		{	
 			return true;
 		}

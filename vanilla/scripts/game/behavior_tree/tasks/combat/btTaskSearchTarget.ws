@@ -1,27 +1,23 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
-
-
-
-
-
-
-
+﻿//>--------------------------------------------------------------------------
+// BTTaskSearchTarget
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Generate a frost area from which spike of ice will attack the target
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// R.Pergent - 08-July-2014
+// Copyright © 2014 CD Projekt RED
+//---------------------------------------------------------------------------
 class BTTaskSearchTarget extends IBehTreeTask
 {
-	
-	
-	
+	//>--------------------------------------------------------------------------
+	// VARIABLES
+	//---------------------------------------------------------------------------	
 	public 	var namedTarget : name;
-	
+	// private
 	private var m_LastKnowPosition	: Vector;	
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function OnActivate() : EBTNodeStatus
 	{
 		var l_npc 			: CNewNPC = GetNPC();
@@ -66,8 +62,8 @@ class BTTaskSearchTarget extends IBehTreeTask
 		
 		return BTNS_Active;
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	latent function Main() : EBTNodeStatus
 	{
 		var l_targetPos : Vector;
@@ -83,13 +79,13 @@ class BTTaskSearchTarget extends IBehTreeTask
 	}
 
 }
-
-
+//>--------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 class BTTaskSearchTargetDef extends IBehTreeTaskDefinition
 {
 	default instanceClass = 'BTTaskSearchTarget';
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	private editable var namedTarget : name;
 	
 	default namedTarget = 'DangerSource';

@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Copyright © 2011-2015
+/** Author :
+/***********************************************************************/
 
 import class CDLCManager extends CObject
 {
@@ -20,6 +19,16 @@ import class CDLCManager extends CObject
 	{
 		return IsDLCAvailable('dlc_009_001') && hasSaveDataToLoad();
 	}
+	
+	public function IsEP1Available():bool
+	{
+		return IsDLCAvailable('ep1');
+	}	
+	
+	public function IsEP2Available():bool
+	{
+		return IsDLCAvailable('ep2');
+	}		
 	
 	public function IsAnyDLCAvailable():bool
 	{

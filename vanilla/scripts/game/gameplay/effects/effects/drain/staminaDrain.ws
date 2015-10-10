@@ -1,11 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : Andrzej Kwiatkowski
+/***********************************************************************/
 
-
-
-
-
+//used for stamin drain
 class W3Effect_StaminaDrain extends CBaseGameplayEffect
 {
 	private var effectValueDrain	: SAbilityAttributeValue;

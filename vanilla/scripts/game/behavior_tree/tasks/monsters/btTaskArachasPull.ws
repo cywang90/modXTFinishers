@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskArachasPull extends CBTTask3StateProjectileAttack
+﻿class CBTTaskArachasPull extends CBTTask3StateProjectileAttack
 {
 	var finishAttack 		: bool;
 	

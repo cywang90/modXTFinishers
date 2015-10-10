@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file - Popup classes used by ingameMenu
+/***********************************************************************/
+/** Copyright © 2015 CDProjektRed
+/** Author : Jason Slama
+/***********************************************************************/
 
 class W3ApplyLoadConfirmation extends ConfirmationPopupData
 {
@@ -102,7 +101,7 @@ class W3DeleteSaveConf extends ConfirmationPopupData
 			menuRef.disableAccountPicker = false;
 			menuRef.SetIgnoreInput(false);
 		}
-		super.ClosePopup();
+		//super.ClosePopup();
 	}
 		
 	protected function OnUserDecline() : void

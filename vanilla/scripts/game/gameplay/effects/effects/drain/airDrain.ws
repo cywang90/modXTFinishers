@@ -1,11 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
-
-
-
-
+//used for non-diving air drain
 class W3Effect_AirDrain extends CBaseGameplayEffect
 {
 	default effectType = EET_AirDrain;
@@ -19,6 +17,13 @@ class W3Effect_AirDrain extends CBaseGameplayEffect
 		var drain : float;
 		
 		super.OnUpdate(deltaTime);
+		
+		if(isOnPlayer && thePlayer.CanPlaySpecificVoiceset() )
+		{
+			thePlayer.PlayVoiceset( 100, "coughing" );
+			thePlayer.SetCanPlaySpecificVoiceset( false );
+			thePlayer.AddTimer( 'ResetSpecificVoicesetFlag', 10.0f );
+		}
 	
 		if(target.GetStat(BCS_Air) <= 0)
 		{
@@ -29,13 +34,6 @@ class W3Effect_AirDrain extends CBaseGameplayEffect
 			drain = MaxF(0, deltaTime * ( effectValue.valueAdditive + effectValue.valueMultiplicative * target.GetStatMax(BCS_Air) ) );
 			
 			effectManager.CacheStatUpdate(BCS_Air, -drain);
-		}
-		
-		if(isOnPlayer && thePlayer.CanPlaySpecificVoiceset() )
-		{
-			thePlayer.PlayVoiceset( 100, "coughing" );
-			thePlayer.SetCanPlaySpecificVoiceset( false );
-			thePlayer.AddTimer( 'ResetSpecificVoicesetFlag', 10.0f );
 		}
 	}
 	

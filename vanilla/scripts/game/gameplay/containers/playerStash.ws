@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3Stash extends CInteractiveEntity
+﻿class W3Stash extends CInteractiveEntity
 {
 	event OnInteraction( actionName : string, activator : CEntity )
 	{

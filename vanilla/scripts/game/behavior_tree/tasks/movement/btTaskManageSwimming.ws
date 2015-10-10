@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Copyright © 2013 CD Projekt RED
+/** Author : Andrzej Kwiatkowski
+/***********************************************************************/
 class CBTTaskManageSwimming extends IBehTreeTask
 {
 	public var onActivate 			: bool;
@@ -13,8 +12,8 @@ class CBTTaskManageSwimming extends IBehTreeTask
 	private var m_isInWater			: bool;
 	private var m_isWaitingForWater	: bool;
 	
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function Initialize()
 	{
 		var l_npc : CNewNPC = GetNPC();

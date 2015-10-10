@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : Shadi Dadenji
+/***********************************************************************/
 
 class BTCondIsNPCGroupType extends IBehTreeTask
 {

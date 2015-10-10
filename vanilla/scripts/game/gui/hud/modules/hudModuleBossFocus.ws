@@ -1,16 +1,12 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿//Description: 	Displays boss status indicator (name, health bar) on top of the screen
+//Author:		Shadi Dadenji
 
 
 class CR4HudModuleBossFocus extends CR4HudModuleBase
 {	
-	
-	
-	
+	//>-----------------------------------------------------------------------------------------------------------------	
+	// VARIABLES
+	//------------------------------------------------------------------------------------------------------------------
 	
 	private var m_bossEntity				: CActor;
 	private var m_bossName					: string;
@@ -22,9 +18,9 @@ class CR4HudModuleBossFocus extends CR4HudModuleBase
 	
 	private var m_delay						: float; default m_delay = 1;
 
-	
-	
-	 event OnConfigUI()
+	//>-----------------------------------------------------------------------------------------------------------------	
+	//------------------------------------------------------------------------------------------------------------------
+	/* flash */ event OnConfigUI()
 	{
 		var flashModule : CScriptedFlashSprite;
 		var hud : CR4ScriptedHud;
@@ -45,8 +41,8 @@ class CR4HudModuleBossFocus extends CR4HudModuleBase
 			hud.UpdateHudConfig('BossFocusModule', true);
 		}
 	}
-	
-	
+	//>-----------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------
 	
 	public function ShowBossIndicator( enable : bool, bossTag : name, optional bossEntity : CActor )
 	{
@@ -59,14 +55,14 @@ class CR4HudModuleBossFocus extends CR4HudModuleBase
 			}
 			else
 			{
-				thePlayer.SetBossTag( bossTag ); 
+				thePlayer.SetBossTag( bossTag ); // it's saved in player so it can be restored after load
 				UpdateNameAndHealth( true );
 			}
 
 		}
 		else
 		{
-			thePlayer.SetBossTag( '' ); 
+			thePlayer.SetBossTag( '' ); // it's saved in player so it can be restored after load
 			
 			OnHide();
 			
@@ -77,7 +73,7 @@ class CR4HudModuleBossFocus extends CR4HudModuleBase
 
 	private function OnShow()
 	{
-		ShowElement( true ); 
+		ShowElement( true ); //#B OnDemand
 			
 		if ( m_bossEntity )
 		{
@@ -87,7 +83,7 @@ class CR4HudModuleBossFocus extends CR4HudModuleBase
 	
 	private  function OnHide()
 	{
-		ShowElement(false); 
+		ShowElement(false); //#B OnDemand
 		
 		if ( m_bossEntity )
 		{
@@ -105,7 +101,7 @@ class CR4HudModuleBossFocus extends CR4HudModuleBase
 		
 		if ( !m_bossEntity )
 		{
-			bossTag = thePlayer.GetBossTag(); 
+			bossTag = thePlayer.GetBossTag(); // it's saved in player so it can be restored after load
 			if ( IsNameValid( bossTag ) )
 			{
 				m_bossEntity = theGame.GetActorByTag( bossTag );
@@ -136,7 +132,7 @@ class CR4HudModuleBossFocus extends CR4HudModuleBase
 				m_fxSetEssenceDamage.InvokeSelfOneArg( FlashArgBool( m_bossEntity.UsesEssence()) );
 			}
 			
-			l_currentHealthPercentage = CeilF( 100 * m_bossEntity.GetHealthPercents() );	
+			l_currentHealthPercentage = CeilF( 100 * m_bossEntity.GetHealthPercents() );	//ceiling so that if he has 0.2% it won't show as 0 while he'll be alive
 			if ( m_lastHealthPercentage != l_currentHealthPercentage )
 			{
 				m_fxSetBossHealth.InvokeSelfOneArg( FlashArgInt( l_currentHealthPercentage ) );
@@ -145,30 +141,30 @@ class CR4HudModuleBossFocus extends CR4HudModuleBase
 		}
 	}
 
-	
-	
+	//>-----------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------
 	event OnTick(timeDelta : float)
 	{
 		if ( m_delay > 0 )
 		{
-			
+			// lame way to fix TT 120356
 			m_delay -= timeDelta;
 			return true;
 		}
 		
 		if ( !m_bossEntity )
 		{
-			
+			// update name & health and show module if there's a tag and no entity
 			UpdateNameAndHealth( true );
 		}
 		else
 		{
-			
+			// update only health
 			UpdateNameAndHealth( false );
 		}
 	}
 	
-	
-	
+	//>-----------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------	
 
 }

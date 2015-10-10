@@ -1,11 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Copyright © 2012-2013
+/** Author : Rafal Jarczewski, Tomek Kozera
+/***********************************************************************/
 
-
-
-
-
+// Automatic morale regeneration - set this up in entity template
 class W3Effect_AutoMoraleRegen extends W3AutoRegenEffect
 {
 	default effectType = EET_AutoMoraleRegen;

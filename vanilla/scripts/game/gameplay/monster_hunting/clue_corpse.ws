@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3ClueCorpse extends W3MonsterClue
+﻿class W3ClueCorpse extends W3MonsterClue
 {
 	editable var woundName : name;
 
@@ -30,7 +26,7 @@ class W3ClueCorpse extends W3MonsterClue
 		UpdateVisibility();			
 	}
 	
-	
+	//Focus visiblity function changed to update dismemberment as well
 	function UpdateVisibility()
 	{
 		var component : CDismembermentComponent;

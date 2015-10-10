@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-enum EFocusModeChooseEntityStrategy
+﻿enum EFocusModeChooseEntityStrategy
 {
 	FMCES_ChooseNearest,
 	FMCES_ChooseMostIntense,
@@ -82,7 +78,7 @@ class W3FocusModeEffectIntensity
 		{
 			return ( intensity > bestIntensity );
 		}
-		else 
+		else // FMCES_ChooseNearest
 		{
 			return ( distance < bestDistance );
 		}
@@ -102,7 +98,7 @@ import class CFocusModeController extends IGameSystem
 	import final function SetActive( active : bool );
 	import final function IsActive() : bool;
 	import final function GetIntensity() : float;
-	import final function EnableVisuals( enable : bool, optional desaturation : float , optional highlightBoos : float );
+	import final function EnableVisuals( enable : bool, optional desaturation : float /* = 0.0f */, optional highlightBoos : float /* = 0.25f */);
 	import final function SetFadeParameters( NearFadeDistance : float, FadeDistanceRange : float, dimmingTIme : Float, dimmingSpeed : Float );
 	import final function EnableExtendedVisuals( enable : bool, fadeTime : float );
 	import final function SetDimming( enable : bool );
@@ -123,21 +119,21 @@ import class CFocusModeController extends IGameSystem
 	const var effectFadeTime			: float;
 	default effectFadeTime				= 1.0f;
 
-	
-	
-	
+	// focus area intensity is multiplied 
+	// by the following factor to compute
+	// controller vibration intensity
 	const var controllerVibrationFactor	: float;
 	default controllerVibrationFactor	= 0.2f;
 	const var controllerVibrationDuration : float;
 	default controllerVibrationDuration = 0.5f;
 	
-	
+	// the following two prevent from "stacking" sound effects on focus mode (de)activation
 	var activationSoundTimer			: float;
 	const var activationSoundInterval	: float;
 	default activationSoundTimer		= 0.0f;
 	default activationSoundInterval		= 0.4f;
 
-	
+	// "fast focus"
 	var fastFocusTimer					: float;
 	var activateAfterFastFocus			: bool;
 	const var fastFocusDuration			: float;
@@ -145,7 +141,7 @@ import class CFocusModeController extends IGameSystem
 	default activateAfterFastFocus		= false;
 	default fastFocusDuration			= 0.0f;
 	
-	
+	// for sound states
 	private var isUnderwaterFocus		: bool;
 	default isUnderwaterFocus			= false;
 	private var isInCombat				: bool;
@@ -176,12 +172,12 @@ import class CFocusModeController extends IGameSystem
 		activateAfterFastFocus = activate;
 		if ( activate && fastFocusDuration > 0.0f )
 		{
-			
-			
+			// TODO!!!
+			// activate "fast focus" effect here
 			fastFocusTimer = fastFocusDuration;
-			return true; 
+			return true; // fast focus activated, wait with "normal" focus activation
 		}
-		return false; 
+		return false; // focus can be deactivated anytime we want
 	}
 	
 	private function ActivateInternal()
@@ -197,7 +193,7 @@ import class CFocusModeController extends IGameSystem
 		thePlayer.BlockAction( EIAB_Jump, 'focus' );
 		theTelemetry.Log( TE_HERO_FOCUS_ON );
 	
-		
+		// activation sound "stacking" prevention
 		if ( theGame.GetEngineTimeAsSeconds() - activationSoundTimer > activationSoundInterval )
 		{
 			activationSoundTimer = theGame.GetEngineTimeAsSeconds();
@@ -250,13 +246,13 @@ import class CFocusModeController extends IGameSystem
 
 		thePlayer.UnblockAction( EIAB_Jump, 'focus' );
 		theTelemetry.Log( TE_HERO_FOCUS_OFF );
-		theSound.SoundEvent( 'expl_focus_stop' ); 
+		theSound.SoundEvent( 'expl_focus_stop' ); //this stops the focus sound loop
 		
-		
+		// activation sound "stacking" prevention
 		if ( theGame.GetEngineTimeAsSeconds() - activationSoundTimer > activationSoundInterval )
 		{
 			activationSoundTimer = theGame.GetEngineTimeAsSeconds();
-			theSound.SoundEvent( 'expl_focus_stop_sfx' ); 
+			theSound.SoundEvent( 'expl_focus_stop_sfx' ); // this plays the focus stop sound
 		}		
 		
 		hud = ( CR4ScriptedHud )theGame.GetHud();
@@ -321,7 +317,7 @@ import class CFocusModeController extends IGameSystem
 		var desiredAudioState : ESoundGameState;
 		var focusModeIntensity : float;
 		
-		
+		// "fast focus" delay
 		if ( fastFocusTimer > 0.0f )
 		{
 			fastFocusTimer -= timeDelta;
@@ -408,11 +404,11 @@ import class CFocusModeController extends IGameSystem
 
 		intensity = focusAreaIntensity;
 
-		
+		// controller vibration while inside focus area range
 		if ( UseControllerVibration( focusModeIntensity ) )
 		{
 			theGame.VibrateController( 0, intensity * ( 1.0f - focusModeIntensity ) * controllerVibrationFactor, controllerVibrationDuration );	
-			
+			// vibrate only once!
 			focusAreaIntensity = 0.0f;
 		}
 

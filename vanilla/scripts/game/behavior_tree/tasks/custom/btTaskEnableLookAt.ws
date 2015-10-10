@@ -1,13 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿// copyrajt orajt
+// W. Żerek
 
-
-
-
-
-
-
+// TO DO:
+//	- not only player?
+//	- enable on animevent
 
 class CBTTaskEnableLookAt extends IBehTreeTask
 {

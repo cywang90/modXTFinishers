@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class BTTask_DebugLog extends IBehTreeTask
+﻿class BTTask_DebugLog extends IBehTreeTask
 {
 	var taskName : string;
 	

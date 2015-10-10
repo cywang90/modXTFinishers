@@ -1,9 +1,5 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿// copyrajt orajt
+// W. Żerek
 
 class CBTTaskBroadcastEvent extends IBehTreeTask
 {

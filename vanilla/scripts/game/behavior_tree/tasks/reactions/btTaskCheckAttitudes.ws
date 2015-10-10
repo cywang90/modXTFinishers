@@ -1,9 +1,5 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿// copyrajt orajt
+// W. Żerek
 
 class CBTTaskCheckAttitudes extends IBehTreeTask
 {
@@ -41,7 +37,7 @@ class CBTTaskCheckAttitudes extends IBehTreeTask
 		if ( !sender || !sender.IsAlive() || !sendersTarget || !sendersTarget.IsAlive() )
 			return false;
 		
-		
+		// it won't happen for npcs but it can happen for player
 		if ( sender.GetAttitude( sendersTarget ) != AIA_Hostile )
 			return false;
 		
@@ -78,7 +74,7 @@ class CBTTaskCheckAttitudes extends IBehTreeTask
 			{
 				actorToChangeAttitude = sendersTarget;
 				if ( actorToChangeAttitude == thePlayer )
-					return true; 
+					return true; //for breakpoint
 				return true;
 			}
 			
@@ -88,7 +84,7 @@ class CBTTaskCheckAttitudes extends IBehTreeTask
 			{	
 				actorToChangeAttitude = sender;
 				if ( actorToChangeAttitude == thePlayer )
-					return true; 
+					return true; //for breakpoint
 				return true;
 			}
 		}
@@ -97,14 +93,14 @@ class CBTTaskCheckAttitudes extends IBehTreeTask
 		{
 			actorToChangeAttitude = sender;
 			if ( actorToChangeAttitude == thePlayer )
-					return true; 
+					return true; //for breakpoint
 			return true;
 		}
 		else if( attitudeToSender == AIA_Friendly && sendersTargetAttitudeGroup != ownerAttitudeGroup && senderAttitudeGroup == ownerAttitudeGroup)
 		{
 			actorToChangeAttitude = sendersTarget;
 			if ( actorToChangeAttitude == thePlayer )
-					return true; 
+					return true; //for breakpoint
 			return true;
 		}
 		

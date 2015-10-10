@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskSendTutorialEvent extends IBehTreeTask
+﻿class CBTTaskSendTutorialEvent extends IBehTreeTask
 {
 	public var onActivation 		: bool;
 	public var onDeactivation 		: bool;

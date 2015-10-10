@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿// DEPRECATED!!!
 
 class CBTTaskReaction extends IBehTreeTask
 {
@@ -107,7 +103,7 @@ class CBTTaskReaction extends IBehTreeTask
 	{
 		var npc : CNewNPC = GetNPC();
 		var dodgeChance : int;
-		
+		//just to be sure
 		if( !Time2Dodge )
 		{
 			return false;

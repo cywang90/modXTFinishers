@@ -1,13 +1,10 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
 
-
-
-
-
-
-
+////////////////////////////////////////////////////////////
+// Combat
+////////////////////////////////////////////////////////////
 class CAINpcCombat extends CAICombatTree
 {
 	default aiTreeName = "resdef:ai\npc_basecombat";
@@ -20,8 +17,15 @@ class CAINpcCombat extends CAICombatTree
 		params.OnCreated();
 	}
 }
-
-
+/*
+enum ECombatTargetSelectionSkipTarget
+{
+	CTSST_SKIP_ALWAYS,
+	CTSST_SKIP_IF_THERE_ARE_OTHER_TARGETS,
+	CTSST_DONT_SKIP,
+};
+*/
+//------------------------------------------------------------
 class CAINpcCombatParams extends CAICombatParameters
 {
 	editable var scaredCombat : bool;
@@ -34,9 +38,9 @@ class CAINpcCombatParams extends CAICombatParameters
 	
 	default increaseHitCounterOnlyOnMelee = true;
 	
+	//editable var potentialFollower : bool;		default potentialFollower = false;
 	
-	
-	
+	// combat target selection params
 	editable var reachabilityTolerance : float;
 	editable var targetOnlyPlayer : bool;
 	editable var hostileActorWeight : float;
@@ -53,33 +57,33 @@ class CAINpcCombatParams extends CAICombatParameters
 	editable var skipUnreachableProbability : int;
 	editable var monsterWeight : float;
 	
-	
+	//this is a base value. It is added to every potential target
 	default	hostileActorWeight 	= 10.0f;
 	
 	default reachabilityTolerance = 2.0f;
 	
-	default	hitterWeight 		= 20.0f; 
-	default	currentTargetWeight = 9.0f;  
-	default	playerWeight		= 100.0f; 
+	default	hitterWeight 		= 20.0f; //	>= playerWeight + currentTargetWeight
+	default	currentTargetWeight = 9.0f;  // 
+	default	playerWeight		= 100.0f; // i will target notPlayer when potentialTarget is playerWeight[meters] closer
 	
 	
-	
-	
+	//both values the same will give us 1 point per meter
+	//if every potentialTarget is above maxWeightedDistance player will be selected as target for sure.
 	default	distanceWeight 		= 30.0f;
 	default maxWeightedDistance = 30.0f;
 	
 	default monsterWeight		= 101.0f;
 		
-	
+	//other flags
 	default	targetOnlyPlayer = false;
 	default	playerWeightProbability = 100;
 	default rememberedHits = 2;
 
-	
+	//targetting vehicles ( horses )
 	default skipVehicle 		   = CTSST_SKIP_ALWAYS;
 	default	skipVehicleProbability = 100;		
 	
-	
+	// unreachable (by navitagtion) targets
 	default skipUnreachable 		   	= CTSST_SKIP_IF_THERE_ARE_OTHER_TARGETS;
 	default	skipUnreachableProbability	= 100;
 	
@@ -122,8 +126,49 @@ class CAINpcCombatParams extends CAICombatParameters
 }
 
 
+//////////////////////////////////////////////////////////////
+// Vampiress
+//////////////////////////////////////////////////////////////
+class CAINpcVampiressDefaults extends CAINpcDefaults
+{
+	function Init()
+	{
+		super.Init();
+		
+		combatTree = new CAINpcVampiressCombat in this;
+		combatTree.OnCreated();
+	}
+};
+//------------------------------------------------------------
+class CAINpcVampiressCombat extends CAINpcCombat
+{	
+	function Init()
+	{
+		params = new CAINpcVampiressCombatParams in this;
+		params.OnCreated();
+	}
+}
+//------------------------------------------------------------
+class CAINpcVampiressCombatParams extends CAINpcCombatParams
+{
+	function Init()
+	{
+		super.Init();
+		
+		ClearCSFinisherAnims();
+	}
+	
+	private function SetupCombatStyles()
+	{
+		combatStyles.Clear();
+		combatStyles.PushBack( new CAINpcVampiressCombatStyle in this );	
+		InitializeCombatStyles();
+	}
+}
 
-
+//////////////////////////////////////////////////////////////
+// Fists
+//////////////////////////////////////////////////////////////
 class CAINpcFistsDefaults extends CAINpcDefaults
 {
 	function Init()
@@ -137,7 +182,7 @@ class CAINpcFistsDefaults extends CAINpcDefaults
 		deathTree.OnCreated();
 	}
 };
-
+//------------------------------------------------------------
 class CAINpcFistsCombat extends CAINpcCombat
 {	
 	function Init()
@@ -146,7 +191,7 @@ class CAINpcFistsCombat extends CAINpcCombat
 		params.OnCreated();
 	}
 }
-
+//------------------------------------------------------------
 class CAINpcFistsCombatParams extends CAINpcCombatParams
 {
 	private function SetupCombatStyles()
@@ -158,9 +203,9 @@ class CAINpcFistsCombatParams extends CAINpcCombatParams
 	}
 }
 
-
-
-
+//////////////////////////////////////////////////////////////
+// FistsEasy
+//////////////////////////////////////////////////////////////
 class CAINpcFistsEasyDefaults extends CAINpcFistsDefaults
 {
 	function Init()
@@ -174,7 +219,7 @@ class CAINpcFistsEasyDefaults extends CAINpcFistsDefaults
 		deathTree.OnCreated();
 	}
 }
-
+//------------------------------------------------------------
 class CAINpcFistsEasyCombat extends CAINpcCombat
 {	
 	function Init()
@@ -183,7 +228,7 @@ class CAINpcFistsEasyCombat extends CAINpcCombat
 		params.OnCreated();
 	}
 }
-
+//------------------------------------------------------------
 class CAINpcFistsEasyCombatParams extends CAINpcCombatParams
 {
 	private function SetupCombatStyles()
@@ -195,9 +240,9 @@ class CAINpcFistsEasyCombatParams extends CAINpcCombatParams
 	}
 }
 
-
-
-
+//////////////////////////////////////////////////////////////
+// FistsHard
+//////////////////////////////////////////////////////////////
 class CAINpcFistsHardDefaults extends CAINpcFistsDefaults
 {
 	function Init()
@@ -211,7 +256,7 @@ class CAINpcFistsHardDefaults extends CAINpcFistsDefaults
 		deathTree.OnCreated();
 	}
 }
-
+//------------------------------------------------------------
 class CAINpcFistsHardCombat extends CAINpcCombat
 {	
 	function Init()
@@ -220,7 +265,7 @@ class CAINpcFistsHardCombat extends CAINpcCombat
 		params.OnCreated();
 	}
 }
-
+//------------------------------------------------------------
 class CAINpcFistsHardCombatParams extends CAINpcCombatParams
 {
 	private function SetupCombatStyles()
@@ -232,9 +277,9 @@ class CAINpcFistsHardCombatParams extends CAINpcCombatParams
 	}
 }
 
-
-
-
+//////////////////////////////////////////////////////////////
+// Guard
+//////////////////////////////////////////////////////////////
 class CAINpcGuardDefaults extends CAINpcDefaults
 {
 	function Init()
@@ -245,7 +290,7 @@ class CAINpcGuardDefaults extends CAINpcDefaults
 		combatTree.OnCreated();
 	}
 };
-
+//------------------------------------------------------------
 class CAINpcGuardCombat extends CAINpcCombat
 {	
 	function Init()
@@ -254,7 +299,7 @@ class CAINpcGuardCombat extends CAINpcCombat
 		params.OnCreated();
 	}
 }
-
+//------------------------------------------------------------
 class CAINpcGuardCombatParams extends CAINpcCombatParams
 {
 	private function SetupCombatStyles()
@@ -268,9 +313,9 @@ class CAINpcGuardCombatParams extends CAINpcCombatParams
 	}
 }
 
-
-
-
+//////////////////////////////////////////////////////////////
+// OneHanded
+//////////////////////////////////////////////////////////////
 class CAINpcOneHandedDefaults extends CAINpcDefaults
 {
 	function Init()
@@ -281,7 +326,7 @@ class CAINpcOneHandedDefaults extends CAINpcDefaults
 		combatTree.OnCreated();
 	}
 };
-
+//------------------------------------------------------------
 class CAINpcOneHandedCombat extends CAINpcCombat
 {	
 	function Init()
@@ -290,7 +335,7 @@ class CAINpcOneHandedCombat extends CAINpcCombat
 		params.OnCreated();
 	}
 }
-
+//------------------------------------------------------------
 class CAINpcOneHandedCombatParams extends CAINpcCombatParams
 {
 	private function SetupCombatStyles()
@@ -303,9 +348,9 @@ class CAINpcOneHandedCombatParams extends CAINpcCombatParams
 	}
 }
 
-
-
-
+//////////////////////////////////////////////////////////////
+// OneHandedAxe
+//////////////////////////////////////////////////////////////
 class CAINpcOneHandedAxeDefaults extends CAINpcDefaults
 {
 	function Init()
@@ -316,7 +361,7 @@ class CAINpcOneHandedAxeDefaults extends CAINpcDefaults
 		combatTree.OnCreated();
 	}
 };
-
+//------------------------------------------------------------
 class CAINpcOneHandedAxeCombat extends CAINpcCombat
 {	
 	function Init()
@@ -325,7 +370,7 @@ class CAINpcOneHandedAxeCombat extends CAINpcCombat
 		params.OnCreated();
 	}
 }
-
+//------------------------------------------------------------
 class CAINpcOneHandedAxeCombatParams extends CAINpcCombatParams
 {
 	private function SetupCombatStyles()
@@ -338,9 +383,9 @@ class CAINpcOneHandedAxeCombatParams extends CAINpcCombatParams
 	}
 }
 
-
-
-
+//////////////////////////////////////////////////////////////
+// OneHandedBlunt
+//////////////////////////////////////////////////////////////
 class CAINpcOneHandedBluntDefaults extends CAINpcDefaults
 {
 	function Init()
@@ -351,7 +396,7 @@ class CAINpcOneHandedBluntDefaults extends CAINpcDefaults
 		combatTree.OnCreated();
 	}
 };
-
+//------------------------------------------------------------
 class CAINpcOneHandedBluntCombat extends CAINpcCombat
 {	
 	function Init()
@@ -360,7 +405,7 @@ class CAINpcOneHandedBluntCombat extends CAINpcCombat
 		params.OnCreated();
 	}
 }
-
+//------------------------------------------------------------
 class CAINpcOneHandedBluntCombatParams extends CAINpcCombatParams
 {
 	private function SetupCombatStyles()
@@ -373,9 +418,9 @@ class CAINpcOneHandedBluntCombatParams extends CAINpcCombatParams
 	}
 }
 
-
-
-
+//////////////////////////////////////////////////////////////
+// TwoHandedHammer
+//////////////////////////////////////////////////////////////
 class CAINpcTwoHandedHammerDefaults extends CAINpcDefaults
 {
 	function Init()
@@ -386,7 +431,7 @@ class CAINpcTwoHandedHammerDefaults extends CAINpcDefaults
 		combatTree.OnCreated();
 	}
 };
-
+//------------------------------------------------------------
 class CAINpcTwoHandedHammerCombat extends CAINpcCombat
 {	
 	function Init()
@@ -395,7 +440,7 @@ class CAINpcTwoHandedHammerCombat extends CAINpcCombat
 		params.OnCreated();
 	}
 }
-
+//------------------------------------------------------------
 class CAINpcTwoHandedHammerCombatParams extends CAINpcCombatParams
 {
 	private function SetupCombatStyles()
@@ -408,9 +453,9 @@ class CAINpcTwoHandedHammerCombatParams extends CAINpcCombatParams
 	}
 }
 
-
-
-
+//////////////////////////////////////////////////////////////
+// TwoHandedAxe
+//////////////////////////////////////////////////////////////
 class CAINpcTwoHandedAxeDefaults extends CAINpcDefaults
 {
 	function Init()
@@ -421,7 +466,7 @@ class CAINpcTwoHandedAxeDefaults extends CAINpcDefaults
 		combatTree.OnCreated();
 	}
 };
-
+//------------------------------------------------------------
 class CAINpcTwoHandedAxeCombat extends CAINpcCombat
 {	
 	function Init()
@@ -430,7 +475,7 @@ class CAINpcTwoHandedAxeCombat extends CAINpcCombat
 		params.OnCreated();
 	}
 }
-
+//------------------------------------------------------------
 class CAINpcTwoHandedAxeCombatParams extends CAINpcCombatParams
 {
 	private function SetupCombatStyles()
@@ -443,9 +488,9 @@ class CAINpcTwoHandedAxeCombatParams extends CAINpcCombatParams
 	}
 }
 
-
-
-
+//////////////////////////////////////////////////////////////
+// TwoHandedHalberd
+//////////////////////////////////////////////////////////////
 class CAINpcTwoHandedHalberdDefaults extends CAINpcDefaults
 {
 	function Init()
@@ -456,7 +501,7 @@ class CAINpcTwoHandedHalberdDefaults extends CAINpcDefaults
 		combatTree.OnCreated();
 	}
 };
-
+//------------------------------------------------------------
 class CAINpcTwoHandedHalberdCombat extends CAINpcCombat
 {	
 	function Init()
@@ -465,7 +510,7 @@ class CAINpcTwoHandedHalberdCombat extends CAINpcCombat
 		params.OnCreated();
 	}
 }
-
+//------------------------------------------------------------
 class CAINpcTwoHandedHalberdCombatParams extends CAINpcCombatParams
 {
 	private function SetupCombatStyles()
@@ -478,9 +523,9 @@ class CAINpcTwoHandedHalberdCombatParams extends CAINpcCombatParams
 	}
 }
 
-
-
-
+//////////////////////////////////////////////////////////////
+// TwoHandedSpear
+//////////////////////////////////////////////////////////////
 class CAINpcTwoHandedSpearDefaults extends CAINpcDefaults
 {
 	function Init()
@@ -491,7 +536,7 @@ class CAINpcTwoHandedSpearDefaults extends CAINpcDefaults
 		combatTree.OnCreated();
 	}
 };
-
+//------------------------------------------------------------
 class CAINpcTwoHandedSpearCombat extends CAINpcCombat
 {	
 	function Init()
@@ -500,7 +545,7 @@ class CAINpcTwoHandedSpearCombat extends CAINpcCombat
 		params.OnCreated();
 	}
 }
-
+//------------------------------------------------------------
 class CAINpcTwoHandedSpearCombatParams extends CAINpcCombatParams
 {
 	private function SetupCombatStyles()
@@ -513,9 +558,9 @@ class CAINpcTwoHandedSpearCombatParams extends CAINpcCombatParams
 	}
 }
 
-
-
-
+//////////////////////////////////////////////////////////////
+// Pitchfork
+//////////////////////////////////////////////////////////////
 class CAINpcPitchforkDefaults extends CAINpcDefaults
 {
 	function Init()
@@ -526,7 +571,7 @@ class CAINpcPitchforkDefaults extends CAINpcDefaults
 		combatTree.OnCreated();
 	}
 };
-
+//------------------------------------------------------------
 class CAINpcPitchforkCombat extends CAINpcCombat
 {	
 	function Init()
@@ -535,7 +580,7 @@ class CAINpcPitchforkCombat extends CAINpcCombat
 		params.OnCreated();
 	}
 }
-
+//------------------------------------------------------------
 class CAINpcPitchforkCombatParams extends CAINpcCombatParams
 {
 	private function SetupCombatStyles()
@@ -548,9 +593,9 @@ class CAINpcPitchforkCombatParams extends CAINpcCombatParams
 	}
 }
 
-
-
-
+//////////////////////////////////////////////////////////////
+// Shield
+//////////////////////////////////////////////////////////////
 class CAINpcShieldDefaults extends CAINpcDefaults
 {
 	function Init()
@@ -561,7 +606,7 @@ class CAINpcShieldDefaults extends CAINpcDefaults
 		combatTree.OnCreated();
 	}
 };
-
+//------------------------------------------------------------
 class CAINpcShieldCombat extends CAINpcCombat
 {	
 	function Init()
@@ -570,7 +615,7 @@ class CAINpcShieldCombat extends CAINpcCombat
 		params.OnCreated();
 	}
 }
-
+//------------------------------------------------------------
 class CAINpcShieldCombatParams extends CAINpcCombatParams
 {
 	private function SetupCombatStyles()
@@ -584,9 +629,9 @@ class CAINpcShieldCombatParams extends CAINpcCombatParams
 	}
 }
 
-
-
-
+//////////////////////////////////////////////////////////////
+// Bow
+//////////////////////////////////////////////////////////////
 class CAINpcBowDefaults extends CAINpcDefaults
 {
 	function Init()
@@ -597,7 +642,7 @@ class CAINpcBowDefaults extends CAINpcDefaults
 		combatTree.Init();
 	}
 };
-
+//------------------------------------------------------------
 class CAINpcBowCombat extends CAINpcCombat
 {	
 	function Init()
@@ -606,7 +651,7 @@ class CAINpcBowCombat extends CAINpcCombat
 		params.OnCreated();
 	}
 }
-
+//------------------------------------------------------------
 class CAINpcBowCombatParams extends CAINpcCombatParams
 {
 	private function SetupCombatStyles()
@@ -622,9 +667,9 @@ class CAINpcBowCombatParams extends CAINpcCombatParams
 	}
 }
 
-
-
-
+//////////////////////////////////////////////////////////////
+// Crossbow
+//////////////////////////////////////////////////////////////
 class CAINpcCrossbowDefaults extends CAINpcDefaults
 {
 	function Init()
@@ -635,7 +680,7 @@ class CAINpcCrossbowDefaults extends CAINpcDefaults
 		combatTree.Init();
 	}
 };
-
+//------------------------------------------------------------
 class CAINpcCrossbowCombat extends CAINpcCombat
 {	
 	function Init()
@@ -644,7 +689,7 @@ class CAINpcCrossbowCombat extends CAINpcCombat
 		params.OnCreated();
 	}
 }
-
+//------------------------------------------------------------
 class CAINpcCrossbowCombatParams extends CAINpcCombatParams
 {
 	private function SetupCombatStyles()
@@ -660,9 +705,9 @@ class CAINpcCrossbowCombatParams extends CAINpcCombatParams
 	}
 }
 
-
-
-
+//////////////////////////////////////////////////////////////
+// TwoHandedSword
+//////////////////////////////////////////////////////////////
 class CAINpcTwoHandedSwordDefaults extends CAINpcDefaults
 {
 	function Init()
@@ -673,7 +718,7 @@ class CAINpcTwoHandedSwordDefaults extends CAINpcDefaults
 		combatTree.Init();
 	}
 };
-
+//------------------------------------------------------------
 class CAINpcTwoHandedSwordCombat extends CAINpcCombat
 {	
 	function Init()
@@ -682,7 +727,7 @@ class CAINpcTwoHandedSwordCombat extends CAINpcCombat
 		params.OnCreated();
 	}
 }
-
+//------------------------------------------------------------
 class CAINpcTwoHandedSwordCombatParams extends CAINpcCombatParams
 {
 	private function SetupCombatStyles()
@@ -697,9 +742,9 @@ class CAINpcTwoHandedSwordCombatParams extends CAINpcCombatParams
 	}
 }
 
-
-
-
+//////////////////////////////////////////////////////////////
+// Hjalmar
+//////////////////////////////////////////////////////////////
 class CAIHjalmarDefaults extends CAINpcDefaults
 {
 	function Init()
@@ -720,9 +765,9 @@ class CAIHjalmarDefaults extends CAINpcDefaults
 	}
 };
 
-
-
-
+//////////////////////////////////////////////////////////////
+// Witcher
+//////////////////////////////////////////////////////////////
 class CAINpcWitcherDefaults extends CAINpcDefaults
 {
 	function Init()
@@ -733,7 +778,7 @@ class CAINpcWitcherDefaults extends CAINpcDefaults
 		combatTree.OnCreated();
 	}
 };
-
+//------------------------------------------------------------
 class CAINpcWitcherCombat extends CAINpcCombat
 {	
 	function Init()
@@ -742,7 +787,7 @@ class CAINpcWitcherCombat extends CAINpcCombat
 		params.OnCreated();
 	}
 }
-
+//------------------------------------------------------------
 class CAINpcWitcherCombatParams extends CAINpcCombatParams
 {
 	protected function SetupCombatStyles()
@@ -755,9 +800,9 @@ class CAINpcWitcherCombatParams extends CAINpcCombatParams
 	}
 }
 
-
-
-
+//////////////////////////////////////////////////////////////
+// Eredin
+//////////////////////////////////////////////////////////////
 class CAINpcEredinDefaults extends CAINpcDefaults
 {
 	function Init()
@@ -768,7 +813,7 @@ class CAINpcEredinDefaults extends CAINpcDefaults
 		combatTree.OnCreated();
 	}
 };
-
+//------------------------------------------------------------
 class CAINpcEredinCombat extends CAINpcCombat
 {	
 	function Init()
@@ -777,7 +822,7 @@ class CAINpcEredinCombat extends CAINpcCombat
 		params.OnCreated();
 	}
 }
-
+//------------------------------------------------------------
 class CAINpcEredinCombatParams extends CAINpcCombatParams
 {
 	private function SetupCombatStyles()
@@ -789,9 +834,9 @@ class CAINpcEredinCombatParams extends CAINpcCombatParams
 	}
 }
 
-
-
-
+//////////////////////////////////////////////////////////////
+// Imlerith
+//////////////////////////////////////////////////////////////
 class CAINpcImlerithDefaults extends CAINpcDefaults
 {
 	function Init()
@@ -802,7 +847,7 @@ class CAINpcImlerithDefaults extends CAINpcDefaults
 		combatTree.OnCreated();
 	}
 };
-
+//------------------------------------------------------------
 class CAINpcImlerithCombat extends CAINpcCombat
 {	
 	function Init()
@@ -811,7 +856,7 @@ class CAINpcImlerithCombat extends CAINpcCombat
 		params.OnCreated();
 	}
 }
-
+//------------------------------------------------------------
 class CAINpcImlerithCombatParams extends CAINpcCombatParams
 {
 	private function SetupCombatStyles()
@@ -826,9 +871,9 @@ class CAINpcImlerithCombatParams extends CAINpcCombatParams
 }
 
 
-
-
-
+//////////////////////////////////////////////////////////////
+// Caranthir
+//////////////////////////////////////////////////////////////
 class CAINpcCaranthirDefaults extends CAINpcDefaults
 {
 	function Init()
@@ -840,7 +885,7 @@ class CAINpcCaranthirDefaults extends CAINpcDefaults
 		
 	}
 };
-
+//------------------------------------------------------------
 class CAINpcCaranthirCombat extends CAINpcCombat
 {	
 	function Init()
@@ -849,7 +894,7 @@ class CAINpcCaranthirCombat extends CAINpcCombat
 		params.OnCreated();
 	}
 }
-
+//------------------------------------------------------------
 class CAINpcCaranthirCombatParams extends CAINpcCombatParams
 {
 	private function SetupCombatStyles()
@@ -864,9 +909,46 @@ class CAINpcCaranthirCombatParams extends CAINpcCombatParams
 	}
 }
 
+//////////////////////////////////////////////////////////////
+// Caretaker
+//////////////////////////////////////////////////////////////
+class CAINpcCaretakerDefaults extends CAINpcDefaults
+{
+	function Init()
+	{
+		super.Init();
+		
+		combatTree = new CAINpcCaretakerCombat in this;
+		combatTree.OnCreated();
+	}
+};
+//------------------------------------------------------------
+class CAINpcCaretakerCombat extends CAINpcCombat
+{		
+	
+	function Init()
+	{
+		params = new CAINpcCaretakerCombatParams in this;
+		params.OnCreated();		
+	}
+	
+}
+//------------------------------------------------------------
+class CAINpcCaretakerCombatParams extends CAINpcCombatParams
+{
+	private function SetupCombatStyles()
+	{
+		combatStyles.Clear();
+		combatStyles.PushBack( new CAINpcCaretakerCombatStyle in this ); 
+		increaseHitCounterOnlyOnMelee = false;
+		
+		InitializeCombatStyles();		
+	}
+}
 
-
-
+//////////////////////////////////////////////////////////////
+// WitcherFollower
+//////////////////////////////////////////////////////////////
 class CAINpcWitcherFollowerDefaults extends CAINpcDefaults
 {
 	function Init()
@@ -877,7 +959,7 @@ class CAINpcWitcherFollowerDefaults extends CAINpcDefaults
 		combatTree.OnCreated();
 	}
 };
-
+//------------------------------------------------------------
 class CAINpcWitcherFollowerCombat extends CAINpcCombat
 {	
 	function Init()
@@ -886,7 +968,7 @@ class CAINpcWitcherFollowerCombat extends CAINpcCombat
 		params.OnCreated();
 	}
 }
-
+//------------------------------------------------------------
 class CAINpcWitcherFollowerCombatParams extends CAINpcWitcherCombatParams
 {
 	var i : int;
@@ -912,9 +994,9 @@ class CAINpcWitcherFollowerCombatParams extends CAINpcWitcherCombatParams
 	}
 }
 
-
-
-
+//////////////////////////////////////////////////////////////
+// Ciri
+//////////////////////////////////////////////////////////////
 class CAINpcCiriDefaults extends CAINpcDefaults
 {
 	function Init()
@@ -925,7 +1007,7 @@ class CAINpcCiriDefaults extends CAINpcDefaults
 		combatTree.OnCreated();
 	}
 };
-
+//------------------------------------------------------------
 class CAINpcCiriCombat extends CAINpcCombat
 {	
 	function Init()
@@ -934,7 +1016,7 @@ class CAINpcCiriCombat extends CAINpcCombat
 		params.OnCreated();
 	}
 }
-
+//------------------------------------------------------------
 class CAINpcCiriCombatParams extends CAINpcCombatParams
 {
 	var i : int;
@@ -960,9 +1042,9 @@ class CAINpcCiriCombatParams extends CAINpcCombatParams
 	}
 }
 
-
-
-
+//////////////////////////////////////////////////////////////
+// Sorceress
+//////////////////////////////////////////////////////////////
 abstract class CAINpcSorceressDefaults extends CAINpcDefaults
 {
 };
@@ -1013,8 +1095,15 @@ class CAINpcPhilippaDefaults extends CAINpcSorceressDefaults
 	}
 };
 
-
-
+//------------------------------------------------------------
+/*class CAINpcSorceressCombat extends CAINpcCombat
+{	
+	function Init()
+	{
+		params = new CAINpcSorceressCombatParams in this;
+		params.OnCreated();
+	}
+}*/
 class CAINpcYenneferCombat extends CAINpcCombat
 {	
 	function Init()
@@ -1047,7 +1136,7 @@ class CAINpcPhilippaCombat extends CAINpcCombat
 		params.OnCreated();
 	}
 }
-
+//------------------------------------------------------------
 class CAINpcSorceressCombatParams extends CAINpcCombatParams
 {
 	function Init()
@@ -1138,9 +1227,9 @@ class CAINpcPhilippaCombatParams extends CAINpcCombatParams
 	}
 }
 
-
-
-
+//////////////////////////////////////////////////////////////
+// Sorcerers
+//////////////////////////////////////////////////////////////
 abstract class CAINpcSorcererDefaults extends CAINpcDefaults
 {
 };
@@ -1165,6 +1254,26 @@ class CAINpcDruidCombat extends CAINpcCombat
 	}
 }
 
+class CAINpcWindMageDefaults extends CAINpcSorcererDefaults
+{
+	function Init()
+	{
+		super.Init();
+		
+		combatTree = new CAINpcWindMageCombat in this;
+		combatTree.Init();
+	}
+};
+
+class CAINpcWindMageCombat extends CAINpcCombat
+{	
+	function Init()
+	{
+		params = new CAINpcWindMageCombatParams in this;
+		params.OnCreated();
+	}
+}
+
 class CAINpcAvallachDefaults extends CAINpcSorcererDefaults
 {
 	function Init()
@@ -1185,7 +1294,7 @@ class CAINpcAvallachCombat extends CAINpcCombat
 	}
 }
 
-
+//------------------------------------------------------------
 class CAINpcSorcererCombatParams extends CAINpcCombatParams
 {
 	function Init()
@@ -1224,6 +1333,24 @@ class CAINpcDruidCombatParams extends CAINpcCombatParams
 	}
 }
 
+class CAINpcWindMageCombatParams extends CAINpcCombatParams
+{
+	function Init()
+	{
+		super.Init();
+		
+		ClearCSFinisherAnims();
+	}
+	
+	private function SetupCombatStyles()
+	{
+		combatStyles.Clear();
+		combatStyles.PushBack( new CAINpcWindMageCombatStyle in this );		
+		
+		InitializeCombatStyles();
+	}
+}
+
 class CAINpcAvallachCombatParams extends CAINpcCombatParams
 {
 	function Init()
@@ -1243,14 +1370,14 @@ class CAINpcAvallachCombatParams extends CAINpcCombatParams
 }
 
 
-
-
+//////////////////////////////////////////////////////////////
+//Main NPC
 abstract class CAINpcMainDefaults extends CAINpcDefaults
 {
 }
 
-
-
+//////////////////////////////////////////////////////////////
+//Iorwveth
 class CAINpcIorwvethDefaults extends CAINpcMainDefaults
 {
 	function Init()
@@ -1263,8 +1390,8 @@ class CAINpcIorwvethDefaults extends CAINpcMainDefaults
 	}
 };
 
-
-
+//////////////////////////////////////////////////////////////
+//Zoltan
 class CAINpcZoltanDefaults extends CAINpcMainDefaults
 {
 	function Init()
@@ -1305,8 +1432,8 @@ class CAINpcZoltanCombatParams extends CAINpcCombatParams
 	}
 }
 
-
-
+//////////////////////////////////////////////////////////////
+// Ves
 class CAINpcVesDefaults extends CAINpcMainDefaults
 {
 	function Init()
@@ -1352,8 +1479,8 @@ class CAINpcVesCombatParams extends CAINpcCombatParams
 }
 
 
-
-
+//////////////////////////////////////////////////////////////
+// Roche
 class CAINpcRocheDefaults extends CAINpcMainDefaults
 {
 	function Init()
@@ -1395,5 +1522,28 @@ class CAINpcRocheCombatParams extends CAINpcCombatParams
 		combatStyles[1].params.combatTacticTree.params.InitializeSpecialActions();
 		
 		preferedCombatStyle = EBG_Combat_1Handed_Sword;
+	}
+}
+
+//////////////////////////////////////////////////////////////
+// Olgierd
+//////////////////////////////////////////////////////////////
+class CAINpcOlgierdCombat extends CAINpcCombat
+{	
+	function Init()
+	{
+		params = new CAINpcOlgierdCombatParams in this;
+		params.OnCreated();
+	}
+}
+//------------------------------------------------------------
+class CAINpcOlgierdCombatParams extends CAINpcCombatParams
+{
+	private function SetupCombatStyles()
+	{
+		combatStyles.Clear();
+		combatStyles.PushBack( new CAINpcOlgierdCombatStyle in this ); 	
+		
+		InitializeCombatStyles();
 	}
 }

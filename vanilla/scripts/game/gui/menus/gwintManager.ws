@@ -1,12 +1,80 @@
-﻿/*
-Copyright © CD Projekt RED 2015
+﻿/***********************************************************************/
+/** Witcher Script file - gwint deck builder
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author : Jason Slama   
+/***********************************************************************/
+
+/*
+C++
+enum eGwintFaction
+{
+	GwintFaction_Neutral = 0,
+	GwintFaction_NoMansLand,
+	GwintFaction_Nilfgaard,
+	GwintFaction_NothernKingdom,  
+	GwintFaction_Scoiatael,
+
+	GwintFaction_Max   
+};
+
+enum eGwintType
+{
+	GwintType_None = 0,
+	GwintType_Melee = 1,
+	GwintType_Ranged = 2,
+	GwintType_Siege = 4,
+	GwintType_Creature = 8,
+	GwintType_Weather = 16,
+	GwintType_Spell = 32,
+	GwintType_RowModifier = 64,
+	GwintType_Hero = 128,
+	GwintType_Spy = 256,
+	GwintType_FriendlyEffect = 512,
+	GwintType_OffensiveEffect = 1024,
+	GwintType_GlobalEffect = 2048
+};
+
+enum eGwintEffect
+{
+	GwintEffect_None = 0,
+
+	GwintEffect_Bin2 = 5,
+
+	// Leader abilities
+	GwintEffect_MeleeScorch = 7, 
+	GwintEffect_11thCard = 8,
+	GwintEffect_ClearWeather = 9,
+	GwintEffect_PickWeatherCard = 10,
+	GwintEffect_PickRainCard = 11,
+	GwintEffect_PickFogCard = 12,
+	GwintEffect_PickFrostCard = 13,
+	GwintEffect_View3EnemyCard = 14,
+	GwintEffect_ResurectCard = 15,
+	GwintEffect_ResurectFromEnemy = 16,
+	GwintEffect_Bin2Pick1 = 17,
+	GwintEffect_MeleeHorn = 18,
+	GwintEffect_RangedHorn = 19,
+	GwintEffect_SiegeHorn = 20,
+	GwintEffect_SiegeScorch = 21,
+	GwintEffect_CounterKingAbility = 22,
+
+	// Regular Effects
+	GwintEffect_Melee = 23,
+	GwintEffect_Ranged = 24,
+	GwintEffect_Siege = 25,
+	GwintEffect_UnsummonDummy = 26,
+	GwintEffect_Horn = 27,
+	GwintEffect_Draw = 28,
+	GwintEffect_Scorch = 29,
+	GwintEffect_ClearSky = 30,
+	GwintEffect_SummonClones = 31,
+	GwintEffect_ImproveNeightbours = 32,
+	GwintEffect_Nurse = 33,
+	GwintEffect_Draw2 = 34,
+	GwintEffect_SameTypeMorale = 35
+};
 */
-
-
-
-
-
-
 
 import struct SCardDefinition
 {
@@ -20,12 +88,12 @@ import struct SCardDefinition
 	import var effectFlags		: array< eGwintEffect >;
 	import var summonFlags		: array< int >;
 	
-	
+	// Used to determine if an alternate art should be used
 	import var dlcPictureFlag	: name; 	
 	import var dlcPicture		: string;
 }
 
-
+//#J using a struct for now so we can easily add more information to decks
 import struct SDeckDefinition
 {
 	import var cardIndices				: array< int >;
@@ -63,6 +131,7 @@ import class CR4GwintManager extends IGameSystem
 	
 	import final function AddCardToCollection(cardIndex : int) : void;
 	import final function RemoveCardFromCollection(cardIndex : int) : void;
+	import final function HasCardInCollection(cardIndex : int) : bool;
 	
 	import final function AddCardToDeck(faction:eGwintFaction, cardIndex : int) : void;
 	import final function RemoveCardFromDeck(faction:eGwintFaction, cardIndex : int) : void;
@@ -78,66 +147,66 @@ import class CR4GwintManager extends IGameSystem
 		return FactsDoesExist("Gwint_Card_Looted");
 	}
 	
-	event  OnGwintSetupNewgame()
+	event /*c++*/ OnGwintSetupNewgame()
 	{
 		var northernPlayerDeck : SDeckDefinition;
 		var nilfgardPlayerDeck : SDeckDefinition;
 		var scotialPlayerDeck : SDeckDefinition;
 		var nmlPlayerDeck : SDeckDefinition;
 	
-		
-		northernPlayerDeck.cardIndices.PushBack( 3 ); 
-		northernPlayerDeck.cardIndices.PushBack( 3 ); 
-		northernPlayerDeck.cardIndices.PushBack( 4 ); 
-		northernPlayerDeck.cardIndices.PushBack( 4 ); 
-		northernPlayerDeck.cardIndices.PushBack( 5 ); 
-		northernPlayerDeck.cardIndices.PushBack( 6 ); 
-		northernPlayerDeck.cardIndices.PushBack( 106 ); 
-		northernPlayerDeck.cardIndices.PushBack( 111 ); 
-		northernPlayerDeck.cardIndices.PushBack( 112 ); 
-		northernPlayerDeck.cardIndices.PushBack( 113 ); 
-		northernPlayerDeck.cardIndices.PushBack( 114 ); 
-		northernPlayerDeck.cardIndices.PushBack( 115 ); 
-		northernPlayerDeck.cardIndices.PushBack( 116 ); 
-		northernPlayerDeck.cardIndices.PushBack( 120 ); 
-		northernPlayerDeck.cardIndices.PushBack( 121 ); 
-		northernPlayerDeck.cardIndices.PushBack( 125 ); 
-		northernPlayerDeck.cardIndices.PushBack( 125 ); 
-		northernPlayerDeck.cardIndices.PushBack( 135 ); 
-		northernPlayerDeck.cardIndices.PushBack( 145 ); 
-		northernPlayerDeck.cardIndices.PushBack( 150 ); 
-		northernPlayerDeck.cardIndices.PushBack( 150 ); 
-		northernPlayerDeck.cardIndices.PushBack( 150 ); 
-		northernPlayerDeck.cardIndices.PushBack( 107 ); 
-		northernPlayerDeck.cardIndices.PushBack( 160 ); 
-		northernPlayerDeck.cardIndices.PushBack( 160 ); 
-		northernPlayerDeck.cardIndices.PushBack( 175 ); 
-		AddCardToCollection(108); 
-		AddCardToCollection(136); 
+		//northernPlayerDeck.deckName = "North";
+		northernPlayerDeck.cardIndices.PushBack( 3 ); // frost; //frost
+		northernPlayerDeck.cardIndices.PushBack( 3 ); // frost; //frost
+		northernPlayerDeck.cardIndices.PushBack( 4 ); // fog //fog
+		northernPlayerDeck.cardIndices.PushBack( 4 ); // fog //fog
+		northernPlayerDeck.cardIndices.PushBack( 5 ); //rain
+		northernPlayerDeck.cardIndices.PushBack( 6 ); //clearsky
+		northernPlayerDeck.cardIndices.PushBack( 106 ); //  5  Ves
+		northernPlayerDeck.cardIndices.PushBack( 111 ); //  5  Keira Metz 
+		northernPlayerDeck.cardIndices.PushBack( 112 ); //  5  Sile de Tansarville
+		northernPlayerDeck.cardIndices.PushBack( 113 ); //  4  Sabrina Glevissig 
+		northernPlayerDeck.cardIndices.PushBack( 114 ); //  4  Sheldon Skaggs
+		northernPlayerDeck.cardIndices.PushBack( 115 ); //  6  Dethmold
+		northernPlayerDeck.cardIndices.PushBack( 116 ); //  5  Prince Stennis 
+		northernPlayerDeck.cardIndices.PushBack( 120 ); //  6  Trebuchet
+		northernPlayerDeck.cardIndices.PushBack( 121 ); //  6  Trebuchet
+		northernPlayerDeck.cardIndices.PushBack( 125 ); //  2  Poor Fucking Infantry 
+		northernPlayerDeck.cardIndices.PushBack( 125 ); //  2  Poor Fucking Infantry  
+		northernPlayerDeck.cardIndices.PushBack( 135 ); //  1  Redanian Foot Soldier
+		northernPlayerDeck.cardIndices.PushBack( 145 ); //  6  Ballista
+		northernPlayerDeck.cardIndices.PushBack( 150 ); //  2  Kaedweni Siege Expert
+		northernPlayerDeck.cardIndices.PushBack( 150 ); //  2  Kaedweni Siege Expert
+		northernPlayerDeck.cardIndices.PushBack( 150 ); //  2  Kaedweni Siege Expert
+		northernPlayerDeck.cardIndices.PushBack( 107 ); //  4  Siegfried
+		northernPlayerDeck.cardIndices.PushBack( 160 ); //  4  Blue Stripes Commando
+		northernPlayerDeck.cardIndices.PushBack( 160 ); //  4  Blue Stripes Commando
+		northernPlayerDeck.cardIndices.PushBack( 175 ); //  0  Nurse
+		AddCardToCollection(108); //  2  Yarpen Zigrin 
+		AddCardToCollection(136); //  1  Redanian Foot Soldier
 		
 		
 		northernPlayerDeck.leaderIndex = 1001;
-		northernPlayerDeck.specialCard = -1; 
+		northernPlayerDeck.specialCard = -1; // DO NOT CHANGE THIS
 		northernPlayerDeck.unlocked = false;
 		SetFactionDeck(GwintFaction_NothernKingdom, northernPlayerDeck);
 		
-		
+		//nilfgardPlayerDeck.deckName = "Nilf";
 		nilfgardPlayerDeck.leaderIndex = 2001;
-		nilfgardPlayerDeck.specialCard = -1; 
+		nilfgardPlayerDeck.specialCard = -1; // DO NOT CHANGE THIS
 		nilfgardPlayerDeck.unlocked = false;
 		SetFactionDeck(GwintFaction_Nilfgaard, nilfgardPlayerDeck);
 		
-		
+		//scotialPlayerDeck.deckName = "scotial";
 		
 		scotialPlayerDeck.leaderIndex = 3001;
-		scotialPlayerDeck.specialCard = -1; 
+		scotialPlayerDeck.specialCard = -1; // DO NOT CHANGE THIS
 		scotialPlayerDeck.unlocked = false;
 		SetFactionDeck(GwintFaction_Scoiatael, scotialPlayerDeck);
 		
-		
+		//nmlPlayerDeck.deckName = "nml";
 		
 		nmlPlayerDeck.leaderIndex = 4001;
-		nmlPlayerDeck.specialCard = -1; 
+		nmlPlayerDeck.specialCard = -1; // DO NOT CHANGE THIS
 		nmlPlayerDeck.unlocked = false;
 		SetFactionDeck(GwintFaction_NoMansLand, nmlPlayerDeck);
 		
@@ -153,36 +222,36 @@ import class CR4GwintManager extends IGameSystem
 	{
 		var tutorialDeck : SDeckDefinition;
 		
-		
-		tutorialDeck.cardIndices.PushBack( 3 ); 
-		tutorialDeck.cardIndices.PushBack( 3 ); 
-		tutorialDeck.cardIndices.PushBack( 4 ); 
-		tutorialDeck.cardIndices.PushBack( 4 ); 
-		tutorialDeck.cardIndices.PushBack( 5 ); 
-		tutorialDeck.cardIndices.PushBack( 6 ); 
-		
-		tutorialDeck.cardIndices.PushBack( 106 ); 
-		tutorialDeck.cardIndices.PushBack( 111 ); 
-		tutorialDeck.cardIndices.PushBack( 112 ); 
-		tutorialDeck.cardIndices.PushBack( 113 ); 
-		tutorialDeck.cardIndices.PushBack( 114 ); 
-		tutorialDeck.cardIndices.PushBack( 115 ); 
-		tutorialDeck.cardIndices.PushBack( 116 ); 
-		tutorialDeck.cardIndices.PushBack( 120 ); 
-		tutorialDeck.cardIndices.PushBack( 121 ); 
-		tutorialDeck.cardIndices.PushBack( 126 ); 
-		tutorialDeck.cardIndices.PushBack( 127 ); 
-		tutorialDeck.cardIndices.PushBack( 135 ); 
-		tutorialDeck.cardIndices.PushBack( 145 ); 
-		tutorialDeck.cardIndices.PushBack( 150 ); 
-		tutorialDeck.cardIndices.PushBack( 151 ); 
-		tutorialDeck.cardIndices.PushBack( 152 ); 
-		tutorialDeck.cardIndices.PushBack( 107 ); 
-		tutorialDeck.cardIndices.PushBack( 160 ); 
-		tutorialDeck.cardIndices.PushBack( 161 ); 
-		tutorialDeck.cardIndices.PushBack( 175 ); 
+		// REMEMBER! - after changing this You need to update quest_function.ws - it contains weather cards that can be won from NPCs
+		tutorialDeck.cardIndices.PushBack( 3 ); // frost
+		tutorialDeck.cardIndices.PushBack( 3 ); // frost
+		tutorialDeck.cardIndices.PushBack( 4 ); // fog
+		tutorialDeck.cardIndices.PushBack( 4 ); // fog
+		tutorialDeck.cardIndices.PushBack( 5 ); // rain
+		tutorialDeck.cardIndices.PushBack( 6 ); // clearsky
+		// REMEMBER! - after changing this You need to update item xml (max count of cards You are able to loot/or adding new definitions)
+		tutorialDeck.cardIndices.PushBack( 106 ); //  5  Ves
+		tutorialDeck.cardIndices.PushBack( 111 ); //  5  Keira Metz 
+		tutorialDeck.cardIndices.PushBack( 112 ); //  5  Sile de Tansarville
+		tutorialDeck.cardIndices.PushBack( 113 ); //  4  Sabrina Glevissig 
+		tutorialDeck.cardIndices.PushBack( 114 ); //  4  Sheldon Skaggs
+		tutorialDeck.cardIndices.PushBack( 115 ); //  6  Dethmold
+		tutorialDeck.cardIndices.PushBack( 116 ); //  5  Prince Stennis 
+		tutorialDeck.cardIndices.PushBack( 120 ); //  6  Trebuchet
+		tutorialDeck.cardIndices.PushBack( 121 ); //  6  Trebuchet
+		tutorialDeck.cardIndices.PushBack( 126 ); //  2  Poor Fucking Infantry 
+		tutorialDeck.cardIndices.PushBack( 127 ); //  2  Poor Fucking Infantry  
+		tutorialDeck.cardIndices.PushBack( 135 ); //  1  Redanian Foot Soldier
+		tutorialDeck.cardIndices.PushBack( 145 ); //  6  Ballista
+		tutorialDeck.cardIndices.PushBack( 150 ); //  2  Kaedweni Siege Expert
+		tutorialDeck.cardIndices.PushBack( 151 ); //  2  Kaedweni Siege Expert
+		tutorialDeck.cardIndices.PushBack( 152 ); //  2  Kaedweni Siege Expert
+		tutorialDeck.cardIndices.PushBack( 107 ); //  4  Siegfried
+		tutorialDeck.cardIndices.PushBack( 160 ); //  4  Blue Stripes Commando
+		tutorialDeck.cardIndices.PushBack( 161 ); //  4  Blue Stripes Commando
+		tutorialDeck.cardIndices.PushBack( 175 ); //  0  Nurse
 		tutorialDeck.leaderIndex = 1001;
-		tutorialDeck.specialCard = -1; 
+		tutorialDeck.specialCard = -1; // DO NOT CHANGE THIS
 		
 		return tutorialDeck;
 	}
@@ -193,6 +262,7 @@ import class CR4GwintManager extends IGameSystem
 		{
 			enemyDecksSet = true;
 			
+			// Main Game
 			SetupAIDeckDefinitions();			
 			SetupAIDeckDefinitions1();
 			SetupAIDeckDefinitions2();
@@ -208,16 +278,38 @@ import class CR4GwintManager extends IGameSystem
 			SetupAIDeckDefinitionsPrologue();
 			SetupAIDeckDefinitionsTournament1();
 			SetupAIDeckDefinitionsTournament2();
+			// EP1
+			SetupAIDeckDefinitions8();
+			SetupAIDeckDefinitions9();
+			SetupAIDeckDefinitions10();
 		}
 	}
 	
-	
-	
-	
+	// =================================================================================================
+	// -------------------------------------------------------------------------------------------------
+	// =================================================================================================
 	
 	private var enemyDecksSet : bool; default enemyDecksSet = false;
 	private var enemyDecks : array< SDeckDefinition >;
 	private var selectedEnemyDeck : int;
+	
+	private var difficulty : int;
+
+	private var diff1 : int;
+	private var diff2 : int;
+	private var diff3 : int;
+	private var diff4 : int;
+	private var diff5 : int;
+	private var diff6 : int;
+	private var diff7 : int;
+	private var diff8 : int;
+	private var diff9 : int;
+	private var diff10 : int;
+	private var diff11 : int;
+	private var diff12 : int;
+	private var diff13 : int;
+	private var diff14 : int;
+	private var diff15 : int;
 	
 	private var doubleAIEnabled : bool;
 	
@@ -372,6 +464,21 @@ import class CR4GwintManager extends IGameSystem
 		case 'NMLTournament':
 			selectedEnemyDeck = 36;
 			break;
+		case 'Shani':
+			selectedEnemyDeck = 37;
+			break;
+		case 'Olgierd':
+			selectedEnemyDeck = 38;
+			break;
+		case 'Gambler':
+			selectedEnemyDeck = 39;
+			break;
+		case 'Halflings':
+			selectedEnemyDeck = 40;
+			break;
+		case 'CircusGwentAddict':
+			selectedEnemyDeck = 41;
+			break;
 		default:
 			selectedEnemyDeck = 23;
 			break;
@@ -410,9 +517,54 @@ import class CR4GwintManager extends IGameSystem
 	
 	public function GetCurrentAIDeck() : SDeckDefinition
 	{
-		setupEnemyDecks(); 
+		GenerateDifficultyData();
+
+		setupEnemyDecks(); // make sure the decks are setup
 		
 		return enemyDecks[selectedEnemyDeck];
+	}
+		
+	private function GenerateDifficultyData()
+	{
+		var difficultyBalanceValue : int;
+		difficultyBalanceValue = 0;
+
+		difficulty = FactsQueryLatestValue("gwent_difficulty");
+
+		if (difficulty)
+		{
+			// Easy
+			if (difficulty == 1) 
+			{ 
+				difficultyBalanceValue += 80;
+			}
+			// Normal
+			if (difficulty == 2) 
+			{ 
+				difficultyBalanceValue += 0;
+			}
+			// Hard
+			if (difficulty == 3) 
+			{ 
+				difficultyBalanceValue -= 80;
+			}
+		}
+
+		diff1 = 145 + difficultyBalanceValue;
+		diff2 = 150 + difficultyBalanceValue;
+		diff3 = 155 + difficultyBalanceValue;
+		diff4 = 160 + difficultyBalanceValue;
+		diff5 = 165 + difficultyBalanceValue;
+		diff6 = 170 + difficultyBalanceValue;
+		diff7 = 175 + difficultyBalanceValue;
+		diff8 = 180 + difficultyBalanceValue;
+		diff9 = 185 + difficultyBalanceValue;
+		diff10 = 190 + difficultyBalanceValue;
+		diff11 = 205 + difficultyBalanceValue;
+		diff12 = 215 + difficultyBalanceValue;
+		diff13 = 220 + difficultyBalanceValue;
+		diff14 = 225 + difficultyBalanceValue;
+		diff15 = 230 + difficultyBalanceValue;		
 	}
 		
 	private function SetupAIDeckDefinitions()
@@ -422,153 +574,214 @@ import class CR4GwintManager extends IGameSystem
 		var BaronDeck			:SDeckDefinition;
 
 		
-		
+		///////////////NORTHERN KINGDOMS//////////////////	
 			
+			//------------------------------------------------------------------//CardProdigyDeck.deckName = "CardProdigy";	
+
+			// Northern Realm deck #0
 			
+			// Difficulty changing cards	
+			if (difficulty == 1)
+			{
+				CardProdigyDeck.cardIndices.PushBack(1); //Horn	
+				CardProdigyDeck.cardIndices.PushBack(4); //Impenetrable Fog
+				CardProdigyDeck.cardIndices.PushBack(4); //Impenetrable Fog
+				CardProdigyDeck.cardIndices.PushBack(6); //Clear Weather		
+				CardProdigyDeck.cardIndices.PushBack(6); //Clear Weather
+				CardProdigyDeck.cardIndices.PushBack(135); //Redanian Foot Soldier [1]	
+				CardProdigyDeck.cardIndices.PushBack(136); //Redanian Foot Soldier [1]
+				CardProdigyDeck.cardIndices.PushBack(107); //Siegfried of Denesle [5]
+			}
+			if (difficulty == 2)
+			{
+				CardProdigyDeck.cardIndices.PushBack(1); //Horn
+				CardProdigyDeck.cardIndices.PushBack(1); //Horn
+				CardProdigyDeck.cardIndices.PushBack(2); //Scorch	
+				CardProdigyDeck.cardIndices.PushBack(4); //Impenetrable Fog
+				CardProdigyDeck.cardIndices.PushBack(4); //Impenetrable Fog
+				CardProdigyDeck.cardIndices.PushBack(6); //Clear Weather		
+				CardProdigyDeck.cardIndices.PushBack(6); //Clear Weather	
+				CardProdigyDeck.cardIndices.PushBack(107); //Siegfried of Denesle [5]		
+			}
+			if (difficulty == 3)
+			{
+				CardProdigyDeck.cardIndices.PushBack(1); //Horn
+				CardProdigyDeck.cardIndices.PushBack(0); //Dummy
+				CardProdigyDeck.cardIndices.PushBack(2); //Scorch	
+				CardProdigyDeck.cardIndices.PushBack(4); //Impenetrable Fog		
+				CardProdigyDeck.cardIndices.PushBack(6); //Clear Weather
+				CardProdigyDeck.cardIndices.PushBack(140); // [8] Catapult
+				CardProdigyDeck.cardIndices.PushBack(141); // [8] Catapult
+				CardProdigyDeck.cardIndices.PushBack(9); //   [7] Yennefer
+			}
 
-			
-			CardProdigyDeck.cardIndices.PushBack(1); 
-			CardProdigyDeck.cardIndices.PushBack(1); 
-			CardProdigyDeck.cardIndices.PushBack(2); 
-			CardProdigyDeck.cardIndices.PushBack(4); 
-			CardProdigyDeck.cardIndices.PushBack(4); 
-			CardProdigyDeck.cardIndices.PushBack(6); 
-			CardProdigyDeck.cardIndices.PushBack(6); 
-			
-			CardProdigyDeck.cardIndices.PushBack(107); 
-			CardProdigyDeck.cardIndices.PushBack(125); 
-			CardProdigyDeck.cardIndices.PushBack(126); 
-			CardProdigyDeck.cardIndices.PushBack(127); 
-			CardProdigyDeck.cardIndices.PushBack(130); 
-			CardProdigyDeck.cardIndices.PushBack(131); 
-			CardProdigyDeck.cardIndices.PushBack(132); 
-			CardProdigyDeck.cardIndices.PushBack(135); 
-			CardProdigyDeck.cardIndices.PushBack(136); 
-			CardProdigyDeck.cardIndices.PushBack(140); 
-			CardProdigyDeck.cardIndices.PushBack(141); 
-			CardProdigyDeck.cardIndices.PushBack(145); 
-			CardProdigyDeck.cardIndices.PushBack(146); 
-			CardProdigyDeck.cardIndices.PushBack(160); 
-			CardProdigyDeck.cardIndices.PushBack(161); 
-			CardProdigyDeck.cardIndices.PushBack(162); 
+			CardProdigyDeck.cardIndices.PushBack(125); //Poor Fucking Infantry [2] [TightBond] 	
+			CardProdigyDeck.cardIndices.PushBack(126); //Poor Fucking Infantry [2] [TightBond] 	
+			CardProdigyDeck.cardIndices.PushBack(127); //Poor Fucking Infantry [2] [TightBond] 	
+			CardProdigyDeck.cardIndices.PushBack(130); //Crinfrid Reavers Dragon Hunter [4] [TightBond]	
+			CardProdigyDeck.cardIndices.PushBack(131); //Crinfrid Reavers Dragon Hunter [4] [TightBond]	
+			CardProdigyDeck.cardIndices.PushBack(132); //Crinfrid Reavers Dragon Hunter [4] [TightBond]	
+			CardProdigyDeck.cardIndices.PushBack(140); //Catapult [5] [TightBond] 	
+			CardProdigyDeck.cardIndices.PushBack(141); //Catapult [5] [TightBond] 		
+			CardProdigyDeck.cardIndices.PushBack(145); //Ballista [6]	
+			CardProdigyDeck.cardIndices.PushBack(146); //Ballista [6]	
+			CardProdigyDeck.cardIndices.PushBack(160); //Blue Stripes Commando [4] [TightBond]	
+			CardProdigyDeck.cardIndices.PushBack(161); //Blue Stripes Commando [4] [TightBond]	
+			CardProdigyDeck.cardIndices.PushBack(162); //Blue Stripes Commando [4] [TightBond]
 
-			
+			//-------------------------------------------------------------//note: Gets scrorches and more powerful NR cards.-------------------------------------------
 
+			CardProdigyDeck.dynamicCardRequirements.PushBack(diff5);
+			CardProdigyDeck.dynamicCards.PushBack(2); //Scorch	
+			CardProdigyDeck.dynamicCardRequirements.PushBack(diff7);
+			CardProdigyDeck.dynamicCards.PushBack(2); //Scorch	
+			CardProdigyDeck.dynamicCardRequirements.PushBack(diff9);
+			CardProdigyDeck.dynamicCards.PushBack(103); // 10 Philippa HERO
+			CardProdigyDeck.dynamicCardRequirements.PushBack(diff11);
+			CardProdigyDeck.dynamicCards.PushBack(102); // 10 Esterad HERO
+			CardProdigyDeck.dynamicCardRequirements.PushBack(diff11);
+			CardProdigyDeck.dynamicCards.PushBack(109); // 4 Djikstra SPY
+			CardProdigyDeck.dynamicCardRequirements.PushBack(diff14);
+			CardProdigyDeck.dynamicCards.PushBack(101); // 10 Natalis HERO
+			CardProdigyDeck.dynamicCardRequirements.PushBack(diff14);
+			CardProdigyDeck.dynamicCards.PushBack(12); // Dandelion HORN
 
-			CardProdigyDeck.dynamicCardRequirements.PushBack(165);	
-			CardProdigyDeck.dynamicCards.PushBack(2); 
-			CardProdigyDeck.dynamicCardRequirements.PushBack(175);	
-			CardProdigyDeck.dynamicCards.PushBack(2); 
-			CardProdigyDeck.dynamicCardRequirements.PushBack(185);	
-			CardProdigyDeck.dynamicCards.PushBack(103); 
-			CardProdigyDeck.dynamicCardRequirements.PushBack(205);	
-			CardProdigyDeck.dynamicCards.PushBack(102); 
-			CardProdigyDeck.dynamicCardRequirements.PushBack(205);	
-			CardProdigyDeck.dynamicCards.PushBack(109); 
-			CardProdigyDeck.dynamicCardRequirements.PushBack(225);	
-			CardProdigyDeck.dynamicCards.PushBack(101); 
-			CardProdigyDeck.dynamicCardRequirements.PushBack(225);	
-			CardProdigyDeck.dynamicCards.PushBack(12); 
-
-			CardProdigyDeck.specialCard = 100; 
+			CardProdigyDeck.specialCard = 100; // Change this to a card ID to always have it be in the AI's hand when drawing cards
 			CardProdigyDeck.leaderIndex = 1001;
 			enemyDecks.PushBack(CardProdigyDeck);
 			
 			
 			
+			//------------------------------------------------------------------//DijkstraDeck.deckName = "Dijkstra";
 
-			
-			DijkstraDeck.cardIndices.PushBack(0); 
-			DijkstraDeck.cardIndices.PushBack(0); 
-			DijkstraDeck.cardIndices.PushBack(1); 
-			DijkstraDeck.cardIndices.PushBack(2); 
-			DijkstraDeck.cardIndices.PushBack(3); 
-			DijkstraDeck.cardIndices.PushBack(3); 
-			DijkstraDeck.cardIndices.PushBack(4); 
-			DijkstraDeck.cardIndices.PushBack(4); 
-			DijkstraDeck.cardIndices.PushBack(6); 
+			// Northern Realm deck #1	
 
-			DijkstraDeck.cardIndices.PushBack(14); 
-			DijkstraDeck.cardIndices.PushBack(105); 
-			DijkstraDeck.cardIndices.PushBack(111); 
-			DijkstraDeck.cardIndices.PushBack(120); 
-			DijkstraDeck.cardIndices.PushBack(121); 
-			DijkstraDeck.cardIndices.PushBack(140); 
-			DijkstraDeck.cardIndices.PushBack(141); 
-			DijkstraDeck.cardIndices.PushBack(145); 
-			DijkstraDeck.cardIndices.PushBack(146); 
-			DijkstraDeck.cardIndices.PushBack(150); 
-			DijkstraDeck.cardIndices.PushBack(160); 
-			DijkstraDeck.cardIndices.PushBack(161); 
-			DijkstraDeck.cardIndices.PushBack(170); 
-			DijkstraDeck.cardIndices.PushBack(175); 
+			// Difficulty changing cards
+			DijkstraDeck.cardIndices.PushBack(0); // Dummy	
+			DijkstraDeck.cardIndices.PushBack(1); // Horn
+			DijkstraDeck.cardIndices.PushBack(3); // Biting Frost	
+			DijkstraDeck.cardIndices.PushBack(4); // Impenetrable Fog	
+			DijkstraDeck.cardIndices.PushBack(6); // Clear Weather	
+			
+			if (difficulty == 1)
+			{	
+				DijkstraDeck.cardIndices.PushBack(3); // Biting Frost
+				DijkstraDeck.cardIndices.PushBack(4); // Impenetrable Fog
+				DijkstraDeck.cardIndices.PushBack(108); // [2] Yarpen	
+				DijkstraDeck.cardIndices.PushBack(136); // [1] Readanian 
+			}
+			if (difficulty == 2)
+			{
+				DijkstraDeck.cardIndices.PushBack(2); // Scorch
+				DijkstraDeck.cardIndices.PushBack(0); // Dummy
+				DijkstraDeck.cardIndices.PushBack(3); // Biting Frost
+				DijkstraDeck.cardIndices.PushBack(4); //Impenetrable Fog	
+				DijkstraDeck.cardIndices.PushBack(6); //Clear Weather	
+			}
+			if (difficulty == 3)
+			{
+				DijkstraDeck.cardIndices.PushBack(0); // Dummy
+				DijkstraDeck.cardIndices.PushBack(101); // [10] Vernon  [Hero]
+				DijkstraDeck.cardIndices.PushBack(9); //   [7] Yennefer [Hero][Nurse]
+			}
 
-			
+			DijkstraDeck.cardIndices.PushBack(14); //Emiel Regis Rohellec Terzieff [5]	
+			DijkstraDeck.cardIndices.PushBack(105); //Thaler [1] [SPY]	
+			DijkstraDeck.cardIndices.PushBack(111); //Keira Metz  [5]	
+			DijkstraDeck.cardIndices.PushBack(120); //Trebuchet [6]	
+			DijkstraDeck.cardIndices.PushBack(121); //Trebuchet [6]	
+			DijkstraDeck.cardIndices.PushBack(140); //Catapult [5] [TightBond] 	
+			DijkstraDeck.cardIndices.PushBack(141); //Catapult [5] [TightBond] 		
+			DijkstraDeck.cardIndices.PushBack(145); //Ballista [6]	
+			DijkstraDeck.cardIndices.PushBack(146); //Ballista [6]	
+			DijkstraDeck.cardIndices.PushBack(150); //Kaedweni Siege Expert [2] [MoraleBoost]	
+			DijkstraDeck.cardIndices.PushBack(160); //Blue Stripes Commando [4] [TightBond]	
+			DijkstraDeck.cardIndices.PushBack(161); //Blue Stripes Commando [4] [TightBond]	
+			DijkstraDeck.cardIndices.PushBack(170); //Siege Tower [6]	
+			DijkstraDeck.cardIndices.PushBack(175); //Dun Banner Medic [0] [Nurse]
 
-			DijkstraDeck.dynamicCardRequirements.PushBack(165);	
-			DijkstraDeck.dynamicCards.PushBack(2); 
-			DijkstraDeck.dynamicCardRequirements.PushBack(175);	
-			DijkstraDeck.dynamicCards.PushBack(2); 
-			DijkstraDeck.dynamicCardRequirements.PushBack(185);	
-			DijkstraDeck.dynamicCards.PushBack(16); 
-			DijkstraDeck.dynamicCardRequirements.PushBack(205);	
-			DijkstraDeck.dynamicCards.PushBack(101); 
-			DijkstraDeck.dynamicCardRequirements.PushBack(205);	
-			DijkstraDeck.dynamicCards.PushBack(109); 
-			DijkstraDeck.dynamicCardRequirements.PushBack(225);	
-			DijkstraDeck.dynamicCards.PushBack(116); 
-			DijkstraDeck.dynamicCardRequirements.PushBack(225);	
-			DijkstraDeck.dynamicCards.PushBack(12); 
+			//-------------------------------------------------------------//note: Scroches, nurse, spies!! (he is spy master after all)  -------------------------------------------
+
+			DijkstraDeck.dynamicCardRequirements.PushBack(diff5);
+			DijkstraDeck.dynamicCards.PushBack(2); //Scorch
+			DijkstraDeck.dynamicCardRequirements.PushBack(diff7);
+			DijkstraDeck.dynamicCards.PushBack(2); //Scorch
+			DijkstraDeck.dynamicCardRequirements.PushBack(diff9);
+			DijkstraDeck.dynamicCards.PushBack(16); // Avallach
+			DijkstraDeck.dynamicCardRequirements.PushBack(diff11);
+			DijkstraDeck.dynamicCards.PushBack(101); // 10 Natalis Hero
+			DijkstraDeck.dynamicCardRequirements.PushBack(diff11);
+			DijkstraDeck.dynamicCards.PushBack(109); // 4 Djikstra SPY
+			DijkstraDeck.dynamicCardRequirements.PushBack(diff14);
+			DijkstraDeck.dynamicCards.PushBack(116); // 5 Stennis SPY
+			DijkstraDeck.dynamicCardRequirements.PushBack(diff14);
+			DijkstraDeck.dynamicCards.PushBack(12); // Dandelion
 			
 			
-			DijkstraDeck.specialCard = 102; 
+			DijkstraDeck.specialCard = 102; // 10 Esterad HERO
 			DijkstraDeck.leaderIndex = 1002; 
 			enemyDecks.PushBack(DijkstraDeck);
 			
 			
+			//------------------------------------------------------------------//BaronDeck.deckName = "Baron";	
+			BaronDeck.cardIndices.PushBack(2); //Scorch	
+			BaronDeck.cardIndices.PushBack(3); //Biting Frost	
+			BaronDeck.cardIndices.PushBack(5); //Torrential Rain	
+			BaronDeck.cardIndices.PushBack(5); //Torrential Rain
+
+			if (difficulty == 1)
+			{	
+				BaronDeck.cardIndices.PushBack(108); // [2] Yarpen
+				BaronDeck.cardIndices.PushBack(13); //  [5] Zoltan
+				BaronDeck.cardIndices.PushBack(5); // Clear Sky
+			}
+			if (difficulty == 2)
+			{
+				BaronDeck.cardIndices.PushBack(2); //Scorch
+			}
+			if (difficulty == 3)
+			{
+				BaronDeck.cardIndices.PushBack(0); //Dummy
+				BaronDeck.cardIndices.PushBack(0); //Dummy
+				BaronDeck.cardIndices.PushBack(101); // [10] Natalis [HERO]
+			}
 			
-			BaronDeck.cardIndices.PushBack(2); 
-			BaronDeck.cardIndices.PushBack(2); 
-			BaronDeck.cardIndices.PushBack(3); 
-			BaronDeck.cardIndices.PushBack(5); 
-			BaronDeck.cardIndices.PushBack(5); 
+			BaronDeck.cardIndices.PushBack(105); //Thaler [1] [SPY]	
+			BaronDeck.cardIndices.PushBack(111); //Keira Metz  [5]	
+			BaronDeck.cardIndices.PushBack(112); //Síle de Tansarville [5]	
+			BaronDeck.cardIndices.PushBack(116); //Prince Stennis  [5] [SPY]	
+			BaronDeck.cardIndices.PushBack(121); //Trebuchet [6]	
+			BaronDeck.cardIndices.PushBack(125); //Poor Fucking Infantry [2] [TightBond] 	
+			BaronDeck.cardIndices.PushBack(125); //Poor Fucking Infantry [2] [TightBond] 	
+			BaronDeck.cardIndices.PushBack(125); //Poor Fucking Infantry [2] [TightBond] 	
+			BaronDeck.cardIndices.PushBack(130); //Crinfrid Reavers Dragon Hunter [4] [TightBond]	
+			BaronDeck.cardIndices.PushBack(131); //Crinfrid Reavers Dragon Hunter [4] [TightBond]	
+			BaronDeck.cardIndices.PushBack(132); //Crinfrid Reavers Dragon Hunter [4] [TightBond]	
+			BaronDeck.cardIndices.PushBack(140); //Catapult [5] [TightBond] 	
+			BaronDeck.cardIndices.PushBack(145); //Ballista [6]	
+			BaronDeck.cardIndices.PushBack(160); //Blue Stripes Commando [4] [TightBond]	
+			BaronDeck.cardIndices.PushBack(161); //Blue Stripes Commando [4] [TightBond]	
+			BaronDeck.cardIndices.PushBack(162); //Blue Stripes Commando [4] [TightBond]	
+			BaronDeck.cardIndices.PushBack(170); //Siege Tower [6]
 
-			BaronDeck.cardIndices.PushBack(105); 
-			BaronDeck.cardIndices.PushBack(111); 
-			BaronDeck.cardIndices.PushBack(112); 
-			BaronDeck.cardIndices.PushBack(116); 
-			BaronDeck.cardIndices.PushBack(121); 
-			BaronDeck.cardIndices.PushBack(125); 
-			BaronDeck.cardIndices.PushBack(125); 
-			BaronDeck.cardIndices.PushBack(125); 
-			BaronDeck.cardIndices.PushBack(130); 
-			BaronDeck.cardIndices.PushBack(131); 
-			BaronDeck.cardIndices.PushBack(132); 
-			BaronDeck.cardIndices.PushBack(140); 
-			BaronDeck.cardIndices.PushBack(145); 
-			BaronDeck.cardIndices.PushBack(160); 
-			BaronDeck.cardIndices.PushBack(161); 
-			BaronDeck.cardIndices.PushBack(162); 
-			BaronDeck.cardIndices.PushBack(170); 
+			//-------------------------------------------------------------//note: Powerful Neutrals -------------------------------------------
 
-			
+			BaronDeck.dynamicCardRequirements.PushBack(diff5);
+			BaronDeck.dynamicCards.PushBack(1); // Horn
+			BaronDeck.dynamicCardRequirements.PushBack(diff7);
+			BaronDeck.dynamicCards.PushBack(8); // [6] Vesemir
+			BaronDeck.dynamicCardRequirements.PushBack(diff9);
+			BaronDeck.dynamicCards.PushBack(120); // [6] Trebuchet
+			BaronDeck.dynamicCardRequirements.PushBack(diff11);
+			BaronDeck.dynamicCards.PushBack(11); // [7] Triss
+			BaronDeck.dynamicCardRequirements.PushBack(diff11);
+			BaronDeck.dynamicCards.PushBack(12); // [2] Dandelion [HORN]
+			BaronDeck.dynamicCardRequirements.PushBack(diff14);
+			BaronDeck.dynamicCards.PushBack(15); // [7] Villen [SCORCH-MELEE]
+			BaronDeck.dynamicCardRequirements.PushBack(diff14);
+			BaronDeck.dynamicCards.PushBack(7); // [15] Geralt of Rivia
 
-			BaronDeck.dynamicCardRequirements.PushBack(165);	
-			BaronDeck.dynamicCards.PushBack(1); 
-			BaronDeck.dynamicCardRequirements.PushBack(175);	
-			BaronDeck.dynamicCards.PushBack(8); 
-			BaronDeck.dynamicCardRequirements.PushBack(185);	
-			BaronDeck.dynamicCards.PushBack(120); 
-			BaronDeck.dynamicCardRequirements.PushBack(205);	
-			BaronDeck.dynamicCards.PushBack(11); 
-			BaronDeck.dynamicCardRequirements.PushBack(205);	
-			BaronDeck.dynamicCards.PushBack(12); 
-			BaronDeck.dynamicCardRequirements.PushBack(225);	
-			BaronDeck.dynamicCards.PushBack(15); 
-			BaronDeck.dynamicCardRequirements.PushBack(225);	
-			BaronDeck.dynamicCards.PushBack(7); 
-
-			BaronDeck.specialCard = 109; 
+			BaronDeck.specialCard = 109; // [4] Djikstra [SPY]
 			BaronDeck.leaderIndex = 1001;
 			enemyDecks.PushBack(BaronDeck);
 			
@@ -580,96 +793,125 @@ import class CR4GwintManager extends IGameSystem
 		var SjustaDeck			:SDeckDefinition;
 
 
+			//RocheDeck.deckName = "Roche";	
+			RocheDeck.cardIndices.PushBack(0); // Dummy	
+			RocheDeck.cardIndices.PushBack(1); // Horn
+			RocheDeck.cardIndices.PushBack(4); // Impenetrable Fog
+			RocheDeck.cardIndices.PushBack(6); // Clear Weather	
 			
-			RocheDeck.cardIndices.PushBack(0); 
-			RocheDeck.cardIndices.PushBack(0); 
-			RocheDeck.cardIndices.PushBack(1); 
-			RocheDeck.cardIndices.PushBack(1); 
-			RocheDeck.cardIndices.PushBack(4); 
-			RocheDeck.cardIndices.PushBack(6); 
+			if (difficulty == 1)
+			{	
+				RocheDeck.cardIndices.PushBack(6); // Clear Weather
+				RocheDeck.cardIndices.PushBack(108); // [2] Yarpen
+				RocheDeck.cardIndices.PushBack(136); //Redanian Foot Soldier [1]
+			}
+			if (difficulty == 2)
+			{
+				RocheDeck.cardIndices.PushBack(0); // Dummy	
+				RocheDeck.cardIndices.PushBack(1); // Horn
+				RocheDeck.cardIndices.PushBack(136); //Redanian Foot Soldier [1]
+			}
+			if (difficulty == 3)
+			{
+				RocheDeck.cardIndices.PushBack(0); // Dummy	
+				RocheDeck.cardIndices.PushBack(1); // Horn
+				RocheDeck.cardIndices.PushBack(9); // [7] Yennefer [HERO][NURSE]
+			}
+			
+			RocheDeck.cardIndices.PushBack(101); //John Natalis [10] ***[HERO]***	
+			RocheDeck.cardIndices.PushBack(120); //Trebuchet [6]	
+			RocheDeck.cardIndices.PushBack(121); //Trebuchet [6]	
+			RocheDeck.cardIndices.PushBack(125); //Poor Fucking Infantry [2] [TightBond] 	
+			RocheDeck.cardIndices.PushBack(126); //Poor Fucking Infantry [2] [TightBond] 
+			RocheDeck.cardIndices.PushBack(127); //Poor Fucking Infantry [2] [TightBond] 	
+			RocheDeck.cardIndices.PushBack(135); //Redanian Foot Soldier [1]		
+			RocheDeck.cardIndices.PushBack(140); //Catapult [5] [TightBond] 	
+			RocheDeck.cardIndices.PushBack(141); //Catapult [5] [TightBond] 		
+			RocheDeck.cardIndices.PushBack(145); //Ballista [6]	
+			RocheDeck.cardIndices.PushBack(146); //Ballista [6]	
+			RocheDeck.cardIndices.PushBack(150); //Kaedweni Siege Expert [2] [MoraleBoost]	
+			RocheDeck.cardIndices.PushBack(151); //Kaedweni Siege Expert [2] [MoraleBoost]		
+			RocheDeck.cardIndices.PushBack(170); //Siege Tower [6]	
+			RocheDeck.cardIndices.PushBack(175); //Dun Banner Medic [0] [Nurse]
 
-			RocheDeck.cardIndices.PushBack(101); 
-			RocheDeck.cardIndices.PushBack(120); 
-			RocheDeck.cardIndices.PushBack(121); 
-			RocheDeck.cardIndices.PushBack(125); 
-			RocheDeck.cardIndices.PushBack(126); 
-			RocheDeck.cardIndices.PushBack(127); 
-			RocheDeck.cardIndices.PushBack(135); 
-			RocheDeck.cardIndices.PushBack(136); 
-			RocheDeck.cardIndices.PushBack(140); 
-			RocheDeck.cardIndices.PushBack(141); 
-			RocheDeck.cardIndices.PushBack(145); 
-			RocheDeck.cardIndices.PushBack(146); 
-			RocheDeck.cardIndices.PushBack(150); 
-			RocheDeck.cardIndices.PushBack(151); 
-			RocheDeck.cardIndices.PushBack(170); 
-			RocheDeck.cardIndices.PushBack(175); 
 
-
-			RocheDeck.dynamicCardRequirements.PushBack(165);	
-			RocheDeck.dynamicCards.PushBack(15); 
-			RocheDeck.dynamicCardRequirements.PushBack(175);	
-			RocheDeck.dynamicCards.PushBack(2); 
-			RocheDeck.dynamicCardRequirements.PushBack(185);	
-			RocheDeck.dynamicCards.PushBack(10); 
-			RocheDeck.dynamicCardRequirements.PushBack(205);	
-			RocheDeck.dynamicCards.PushBack(11); 
-			RocheDeck.dynamicCardRequirements.PushBack(205);	
-			RocheDeck.dynamicCards.PushBack(8); 
-			RocheDeck.dynamicCardRequirements.PushBack(225);	
-			RocheDeck.dynamicCards.PushBack(12); 
-			RocheDeck.dynamicCardRequirements.PushBack(225);	
-			RocheDeck.dynamicCards.PushBack(7); 
+			RocheDeck.dynamicCardRequirements.PushBack(diff5);
+			RocheDeck.dynamicCards.PushBack(15); // [7] Villen [MELEE-SCORCH]
+			RocheDeck.dynamicCardRequirements.PushBack(diff7);
+			RocheDeck.dynamicCards.PushBack(2); // Scorch	
+			RocheDeck.dynamicCardRequirements.PushBack(diff9);
+			RocheDeck.dynamicCards.PushBack(10); // [15] Ciri
+			RocheDeck.dynamicCardRequirements.PushBack(diff11);
+			RocheDeck.dynamicCards.PushBack(11); // [7] Triss [HERO]
+			RocheDeck.dynamicCardRequirements.PushBack(diff11);
+			RocheDeck.dynamicCards.PushBack(8); // [6] Vesemir
+			RocheDeck.dynamicCardRequirements.PushBack(diff14);
+			RocheDeck.dynamicCards.PushBack(12); // [2] Dandelion [HORN]
+			RocheDeck.dynamicCardRequirements.PushBack(diff14);
+			RocheDeck.dynamicCards.PushBack(7); // [15] Geralt of Rivia
 
 
 			RocheDeck.specialCard = -1;
-			
 			RocheDeck.leaderIndex = 1003; 
 			enemyDecks.PushBack(RocheDeck);
 			
 			
-			
-			SjustaDeck.cardIndices.PushBack(0); 
-			SjustaDeck.cardIndices.PushBack(0); 
-			SjustaDeck.cardIndices.PushBack(1); 
-			SjustaDeck.cardIndices.PushBack(2); 
+			//SjustaDeck.deckName = "Sjusta";	
+			SjustaDeck.cardIndices.PushBack(0); // Dummy	
+			SjustaDeck.cardIndices.PushBack(2); // Scorch
 
-			SjustaDeck.cardIndices.PushBack(12); 
-			SjustaDeck.cardIndices.PushBack(13); 
-			SjustaDeck.cardIndices.PushBack(106); 
-			SjustaDeck.cardIndices.PushBack(108); 
-			SjustaDeck.cardIndices.PushBack(109); 
-			SjustaDeck.cardIndices.PushBack(111); 
-			SjustaDeck.cardIndices.PushBack(112); 
-			SjustaDeck.cardIndices.PushBack(113); 
-			SjustaDeck.cardIndices.PushBack(116); 
-			SjustaDeck.cardIndices.PushBack(125); 
-			SjustaDeck.cardIndices.PushBack(126); 
-			SjustaDeck.cardIndices.PushBack(130); 
-			SjustaDeck.cardIndices.PushBack(131); 
-			SjustaDeck.cardIndices.PushBack(132); 
-			SjustaDeck.cardIndices.PushBack(135); 
-			SjustaDeck.cardIndices.PushBack(136); 
-			SjustaDeck.cardIndices.PushBack(160); 
-			SjustaDeck.cardIndices.PushBack(161); 
+			if (difficulty == 1)
+			{	
+				SjustaDeck.cardIndices.PushBack(135); //Redanian Foot Soldier [1]	
+				SjustaDeck.cardIndices.PushBack(136); //Redanian Foot Soldier [1]
+				SjustaDeck.cardIndices.PushBack(108); //Yarpen Zigrin  [2]
+			}
+			if (difficulty == 2)
+			{
+				SjustaDeck.cardIndices.PushBack(0); // Dummy	
+				SjustaDeck.cardIndices.PushBack(1); // Horn
+				SjustaDeck.cardIndices.PushBack(135); //Redanian Foot Soldier [1]	
+				SjustaDeck.cardIndices.PushBack(136); //Redanian Foot Soldier [1]
+				SjustaDeck.cardIndices.PushBack(108); //Yarpen Zigrin  [2]
+			}
+			if (difficulty == 3)
+			{
+				SjustaDeck.cardIndices.PushBack(0); // Dummy	
+				SjustaDeck.cardIndices.PushBack(1); // Horn
+			}
 
-			SjustaDeck.dynamicCardRequirements.PushBack(165);	
-			SjustaDeck.dynamicCards.PushBack(15); 
-			SjustaDeck.dynamicCardRequirements.PushBack(175);	
-			SjustaDeck.dynamicCards.PushBack(2); 
-			SjustaDeck.dynamicCardRequirements.PushBack(185);	
-			SjustaDeck.dynamicCards.PushBack(9); 
-			SjustaDeck.dynamicCardRequirements.PushBack(205);	
-			SjustaDeck.dynamicCards.PushBack(11); 
-			SjustaDeck.dynamicCardRequirements.PushBack(205);	
-			SjustaDeck.dynamicCards.PushBack(8); 
-			SjustaDeck.dynamicCardRequirements.PushBack(225);	
-			SjustaDeck.dynamicCards.PushBack(10); 
-			SjustaDeck.dynamicCardRequirements.PushBack(225);	
-			SjustaDeck.dynamicCards.PushBack(7); 
+			SjustaDeck.cardIndices.PushBack(12); //Dandelion [2] [MoraleBoost]	
+			SjustaDeck.cardIndices.PushBack(13); //zoltan [5]	
+			SjustaDeck.cardIndices.PushBack(106); //Ves [5]		
+			SjustaDeck.cardIndices.PushBack(109); //Sigismund Dijkstra [SPY]
+			SjustaDeck.cardIndices.PushBack(111); //Keira Metz  [5]	
+			SjustaDeck.cardIndices.PushBack(112); //Síle de Tansarville [5]	
+			SjustaDeck.cardIndices.PushBack(113); //Sabrina Glevissig [4]
+			SjustaDeck.cardIndices.PushBack(116); //Prince Stennis  [SPY]
+			SjustaDeck.cardIndices.PushBack(125); //Poor Fucking Infantry [2] [TightBond] 	
+			SjustaDeck.cardIndices.PushBack(126); //Poor Fucking Infantry [2] [TightBond]  	
+			SjustaDeck.cardIndices.PushBack(130); //Crinfrid Reavers Dragon Hunter [4] [TightBond] 	
+			SjustaDeck.cardIndices.PushBack(131); //Crinfrid Reavers Dragon Hunter [4] [TightBond] 	
+			SjustaDeck.cardIndices.PushBack(132); //Crinfrid Reavers Dragon Hunter [4] [TightBond]		
+			SjustaDeck.cardIndices.PushBack(160); //Blue Stripes Commando [4] [TightBond]	
+			SjustaDeck.cardIndices.PushBack(161); //Blue Stripes Commando [4] [TightBond]
+
+			SjustaDeck.dynamicCardRequirements.PushBack(diff5);
+			SjustaDeck.dynamicCards.PushBack(15);
+			SjustaDeck.dynamicCardRequirements.PushBack(diff7);
+			SjustaDeck.dynamicCards.PushBack(2); //Scorch	
+			SjustaDeck.dynamicCardRequirements.PushBack(diff9);
+			SjustaDeck.dynamicCards.PushBack(9);
+			SjustaDeck.dynamicCardRequirements.PushBack(diff11);
+			SjustaDeck.dynamicCards.PushBack(11);
+			SjustaDeck.dynamicCardRequirements.PushBack(diff11);
+			SjustaDeck.dynamicCards.PushBack(8);
+			SjustaDeck.dynamicCardRequirements.PushBack(diff14);
+			SjustaDeck.dynamicCards.PushBack(10);
+			SjustaDeck.dynamicCardRequirements.PushBack(diff14);
+			SjustaDeck.dynamicCards.PushBack(7); // [ 15 ] Geralt of Rivia
 
 			SjustaDeck.specialCard = -1;
-			
 			SjustaDeck.leaderIndex = 1004; 
 			enemyDecks.PushBack(SjustaDeck);
 
@@ -682,145 +924,191 @@ import class CR4GwintManager extends IGameSystem
 		var BoatBuilderDeck		:SDeckDefinition;
 
 		
-		
+		////////////////NILFGAARD/////////////////
 			
-			
-			StjepanDeck.cardIndices.PushBack(0); 
-			StjepanDeck.cardIndices.PushBack(0); 
-			StjepanDeck.cardIndices.PushBack(3); 
-			StjepanDeck.cardIndices.PushBack(3); 
-			StjepanDeck.cardIndices.PushBack(4); 
-			StjepanDeck.cardIndices.PushBack(5); 
+			//StjepanDeck.deckName = "Stjepan";	
+			StjepanDeck.cardIndices.PushBack(0); // Dummy
+			StjepanDeck.cardIndices.PushBack(3); // Biting Frost	
+			StjepanDeck.cardIndices.PushBack(4); // Impenetrable Fog	
 
-			StjepanDeck.cardIndices.PushBack(206); 
-			StjepanDeck.cardIndices.PushBack(207);	
-			StjepanDeck.cardIndices.PushBack(208); 
-			StjepanDeck.cardIndices.PushBack(210); 
-			StjepanDeck.cardIndices.PushBack(213); 
-			StjepanDeck.cardIndices.PushBack(214); 
-			StjepanDeck.cardIndices.PushBack(215); 
-			StjepanDeck.cardIndices.PushBack(218); 
-			StjepanDeck.cardIndices.PushBack(235);	
-			StjepanDeck.cardIndices.PushBack(236);	
-			StjepanDeck.cardIndices.PushBack(240);	
-			StjepanDeck.cardIndices.PushBack(241);	
-			StjepanDeck.cardIndices.PushBack(245);	
-			StjepanDeck.cardIndices.PushBack(246);	
-			StjepanDeck.cardIndices.PushBack(247);	
-			StjepanDeck.cardIndices.PushBack(230);	
-			StjepanDeck.cardIndices.PushBack(231);
+			if (difficulty == 1)
+			{	
+				StjepanDeck.cardIndices.PushBack(3); // Biting Frost
+				StjepanDeck.cardIndices.PushBack(5); // Torrential Rain	
+				StjepanDeck.cardIndices.PushBack(215); // Sweers [2]
+			}
+			if (difficulty == 2)
+			{
+				StjepanDeck.cardIndices.PushBack(0); // Dummy
+				StjepanDeck.cardIndices.PushBack(3); // Biting Frost	
+				StjepanDeck.cardIndices.PushBack(5); // Torrential Rain	
+				StjepanDeck.cardIndices.PushBack(215); // Sweers [2]
+			}
+			if (difficulty == 3)
+			{
+				StjepanDeck.cardIndices.PushBack(0); // Dummy
+			}
+
+			StjepanDeck.cardIndices.PushBack(206); // Assire var Anahid  [6]	
+			StjepanDeck.cardIndices.PushBack(207); // Cynthia [4]
+			StjepanDeck.cardIndices.PushBack(208); // Fringilla Vigo   [6]	
+			StjepanDeck.cardIndices.PushBack(210); // Rainfarn [4]		
+			StjepanDeck.cardIndices.PushBack(213); // Shilard Fitz-Oesterlen  [4] [SPY]	
+			StjepanDeck.cardIndices.PushBack(214); // Stefan Skellen  [1] [SPY]
+	
+			StjepanDeck.cardIndices.PushBack(218); // Vattier de Rideaux Vattier [1] [SPY]	
+			StjepanDeck.cardIndices.PushBack(235); // Black Archer [10]
+			StjepanDeck.cardIndices.PushBack(236); // Black Archer [10]
+			StjepanDeck.cardIndices.PushBack(240); // Heavy Zerri  [10]
+			StjepanDeck.cardIndices.PushBack(241); // Zerri [5]
+			StjepanDeck.cardIndices.PushBack(245); // Impera [3] [TIGHT]
+			StjepanDeck.cardIndices.PushBack(246); // Impera [3] [TIGHT]
+			StjepanDeck.cardIndices.PushBack(247); // Impera [3] [TIGHT]
+			StjepanDeck.cardIndices.PushBack(230); // [1] Support [NURSE]
+			StjepanDeck.cardIndices.PushBack(231); // [1] Support [NURSE]
 
 
-			StjepanDeck.dynamicCardRequirements.PushBack(165);	
-			StjepanDeck.dynamicCards.PushBack(15); 
-			StjepanDeck.dynamicCardRequirements.PushBack(175);	
-			StjepanDeck.dynamicCards.PushBack(230); 
-			StjepanDeck.dynamicCardRequirements.PushBack(185);	
-			StjepanDeck.dynamicCards.PushBack(2); 
-			StjepanDeck.dynamicCardRequirements.PushBack(205);	
-			StjepanDeck.dynamicCards.PushBack(231); 
-			StjepanDeck.dynamicCardRequirements.PushBack(205);	
-			StjepanDeck.dynamicCards.PushBack(8); 
-			StjepanDeck.dynamicCardRequirements.PushBack(225);	
-			StjepanDeck.dynamicCards.PushBack(12); 
-			StjepanDeck.dynamicCardRequirements.PushBack(225);	
-			StjepanDeck.dynamicCards.PushBack(7); 
+			StjepanDeck.dynamicCardRequirements.PushBack(diff5);
+			StjepanDeck.dynamicCards.PushBack(15);
+			StjepanDeck.dynamicCardRequirements.PushBack(diff7);
+			StjepanDeck.dynamicCards.PushBack(230);
+			StjepanDeck.dynamicCardRequirements.PushBack(diff9);
+			StjepanDeck.dynamicCards.PushBack(2); //Scorch	
+			StjepanDeck.dynamicCardRequirements.PushBack(diff11);
+			StjepanDeck.dynamicCards.PushBack(231);
+			StjepanDeck.dynamicCardRequirements.PushBack(diff11);
+			StjepanDeck.dynamicCards.PushBack(8);
+			StjepanDeck.dynamicCardRequirements.PushBack(diff14);
+			StjepanDeck.dynamicCards.PushBack(12);
+			StjepanDeck.dynamicCardRequirements.PushBack(diff14);
+			StjepanDeck.dynamicCards.PushBack(7); // [ 15 ] Geralt of Rivia
 
 
-			StjepanDeck.specialCard = 9; 
+			StjepanDeck.specialCard = 9; // Change this to a card ID to always have it be in the AI's hand when drawing cards
 			StjepanDeck.leaderIndex = 2003; 
 			enemyDecks.PushBack(StjepanDeck);
 			
-			
-			CrossroadsDeck.cardIndices.PushBack(1); 
-			CrossroadsDeck.cardIndices.PushBack(2); 
-			CrossroadsDeck.cardIndices.PushBack(2); 
-			CrossroadsDeck.cardIndices.PushBack(4); 
-			CrossroadsDeck.cardIndices.PushBack(4); 
-			CrossroadsDeck.cardIndices.PushBack(6); 
-			CrossroadsDeck.cardIndices.PushBack(6); 
+			//CrossroadsDeck.deckName = "Crossroads Innkeeper";	
+			CrossroadsDeck.cardIndices.PushBack(1); //Horn
+			CrossroadsDeck.cardIndices.PushBack(2); //Scorch
+			CrossroadsDeck.cardIndices.PushBack(6); //Clear Weather	
 
-			CrossroadsDeck.cardIndices.PushBack(209); 
-			CrossroadsDeck.cardIndices.PushBack(211); 
-			CrossroadsDeck.cardIndices.PushBack(212); 
-			CrossroadsDeck.cardIndices.PushBack(213); 
-			CrossroadsDeck.cardIndices.PushBack(230);	
-			CrossroadsDeck.cardIndices.PushBack(231);	
-			CrossroadsDeck.cardIndices.PushBack(235);	
-			CrossroadsDeck.cardIndices.PushBack(236);	
-			CrossroadsDeck.cardIndices.PushBack(240);	
-			CrossroadsDeck.cardIndices.PushBack(241);	
-			CrossroadsDeck.cardIndices.PushBack(245);	
-			CrossroadsDeck.cardIndices.PushBack(246);	
-			CrossroadsDeck.cardIndices.PushBack(247);	
-			CrossroadsDeck.cardIndices.PushBack(248);	
-			CrossroadsDeck.cardIndices.PushBack(250);	
-			CrossroadsDeck.cardIndices.PushBack(251);	
-			CrossroadsDeck.cardIndices.PushBack(252);	
-			CrossroadsDeck.cardIndices.PushBack(265);
+			if (difficulty == 1)
+			{	
+				CrossroadsDeck.cardIndices.PushBack(4); //Impenetrable Fog
+				CrossroadsDeck.cardIndices.PushBack(4); //Impenetrable Fog
+				CrossroadsDeck.cardIndices.PushBack(6); //Clear Weather
+				CrossroadsDeck.cardIndices.PushBack(209); // Morteisen [3]
+				CrossroadsDeck.cardIndices.PushBack(212); //Rotten Mangonel [3]	
+			}
+			if (difficulty == 2)
+			{
+				CrossroadsDeck.cardIndices.PushBack(2); //Scorch
+				CrossroadsDeck.cardIndices.PushBack(4); //Impenetrable Fog
+				CrossroadsDeck.cardIndices.PushBack(4); //Impenetrable Fog
+				CrossroadsDeck.cardIndices.PushBack(6); //Clear Weather
+				CrossroadsDeck.cardIndices.PushBack(209); // Morteisen [3] 	
+				CrossroadsDeck.cardIndices.PushBack(212); //Rotten Mangonel [3]	
+			}
+			if (difficulty == 3)
+			{
+				CrossroadsDeck.cardIndices.PushBack(2); //Scorch
+				CrossroadsDeck.cardIndices.PushBack(4); //Impenetrable Fog
+			}
+
+			CrossroadsDeck.cardIndices.PushBack(211); //Renuald aep Matsen  [5] 
+			CrossroadsDeck.cardIndices.PushBack(213); //Shilard Fitz-Oesterlen  [4] [SPY]	
+			CrossroadsDeck.cardIndices.PushBack(230); // [1] Support [NURSE]
+			CrossroadsDeck.cardIndices.PushBack(231); // [1] Support [NURSE]
+			CrossroadsDeck.cardIndices.PushBack(235); // Black Archer [10]
+			CrossroadsDeck.cardIndices.PushBack(236); // Black Archer [10]
+			CrossroadsDeck.cardIndices.PushBack(240); // Heavy Zerri  [10]
+			CrossroadsDeck.cardIndices.PushBack(241); // Zerri [5]
+			CrossroadsDeck.cardIndices.PushBack(245); // Impera [3] [TIGHT]
+			CrossroadsDeck.cardIndices.PushBack(246); // Impera [3] [TIGHT]
+			CrossroadsDeck.cardIndices.PushBack(247); // Impera [3] [TIGHT]
+			CrossroadsDeck.cardIndices.PushBack(248); // Impera [3] [TIGHT]
+			CrossroadsDeck.cardIndices.PushBack(250); // [2] Nausicaa [TIGHT]
+			CrossroadsDeck.cardIndices.PushBack(251); // [2] Nausicaa [TIGHT]
+			CrossroadsDeck.cardIndices.PushBack(252); // [2] Nausicaa [TIGHT]
+			CrossroadsDeck.cardIndices.PushBack(265); // [0] Support [NURSE]
 
 
-			CrossroadsDeck.dynamicCardRequirements.PushBack(165);	
-			CrossroadsDeck.dynamicCards.PushBack(15); 
-			CrossroadsDeck.dynamicCardRequirements.PushBack(175);	
-			CrossroadsDeck.dynamicCards.PushBack(0); 
-			CrossroadsDeck.dynamicCardRequirements.PushBack(185);	
-			CrossroadsDeck.dynamicCards.PushBack(1); 
-			CrossroadsDeck.dynamicCardRequirements.PushBack(205);	
-			CrossroadsDeck.dynamicCards.PushBack(11); 
-			CrossroadsDeck.dynamicCardRequirements.PushBack(205);	
-			CrossroadsDeck.dynamicCards.PushBack(13); 
-			CrossroadsDeck.dynamicCardRequirements.PushBack(225);	
-			CrossroadsDeck.dynamicCards.PushBack(7); 
-			CrossroadsDeck.dynamicCardRequirements.PushBack(225);	
-			CrossroadsDeck.dynamicCards.PushBack(10); 
+			CrossroadsDeck.dynamicCardRequirements.PushBack(diff5);
+			CrossroadsDeck.dynamicCards.PushBack(15);
+			CrossroadsDeck.dynamicCardRequirements.PushBack(diff7);
+			CrossroadsDeck.dynamicCards.PushBack(0);
+			CrossroadsDeck.dynamicCardRequirements.PushBack(diff9);
+			CrossroadsDeck.dynamicCards.PushBack(1);
+			CrossroadsDeck.dynamicCardRequirements.PushBack(diff11);
+			CrossroadsDeck.dynamicCards.PushBack(11);
+			CrossroadsDeck.dynamicCardRequirements.PushBack(diff11);
+			CrossroadsDeck.dynamicCards.PushBack(13);
+			CrossroadsDeck.dynamicCardRequirements.PushBack(diff14);
+			CrossroadsDeck.dynamicCards.PushBack(7); // [15] Geralt of Rivia
+			CrossroadsDeck.dynamicCardRequirements.PushBack(diff14);
+			CrossroadsDeck.dynamicCards.PushBack(10);
 
-			CrossroadsDeck.specialCard = 201; 
+			CrossroadsDeck.specialCard = 201; // [10] Menno [HERO]
 			CrossroadsDeck.leaderIndex = 2002; 
 			enemyDecks.PushBack(CrossroadsDeck);
 			
-			
-			BoatBuilderDeck.cardIndices.PushBack(0); 
-			BoatBuilderDeck.cardIndices.PushBack(0); 
-			BoatBuilderDeck.cardIndices.PushBack(1); 
-			BoatBuilderDeck.cardIndices.PushBack(2); 
-			BoatBuilderDeck.cardIndices.PushBack(3); 
-			BoatBuilderDeck.cardIndices.PushBack(4); 
-			BoatBuilderDeck.cardIndices.PushBack(5); 
-			BoatBuilderDeck.cardIndices.PushBack(6); 
+			//BoatBuilderDeck.deckName = "Boat Builder";	
+			BoatBuilderDeck.cardIndices.PushBack(0); // Dummy
+			BoatBuilderDeck.cardIndices.PushBack(2); //Scorch	
+			BoatBuilderDeck.cardIndices.PushBack(3); //Biting Frost
+			BoatBuilderDeck.cardIndices.PushBack(4); //Impenetrable Fog
+			BoatBuilderDeck.cardIndices.PushBack(6); //Clear Weather	
 
-			BoatBuilderDeck.cardIndices.PushBack(202);	
-			BoatBuilderDeck.cardIndices.PushBack(206); 
-			BoatBuilderDeck.cardIndices.PushBack(209); 
-			BoatBuilderDeck.cardIndices.PushBack(214); 
-			BoatBuilderDeck.cardIndices.PushBack(218); 
-			BoatBuilderDeck.cardIndices.PushBack(220);	
-			BoatBuilderDeck.cardIndices.PushBack(235);	
-			BoatBuilderDeck.cardIndices.PushBack(236);	
-			BoatBuilderDeck.cardIndices.PushBack(240);	
-			BoatBuilderDeck.cardIndices.PushBack(241);	
-			BoatBuilderDeck.cardIndices.PushBack(245);	
-			BoatBuilderDeck.cardIndices.PushBack(246);	
-			BoatBuilderDeck.cardIndices.PushBack(250);	
-			BoatBuilderDeck.cardIndices.PushBack(255);	
-			BoatBuilderDeck.cardIndices.PushBack(265);
+			if (difficulty == 1)
+			{	
+				BoatBuilderDeck.cardIndices.PushBack(5); //Torrential Rain
+				BoatBuilderDeck.cardIndices.PushBack(209); // Morteisen [3] 
+			}
+			if (difficulty == 2)
+			{
+				BoatBuilderDeck.cardIndices.PushBack(0); // Dummy	
+				BoatBuilderDeck.cardIndices.PushBack(1); //Horn
+				BoatBuilderDeck.cardIndices.PushBack(5); //Torrential Rain
+				BoatBuilderDeck.cardIndices.PushBack(209); // Morteisen [3] 
+			}
+			if (difficulty == 3)
+			{
+				BoatBuilderDeck.cardIndices.PushBack(0); // Dummy	
+				BoatBuilderDeck.cardIndices.PushBack(1); //Horn
+			}
 
-			BoatBuilderDeck.dynamicCardRequirements.PushBack(165);	
-			BoatBuilderDeck.dynamicCards.PushBack(247); 
-			BoatBuilderDeck.dynamicCardRequirements.PushBack(175);	
-			BoatBuilderDeck.dynamicCards.PushBack(248); 
-			BoatBuilderDeck.dynamicCardRequirements.PushBack(185);	
-			BoatBuilderDeck.dynamicCards.PushBack(251); 
-			BoatBuilderDeck.dynamicCardRequirements.PushBack(205);	
-			BoatBuilderDeck.dynamicCards.PushBack(252); 
-			BoatBuilderDeck.dynamicCardRequirements.PushBack(205);	
-			BoatBuilderDeck.dynamicCards.PushBack(260); 
-			BoatBuilderDeck.dynamicCardRequirements.PushBack(225);	
-			BoatBuilderDeck.dynamicCards.PushBack(7); 
-			BoatBuilderDeck.dynamicCardRequirements.PushBack(225);	
-			BoatBuilderDeck.dynamicCards.PushBack(12); 
+			BoatBuilderDeck.cardIndices.PushBack(202); // [10] Moorvan [HERO]
+			BoatBuilderDeck.cardIndices.PushBack(206); // Assire var Anahid  [6]
+			BoatBuilderDeck.cardIndices.PushBack(214); // Stefan Skellen  [1] [SPY]
+			BoatBuilderDeck.cardIndices.PushBack(218); // Vattier de Rideaux Vattier [1] [SPY]	
+			BoatBuilderDeck.cardIndices.PushBack(220); // [6] Cahir
+			BoatBuilderDeck.cardIndices.PushBack(235); // Black Archer [10]
+			BoatBuilderDeck.cardIndices.PushBack(236); // Black Archer [10]
+			BoatBuilderDeck.cardIndices.PushBack(240); // Heavy Zerri  [10]
+			BoatBuilderDeck.cardIndices.PushBack(241); // Zerri [5]
+			BoatBuilderDeck.cardIndices.PushBack(245); // Impera [3] [TIGHT]
+			BoatBuilderDeck.cardIndices.PushBack(246); // Impera [3] [TIGHT]
+			BoatBuilderDeck.cardIndices.PushBack(250); // [2] Nausicaa [TIGHT]
+			BoatBuilderDeck.cardIndices.PushBack(255); // [6] Engineer
+			BoatBuilderDeck.cardIndices.PushBack(265); // [0] Support [NURSE]
 
-			BoatBuilderDeck.specialCard = 200; 
+			BoatBuilderDeck.dynamicCardRequirements.PushBack(diff5);
+			BoatBuilderDeck.dynamicCards.PushBack(247);
+			BoatBuilderDeck.dynamicCardRequirements.PushBack(diff7);
+			BoatBuilderDeck.dynamicCards.PushBack(248);
+			BoatBuilderDeck.dynamicCardRequirements.PushBack(diff9);
+			BoatBuilderDeck.dynamicCards.PushBack(251);
+			BoatBuilderDeck.dynamicCardRequirements.PushBack(diff11);
+			BoatBuilderDeck.dynamicCards.PushBack(252);
+			BoatBuilderDeck.dynamicCardRequirements.PushBack(diff11);
+			BoatBuilderDeck.dynamicCards.PushBack(260);
+			BoatBuilderDeck.dynamicCardRequirements.PushBack(diff14);
+			BoatBuilderDeck.dynamicCards.PushBack(7); // [ 15 ] Geralt of Rivia
+			BoatBuilderDeck.dynamicCardRequirements.PushBack(diff14);
+			BoatBuilderDeck.dynamicCards.PushBack(12);
+
+			BoatBuilderDeck.specialCard = 200; // [10] Letho [HERO]
 			BoatBuilderDeck.leaderIndex = 2004; 
 			enemyDecks.PushBack(BoatBuilderDeck);
 			
@@ -835,25 +1123,43 @@ import class CR4GwintManager extends IGameSystem
 		var GremistaDeck		:SDeckDefinition;
 
 
-			
-			MarkizaDeck.cardIndices.PushBack(0); 
-			MarkizaDeck.cardIndices.PushBack(1); 
-			MarkizaDeck.cardIndices.PushBack(1); 
-			MarkizaDeck.cardIndices.PushBack(2); 
-			MarkizaDeck.cardIndices.PushBack(2); 
-			MarkizaDeck.cardIndices.PushBack(3); 
-			MarkizaDeck.cardIndices.PushBack(3); 
-			MarkizaDeck.cardIndices.PushBack(4); 
-			MarkizaDeck.cardIndices.PushBack(5); 
-			MarkizaDeck.cardIndices.PushBack(6); 
+			//MarkizaDeck.deckName = "Markiza Serenity";
+			MarkizaDeck.cardIndices.PushBack(1); //Horn
+			MarkizaDeck.cardIndices.PushBack(2); //Scorch
+			MarkizaDeck.cardIndices.PushBack(4); //Impenetrable Fog
+			MarkizaDeck.cardIndices.PushBack(6); //Clear Weather	
 
-			MarkizaDeck.cardIndices.PushBack(200); 
-			MarkizaDeck.cardIndices.PushBack(206); 
-			MarkizaDeck.cardIndices.PushBack(208); 
-			MarkizaDeck.cardIndices.PushBack(210); 
-			MarkizaDeck.cardIndices.PushBack(211); 
-			MarkizaDeck.cardIndices.PushBack(213); 
-			MarkizaDeck.cardIndices.PushBack(214); 
+			if (difficulty == 1)
+			{	
+				MarkizaDeck.cardIndices.PushBack(3); //Biting Frost
+				MarkizaDeck.cardIndices.PushBack(3); //Biting Frost	
+				MarkizaDeck.cardIndices.PushBack(5); //Torrential Rain
+				MarkizaDeck.cardIndices.PushBack(210); //Rainfarn [4]	
+			}
+			if (difficulty == 2)
+			{
+				MarkizaDeck.cardIndices.PushBack(3); //Biting Frost
+				MarkizaDeck.cardIndices.PushBack(3); //Biting Frost	
+				MarkizaDeck.cardIndices.PushBack(5); //Torrential Rain
+				MarkizaDeck.cardIndices.PushBack(0); // Dummy	
+				MarkizaDeck.cardIndices.PushBack(1); //Horn
+				MarkizaDeck.cardIndices.PushBack(2); //Scorch
+				MarkizaDeck.cardIndices.PushBack(210); //Rainfarn [4]	
+			}
+			if (difficulty == 3)
+			{
+				MarkizaDeck.cardIndices.PushBack(3); //Biting Frost	
+				MarkizaDeck.cardIndices.PushBack(0); // Dummy	
+				MarkizaDeck.cardIndices.PushBack(1); //Horn
+				MarkizaDeck.cardIndices.PushBack(2); //Scorch	
+			}
+
+			MarkizaDeck.cardIndices.PushBack(200); //Letho of Gulet  [10] ***[HERO]***	
+			MarkizaDeck.cardIndices.PushBack(206); //Assire var Anahid  [6]	
+			MarkizaDeck.cardIndices.PushBack(208); //Fringilla Vigo   [6]	
+			MarkizaDeck.cardIndices.PushBack(211); //Renuald aep Matsen  [5] 	
+			MarkizaDeck.cardIndices.PushBack(213); //Shilard Fitz-Oesterlen  [4] [SPY]	
+			MarkizaDeck.cardIndices.PushBack(214); //Stefan Skellen  [1] [SPY]
 			MarkizaDeck.cardIndices.PushBack(220);	
 			MarkizaDeck.cardIndices.PushBack(221);	
 			MarkizaDeck.cardIndices.PushBack(230);	
@@ -864,65 +1170,85 @@ import class CR4GwintManager extends IGameSystem
 			MarkizaDeck.cardIndices.PushBack(251);
 			MarkizaDeck.cardIndices.PushBack(252);
 
-			MarkizaDeck.dynamicCardRequirements.PushBack(165);	
-			MarkizaDeck.dynamicCards.PushBack(235); 
-			MarkizaDeck.dynamicCardRequirements.PushBack(175);	
-			MarkizaDeck.dynamicCards.PushBack(0); 
-			MarkizaDeck.dynamicCardRequirements.PushBack(185);	
-			MarkizaDeck.dynamicCards.PushBack(13); 
-			MarkizaDeck.dynamicCardRequirements.PushBack(205);	
-			MarkizaDeck.dynamicCards.PushBack(12); 
-			MarkizaDeck.dynamicCardRequirements.PushBack(205);	
-			MarkizaDeck.dynamicCards.PushBack(14); 
-			MarkizaDeck.dynamicCardRequirements.PushBack(225);	
-			MarkizaDeck.dynamicCards.PushBack(7); 
-			MarkizaDeck.dynamicCardRequirements.PushBack(225);	
-			MarkizaDeck.dynamicCards.PushBack(10); 
+			MarkizaDeck.dynamicCardRequirements.PushBack(diff5);
+			MarkizaDeck.dynamicCards.PushBack(235);
+			MarkizaDeck.dynamicCardRequirements.PushBack(diff7);
+			MarkizaDeck.dynamicCards.PushBack(0);
+			MarkizaDeck.dynamicCardRequirements.PushBack(diff9);
+			MarkizaDeck.dynamicCards.PushBack(13);
+			MarkizaDeck.dynamicCardRequirements.PushBack(diff11);
+			MarkizaDeck.dynamicCards.PushBack(12);
+			MarkizaDeck.dynamicCardRequirements.PushBack(diff11);
+			MarkizaDeck.dynamicCards.PushBack(14);
+			MarkizaDeck.dynamicCardRequirements.PushBack(diff14);
+			MarkizaDeck.dynamicCards.PushBack(7); // [ 15 ] Geralt of Rivia
+			MarkizaDeck.dynamicCardRequirements.PushBack(diff14);
+			MarkizaDeck.dynamicCards.PushBack(10);
 
-			MarkizaDeck.specialCard = 202; 
+			MarkizaDeck.specialCard = 202; // [10] Moorvan [HERO]
 			MarkizaDeck.leaderIndex = 2001; 
 			enemyDecks.PushBack(MarkizaDeck);
 			
 			
-			GremistaDeck.cardIndices.PushBack(0); 
-			GremistaDeck.cardIndices.PushBack(0); 
-			GremistaDeck.cardIndices.PushBack(0); 
-			GremistaDeck.cardIndices.PushBack(3); 
-			GremistaDeck.cardIndices.PushBack(4); 
-			GremistaDeck.cardIndices.PushBack(5); 
-			GremistaDeck.cardIndices.PushBack(6); 
+			//GremistaDeck.deckName = "Gremista";	
+			GremistaDeck.cardIndices.PushBack(3); //Biting Frost
 
-			GremistaDeck.cardIndices.PushBack(14); 
-			GremistaDeck.cardIndices.PushBack(203); 
-			GremistaDeck.cardIndices.PushBack(205); 
-			GremistaDeck.cardIndices.PushBack(210); 
-			GremistaDeck.cardIndices.PushBack(215); 
-			GremistaDeck.cardIndices.PushBack(217); 
-			GremistaDeck.cardIndices.PushBack(230);	
-			GremistaDeck.cardIndices.PushBack(231);	
-			GremistaDeck.cardIndices.PushBack(236);	
-			GremistaDeck.cardIndices.PushBack(260);	
-			GremistaDeck.cardIndices.PushBack(261);	
-			GremistaDeck.cardIndices.PushBack(265);
+			if (difficulty == 1)
+			{			
+				GremistaDeck.cardIndices.PushBack(4); //Impenetrable Fog 	
+				GremistaDeck.cardIndices.PushBack(5); //Torrential Rain
+				GremistaDeck.cardIndices.PushBack(6); //Clear Weather
+				GremistaDeck.cardIndices.PushBack(215); //Sweers [2]
+			}
+			if (difficulty == 2)
+			{
+				GremistaDeck.cardIndices.PushBack(0); // Dummy	
+				GremistaDeck.cardIndices.PushBack(0); // Dummy	
+				GremistaDeck.cardIndices.PushBack(0); // Dummy
+				GremistaDeck.cardIndices.PushBack(4); //Impenetrable Fog 	
+				GremistaDeck.cardIndices.PushBack(5); //Torrential Rain
+				GremistaDeck.cardIndices.PushBack(6); //Clear Weather
+				GremistaDeck.cardIndices.PushBack(215); //Sweers [2]
+			}
+			if (difficulty == 3)
+			{
+				GremistaDeck.cardIndices.PushBack(0); // Dummy	
+				GremistaDeck.cardIndices.PushBack(0); // Dummy
+				GremistaDeck.cardIndices.PushBack(6); //Clear Weather
+				GremistaDeck.cardIndices.PushBack(255); // [6] Engineer
+				GremistaDeck.cardIndices.PushBack(203); // [10] Moorvan  [HERO]
+			}
+
+			GremistaDeck.cardIndices.PushBack(14); //Emiel Regis Rohellec Terzieff [5]
+			GremistaDeck.cardIndices.PushBack(203); //Tibor Eggebracht [10] ***[HERO]***
+			GremistaDeck.cardIndices.PushBack(205); //Albrich [2]
+			GremistaDeck.cardIndices.PushBack(210); //Rainfarn [4]
+			GremistaDeck.cardIndices.PushBack(217); //Vanhemar [4]
+			GremistaDeck.cardIndices.PushBack(230);	// [0] Archer Support [NURSE]
+			GremistaDeck.cardIndices.PushBack(231);	// [0] Archer Support [NURSE]
+			GremistaDeck.cardIndices.PushBack(236);	// [10] Black Archer 
+			GremistaDeck.cardIndices.PushBack(260);	// [5] Young Emissary [TIGHT]
+			GremistaDeck.cardIndices.PushBack(261);	// [5] Young Emissary [TIGHT]
+			GremistaDeck.cardIndices.PushBack(265); // [0] Support [NURSE]
 
 
-			GremistaDeck.dynamicCardRequirements.PushBack(165);	
-			GremistaDeck.dynamicCards.PushBack(15); 
-			GremistaDeck.dynamicCardRequirements.PushBack(175);	
-			GremistaDeck.dynamicCards.PushBack(12); 
-			GremistaDeck.dynamicCardRequirements.PushBack(185);	
-			GremistaDeck.dynamicCards.PushBack(10); 
-			GremistaDeck.dynamicCardRequirements.PushBack(205);	
-			GremistaDeck.dynamicCards.PushBack(8); 
-			GremistaDeck.dynamicCardRequirements.PushBack(205);	
-			GremistaDeck.dynamicCards.PushBack(9); 
-			GremistaDeck.dynamicCardRequirements.PushBack(225);	
-			GremistaDeck.dynamicCards.PushBack(7); 
-			GremistaDeck.dynamicCardRequirements.PushBack(225);	
-			GremistaDeck.dynamicCards.PushBack(11); 
+			GremistaDeck.dynamicCardRequirements.PushBack(diff5);
+			GremistaDeck.dynamicCards.PushBack(15);
+			GremistaDeck.dynamicCardRequirements.PushBack(diff7);
+			GremistaDeck.dynamicCards.PushBack(12);
+			GremistaDeck.dynamicCardRequirements.PushBack(diff9);
+			GremistaDeck.dynamicCards.PushBack(10);
+			GremistaDeck.dynamicCardRequirements.PushBack(diff11);
+			GremistaDeck.dynamicCards.PushBack(8);
+			GremistaDeck.dynamicCardRequirements.PushBack(diff11);
+			GremistaDeck.dynamicCards.PushBack(9);
+			GremistaDeck.dynamicCardRequirements.PushBack(diff14);
+			GremistaDeck.dynamicCards.PushBack(7); // [ 15 ] Geralt of Rivia
+			GremistaDeck.dynamicCardRequirements.PushBack(diff14);
+			GremistaDeck.dynamicCards.PushBack(11);
 
 
-			GremistaDeck.specialCard = 11; 
+			GremistaDeck.specialCard = 11; // [7] Triss [HERO]
 			GremistaDeck.leaderIndex = 2001; 
 			enemyDecks.PushBack(GremistaDeck);
 
@@ -937,63 +1263,99 @@ import class CR4GwintManager extends IGameSystem
 		var ThalerDeck			:SDeckDefinition;
 
 		
-		
+		////////////SCOIA'TAEL//////////////////
 			
-			
-			ZoltanDeck.cardIndices.PushBack(1); 
-			ZoltanDeck.cardIndices.PushBack(1); 
-			ZoltanDeck.cardIndices.PushBack(2); 
-			ZoltanDeck.cardIndices.PushBack(2); 
-			ZoltanDeck.cardIndices.PushBack(3); 
-			ZoltanDeck.cardIndices.PushBack(4); 
-			ZoltanDeck.cardIndices.PushBack(5); 
+			//ZoltanDeck.deckName = "Zoltan";	
+			ZoltanDeck.cardIndices.PushBack(2); //Scorch
 
-			ZoltanDeck.cardIndices.PushBack(302);	
-			ZoltanDeck.cardIndices.PushBack(307);	
-			ZoltanDeck.cardIndices.PushBack(320);	
-			ZoltanDeck.cardIndices.PushBack(321);	
-			ZoltanDeck.cardIndices.PushBack(325);	
-			ZoltanDeck.cardIndices.PushBack(326);	
-			ZoltanDeck.cardIndices.PushBack(335);	
-			ZoltanDeck.cardIndices.PushBack(336);	
-			ZoltanDeck.cardIndices.PushBack(337);	
-			ZoltanDeck.cardIndices.PushBack(340);	
-			ZoltanDeck.cardIndices.PushBack(341);	
-			ZoltanDeck.cardIndices.PushBack(342);	
-			ZoltanDeck.cardIndices.PushBack(355);	
-			ZoltanDeck.cardIndices.PushBack(365);	
-			ZoltanDeck.cardIndices.PushBack(366);
+			if (difficulty == 1)
+			{
+				ZoltanDeck.cardIndices.PushBack(3); //Biting Frost	
+				ZoltanDeck.cardIndices.PushBack(4); //Impenetrable Fog
+				ZoltanDeck.cardIndices.PushBack(5); //Torrential Rain
+				ZoltanDeck.cardIndices.PushBack(342);	// [5] 
+				ZoltanDeck.cardIndices.PushBack(355);	// [4] 
+			}
+			if (difficulty == 2)
+			{
+				ZoltanDeck.cardIndices.PushBack(1); //Horn
+				ZoltanDeck.cardIndices.PushBack(1); //Horn
+				ZoltanDeck.cardIndices.PushBack(2); //Scorch
+				ZoltanDeck.cardIndices.PushBack(3); //Biting Frost	
+				ZoltanDeck.cardIndices.PushBack(4); //Impenetrable Fog
+				ZoltanDeck.cardIndices.PushBack(5); //Torrential Rain
+				ZoltanDeck.cardIndices.PushBack(342);	// [5] 
+				ZoltanDeck.cardIndices.PushBack(355);	// [4] 
+			}
+			if (difficulty == 3)
+			{
+				ZoltanDeck.cardIndices.PushBack(1); //Horn
+				ZoltanDeck.cardIndices.PushBack(1); //Horn
+				ZoltanDeck.cardIndices.PushBack(2); //Scorch
+				ZoltanDeck.cardIndices.PushBack(302);	// [10] Saskia [HERO]
+			}
+
+			ZoltanDeck.cardIndices.PushBack(302);	// [10] Insegrim [HERO]
+			ZoltanDeck.cardIndices.PushBack(307);	// [6] Ida
+			ZoltanDeck.cardIndices.PushBack(320);	// [5] SUMMON
+			ZoltanDeck.cardIndices.PushBack(321);	// [5] SUMMON
+			ZoltanDeck.cardIndices.PushBack(325);	// [5] AGILE
+			ZoltanDeck.cardIndices.PushBack(326);	// [5] AGILE
+			ZoltanDeck.cardIndices.PushBack(335);	// [3] SUMMON
+			ZoltanDeck.cardIndices.PushBack(336);	// [3] SUMMON
+			ZoltanDeck.cardIndices.PushBack(337);	// [3] SUMMON
+			ZoltanDeck.cardIndices.PushBack(340);	// [5] 
+			ZoltanDeck.cardIndices.PushBack(341);	// [5] 
+			ZoltanDeck.cardIndices.PushBack(365);	// [0] NURSE
+			ZoltanDeck.cardIndices.PushBack(366);	// [0] NURSE
 
 
-			ZoltanDeck.dynamicCardRequirements.PushBack(165);	
-			ZoltanDeck.dynamicCards.PushBack(15); 
-			ZoltanDeck.dynamicCardRequirements.PushBack(175);	
-			ZoltanDeck.dynamicCards.PushBack(8); 
-			ZoltanDeck.dynamicCardRequirements.PushBack(185);	
-			ZoltanDeck.dynamicCards.PushBack(9); 
-			ZoltanDeck.dynamicCardRequirements.PushBack(205);	
-			ZoltanDeck.dynamicCards.PushBack(11); 
-			ZoltanDeck.dynamicCardRequirements.PushBack(205);	
-			ZoltanDeck.dynamicCards.PushBack(14); 
-			ZoltanDeck.dynamicCardRequirements.PushBack(225);	
-			ZoltanDeck.dynamicCards.PushBack(7); 
-			ZoltanDeck.dynamicCardRequirements.PushBack(225);	
-			ZoltanDeck.dynamicCards.PushBack(16); 
+			ZoltanDeck.dynamicCardRequirements.PushBack(diff5);
+			ZoltanDeck.dynamicCards.PushBack(15);
+			ZoltanDeck.dynamicCardRequirements.PushBack(diff7);
+			ZoltanDeck.dynamicCards.PushBack(8);
+			ZoltanDeck.dynamicCardRequirements.PushBack(diff9);
+			ZoltanDeck.dynamicCards.PushBack(9);
+			ZoltanDeck.dynamicCardRequirements.PushBack(diff11);
+			ZoltanDeck.dynamicCards.PushBack(11);
+			ZoltanDeck.dynamicCardRequirements.PushBack(diff11);
+			ZoltanDeck.dynamicCards.PushBack(14);
+			ZoltanDeck.dynamicCardRequirements.PushBack(diff14);
+			ZoltanDeck.dynamicCards.PushBack(7); // [ 15 ] Geralt of Rivia
+			ZoltanDeck.dynamicCardRequirements.PushBack(diff14);
+			ZoltanDeck.dynamicCards.PushBack(16);
 
 
-			ZoltanDeck.specialCard = 300; 
+			ZoltanDeck.specialCard = 300; // [10] Eithne [HERO]
 			ZoltanDeck.leaderIndex = 3002; 
 			enemyDecks.PushBack(ZoltanDeck);
 			
+			//LambertDeck.deckName = "Lambert";	
+			LambertDeck.cardIndices.PushBack(0); // Dummy
+			LambertDeck.cardIndices.PushBack(2); //Scorch
+			LambertDeck.cardIndices.PushBack(3); //Biting Frost	
+			LambertDeck.cardIndices.PushBack(6); //Clear Weather
 			
-			LambertDeck.cardIndices.PushBack(0); 
-			LambertDeck.cardIndices.PushBack(0); 
-			LambertDeck.cardIndices.PushBack(1); 
-			LambertDeck.cardIndices.PushBack(2); 
-			LambertDeck.cardIndices.PushBack(2); 
-			LambertDeck.cardIndices.PushBack(2); 
-			LambertDeck.cardIndices.PushBack(3); 
-			LambertDeck.cardIndices.PushBack(6); 
+			if (difficulty == 1)
+			{
+				LambertDeck.cardIndices.PushBack(310);	// [2] Toruviel
+				LambertDeck.cardIndices.PushBack(311);	// [1] Riordain
+			}
+			if (difficulty == 2)
+			{
+				LambertDeck.cardIndices.PushBack(0); // Dummy	
+				LambertDeck.cardIndices.PushBack(1); //Horn
+				LambertDeck.cardIndices.PushBack(2); //Scorch
+				LambertDeck.cardIndices.PushBack(2); //Scorch	
+
+			}
+			if (difficulty == 3)
+			{
+				LambertDeck.cardIndices.PushBack(0); // Dummy	
+				LambertDeck.cardIndices.PushBack(1); //Horn
+				LambertDeck.cardIndices.PushBack(2); //Scorch
+				LambertDeck.cardIndices.PushBack(301);	// [10] Saskia [HERO]
+			}
 
 			LambertDeck.cardIndices.PushBack(9);	
 			LambertDeck.cardIndices.PushBack(302);	
@@ -1010,35 +1372,57 @@ import class CR4GwintManager extends IGameSystem
 			LambertDeck.cardIndices.PushBack(365);	
 			LambertDeck.cardIndices.PushBack(366);
 			
-			LambertDeck.dynamicCardRequirements.PushBack(165);	
-			LambertDeck.dynamicCards.PushBack(8); 
-			LambertDeck.dynamicCardRequirements.PushBack(175);	
-			LambertDeck.dynamicCards.PushBack(12); 
-			LambertDeck.dynamicCardRequirements.PushBack(185);	
-			LambertDeck.dynamicCards.PushBack(322); 
-			LambertDeck.dynamicCardRequirements.PushBack(205);	
-			LambertDeck.dynamicCards.PushBack(2); 
-			LambertDeck.dynamicCardRequirements.PushBack(205);	
-			LambertDeck.dynamicCards.PushBack(13); 
-			LambertDeck.dynamicCardRequirements.PushBack(225);	
-			LambertDeck.dynamicCards.PushBack(15); 
-			LambertDeck.dynamicCardRequirements.PushBack(225);	
-			LambertDeck.dynamicCards.PushBack(10); 
+			LambertDeck.dynamicCardRequirements.PushBack(diff5);
+			LambertDeck.dynamicCards.PushBack(8);
+			LambertDeck.dynamicCardRequirements.PushBack(diff7);
+			LambertDeck.dynamicCards.PushBack(12);
+			LambertDeck.dynamicCardRequirements.PushBack(diff9);
+			LambertDeck.dynamicCards.PushBack(322); // Havcaaren Support [ 5 ] [SUMMON CLONES]
+			LambertDeck.dynamicCardRequirements.PushBack(diff11);
+			LambertDeck.dynamicCards.PushBack(2); //Scorch	
+			LambertDeck.dynamicCardRequirements.PushBack(diff11);
+			LambertDeck.dynamicCards.PushBack(13);
+			LambertDeck.dynamicCardRequirements.PushBack(diff14);
+			LambertDeck.dynamicCards.PushBack(15);
+			LambertDeck.dynamicCardRequirements.PushBack(diff14);
+			LambertDeck.dynamicCards.PushBack(10);
 
 
 			
-			LambertDeck.specialCard = 11; 
+			LambertDeck.specialCard = 11; // Always has Triss Merigold has a card in his hand.
 			LambertDeck.leaderIndex = 3001; 
 			enemyDecks.PushBack(LambertDeck);
 			
+			//ThalerDeck.deckName = "Thaler";	
+			ThalerDeck.cardIndices.PushBack(6); //Clear Weather
 			
-			ThalerDeck.cardIndices.PushBack(3); 
-			ThalerDeck.cardIndices.PushBack(3); 
-			ThalerDeck.cardIndices.PushBack(4); 
-			ThalerDeck.cardIndices.PushBack(5); 
-			ThalerDeck.cardIndices.PushBack(6); 
-			ThalerDeck.cardIndices.PushBack(6); 
-
+			if (difficulty == 1)
+			{
+				ThalerDeck.cardIndices.PushBack(3); //Biting Frost	
+				ThalerDeck.cardIndices.PushBack(3); //Biting Frost	
+				ThalerDeck.cardIndices.PushBack(4); //Impenetrable Fog
+				ThalerDeck.cardIndices.PushBack(5); //Torrential Rain	
+				ThalerDeck.cardIndices.PushBack(6); //Clear Weather
+				ThalerDeck.cardIndices.PushBack(310); // [2] Toruviel
+			}
+			if (difficulty == 2)
+			{
+				ThalerDeck.cardIndices.PushBack(3); //Biting Frost	
+				ThalerDeck.cardIndices.PushBack(3); //Biting Frost	
+				ThalerDeck.cardIndices.PushBack(4); //Impenetrable Fog
+				ThalerDeck.cardIndices.PushBack(5); //Torrential Rain	
+				ThalerDeck.cardIndices.PushBack(6); //Clear Weather	
+			}
+			if (difficulty == 3)
+			{
+				ThalerDeck.cardIndices.PushBack(3); //Biting Frost
+				ThalerDeck.cardIndices.PushBack(5); //Torrential Rain
+				ThalerDeck.cardIndices.PushBack(0); //Dummy
+				ThalerDeck.cardIndices.PushBack(0); //Dummy
+				ThalerDeck.cardIndices.PushBack(1); //Horn
+				ThalerDeck.cardIndices.PushBack(300); // [10] Eithne [HERO]
+			}
+			
 			ThalerDeck.cardIndices.PushBack(307);	
 			ThalerDeck.cardIndices.PushBack(308);	
 			ThalerDeck.cardIndices.PushBack(309);	
@@ -1058,22 +1442,22 @@ import class CR4GwintManager extends IGameSystem
 			ThalerDeck.cardIndices.PushBack(365);
 
 
-			ThalerDeck.dynamicCardRequirements.PushBack(165);	
-			ThalerDeck.dynamicCards.PushBack(337); 
-			ThalerDeck.dynamicCardRequirements.PushBack(175);	
-			ThalerDeck.dynamicCards.PushBack(15); 
-			ThalerDeck.dynamicCardRequirements.PushBack(185);	
-			ThalerDeck.dynamicCards.PushBack(322); 
-			ThalerDeck.dynamicCardRequirements.PushBack(205);	
-			ThalerDeck.dynamicCards.PushBack(11); 
-			ThalerDeck.dynamicCardRequirements.PushBack(205);	
-			ThalerDeck.dynamicCards.PushBack(14); 
-			ThalerDeck.dynamicCardRequirements.PushBack(225);	
-			ThalerDeck.dynamicCards.PushBack(306); 
-			ThalerDeck.dynamicCardRequirements.PushBack(225);	
-			ThalerDeck.dynamicCards.PushBack(13); 
+			ThalerDeck.dynamicCardRequirements.PushBack(diff5);
+			ThalerDeck.dynamicCards.PushBack(337);
+			ThalerDeck.dynamicCardRequirements.PushBack(diff7);
+			ThalerDeck.dynamicCards.PushBack(15);
+			ThalerDeck.dynamicCardRequirements.PushBack(diff9);
+			ThalerDeck.dynamicCards.PushBack(322);
+			ThalerDeck.dynamicCardRequirements.PushBack(diff11);
+			ThalerDeck.dynamicCards.PushBack(11);
+			ThalerDeck.dynamicCardRequirements.PushBack(diff11);
+			ThalerDeck.dynamicCards.PushBack(14);
+			ThalerDeck.dynamicCardRequirements.PushBack(diff14);
+			ThalerDeck.dynamicCards.PushBack(306);
+			ThalerDeck.dynamicCardRequirements.PushBack(diff14);
+			ThalerDeck.dynamicCards.PushBack(13);
 
-			ThalerDeck.specialCard = 7; 
+			ThalerDeck.specialCard = 7; // Change this to a card ID to always have it be in the AI's hand when drawing cards
 			ThalerDeck.leaderIndex = 3003; 
 			enemyDecks.PushBack(ThalerDeck);
 
@@ -1087,13 +1471,28 @@ import class CR4GwintManager extends IGameSystem
 		var VimmeDeck			:SDeckDefinition;
 		var ScoiaTraderDeck		:SDeckDefinition;
 
-			
-			VimmeDeck.cardIndices.PushBack(1); 
-			VimmeDeck.cardIndices.PushBack(1); 
-			VimmeDeck.cardIndices.PushBack(4); 
-			VimmeDeck.cardIndices.PushBack(4); 
-			VimmeDeck.cardIndices.PushBack(5); 
-			VimmeDeck.cardIndices.PushBack(6); 
+			//VimmeDeck.deckName = "Vimme";	
+			VimmeDeck.cardIndices.PushBack(6); //Clear Weather
+			VimmeDeck.cardIndices.PushBack(4); //Impenetrable Fog
+			VimmeDeck.cardIndices.PushBack(5); //Torrential Rain
+			VimmeDeck.cardIndices.PushBack(1); //Horn
+
+			if (difficulty == 1)
+			{
+				VimmeDeck.cardIndices.PushBack(4); //Impenetrable Fog
+				VimmeDeck.cardIndices.PushBack(310); // [2] Toruviel
+			}
+			if (difficulty == 2)
+			{
+				VimmeDeck.cardIndices.PushBack(1); //Horn
+				VimmeDeck.cardIndices.PushBack(4); //Impenetrable Fog
+				
+			}
+			if (difficulty == 3)
+			{
+				VimmeDeck.cardIndices.PushBack(1); //Horn
+				VimmeDeck.cardIndices.PushBack(302); // [10] Isengrim [HERO]
+			}
 
 			VimmeDeck.cardIndices.PushBack(301);	
 			VimmeDeck.cardIndices.PushBack(305);	
@@ -1112,34 +1511,55 @@ import class CR4GwintManager extends IGameSystem
 			VimmeDeck.cardIndices.PushBack(367);
 
 
-			VimmeDeck.dynamicCardRequirements.PushBack(165);	
-			VimmeDeck.dynamicCards.PushBack(0); 
-			VimmeDeck.dynamicCardRequirements.PushBack(175);	
-			VimmeDeck.dynamicCards.PushBack(12); 
-			VimmeDeck.dynamicCardRequirements.PushBack(185);	
-			VimmeDeck.dynamicCards.PushBack(0); 
-			VimmeDeck.dynamicCardRequirements.PushBack(205);	
-			VimmeDeck.dynamicCards.PushBack(16); 
-			VimmeDeck.dynamicCardRequirements.PushBack(205);	
-			VimmeDeck.dynamicCards.PushBack(11); 
-			VimmeDeck.dynamicCardRequirements.PushBack(225);	
-			VimmeDeck.dynamicCards.PushBack(7); 
-			VimmeDeck.dynamicCardRequirements.PushBack(225);	
-			VimmeDeck.dynamicCards.PushBack(14); 
+			VimmeDeck.dynamicCardRequirements.PushBack(diff5);
+			VimmeDeck.dynamicCards.PushBack(0);
+			VimmeDeck.dynamicCardRequirements.PushBack(diff7);
+			VimmeDeck.dynamicCards.PushBack(12);
+			VimmeDeck.dynamicCardRequirements.PushBack(diff9);
+			VimmeDeck.dynamicCards.PushBack(0);
+			VimmeDeck.dynamicCardRequirements.PushBack(diff11);
+			VimmeDeck.dynamicCards.PushBack(16);
+			VimmeDeck.dynamicCardRequirements.PushBack(diff11);
+			VimmeDeck.dynamicCards.PushBack(11);
+			VimmeDeck.dynamicCardRequirements.PushBack(diff14);
+			VimmeDeck.dynamicCards.PushBack(7); // [15] Geralt of Rivia
+			VimmeDeck.dynamicCardRequirements.PushBack(diff14);
+			VimmeDeck.dynamicCards.PushBack(14);
 
-			VimmeDeck.specialCard = 8; 
+			VimmeDeck.specialCard = 8; // [6] Vesemir
 			VimmeDeck.leaderIndex = 3002; 
 			enemyDecks.PushBack(VimmeDeck);
 			
 			
-			ScoiaTraderDeck.cardIndices.PushBack(0); 
-			ScoiaTraderDeck.cardIndices.PushBack(1); 
-			ScoiaTraderDeck.cardIndices.PushBack(1); 
-			ScoiaTraderDeck.cardIndices.PushBack(2); 
-			ScoiaTraderDeck.cardIndices.PushBack(3); 
-			ScoiaTraderDeck.cardIndices.PushBack(4); 
-			ScoiaTraderDeck.cardIndices.PushBack(5); 
-			ScoiaTraderDeck.cardIndices.PushBack(6); 
+			//ScoiaTraderDeck.deckName = "ScoiaTrader";	
+			ScoiaTraderDeck.cardIndices.PushBack(6); //Clear Weather	
+			ScoiaTraderDeck.cardIndices.PushBack(1); //Horn
+			
+			if (difficulty == 1)
+			{
+				ScoiaTraderDeck.cardIndices.PushBack(3); //Biting Frost	
+				ScoiaTraderDeck.cardIndices.PushBack(4); //Impenetrable Fog
+				ScoiaTraderDeck.cardIndices.PushBack(5); //Torrential Rain
+				VimmeDeck.cardIndices.PushBack(310); // [2] Toruviel
+			}
+			if (difficulty == 2)
+			{
+				ScoiaTraderDeck.cardIndices.PushBack(0); // Dummy	
+				ScoiaTraderDeck.cardIndices.PushBack(1); //Horn
+				ScoiaTraderDeck.cardIndices.PushBack(2); //Scorch		
+				ScoiaTraderDeck.cardIndices.PushBack(3); //Biting Frost	
+				ScoiaTraderDeck.cardIndices.PushBack(4); //Impenetrable Fog
+				ScoiaTraderDeck.cardIndices.PushBack(5); //Torrential Rain
+				
+			}
+			if (difficulty == 3)
+			{
+				ScoiaTraderDeck.cardIndices.PushBack(0); // Dummy
+				ScoiaTraderDeck.cardIndices.PushBack(1); //Horn
+				ScoiaTraderDeck.cardIndices.PushBack(5); //Torrential Rain
+				ScoiaTraderDeck.cardIndices.PushBack(302); // [10] Isengrim [HERO]
+				ScoiaTraderDeck.cardIndices.PushBack(301); // [10] Saskia [HERO]
+			}
 
 			ScoiaTraderDeck.cardIndices.PushBack(303);	
 			ScoiaTraderDeck.cardIndices.PushBack(305);	
@@ -1158,23 +1578,23 @@ import class CR4GwintManager extends IGameSystem
 			ScoiaTraderDeck.cardIndices.PushBack(352);
 
 
-			ScoiaTraderDeck.dynamicCardRequirements.PushBack(165);	
-			ScoiaTraderDeck.dynamicCards.PushBack(2); 
-			ScoiaTraderDeck.dynamicCardRequirements.PushBack(175);	
-			ScoiaTraderDeck.dynamicCards.PushBack(2); 
-			ScoiaTraderDeck.dynamicCardRequirements.PushBack(185);	
-			ScoiaTraderDeck.dynamicCards.PushBack(8); 
-			ScoiaTraderDeck.dynamicCardRequirements.PushBack(205);	
-			ScoiaTraderDeck.dynamicCards.PushBack(11); 
-			ScoiaTraderDeck.dynamicCardRequirements.PushBack(205);	
-			ScoiaTraderDeck.dynamicCards.PushBack(14); 
-			ScoiaTraderDeck.dynamicCardRequirements.PushBack(225);	
-			ScoiaTraderDeck.dynamicCards.PushBack(15); 
-			ScoiaTraderDeck.dynamicCardRequirements.PushBack(225);	
-			ScoiaTraderDeck.dynamicCards.PushBack(16); 
+			ScoiaTraderDeck.dynamicCardRequirements.PushBack(diff5);
+			ScoiaTraderDeck.dynamicCards.PushBack(2);
+			ScoiaTraderDeck.dynamicCardRequirements.PushBack(diff7);
+			ScoiaTraderDeck.dynamicCards.PushBack(2);
+			ScoiaTraderDeck.dynamicCardRequirements.PushBack(diff9);
+			ScoiaTraderDeck.dynamicCards.PushBack(8);
+			ScoiaTraderDeck.dynamicCardRequirements.PushBack(diff11);
+			ScoiaTraderDeck.dynamicCards.PushBack(11);
+			ScoiaTraderDeck.dynamicCardRequirements.PushBack(diff11);
+			ScoiaTraderDeck.dynamicCards.PushBack(14);
+			ScoiaTraderDeck.dynamicCardRequirements.PushBack(diff14);
+			ScoiaTraderDeck.dynamicCards.PushBack(15);
+			ScoiaTraderDeck.dynamicCardRequirements.PushBack(diff14);
+			ScoiaTraderDeck.dynamicCards.PushBack(16);
 
 
-			ScoiaTraderDeck.specialCard = 10; 
+			ScoiaTraderDeck.specialCard = 10; // Change this to a card ID to always have it be in the AI's hand when drawing cards
 			ScoiaTraderDeck.leaderIndex = 3001; 
 			enemyDecks.PushBack(ScoiaTraderDeck);
 	}
@@ -1186,27 +1606,48 @@ import class CR4GwintManager extends IGameSystem
 		var HermitDeck			:SDeckDefinition;
 
 		
-		
+		/////////////NO MAN'S LAND//////////////
 			
 			
-			
-			CrachDeck.cardIndices.PushBack(1); 
-			CrachDeck.cardIndices.PushBack(1); 
-			CrachDeck.cardIndices.PushBack(2); 
-			CrachDeck.cardIndices.PushBack(2); 
-			CrachDeck.cardIndices.PushBack(3); 
-			CrachDeck.cardIndices.PushBack(4); 
-			CrachDeck.cardIndices.PushBack(4); 
-			CrachDeck.cardIndices.PushBack(5); 
+			//CrachDeck.deckName = "Crach";	
+			CrachDeck.cardIndices.PushBack(1); //Horn
+			CrachDeck.cardIndices.PushBack(4); //Impenetrable Fog
+
+			if (difficulty == 1)
+			{
+				CrachDeck.cardIndices.PushBack(3); //Biting Frost	
+				CrachDeck.cardIndices.PushBack(4); //Impenetrable Fog 
+				CrachDeck.cardIndices.PushBack(5); //Torrential Rain
+				CrachDeck.cardIndices.PushBack(420); // [4] Botchling
+				CrachDeck.cardIndices.PushBack(427); // [2] Endrega
+			}
+			if (difficulty == 2)
+			{
+				CrachDeck.cardIndices.PushBack(1); //Horn
+				CrachDeck.cardIndices.PushBack(2); //Scorch	
+				CrachDeck.cardIndices.PushBack(2); //Scorch	
+				CrachDeck.cardIndices.PushBack(3); //Biting Frost	
+				CrachDeck.cardIndices.PushBack(4); //Impenetrable Fog 
+				CrachDeck.cardIndices.PushBack(5); //Torrential Rain
+				CrachDeck.cardIndices.PushBack(420); // [4] Botchling
+				CrachDeck.cardIndices.PushBack(427); // [2] Endrega
+			}
+			if (difficulty == 3)
+			{
+				CrachDeck.cardIndices.PushBack(1); //Horn
+				CrachDeck.cardIndices.PushBack(0); //Dummy
+				CrachDeck.cardIndices.PushBack(5); //Torrential Rain
+				CrachDeck.cardIndices.PushBack(6); //Clear Sky
+				CrachDeck.cardIndices.PushBack(403); // [10] Leshen [HERO]
+				CrachDeck.cardIndices.PushBack(443); // [6] Fire Elemental
+			}
 
 			CrachDeck.cardIndices.PushBack(407);	
 			CrachDeck.cardIndices.PushBack(410);	
 			CrachDeck.cardIndices.PushBack(415);	
 			CrachDeck.cardIndices.PushBack(417);	
-			CrachDeck.cardIndices.PushBack(420);	
 			CrachDeck.cardIndices.PushBack(423);	
 			CrachDeck.cardIndices.PushBack(425);	
-			CrachDeck.cardIndices.PushBack(427);	
 			CrachDeck.cardIndices.PushBack(435);	
 			CrachDeck.cardIndices.PushBack(440);	
 			CrachDeck.cardIndices.PushBack(443);	
@@ -1215,34 +1656,59 @@ import class CR4GwintManager extends IGameSystem
 			CrachDeck.cardIndices.PushBack(451);
 
 
-			CrachDeck.dynamicCardRequirements.PushBack(165);	
-			CrachDeck.dynamicCards.PushBack(452); 
-			CrachDeck.dynamicCardRequirements.PushBack(175);	
-			CrachDeck.dynamicCards.PushBack(453); 
-			CrachDeck.dynamicCardRequirements.PushBack(185);	
-			CrachDeck.dynamicCards.PushBack(8); 
-			CrachDeck.dynamicCardRequirements.PushBack(205);	
-			CrachDeck.dynamicCards.PushBack(11); 
-			CrachDeck.dynamicCardRequirements.PushBack(205);	
-			CrachDeck.dynamicCards.PushBack(14); 
-			CrachDeck.dynamicCardRequirements.PushBack(225);	
-			CrachDeck.dynamicCards.PushBack(7); 
-			CrachDeck.dynamicCardRequirements.PushBack(225);	
-			CrachDeck.dynamicCards.PushBack(10); 
+			CrachDeck.dynamicCardRequirements.PushBack(diff5);
+			CrachDeck.dynamicCards.PushBack(452);
+			CrachDeck.dynamicCardRequirements.PushBack(diff7);
+			CrachDeck.dynamicCards.PushBack(453);
+			CrachDeck.dynamicCardRequirements.PushBack(diff9);
+			CrachDeck.dynamicCards.PushBack(8);
+			CrachDeck.dynamicCardRequirements.PushBack(diff11);
+			CrachDeck.dynamicCards.PushBack(11);
+			CrachDeck.dynamicCardRequirements.PushBack(diff11);
+			CrachDeck.dynamicCards.PushBack(14);
+			CrachDeck.dynamicCardRequirements.PushBack(diff14);
+			CrachDeck.dynamicCards.PushBack(7); // [ 15 ] Geralt of Rivia
+			CrachDeck.dynamicCardRequirements.PushBack(diff14);
+			CrachDeck.dynamicCards.PushBack(10);
 
 
-			CrachDeck.specialCard = 400; 
+			CrachDeck.specialCard = 400; // Change this to a card ID to always have it be in the AI's hand when drawing cards
 			CrachDeck.leaderIndex = 4001; 
 			enemyDecks.PushBack(CrachDeck);
+
 			
-			
-			LugosDeck.cardIndices.PushBack(0); 
-			LugosDeck.cardIndices.PushBack(0); 
-			LugosDeck.cardIndices.PushBack(3); 
-			LugosDeck.cardIndices.PushBack(4); 
-			LugosDeck.cardIndices.PushBack(4); 
-			LugosDeck.cardIndices.PushBack(5); 
-			LugosDeck.cardIndices.PushBack(5); 
+			//LugosDeck.deckName = "Lugos";	
+			LugosDeck.cardIndices.PushBack(0); // Dummy	
+	
+			if (difficulty == 1)
+			{
+				LugosDeck.cardIndices.PushBack(3); //Biting Frost
+				LugosDeck.cardIndices.PushBack(4); //Impenetrable Fog
+				LugosDeck.cardIndices.PushBack(4); //Impenetrable Fog
+				LugosDeck.cardIndices.PushBack(5); //Torrential Rain		
+				LugosDeck.cardIndices.PushBack(5); //Torrential Rain
+				LugosDeck.cardIndices.PushBack(420); // [4] Botchling
+				LugosDeck.cardIndices.PushBack(427); // [2] Endrega
+			}
+			if (difficulty == 2)
+			{
+				LugosDeck.cardIndices.PushBack(0); // Dummy
+				LugosDeck.cardIndices.PushBack(3); //Biting Frost
+				LugosDeck.cardIndices.PushBack(4); //Impenetrable Fog
+				LugosDeck.cardIndices.PushBack(4); //Impenetrable Fog
+				LugosDeck.cardIndices.PushBack(5); //Torrential Rain		
+				LugosDeck.cardIndices.PushBack(5); //Torrential Rain
+				LugosDeck.cardIndices.PushBack(420); // [4] Botchling
+			}
+			if (difficulty == 3)
+			{
+				LugosDeck.cardIndices.PushBack(4); //Impenetrable Fog		
+				LugosDeck.cardIndices.PushBack(5); //Torrential Rain
+				LugosDeck.cardIndices.PushBack(0); //Dummy
+				LugosDeck.cardIndices.PushBack(6); //Clear Sky
+				LugosDeck.cardIndices.PushBack(403); // [10] Leshen [HERO]
+				LugosDeck.cardIndices.PushBack(443); // [6] Fire Elemental
+			}
 
 			LugosDeck.cardIndices.PushBack(401);	
 			LugosDeck.cardIndices.PushBack(413);	
@@ -1250,8 +1716,7 @@ import class CR4GwintManager extends IGameSystem
 			LugosDeck.cardIndices.PushBack(407);	
 			LugosDeck.cardIndices.PushBack(415);	
 			LugosDeck.cardIndices.PushBack(417);	
-			LugosDeck.cardIndices.PushBack(423);
-			LugosDeck.cardIndices.PushBack(420);	
+			LugosDeck.cardIndices.PushBack(423);	
 			LugosDeck.cardIndices.PushBack(423);	
 			LugosDeck.cardIndices.PushBack(433);	
 			LugosDeck.cardIndices.PushBack(440);	
@@ -1265,33 +1730,59 @@ import class CR4GwintManager extends IGameSystem
 			LugosDeck.cardIndices.PushBack(463);
 
 
-			LugosDeck.dynamicCardRequirements.PushBack(165);	
-			LugosDeck.dynamicCards.PushBack(462); 
-			LugosDeck.dynamicCardRequirements.PushBack(175);	
-			LugosDeck.dynamicCards.PushBack(2); 
-			LugosDeck.dynamicCardRequirements.PushBack(185);	
-			LugosDeck.dynamicCards.PushBack(2); 
-			LugosDeck.dynamicCardRequirements.PushBack(205);	
-			LugosDeck.dynamicCards.PushBack(11); 
-			LugosDeck.dynamicCardRequirements.PushBack(205);	
-			LugosDeck.dynamicCards.PushBack(8); 
-			LugosDeck.dynamicCardRequirements.PushBack(225);	
-			LugosDeck.dynamicCards.PushBack(2); 
-			LugosDeck.dynamicCardRequirements.PushBack(225);	
-			LugosDeck.dynamicCards.PushBack(10); 
+			LugosDeck.dynamicCardRequirements.PushBack(diff5);
+			LugosDeck.dynamicCards.PushBack(462);
+			LugosDeck.dynamicCardRequirements.PushBack(diff7);
+			LugosDeck.dynamicCards.PushBack(2); //Scorch
+			LugosDeck.dynamicCardRequirements.PushBack(diff9);
+			LugosDeck.dynamicCards.PushBack(1); // Horn
+			LugosDeck.dynamicCardRequirements.PushBack(diff11);
+			LugosDeck.dynamicCards.PushBack(11);
+			LugosDeck.dynamicCardRequirements.PushBack(diff11);
+			LugosDeck.dynamicCards.PushBack(8);
+			LugosDeck.dynamicCardRequirements.PushBack(diff14);
+			LugosDeck.dynamicCards.PushBack(2); //Scorch
+			LugosDeck.dynamicCardRequirements.PushBack(diff14);
+			LugosDeck.dynamicCards.PushBack(10);
 
 
-			LugosDeck.specialCard = 464; 
+			LugosDeck.specialCard = 464; // Change this to a card ID to always have it be in the AI's hand when drawing cards
 			LugosDeck.leaderIndex = 4002; 
 			enemyDecks.PushBack(LugosDeck);
-			
-			
-			HermitDeck.cardIndices.PushBack(2); 
-			HermitDeck.cardIndices.PushBack(2); 
-			HermitDeck.cardIndices.PushBack(4); 
-			HermitDeck.cardIndices.PushBack(5); 
-			HermitDeck.cardIndices.PushBack(6); 
-			HermitDeck.cardIndices.PushBack(6); 
+
+
+			//HermitDeck.deckName = "Hermit";	
+
+			if (difficulty == 1)
+			{
+				HermitDeck.cardIndices.PushBack(3); //Frost
+				HermitDeck.cardIndices.PushBack(4); //Impenetrable Fog
+				HermitDeck.cardIndices.PushBack(5); //Torrential Rain	
+				HermitDeck.cardIndices.PushBack(6); //Clear Weather	
+				HermitDeck.cardIndices.PushBack(6); //Clear Weather	
+				HermitDeck.cardIndices.PushBack(420); // [4] Botchling
+				HermitDeck.cardIndices.PushBack(427); // [2] Endrega
+			}
+			if (difficulty == 2)
+			{
+				HermitDeck.cardIndices.PushBack(2); //Scorch	
+				HermitDeck.cardIndices.PushBack(2); //Scorch	
+				HermitDeck.cardIndices.PushBack(4); //Impenetrable Fog
+				HermitDeck.cardIndices.PushBack(5); //Torrential Rain	
+				HermitDeck.cardIndices.PushBack(6); //Clear Weather	
+				HermitDeck.cardIndices.PushBack(6); //Clear Weather	
+				HermitDeck.cardIndices.PushBack(0); // Dummy
+			}
+			if (difficulty == 3)
+			{
+				HermitDeck.cardIndices.PushBack(0); //Dummy	
+				HermitDeck.cardIndices.PushBack(1); //Horn	
+				HermitDeck.cardIndices.PushBack(4); //Impenetrable Fog	
+				HermitDeck.cardIndices.PushBack(6); //Clear Weather	
+				HermitDeck.cardIndices.PushBack(6); //Clear Weather	
+				HermitDeck.cardIndices.PushBack(403); // [10] Leshen [HERO]
+				HermitDeck.cardIndices.PushBack(443); // [6] Fire Elemental
+			}
 
 			HermitDeck.cardIndices.PushBack(400);	
 			HermitDeck.cardIndices.PushBack(450);	
@@ -1312,23 +1803,22 @@ import class CR4GwintManager extends IGameSystem
 			HermitDeck.cardIndices.PushBack(477);
 
 
+			HermitDeck.dynamicCardRequirements.PushBack(diff5);
+			HermitDeck.dynamicCards.PushBack(464);
+			HermitDeck.dynamicCardRequirements.PushBack(diff7);
+			HermitDeck.dynamicCards.PushBack(443);
+			HermitDeck.dynamicCardRequirements.PushBack(diff9);
+			HermitDeck.dynamicCards.PushBack(2); //Scorch
+			HermitDeck.dynamicCardRequirements.PushBack(diff11);
+			HermitDeck.dynamicCards.PushBack(11);
+			HermitDeck.dynamicCardRequirements.PushBack(diff11);
+			HermitDeck.dynamicCards.PushBack(14);
+			HermitDeck.dynamicCardRequirements.PushBack(diff14);
+			HermitDeck.dynamicCards.PushBack(7); // [ 15 ] Geralt of Rivia
+			HermitDeck.dynamicCardRequirements.PushBack(diff14);
+			HermitDeck.dynamicCards.PushBack(12);
 
-			HermitDeck.dynamicCardRequirements.PushBack(165);	
-			HermitDeck.dynamicCards.PushBack(464); 
-			HermitDeck.dynamicCardRequirements.PushBack(175);	
-			HermitDeck.dynamicCards.PushBack(443); 
-			HermitDeck.dynamicCardRequirements.PushBack(185);	
-			HermitDeck.dynamicCards.PushBack(2); 
-			HermitDeck.dynamicCardRequirements.PushBack(205);	
-			HermitDeck.dynamicCards.PushBack(11); 
-			HermitDeck.dynamicCardRequirements.PushBack(205);	
-			HermitDeck.dynamicCards.PushBack(14); 
-			HermitDeck.dynamicCardRequirements.PushBack(225);	
-			HermitDeck.dynamicCards.PushBack(7); 
-			HermitDeck.dynamicCardRequirements.PushBack(225);	
-			HermitDeck.dynamicCards.PushBack(12); 
-
-			HermitDeck.specialCard = 476; 
+			HermitDeck.specialCard = 476; // Change this to a card ID to always have it be in the AI's hand when drawing cards
 			HermitDeck.leaderIndex = 4002; 
 			enemyDecks.PushBack(HermitDeck);
 		
@@ -1341,24 +1831,45 @@ import class CR4GwintManager extends IGameSystem
 		var OlivierDeck			:SDeckDefinition;
 		var MousesackDeck		:SDeckDefinition;
 
-					
-			OlivierDeck.cardIndices.PushBack(3); 
-			OlivierDeck.cardIndices.PushBack(4); 
-			OlivierDeck.cardIndices.PushBack(4); 
-			OlivierDeck.cardIndices.PushBack(5); 
-			OlivierDeck.cardIndices.PushBack(5); 
+			//OlivierDeck.deckName = "Olivier";	
+			OlivierDeck.cardIndices.PushBack(4); //Impenetrable Fog
+			OlivierDeck.cardIndices.PushBack(5); //Torrential Rain	
+
+			if (difficulty == 1)
+			{
+				OlivierDeck.cardIndices.PushBack(3); //Biting Frost	
+				OlivierDeck.cardIndices.PushBack(4); //Impenetrable Fog	
+				OlivierDeck.cardIndices.PushBack(5); //Torrential Rain	
+				OlivierDeck.cardIndices.PushBack(420); // [4] Botchling
+				OlivierDeck.cardIndices.PushBack(427); // [2] Endrega
+				OlivierDeck.cardIndices.PushBack(447);
+			}
+			if (difficulty == 2)
+			{
+				OlivierDeck.cardIndices.PushBack(3); //Biting Frost	
+				OlivierDeck.cardIndices.PushBack(4); //Impenetrable Fog
+				OlivierDeck.cardIndices.PushBack(5); //Torrential Rain
+				OlivierDeck.cardIndices.PushBack(420); // [4] Botchling
+				OlivierDeck.cardIndices.PushBack(427); // [2] Endrega
+				OlivierDeck.cardIndices.PushBack(447);
+			}
+			if (difficulty == 3)
+			{	
+				OlivierDeck.cardIndices.PushBack(1); //Horn	
+				OlivierDeck.cardIndices.PushBack(1); //Horn	
+				OlivierDeck.cardIndices.PushBack(6); //Clear Weather	
+				OlivierDeck.cardIndices.PushBack(401); // [8] Kayran [HERO][+1]
+				OlivierDeck.cardIndices.PushBack(400); // [10] Draug [HERO]
+			}
 
 			OlivierDeck.cardIndices.PushBack(403);	
 			OlivierDeck.cardIndices.PushBack(407);	
 			OlivierDeck.cardIndices.PushBack(410);
 			OlivierDeck.cardIndices.PushBack(413);
 			OlivierDeck.cardIndices.PushBack(415);	
-			OlivierDeck.cardIndices.PushBack(420);
 			OlivierDeck.cardIndices.PushBack(425);	
-			OlivierDeck.cardIndices.PushBack(427);	
 			OlivierDeck.cardIndices.PushBack(440);	
-			OlivierDeck.cardIndices.PushBack(443);	
-			OlivierDeck.cardIndices.PushBack(447);	
+			OlivierDeck.cardIndices.PushBack(443);
 			OlivierDeck.cardIndices.PushBack(450);	
 			OlivierDeck.cardIndices.PushBack(451);	
 			OlivierDeck.cardIndices.PushBack(452);	
@@ -1368,36 +1879,65 @@ import class CR4GwintManager extends IGameSystem
 			OlivierDeck.cardIndices.PushBack(472);
 
 
-			OlivierDeck.dynamicCardRequirements.PushBack(165);	
-			OlivierDeck.dynamicCards.PushBack(15); 
-			OlivierDeck.dynamicCardRequirements.PushBack(175);	
-			OlivierDeck.dynamicCards.PushBack(0); 
-			OlivierDeck.dynamicCardRequirements.PushBack(185);	
-			OlivierDeck.dynamicCards.PushBack(0); 
-			OlivierDeck.dynamicCardRequirements.PushBack(205);	
-			OlivierDeck.dynamicCards.PushBack(11); 
-			OlivierDeck.dynamicCardRequirements.PushBack(205);	
-			OlivierDeck.dynamicCards.PushBack(8); 
-			OlivierDeck.dynamicCardRequirements.PushBack(225);	
-			OlivierDeck.dynamicCards.PushBack(7); 
-			OlivierDeck.dynamicCardRequirements.PushBack(225);	
-			OlivierDeck.dynamicCards.PushBack(12); 
+			OlivierDeck.dynamicCardRequirements.PushBack(diff5);
+			OlivierDeck.dynamicCards.PushBack(15);
+			OlivierDeck.dynamicCardRequirements.PushBack(diff7);
+			OlivierDeck.dynamicCards.PushBack(0);
+			OlivierDeck.dynamicCardRequirements.PushBack(diff9);
+			OlivierDeck.dynamicCards.PushBack(0);
+			OlivierDeck.dynamicCardRequirements.PushBack(diff11);
+			OlivierDeck.dynamicCards.PushBack(11);
+			OlivierDeck.dynamicCardRequirements.PushBack(diff11);
+			OlivierDeck.dynamicCards.PushBack(8);
+			OlivierDeck.dynamicCardRequirements.PushBack(diff14);
+			OlivierDeck.dynamicCards.PushBack(7); // [15] Geralt of Rivia
+			OlivierDeck.dynamicCardRequirements.PushBack(diff14);
+			OlivierDeck.dynamicCards.PushBack(12);
 
 			OlivierDeck.specialCard = -1;
-			
 			OlivierDeck.leaderIndex = 4002; 
 			enemyDecks.PushBack(OlivierDeck);
-			
-			
-			MousesackDeck.cardIndices.PushBack(0); 
-			MousesackDeck.cardIndices.PushBack(0); 
-			MousesackDeck.cardIndices.PushBack(1); 
-			MousesackDeck.cardIndices.PushBack(1); 
-			MousesackDeck.cardIndices.PushBack(2); 
-			MousesackDeck.cardIndices.PushBack(3); 
-			MousesackDeck.cardIndices.PushBack(4); 
-			MousesackDeck.cardIndices.PushBack(5); 
-			MousesackDeck.cardIndices.PushBack(6); 
+
+
+			//MousesackDeck.deckName = "Mousesack";
+			if (difficulty == 1)
+			{
+				MousesackDeck.cardIndices.PushBack(0); // Dummy	
+				MousesackDeck.cardIndices.PushBack(0); // Dummy	
+				MousesackDeck.cardIndices.PushBack(1); //Horn
+				MousesackDeck.cardIndices.PushBack(1); //Horn
+				MousesackDeck.cardIndices.PushBack(2); //Scorch	
+				MousesackDeck.cardIndices.PushBack(3); //Biting Frost	
+				MousesackDeck.cardIndices.PushBack(4); //Impenetrable Fog
+				MousesackDeck.cardIndices.PushBack(5); //Torrential Rain	
+				MousesackDeck.cardIndices.PushBack(6); //Clear Weather
+				MousesackDeck.cardIndices.PushBack(420); // [4] Botchling
+				MousesackDeck.cardIndices.PushBack(427); // [2] Endrega
+			}
+			if (difficulty == 2)
+			{
+				MousesackDeck.cardIndices.PushBack(0); // Dummy	
+				MousesackDeck.cardIndices.PushBack(0); // Dummy	
+				MousesackDeck.cardIndices.PushBack(1); //Horn
+				MousesackDeck.cardIndices.PushBack(1); //Horn
+				MousesackDeck.cardIndices.PushBack(2); //Scorch	
+				MousesackDeck.cardIndices.PushBack(3); //Biting Frost	
+				MousesackDeck.cardIndices.PushBack(4); //Impenetrable Fog
+				MousesackDeck.cardIndices.PushBack(5); //Torrential Rain	
+				MousesackDeck.cardIndices.PushBack(6); //Clear Weather
+			}
+			if (difficulty == 3)
+			{	
+				MousesackDeck.cardIndices.PushBack(0); // Dummy	
+				MousesackDeck.cardIndices.PushBack(0); // Dummy	
+				MousesackDeck.cardIndices.PushBack(1); //Horn
+				MousesackDeck.cardIndices.PushBack(1); //Horn
+				MousesackDeck.cardIndices.PushBack(4); //Impenetrable Fog	
+				MousesackDeck.cardIndices.PushBack(6); //Clear Weather
+				MousesackDeck.cardIndices.PushBack(401); // [8] Kayran [HERO][+1]
+				MousesackDeck.cardIndices.PushBack(443); // [6] Fire Elemental
+			}
+
 			MousesackDeck.cardIndices.PushBack(401);	
 			MousesackDeck.cardIndices.PushBack(407);	
 			MousesackDeck.cardIndices.PushBack(415);	
@@ -1420,26 +1960,369 @@ import class CR4GwintManager extends IGameSystem
 			MousesackDeck.cardIndices.PushBack(477);
 
 
-			MousesackDeck.dynamicCardRequirements.PushBack(165);	
-			MousesackDeck.dynamicCards.PushBack(15); 
-			MousesackDeck.dynamicCardRequirements.PushBack(175);	
-			MousesackDeck.dynamicCards.PushBack(12); 
-			MousesackDeck.dynamicCardRequirements.PushBack(185);	
-			MousesackDeck.dynamicCards.PushBack(13); 
-			MousesackDeck.dynamicCardRequirements.PushBack(205);	
-			MousesackDeck.dynamicCards.PushBack(11); 
-			MousesackDeck.dynamicCardRequirements.PushBack(205);	
-			MousesackDeck.dynamicCards.PushBack(14); 
-			MousesackDeck.dynamicCardRequirements.PushBack(225);	
-			MousesackDeck.dynamicCards.PushBack(2); 
-			MousesackDeck.dynamicCardRequirements.PushBack(225);	
-			MousesackDeck.dynamicCards.PushBack(7); 
+			MousesackDeck.dynamicCardRequirements.PushBack(diff5);
+			MousesackDeck.dynamicCards.PushBack(15);
+			MousesackDeck.dynamicCardRequirements.PushBack(diff7);
+			MousesackDeck.dynamicCards.PushBack(12);
+			MousesackDeck.dynamicCardRequirements.PushBack(diff9);
+			MousesackDeck.dynamicCards.PushBack(13);
+			MousesackDeck.dynamicCardRequirements.PushBack(diff11);
+			MousesackDeck.dynamicCards.PushBack(11);
+			MousesackDeck.dynamicCardRequirements.PushBack(diff11);
+			MousesackDeck.dynamicCards.PushBack(14);
+			MousesackDeck.dynamicCardRequirements.PushBack(diff14);
+			MousesackDeck.dynamicCards.PushBack(2); //Scorch
+			MousesackDeck.dynamicCardRequirements.PushBack(diff14);
+			MousesackDeck.dynamicCards.PushBack(7);
 
 
-			MousesackDeck.specialCard = 403; 
+			MousesackDeck.specialCard = 403; // Change this to a card ID to always have it be in the AI's hand when drawing cards
 			MousesackDeck.leaderIndex = 4004; 
 			enemyDecks.PushBack(MousesackDeck);
 
+	}
+	
+	
+		private function SetupAIDeckDefinitions8()
+	{
+
+		var ShaniDeck			:SDeckDefinition;
+		var OlgierdDeck		    :SDeckDefinition;
+
+			// #########################################################
+			// Shani	
+			// #########################################################	
+			ShaniDeck.cardIndices.PushBack(2); //Scorch	
+			ShaniDeck.cardIndices.PushBack(0); //Dummy
+			ShaniDeck.cardIndices.PushBack(0); //Dummy
+			
+			// Difficulty changing cards	
+			if (difficulty == 1)
+			{
+				ShaniDeck.cardIndices.PushBack(310);	// 2 Toruviel 
+				ShaniDeck.cardIndices.PushBack(312);	// 3 Ciaran 
+				ShaniDeck.cardIndices.PushBack(336);	// 3 Dwarf  SUMMON
+				ShaniDeck.cardIndices.PushBack(337);	// 3 Dwarf  SUMMON ^
+			}
+			if (difficulty >= 2)
+			{
+				ShaniDeck.cardIndices.PushBack(0); //Dummy
+				ShaniDeck.cardIndices.PushBack(1); //Horn
+				ShaniDeck.cardIndices.PushBack(302);	// 10 Isengrim Faoiltiarna  
+				ShaniDeck.cardIndices.PushBack(303);	// 10 ioveth HERO
+				ShaniDeck.cardIndices.PushBack(9); 		// 7 Yennefer NURSE
+				ShaniDeck.cardIndices.PushBack(16); 	// 0 Avallac'hh  [SPY]
+			}
+			if (difficulty == 3)
+			{
+				ShaniDeck.cardIndices.PushBack(2); //Scorch	
+				ShaniDeck.cardIndices.PushBack(10); 	// 15 Ciri
+				ShaniDeck.cardIndices.PushBack(300);	// 10 Eithné
+				ShaniDeck.cardIndices.PushBack(301);	// 10 Saskia/Saesenthessis
+			}
+
+			ShaniDeck.cardIndices.PushBack(305);	// 6 dennis
+			ShaniDeck.cardIndices.PushBack(306);	// 10 milva
+			ShaniDeck.cardIndices.PushBack(308);	// 6 filavandrel AGILE
+			ShaniDeck.cardIndices.PushBack(309);	// 6 Yaevin AGILE
+			ShaniDeck.cardIndices.PushBack(313);	// 6 barclay AGILE
+			ShaniDeck.cardIndices.PushBack(320);	// 0 Hav'caaren Medic
+			ShaniDeck.cardIndices.PushBack(321);	// 0 Hav'caaren Medic
+			ShaniDeck.cardIndices.PushBack(322);	// 0 Hav'caaren Medic
+			ShaniDeck.cardIndices.PushBack(325);	// 5 Vrihed AGILE
+			ShaniDeck.cardIndices.PushBack(326);	// 5 Vrihed AGILE
+			ShaniDeck.cardIndices.PushBack(365);	// 5 Hav'caaren Support 
+			ShaniDeck.cardIndices.PushBack(366);	// 5 Hav'caaren Support ^
+			ShaniDeck.cardIndices.PushBack(367);	// 5 Hav'caaren Support ^
+			
+			
+			ShaniDeck.dynamicCardRequirements.PushBack(diff5);
+			ShaniDeck.dynamicCards.PushBack(1); //Horn
+			ShaniDeck.dynamicCardRequirements.PushBack(diff7);
+			ShaniDeck.dynamicCards.PushBack(8); // 6 Vesemir
+			ShaniDeck.dynamicCardRequirements.PushBack(diff11);
+			ShaniDeck.dynamicCards.PushBack(11); // 7 Triss HERO
+			ShaniDeck.dynamicCardRequirements.PushBack(diff11);
+			ShaniDeck.dynamicCards.PushBack(12); // 2 Dandelion HORN
+			ShaniDeck.dynamicCardRequirements.PushBack(diff14);
+			ShaniDeck.dynamicCards.PushBack(15); // 7 Villen MELEE SCORCH
+			ShaniDeck.dynamicCardRequirements.PushBack(diff14);
+			ShaniDeck.dynamicCards.PushBack(7); // 15 Geralt
+
+			ShaniDeck.specialCard = 17; // 6 Olgierd AGILE +1 
+			ShaniDeck.leaderIndex = 3005; 
+			enemyDecks.PushBack(ShaniDeck);
+			
+
+			// #########################################################
+			// Olgierd	
+			// #########################################################
+			OlgierdDeck.cardIndices.PushBack(2); //Scorch	
+
+			// Difficulty changing cards	
+			if (difficulty == 1)
+			{
+				OlgierdDeck.cardIndices.PushBack(4); //Impenetrable Fog
+				OlgierdDeck.cardIndices.PushBack(415);	// 5 griffin
+				OlgierdDeck.cardIndices.PushBack(423);	// 5 frightener
+				OlgierdDeck.cardIndices.PushBack(455);	// 2 nekker SUMMON
+				OlgierdDeck.cardIndices.PushBack(456);	// 2 nekker SUMMON
+				OlgierdDeck.cardIndices.PushBack(457);	// 2 nekker SUMMON
+			}
+			if (difficulty >= 2)
+			{
+				OlgierdDeck.cardIndices.PushBack(0); // Dummy
+				OlgierdDeck.cardIndices.PushBack(5); //Torrential Rain	
+				OlgierdDeck.cardIndices.PushBack(6); //Clear Weather	
+				OlgierdDeck.cardIndices.PushBack(453);	 // 4 arachas SUMMON
+				OlgierdDeck.cardIndices.PushBack(475); 	 // 6 brewess SUMMON
+				OlgierdDeck.cardIndices.PushBack(16); 	 // 0 Avallach SPY
+				OlgierdDeck.cardIndices.PushBack(400);   // 10 Draug
+				OlgierdDeck.cardIndices.PushBack(403);   // 10 Leshen
+			}
+			if (difficulty == 3)
+			{
+				OlgierdDeck.cardIndices.PushBack(0); // Dummy	
+				OlgierdDeck.cardIndices.PushBack(1); // Horn
+				OlgierdDeck.cardIndices.PushBack(10);   // 15 Ciri
+			}
+
+			OlgierdDeck.cardIndices.PushBack(401);	// 8 Kayran +1
+			OlgierdDeck.cardIndices.PushBack(407);	// 6 earth_elemental
+			OlgierdDeck.cardIndices.PushBack(450);	// 6 arachas_behemoth SUMMON
+			OlgierdDeck.cardIndices.PushBack(451);	// 4 arachas SUMMON
+			OlgierdDeck.cardIndices.PushBack(452);	// 4 arachas SUMMON
+			OlgierdDeck.cardIndices.PushBack(460);	// 4 ekkima SUMMON
+			OlgierdDeck.cardIndices.PushBack(461);	// 4 fleder SUMMON
+			OlgierdDeck.cardIndices.PushBack(462);	// 4 garkain SUMMON
+			OlgierdDeck.cardIndices.PushBack(463);	// 4 bruxa SUMMON
+			OlgierdDeck.cardIndices.PushBack(476);	// 6 weavess SUMMON
+			OlgierdDeck.cardIndices.PushBack(477);  // 6 whispess SUMMON
+
+			OlgierdDeck.dynamicCardRequirements.PushBack(diff5);
+			OlgierdDeck.dynamicCards.PushBack(15); // 7 Villen SCORCH MELEE
+			OlgierdDeck.dynamicCardRequirements.PushBack(diff7);
+			OlgierdDeck.dynamicCards.PushBack(12); // 2 Dandelion HORN
+			OlgierdDeck.dynamicCardRequirements.PushBack(diff9);
+			OlgierdDeck.dynamicCards.PushBack(13); // 5 Zoltan
+			OlgierdDeck.dynamicCardRequirements.PushBack(diff11);
+			OlgierdDeck.dynamicCards.PushBack(9); // 7 Yennefer NURSE Hero
+			OlgierdDeck.dynamicCardRequirements.PushBack(diff11);
+			OlgierdDeck.dynamicCards.PushBack(14); // 5 Emiel
+			OlgierdDeck.dynamicCardRequirements.PushBack(diff14);
+			OlgierdDeck.dynamicCards.PushBack(2); // Scorch
+			OlgierdDeck.dynamicCardRequirements.PushBack(diff14);
+			OlgierdDeck.dynamicCards.PushBack(7); // 15 Geralt of Rivia
+
+			OlgierdDeck.specialCard = 478; // 7 Toad MELEE SCORCH
+			OlgierdDeck.leaderIndex = 4005;
+			enemyDecks.PushBack(OlgierdDeck);
+
+	}
+	
+	
+	private function SetupAIDeckDefinitions9()
+	{
+		var GamblerDeck			:SDeckDefinition;
+		var HalflingsDeck		:SDeckDefinition;
+
+			// #########################################################
+			// GamblerDeck	
+			// #########################################################
+			GamblerDeck.cardIndices.PushBack(2); // Scorch
+
+			// Difficulty changing cards	
+			if (difficulty == 1)
+			{
+				GamblerDeck.cardIndices.PushBack(245); // [3] Impera brigade            [BOND]
+				GamblerDeck.cardIndices.PushBack(250); // [2] Nausicaa                  [BOND]
+				GamblerDeck.cardIndices.PushBack(221); // [3] Puttkramer
+			}
+			if (difficulty >= 2)
+			{
+				GamblerDeck.cardIndices.PushBack(6); // Clear Weather
+				GamblerDeck.cardIndices.PushBack(0); // Dummy
+				GamblerDeck.cardIndices.PushBack(0); // Dummy
+				GamblerDeck.cardIndices.PushBack(200); // [10] Letho of Gulet   ***[HERO]***
+				GamblerDeck.cardIndices.PushBack(214); // [1] Stefan Skellen   		     [SPY]
+				GamblerDeck.cardIndices.PushBack(19);  // [4] MrMirror's Foglet 	  [SUMMON]
+				GamblerDeck.cardIndices.PushBack(260); // [5] Young Emissary 			[BOND]
+				GamblerDeck.cardIndices.PushBack(240); // [10] Heavy Zerri
+				GamblerDeck.cardIndices.PushBack(202); // [10] Morvran Voorhis  ***[HERO]***
+			}
+			if (difficulty == 3)
+			{
+				GamblerDeck.cardIndices.PushBack(0); // Dummy
+				GamblerDeck.cardIndices.PushBack(1); // Horn
+				GamblerDeck.cardIndices.PushBack(1); // Horn
+				GamblerDeck.cardIndices.PushBack(2); // Scorch
+				GamblerDeck.cardIndices.PushBack(201); // [10] Menno Coehoorn   ***[HERO]***
+				GamblerDeck.cardIndices.PushBack(218); // [1] Vattier de Rideaux Vattier [SPY]
+				GamblerDeck.cardIndices.PushBack(19); //  [4] MrMirror's Foglet 	  [SUMMON]
+				GamblerDeck.cardIndices.PushBack(9); //   [7] Yennefer 	  			   [NURSE]
+				GamblerDeck.cardIndices.PushBack(265); // [0] Siege Support 	  	   [NURSE]
+			}
+
+			GamblerDeck.cardIndices.PushBack(236); // [10] Black Archer
+			GamblerDeck.cardIndices.PushBack(203); // [10] Tibor Eggebracht ***[HERO]***
+			GamblerDeck.cardIndices.PushBack(208); // [6] Fringilla Vigo 
+			GamblerDeck.cardIndices.PushBack(213); // [4] Shilard Fitz-Oesterlen     [SPY]
+			GamblerDeck.cardIndices.PushBack(230); // [1] Archer Support 		   [NURSE]
+			GamblerDeck.cardIndices.PushBack(231); // [1] Archer Support           [NURSE]
+			GamblerDeck.cardIndices.PushBack(235); // [10] Black Archer
+			GamblerDeck.cardIndices.PushBack(241); // [5] Zerri
+			GamblerDeck.cardIndices.PushBack(261); // [5] Young Emissary 			[BOND]
+			GamblerDeck.cardIndices.PushBack(19); //  [4] MrMirror's Foglet 	  [SUMMON]
+
+			// Autobalance
+			GamblerDeck.dynamicCardRequirements.PushBack(diff1);
+			GamblerDeck.dynamicCards.PushBack(15); // 7 Villen MELEE SCORCH
+			GamblerDeck.dynamicCardRequirements.PushBack(diff4);
+			GamblerDeck.dynamicCards.PushBack(16); // 0 Avallah SPY
+			GamblerDeck.dynamicCardRequirements.PushBack(diff4);
+			GamblerDeck.dynamicCards.PushBack(12); // 2 Dandelion
+			GamblerDeck.dynamicCardRequirements.PushBack(diff6);
+			GamblerDeck.dynamicCards.PushBack(248); // 3 impera_brigade [BOND]
+			GamblerDeck.dynamicCardRequirements.PushBack(diff6);
+			GamblerDeck.dynamicCards.PushBack(11); // 7 Triss HERO
+			GamblerDeck.dynamicCardRequirements.PushBack(diff8);
+			GamblerDeck.dynamicCards.PushBack(7); // [ 15 ] Geralt of Rivia
+
+			GamblerDeck.specialCard = 18; // [2] Mr Mirror   			  [SUMMON]
+			GamblerDeck.leaderIndex = 2005;
+			enemyDecks.PushBack(GamblerDeck);
+
+
+			// #########################################################
+			// HalflingsDeck	
+			// #########################################################
+			HalflingsDeck.cardIndices.PushBack(2); //Scorch
+			HalflingsDeck.cardIndices.PushBack(1); //Horn	
+			HalflingsDeck.cardIndices.PushBack(3); //Biting Frost	
+			HalflingsDeck.cardIndices.PushBack(4); //Impenetrable Fog
+
+			// Difficulty changing cards	
+			if (difficulty == 1)
+			{
+				HalflingsDeck.cardIndices.PushBack(3); //Biting Frost
+				HalflingsDeck.cardIndices.PushBack(152);	// [1] kaedweni_siege      [+1]
+			}
+			if (difficulty >= 2)
+			{
+				HalflingsDeck.cardIndices.PushBack(152);	// [1] kaedweni_siege      [+1]
+				HalflingsDeck.cardIndices.PushBack(2); //Scorch
+				HalflingsDeck.cardIndices.PushBack(0); //Dummy
+				HalflingsDeck.cardIndices.PushBack(100);	// [10] Vernon             [ HERO ]
+				HalflingsDeck.cardIndices.PushBack(103);	// [10] philippa           [ HERO ]
+				HalflingsDeck.cardIndices.PushBack(105); 	// [4] Thaler  			      [SPY]
+				HalflingsDeck.cardIndices.PushBack(109);	// [4] Sigismund Dijkstra     [SPY]
+				HalflingsDeck.cardIndices.PushBack(160);	// [4] Blue Stripes     [TightBond]
+				HalflingsDeck.cardIndices.PushBack(162); 	// [4] Blue Stripes     [TightBond]
+			}
+			if (difficulty == 3)
+			{
+				HalflingsDeck.cardIndices.PushBack(1); //Horn	
+				HalflingsDeck.cardIndices.PushBack(102);	// [10] esterad            [ HERO ]
+				HalflingsDeck.cardIndices.PushBack(101);	// [10] Natalis            [ HERO ]
+				HalflingsDeck.cardIndices.PushBack(10);		// [15] Ciri
+			}
+
+			HalflingsDeck.cardIndices.PushBack(116); 	// [5] Stennis                [SPY]
+			HalflingsDeck.cardIndices.PushBack(120); 	// [6] Trebuchet 
+			HalflingsDeck.cardIndices.PushBack(140); 	// [8] Catapult         [TightBond]
+			HalflingsDeck.cardIndices.PushBack(141); 	// [8] Catapult         [TightBond]
+			HalflingsDeck.cardIndices.PushBack(145); 	// [6] Ballista
+			HalflingsDeck.cardIndices.PushBack(161); 	// [4] Blue Stripes     [TightBond]
+			HalflingsDeck.cardIndices.PushBack(170); 	// [6] Siege Tower
+			HalflingsDeck.cardIndices.PushBack(175);	// [0] dun_banner_medic     [NURSE]
+			
+			HalflingsDeck.dynamicCardRequirements.PushBack(diff2);	
+			HalflingsDeck.dynamicCards.PushBack(13);				
+			HalflingsDeck.dynamicCardRequirements.PushBack(diff5);	
+			HalflingsDeck.dynamicCards.PushBack(151); 				// [ 1 ] kaedweni_siege [ +1 ]
+			HalflingsDeck.dynamicCardRequirements.PushBack(diff6);	
+			HalflingsDeck.dynamicCards.PushBack(12); 				// [ 2 ] Dangelion [HORN]
+			HalflingsDeck.dynamicCardRequirements.PushBack(diff8);	
+			HalflingsDeck.dynamicCards.PushBack(11); 				// [ 7 ] Triss HERO
+			HalflingsDeck.dynamicCardRequirements.PushBack(diff8);	
+			HalflingsDeck.dynamicCards.PushBack(7); 				// [ 15 ] Geralt HORN
+			HalflingsDeck.dynamicCardRequirements.PushBack(diff8);	
+			HalflingsDeck.dynamicCards.PushBack(15); 				// [ 7 ] Villen Scorch 				
+			HalflingsDeck.dynamicCardRequirements.PushBack(diff10);	
+			HalflingsDeck.dynamicCards.PushBack(9); 				// [ 7 ] Yennefer [NURSE]
+			
+			HalflingsDeck.specialCard = 16;	// [0] Avallach [SPY]
+			HalflingsDeck.leaderIndex = 1004; 
+			enemyDecks.PushBack(HalflingsDeck);
+	}
+
+	private function SetupAIDeckDefinitions10()
+	{
+		var CircusGwentAddictDeck   :SDeckDefinition;
+
+			// #########################################################
+			// CircusGwentAddictDeck	
+			// #########################################################
+			CircusGwentAddictDeck.cardIndices.PushBack(3); //Frost
+			CircusGwentAddictDeck.cardIndices.PushBack(1); //Horn
+			CircusGwentAddictDeck.cardIndices.PushBack(2); //Scorch	
+
+			// Difficulty changing cards	
+			if (difficulty == 1)
+			{
+				CircusGwentAddictDeck.cardIndices.PushBack(6); //Clear Sky	
+				CircusGwentAddictDeck.cardIndices.PushBack(4); //Fog
+				CircusGwentAddictDeck.cardIndices.PushBack(310); // 2 Toruviel
+				CircusGwentAddictDeck.cardIndices.PushBack(311); // 1 Riordain
+			}
+			if (difficulty >= 2)
+			{
+				CircusGwentAddictDeck.cardIndices.PushBack(0); //Dummy
+				CircusGwentAddictDeck.cardIndices.PushBack(2); //Scorch	
+				CircusGwentAddictDeck.cardIndices.PushBack(367);	// 5 Hav'caaren Support ^
+				CircusGwentAddictDeck.cardIndices.PushBack(300);	// 10 Eithné
+				CircusGwentAddictDeck.cardIndices.PushBack(10); 	// 15 Ciri
+			}
+			if (difficulty == 3)
+			{
+				CircusGwentAddictDeck.cardIndices.PushBack(0); //Dummy
+				CircusGwentAddictDeck.cardIndices.PushBack(301);	// 10 Saskia/Saesenthessis
+				CircusGwentAddictDeck.cardIndices.PushBack(302);	// 10 Isengrim Faoiltiarna
+			}
+
+			CircusGwentAddictDeck.cardIndices.PushBack(16); 	// 0 Avallac'hh  [SPY]
+			CircusGwentAddictDeck.cardIndices.PushBack(303);	// 10 ioveth HERO
+			CircusGwentAddictDeck.cardIndices.PushBack(305);	// 6 dennis
+			CircusGwentAddictDeck.cardIndices.PushBack(306);	// 10 milva
+			CircusGwentAddictDeck.cardIndices.PushBack(308);	// 6 filavandrel AGILE
+			CircusGwentAddictDeck.cardIndices.PushBack(309);	// 6 Yaevin AGILE
+			CircusGwentAddictDeck.cardIndices.PushBack(313);	// 6 barclay AGILE
+			CircusGwentAddictDeck.cardIndices.PushBack(320);	// 4 havekar support SUMMON CLONES
+			CircusGwentAddictDeck.cardIndices.PushBack(321);	// 4 havekar support ^
+			CircusGwentAddictDeck.cardIndices.PushBack(322);	// 4 havekar support ^
+			CircusGwentAddictDeck.cardIndices.PushBack(325);	// 5 Vrihed AGILE
+			CircusGwentAddictDeck.cardIndices.PushBack(326);	// 5 Vrihed AGILE
+			CircusGwentAddictDeck.cardIndices.PushBack(365);	// 5 Hav'caaren Support 
+			CircusGwentAddictDeck.cardIndices.PushBack(366);	// 5 Hav'caaren Support ^
+
+			CircusGwentAddictDeck.dynamicCardRequirements.PushBack(diff5);
+			CircusGwentAddictDeck.dynamicCards.PushBack(15); // 7 Villen SCORCH MELEE
+			CircusGwentAddictDeck.dynamicCardRequirements.PushBack(diff7);
+			CircusGwentAddictDeck.dynamicCards.PushBack(12); // 2 Dandelion HORN
+			CircusGwentAddictDeck.dynamicCardRequirements.PushBack(diff9);
+			CircusGwentAddictDeck.dynamicCards.PushBack(13); // 5 Zoltan
+			CircusGwentAddictDeck.dynamicCardRequirements.PushBack(diff11);
+			CircusGwentAddictDeck.dynamicCards.PushBack(9); // 7 Yennefer NURSE Hero
+			CircusGwentAddictDeck.dynamicCardRequirements.PushBack(diff11);
+			CircusGwentAddictDeck.dynamicCards.PushBack(14); // 5 Emiel
+			CircusGwentAddictDeck.dynamicCardRequirements.PushBack(diff14);
+			CircusGwentAddictDeck.dynamicCards.PushBack(2); // Scorch
+			CircusGwentAddictDeck.dynamicCardRequirements.PushBack(diff14);
+			CircusGwentAddictDeck.dynamicCards.PushBack(7); // 15 Geralt of Rivia
+
+			CircusGwentAddictDeck.specialCard = 368; // 8 Schirru RANGED SCORCH
+			CircusGwentAddictDeck.leaderIndex = 3005;
+			enemyDecks.PushBack(CircusGwentAddictDeck);
 	}
 	
 	private function SetupAIDeckDefinitionsNK()
@@ -1448,109 +2331,148 @@ import class CR4GwintManager extends IGameSystem
 		var NKNormal			:SDeckDefinition;
 		var NKHard				:SDeckDefinition;
 		
-			
-			NKEasy.cardIndices.PushBack(3); 
-			NKEasy.cardIndices.PushBack(4); 
-			NKEasy.cardIndices.PushBack(5); 
-			NKEasy.cardIndices.PushBack(6); 
+			//NKEasy.deckName = "NKEasy";
+			NKEasy.cardIndices.PushBack(3); //Biting Frost
+			NKEasy.cardIndices.PushBack(4); //Impenetrable Fog 
+			NKEasy.cardIndices.PushBack(5); //Torrential Rain
+			NKEasy.cardIndices.PushBack(6); //Clear Weather
 
-			NKEasy.cardIndices.PushBack(13); 
-			NKEasy.cardIndices.PushBack(105); 
-			NKEasy.cardIndices.PushBack(106); 
-			NKEasy.cardIndices.PushBack(107); 
-			NKEasy.cardIndices.PushBack(108); 
-			NKEasy.cardIndices.PushBack(109);
-			NKEasy.cardIndices.PushBack(111); 
-			NKEasy.cardIndices.PushBack(112); 
-			NKEasy.cardIndices.PushBack(113); 
-			NKEasy.cardIndices.PushBack(114); 
-			NKEasy.cardIndices.PushBack(120); 
-			NKEasy.cardIndices.PushBack(125); 
-			NKEasy.cardIndices.PushBack(126); 
-			NKEasy.cardIndices.PushBack(130); 
-			NKEasy.cardIndices.PushBack(135); 
-			NKEasy.cardIndices.PushBack(136); 
-			NKEasy.cardIndices.PushBack(141); 
-			NKEasy.cardIndices.PushBack(145); 
-			NKEasy.cardIndices.PushBack(150); 
-			NKEasy.cardIndices.PushBack(150); 
-			NKEasy.cardIndices.PushBack(175);
-			NKEasy.specialCard = -1; 
+			if (difficulty == 3)
+			{
+				NKEasy.cardIndices.PushBack(100); // [10] Vernon [HERO]
+				NKEasy.cardIndices.PushBack(9); // [7] Yennefer [NURSE][HERO]
+			}
+
+			NKEasy.cardIndices.PushBack(13); //zoltan [5]
+			NKEasy.cardIndices.PushBack(105); //Thaler [4] [SPY]
+			NKEasy.cardIndices.PushBack(106); //Ves [5]
+			NKEasy.cardIndices.PushBack(107); //Siegfried of Denesle [5]
+			NKEasy.cardIndices.PushBack(108); //Yarpen Zigrin  [2]
+			NKEasy.cardIndices.PushBack(109);//Dijkstra
+			NKEasy.cardIndices.PushBack(111); //Keira Metz  [5]
+			NKEasy.cardIndices.PushBack(112); //Síle de Tansarville [5]
+			NKEasy.cardIndices.PushBack(113); //Sabrina
+			NKEasy.cardIndices.PushBack(114); //Sheldon
+			NKEasy.cardIndices.PushBack(120); //Trebuchet [6]2
+			NKEasy.cardIndices.PushBack(125); //Poor Fucking Infantry [2] [TightBond] 
+			NKEasy.cardIndices.PushBack(126); //Poor Fucking Infantry [2] [TightBond]
+			NKEasy.cardIndices.PushBack(130); //Crinfrid Reavers Dragon Hunter [4] [TightBond]
+			NKEasy.cardIndices.PushBack(135); //Redanian Foot Soldier [1]
+			NKEasy.cardIndices.PushBack(136); //Redanian Foot Soldier [1]
+			NKEasy.cardIndices.PushBack(141); //Catapult [5] [TightBond]
+			NKEasy.cardIndices.PushBack(145); //Ballista [6]
+			NKEasy.cardIndices.PushBack(150); //Kaedweni Siege Expert [2] [MoraleBoost]
+			NKEasy.cardIndices.PushBack(150); //Kaedweni Siege Expert [2] [MoraleBoost]
+			NKEasy.cardIndices.PushBack(175);//Dun banner medic
+			NKEasy.specialCard = -1; // Change this to a card ID to always have it be in the AI's hand when drawing cards
 			NKEasy.leaderIndex = 1001;
 			enemyDecks.PushBack(NKEasy);
+
 			
-			
-			NKNormal.cardIndices.PushBack(4); 
-			NKNormal.cardIndices.PushBack(4); 
-			NKNormal.cardIndices.PushBack(1); 
-			NKNormal.cardIndices.PushBack(1); 
-			NKNormal.cardIndices.PushBack(0); 
-			NKNormal.cardIndices.PushBack(2); 
-			NKNormal.cardIndices.PushBack(6); 
+			//NKNormal.deckName = "NKNormal";
+			NKNormal.cardIndices.PushBack(4); //Impenetrable Fog
+			NKNormal.cardIndices.PushBack(1); //Horn
+			NKNormal.cardIndices.PushBack(0); //Dummy
+			NKNormal.cardIndices.PushBack(2); //Scorch
+			NKNormal.cardIndices.PushBack(6); //Clear Weather
 
-			NKNormal.cardIndices.PushBack(100); 
-			NKNormal.cardIndices.PushBack(101); 
-			NKNormal.cardIndices.PushBack(105); 
-			NKNormal.cardIndices.PushBack(106); 
-			NKNormal.cardIndices.PushBack(107); 
-			NKNormal.cardIndices.PushBack(109); 
-			NKNormal.cardIndices.PushBack(113); 
-			NKNormal.cardIndices.PushBack(114); 
-			NKNormal.cardIndices.PushBack(121); 
-			NKNormal.cardIndices.PushBack(120); 
-			NKNormal.cardIndices.PushBack(130); 
-			NKNormal.cardIndices.PushBack(131); 
-			NKNormal.cardIndices.PushBack(140); 
-			NKNormal.cardIndices.PushBack(141); 
-			NKNormal.cardIndices.PushBack(145); 
-			NKNormal.cardIndices.PushBack(146); 
-			NKNormal.cardIndices.PushBack(150); 
-			NKNormal.cardIndices.PushBack(151); 
-			NKNormal.cardIndices.PushBack(175); 
+			if (difficulty == 1)
+			{
+				NKNormal.cardIndices.PushBack(4); //Impenetrable Fog
+				NKNormal.cardIndices.PushBack(3); //Frost
+			}
+			if (difficulty == 2)
+			{
+				NKNormal.cardIndices.PushBack(4); //Impenetrable Fog
+				NKNormal.cardIndices.PushBack(1); //Horn
+				NKNormal.cardIndices.PushBack(100); // [10] Vernon [HERO]
+			}
+			if (difficulty == 3)
+			{
+				NKNormal.cardIndices.PushBack(100); // [10] Vernon [HERO]
+				NKNormal.cardIndices.PushBack(9); // [7] Yennefer [NURSE][HERO]
+			}
 
-			NKNormal.dynamicCardRequirements.PushBack(215);	
-			NKNormal.dynamicCards.PushBack(12); 
-			NKNormal.dynamicCardRequirements.PushBack(220);	
-			NKNormal.dynamicCards.PushBack(11); 
-			NKNormal.dynamicCardRequirements.PushBack(230);	
-			NKNormal.dynamicCards.PushBack(10); 
+			NKNormal.cardIndices.PushBack(101); //John Natalis  [10] [HERO]
+			NKNormal.cardIndices.PushBack(105); //Thaler [4] [SPY]
+			NKNormal.cardIndices.PushBack(106); //Ves [5]
+			NKNormal.cardIndices.PushBack(107); //Siegfried of Denesle [5]
+			NKNormal.cardIndices.PushBack(109); //Dijkstra [SPY]
+			NKNormal.cardIndices.PushBack(113); //Sabrina
+			NKNormal.cardIndices.PushBack(114); //Sheldon
+			NKNormal.cardIndices.PushBack(121); //Trebuchet [6]1
+			NKNormal.cardIndices.PushBack(120); //Trebuchet [6]2
+			NKNormal.cardIndices.PushBack(130); //Crinfrid Reavers Dragon Hunter [4] [TightBond]
+			NKNormal.cardIndices.PushBack(131); //Crinfrid Reavers Dragon Hunter [4] [TightBond]
+			NKNormal.cardIndices.PushBack(140); //Catapult [5] [TightBond] 
+			NKNormal.cardIndices.PushBack(141); //Catapult [5] [TightBond]
+			NKNormal.cardIndices.PushBack(145); //Ballista [6]
+			NKNormal.cardIndices.PushBack(146); //Ballista [6]
+			NKNormal.cardIndices.PushBack(150); //Kaedweni Siege Expert [2] [MoraleBoost]
+			NKNormal.cardIndices.PushBack(151); //Kaedweni Siege Expert [2] [MoraleBoost]	//Siege Expert
+			NKNormal.cardIndices.PushBack(175); //Dun banner medic
 
-			NKNormal.specialCard = -1; 
+			NKNormal.dynamicCardRequirements.PushBack(diff12);
+			NKNormal.dynamicCards.PushBack(12); //Dandelion
+			NKNormal.dynamicCardRequirements.PushBack(diff13);
+			NKNormal.dynamicCards.PushBack(11); //Triss Merigold  [10] ***[HERO]***		
+			NKNormal.dynamicCardRequirements.PushBack(diff15);
+			NKNormal.dynamicCards.PushBack(10); //Ciri
+
+			NKNormal.specialCard = -1; // Change this to a card ID to always have it be in the AI's hand when drawing cards
 			NKNormal.leaderIndex = 1002;
 			enemyDecks.PushBack(NKNormal);
 			
-			
-			NKHard.cardIndices.PushBack(0); 
-			NKHard.cardIndices.PushBack(1); 
-			NKHard.cardIndices.PushBack(1); 
-			NKHard.cardIndices.PushBack(2); 
-			NKHard.cardIndices.PushBack(2); 
-			NKHard.cardIndices.PushBack(3); 
-			NKHard.cardIndices.PushBack(4); 
-			NKHard.cardIndices.PushBack(6); 
+			//NKHard.deckName = "NKHard";
+			NKHard.cardIndices.PushBack(0); //Dummy
+			NKHard.cardIndices.PushBack(1); //Horn
+			NKHard.cardIndices.PushBack(2); //Scorch
+			NKHard.cardIndices.PushBack(3); //Biting Frost
+			NKHard.cardIndices.PushBack(4); //Impenetrable Fog  
+			NKHard.cardIndices.PushBack(6); //Clear Weather
 
-			NKHard.cardIndices.PushBack(7); 
-			NKHard.cardIndices.PushBack(9); 
-			NKHard.cardIndices.PushBack(10); 
-			NKHard.cardIndices.PushBack(11); 
-			NKHard.cardIndices.PushBack(12);
-			NKHard.cardIndices.PushBack(100);
-			NKHard.cardIndices.PushBack(101);
-			NKHard.cardIndices.PushBack(102);
-			NKHard.cardIndices.PushBack(103);
-			NKHard.cardIndices.PushBack(105); 
-			NKHard.cardIndices.PushBack(109);
-			NKHard.cardIndices.PushBack(116);
-			NKHard.cardIndices.PushBack(111); 
-			NKHard.cardIndices.PushBack(121); 
-			NKHard.cardIndices.PushBack(120); 
-			NKHard.cardIndices.PushBack(140); 
-			NKHard.cardIndices.PushBack(141); 
-			NKHard.cardIndices.PushBack(145); 
-			NKHard.cardIndices.PushBack(146); 
-			NKHard.cardIndices.PushBack(150); 
-			NKHard.cardIndices.PushBack(175);
-			NKHard.specialCard = -1; 
+			if (difficulty == 1)
+			{
+				NKHard.cardIndices.PushBack(4); //Impenetrable Fog
+				NKHard.cardIndices.PushBack(3); //Frost
+			}
+			if (difficulty == 2)
+			{
+				NKHard.cardIndices.PushBack(1); //Horn
+				NKHard.cardIndices.PushBack(2); //Scorch
+				NKHard.cardIndices.PushBack(7); //Geralt
+				NKHard.cardIndices.PushBack(9); //Yennefer of Vengerberg 
+				NKHard.cardIndices.PushBack(10); //Cirilla Fiona Elen Rianno
+			}
+			if (difficulty == 3)
+			{
+				NKHard.cardIndices.PushBack(1); //Horn
+				NKHard.cardIndices.PushBack(2); //Scorch
+				NKHard.cardIndices.PushBack(7);  //Geralt
+				NKHard.cardIndices.PushBack(15); // [7] Villen [MELEE-SCORCH]
+				NKHard.cardIndices.PushBack(9); //Yennefer of Vengerberg 
+				NKHard.cardIndices.PushBack(10); //Cirilla Fiona Elen Rianno
+			}
+
+			NKHard.cardIndices.PushBack(11); //Triss Merigold 
+			NKHard.cardIndices.PushBack(12); //Dandelion
+			NKHard.cardIndices.PushBack(100); //Vernon Roche 
+			NKHard.cardIndices.PushBack(101); //John Natalis
+			NKHard.cardIndices.PushBack(102); //Esterad Thyssen 
+			NKHard.cardIndices.PushBack(103); //Philippa
+			NKHard.cardIndices.PushBack(105); //Thaler [4] [SPY]]
+			NKHard.cardIndices.PushBack(109); //Dijkstra [SPY]
+			NKHard.cardIndices.PushBack(116); //Prince Stennis [SPY] 
+			NKHard.cardIndices.PushBack(111); //Keira Metz  [5]
+			NKHard.cardIndices.PushBack(121); //Trebuchet [6]
+			NKHard.cardIndices.PushBack(120); //Trebuchet [6]
+			NKHard.cardIndices.PushBack(140); //Catapult [5] [TightBond] 
+			NKHard.cardIndices.PushBack(141); //Catapult [5] [TightBond]
+			NKHard.cardIndices.PushBack(145); //Ballista [6]
+			NKHard.cardIndices.PushBack(146); //Ballista [6]
+			NKHard.cardIndices.PushBack(150); //Kaedweni Siege Expert [2] [MoraleBoost]
+			NKHard.cardIndices.PushBack(175);//Dun banner medic
+			NKHard.specialCard = -1; // Change this to a card ID to always have it be in the AI's hand when drawing cards
 			NKHard.leaderIndex = 1003;
 			enemyDecks.PushBack(NKHard);
 	}
@@ -1560,110 +2482,160 @@ import class CR4GwintManager extends IGameSystem
 		var NilfNormal				:SDeckDefinition;
 		var NilfHard				:SDeckDefinition;
 			
-			
-			NilfEasy.cardIndices.PushBack(3); 
-			NilfEasy.cardIndices.PushBack(4); 
-			NilfEasy.cardIndices.PushBack(5); 
-			NilfEasy.cardIndices.PushBack(6); 
+			//NilfEasy.deckName = "NilfEasy";
+			NilfEasy.cardIndices.PushBack(3); //Biting Frost
+			NilfEasy.cardIndices.PushBack(4); //Impenetrable Fog 
+			NilfEasy.cardIndices.PushBack(5); //Torrential Rain
+			NilfEasy.cardIndices.PushBack(6); //Clear Weather
 
-			NilfEasy.cardIndices.PushBack(205); 
-			NilfEasy.cardIndices.PushBack(207); 
-			NilfEasy.cardIndices.PushBack(209); 
-			NilfEasy.cardIndices.PushBack(210); 
-			NilfEasy.cardIndices.PushBack(211); 
-			NilfEasy.cardIndices.PushBack(212); 
-			NilfEasy.cardIndices.PushBack(213); 
-			NilfEasy.cardIndices.PushBack(215); 
-			NilfEasy.cardIndices.PushBack(217); 
-			NilfEasy.cardIndices.PushBack(218); 
-			NilfEasy.cardIndices.PushBack(219);
-			NilfEasy.cardIndices.PushBack(221);
-			NilfEasy.cardIndices.PushBack(241);
-			NilfEasy.cardIndices.PushBack(245);
-			NilfEasy.cardIndices.PushBack(250);
-			NilfEasy.cardIndices.PushBack(251);
-			NilfEasy.specialCard = 260; 
+			if (difficulty == 3)
+			{
+				NilfEasy.cardIndices.PushBack(1); //Horn
+				NilfEasy.cardIndices.PushBack(0); //Dummy
+				NilfEasy.cardIndices.PushBack(15); // [7] Villen [MELEE-SCORCH]
+				NilfEasy.cardIndices.PushBack(9); //Yennefer of Vengerberg 
+			}
+
+			NilfEasy.cardIndices.PushBack(205); //Albrich [2]
+			NilfEasy.cardIndices.PushBack(207); //Cynthia [4]
+			NilfEasy.cardIndices.PushBack(209); // Morteisen [3]
+			NilfEasy.cardIndices.PushBack(210); //Rainfarn [4]
+			NilfEasy.cardIndices.PushBack(211); //Renuald aep Matsen  [5] 
+			NilfEasy.cardIndices.PushBack(212); //Rotten Mangonel [3]
+			NilfEasy.cardIndices.PushBack(213); //Shilard Fitz-Oesterlen  [4] [SPY]
+			NilfEasy.cardIndices.PushBack(215); //Sweers [2]
+			NilfEasy.cardIndices.PushBack(217); //Vanhemar [4]
+			NilfEasy.cardIndices.PushBack(218); //Vattier de Rideaux Vattier [1]
+			NilfEasy.cardIndices.PushBack(219);//Vreemde
+			NilfEasy.cardIndices.PushBack(221);//Puttkammer
+			NilfEasy.cardIndices.PushBack(241);//Zerri
+			NilfEasy.cardIndices.PushBack(245);//Impera
+			NilfEasy.cardIndices.PushBack(250);//Nausicaa	
+			NilfEasy.cardIndices.PushBack(251);//Nausicaa
+			NilfEasy.specialCard = 260; // Change this to a card ID to always have it be in the AI's hand when drawing cards
 			NilfEasy.leaderIndex = 2001;
 			enemyDecks.PushBack(NilfEasy);
 			
 			
-			
+			//NilfNormal.deckName = "NilfNormal";
+			if (difficulty == 1)
+			{
+				NilfNormal.cardIndices.PushBack(4); //Impenetrable Fog
+				NilfNormal.cardIndices.PushBack(3); //Frost
+			}
+			if (difficulty == 2)
+			{
+				NilfNormal.cardIndices.PushBack(0); //Dummy
+				NilfNormal.cardIndices.PushBack(1); //Horn
+				NilfNormal.cardIndices.PushBack(1); //Horn
+				NilfNormal.cardIndices.PushBack(2); //Scorch
+				NilfNormal.cardIndices.PushBack(2); //Scorch
+				NilfNormal.cardIndices.PushBack(3); //Biting Frost
+				NilfNormal.cardIndices.PushBack(3); //Biting Frost
+				NilfNormal.cardIndices.PushBack(6); //Clear Weather
+				NilfNormal.cardIndices.PushBack(200); //Letho of Gulet  [10] ***[HERO]***
+				NilfNormal.cardIndices.PushBack(230);//Archer Support [NURSE]
+				NilfNormal.cardIndices.PushBack(218); //Vattier de Rideaux Vattier [4] [SPY]
+			}
+			if (difficulty == 3)
+			{
+				NilfNormal.cardIndices.PushBack(0); //Dummy
+				NilfNormal.cardIndices.PushBack(1); //Horn
+				NilfNormal.cardIndices.PushBack(1); //Horn
+				NilfNormal.cardIndices.PushBack(2); //Scorch
+				NilfNormal.cardIndices.PushBack(3); //Biting Frost
+				NilfNormal.cardIndices.PushBack(6); //Clear Weather
+				NilfNormal.cardIndices.PushBack(9); // [7] Yennefer [HERO][NURSE]
+				NilfNormal.cardIndices.PushBack(200); //Letho of Gulet  [10] ***[HERO]***
+				NilfNormal.cardIndices.PushBack(230);//Archer Support [NURSE]
+				NilfNormal.cardIndices.PushBack(218); //Vattier de Rideaux Vattier [4] [SPY]
+			}
 
-			NilfNormal.cardIndices.PushBack(0); 
-			NilfNormal.cardIndices.PushBack(1); 
-			NilfNormal.cardIndices.PushBack(1); 
-			NilfNormal.cardIndices.PushBack(2); 
-			NilfNormal.cardIndices.PushBack(2); 
-			NilfNormal.cardIndices.PushBack(3); 
-			NilfNormal.cardIndices.PushBack(3); 
-			NilfNormal.cardIndices.PushBack(6); 
-
-			NilfNormal.cardIndices.PushBack(200); 
-			NilfNormal.cardIndices.PushBack(201); 
-			NilfNormal.cardIndices.PushBack(203); 
-			NilfNormal.cardIndices.PushBack(207); 
-			NilfNormal.cardIndices.PushBack(209); 
-			NilfNormal.cardIndices.PushBack(210); 
-			NilfNormal.cardIndices.PushBack(208); 
-			NilfNormal.cardIndices.PushBack(213); 
-			NilfNormal.cardIndices.PushBack(218); 
-			NilfNormal.cardIndices.PushBack(230);
-			NilfNormal.cardIndices.PushBack(235);
-			NilfNormal.cardIndices.PushBack(236);
-			NilfNormal.cardIndices.PushBack(240);
-			NilfNormal.cardIndices.PushBack(245);
-			NilfNormal.cardIndices.PushBack(246);
-			NilfNormal.cardIndices.PushBack(247);
-			NilfNormal.cardIndices.PushBack(250);
-			NilfNormal.cardIndices.PushBack(251);
-			NilfNormal.cardIndices.PushBack(252);
-			NilfNormal.cardIndices.PushBack(260);
-			NilfNormal.cardIndices.PushBack(261);
+			NilfNormal.cardIndices.PushBack(201); //Menno Coehoorn [10] ***[HERO]***
+			NilfNormal.cardIndices.PushBack(203); //Tibor Eggebracht [10] ***[HERO]***
+			NilfNormal.cardIndices.PushBack(207); //Cynthia [4]
+			NilfNormal.cardIndices.PushBack(209); //Morteisen [3]
+			NilfNormal.cardIndices.PushBack(210); //Rainfarn [4]
+			NilfNormal.cardIndices.PushBack(208); //Fringilla Vigo 
+			NilfNormal.cardIndices.PushBack(213); //Shilard Fitz-Oesterlen  [4] [SPY]
+			NilfNormal.cardIndices.PushBack(235);//Siege Support [NURSE]
+			NilfNormal.cardIndices.PushBack(236);//Black Infantry Archer [10]
+			NilfNormal.cardIndices.PushBack(240);//Heavy Zerri [10]
+			NilfNormal.cardIndices.PushBack(245);//Impera
+			NilfNormal.cardIndices.PushBack(246);//Impera
+			NilfNormal.cardIndices.PushBack(247);//Impera
+			NilfNormal.cardIndices.PushBack(250);//Nausicaa	
+			NilfNormal.cardIndices.PushBack(251);//Nausicaa
+			NilfNormal.cardIndices.PushBack(252);//Nausicaa
+			NilfNormal.cardIndices.PushBack(260);//Young Emissary
+			NilfNormal.cardIndices.PushBack(261);//Young Emissary
 
 
-			NilfNormal.dynamicCardRequirements.PushBack(215);	
-			NilfNormal.dynamicCards.PushBack(15);
-			NilfNormal.dynamicCardRequirements.PushBack(220);	
-			NilfNormal.dynamicCards.PushBack(202);
-			NilfNormal.dynamicCardRequirements.PushBack(230);	
-			NilfNormal.dynamicCards.PushBack(7); 
+			NilfNormal.dynamicCardRequirements.PushBack(diff12);
+			NilfNormal.dynamicCards.PushBack(15);//Villentretenmerth  [7] 
+			NilfNormal.dynamicCardRequirements.PushBack(diff13);
+			NilfNormal.dynamicCards.PushBack(202);//Morvran Voorhis [10] ***[HERO]***			
+			NilfNormal.dynamicCardRequirements.PushBack(diff15);
+			NilfNormal.dynamicCards.PushBack(7); //Geralt
 
-			NilfNormal.specialCard = -1; 
+			NilfNormal.specialCard = -1; // Change this to a card ID to always have it be in the AI's hand when drawing cards
 			NilfNormal.leaderIndex = 2002;
 			enemyDecks.PushBack(NilfNormal);
-			
-			
 
-			NilfHard.cardIndices.PushBack(0); 
-			NilfHard.cardIndices.PushBack(1); 
-			NilfHard.cardIndices.PushBack(1); 
-			NilfHard.cardIndices.PushBack(2); 
-			NilfHard.cardIndices.PushBack(2); 
 
-			NilfHard.cardIndices.PushBack(15); 
-			NilfHard.cardIndices.PushBack(16); 
-			NilfHard.cardIndices.PushBack(200); 
-			NilfHard.cardIndices.PushBack(201);
-			NilfHard.cardIndices.PushBack(202);
-			NilfHard.cardIndices.PushBack(203); 
-			NilfHard.cardIndices.PushBack(208); 
-			NilfHard.cardIndices.PushBack(213); 
-			NilfHard.cardIndices.PushBack(214); 
-			NilfHard.cardIndices.PushBack(218); 
-			NilfHard.cardIndices.PushBack(230);
-			NilfHard.cardIndices.PushBack(231);
-			NilfHard.cardIndices.PushBack(235);
-			NilfHard.cardIndices.PushBack(236);
-			NilfHard.cardIndices.PushBack(240);
-			NilfHard.cardIndices.PushBack(241);
-			NilfHard.cardIndices.PushBack(245);
-			NilfHard.cardIndices.PushBack(246);
-			NilfHard.cardIndices.PushBack(247);
-			NilfHard.cardIndices.PushBack(250);
-			NilfHard.cardIndices.PushBack(251);
-			NilfHard.cardIndices.PushBack(252);
+			//NilfHard.deckName = "NilfHard";
+			if (difficulty == 1)
+			{
+				NilfHard.cardIndices.PushBack(4); //Impenetrable Fog
+				NilfHard.cardIndices.PushBack(3); //Frost
+			}
+			if (difficulty == 2)
+			{
+				NilfHard.cardIndices.PushBack(0); //Dummy
+				NilfHard.cardIndices.PushBack(1); //Horn
+				NilfHard.cardIndices.PushBack(1); //Horn
+				NilfHard.cardIndices.PushBack(2); //Scorch
+				NilfHard.cardIndices.PushBack(2); //Scorch
+				NilfHard.cardIndices.PushBack(218); //Vattier de Rideaux Vattier [4] [SPY]
+				NilfHard.cardIndices.PushBack(200); //Letho of Gulet  [10] ***[HERO]***
+				NilfHard.cardIndices.PushBack(231); //Archer Support [NURSE]
+				NilfHard.cardIndices.PushBack(235); //Siege Support [NURSE]
+			}
+			if (difficulty == 3)
+			{
+				NilfHard.cardIndices.PushBack(0); //Dummy
+				NilfHard.cardIndices.PushBack(0); //Dummy
+				NilfHard.cardIndices.PushBack(1); //Horn
+				NilfHard.cardIndices.PushBack(1); //Horn
+				NilfHard.cardIndices.PushBack(2); //Scorch
+				NilfHard.cardIndices.PushBack(2); //Scorch
+				NilfHard.cardIndices.PushBack(218); //Vattier de Rideaux Vattier [4] [SPY]
+				NilfHard.cardIndices.PushBack(200); //Letho of Gulet  [10] ***[HERO]***
+				NilfHard.cardIndices.PushBack(231); //Archer Support [NURSE]
+				NilfHard.cardIndices.PushBack(235); //Siege Support [NURSE]
+				NilfHard.cardIndices.PushBack(9);   //Yennefer [NURSE][HERO]
+			}
 
-			NilfHard.specialCard = 261; 
+			NilfHard.cardIndices.PushBack(15); //Villentretenmerth  [7] 
+			NilfHard.cardIndices.PushBack(16); //Avallac'hh  [SPY] 
+			NilfHard.cardIndices.PushBack(201); //Menno Coehoorn 
+			NilfHard.cardIndices.PushBack(202); //Morvran Voorhis
+			NilfHard.cardIndices.PushBack(203); //Tibor Eggebracht [10] ***[HERO]***
+			NilfHard.cardIndices.PushBack(208); //Fringilla Vigo 
+			NilfHard.cardIndices.PushBack(213); //Shilard Fitz-Oesterlen  [7] [SPY]
+			NilfHard.cardIndices.PushBack(214); //Stefan Skellen   [9] [SPY]
+			NilfHard.cardIndices.PushBack(230); //Archer Support [NURSE]
+			NilfHard.cardIndices.PushBack(236); //Black Infantry Archer [10]
+			NilfHard.cardIndices.PushBack(240); //Heavy Zerri [10]
+			NilfHard.cardIndices.PushBack(241); //Zerri
+			NilfHard.cardIndices.PushBack(245); //Impera
+			NilfHard.cardIndices.PushBack(246); //Impera
+			NilfHard.cardIndices.PushBack(247); //Impera
+			NilfHard.cardIndices.PushBack(250); //Nausicaa	
+			NilfHard.cardIndices.PushBack(251); //Nausicaa
+			NilfHard.cardIndices.PushBack(252); //Nausicaa
+
+			NilfHard.specialCard = 261; // Change this to a card ID to always have it be in the AI's hand when drawing cards
 			NilfHard.leaderIndex = 2003;
 			enemyDecks.PushBack(NilfHard);
 		
@@ -1675,111 +2647,161 @@ import class CR4GwintManager extends IGameSystem
 		var ScoiaNormal				:SDeckDefinition;
 		var ScoiaHard				:SDeckDefinition;
 		
-			
-			ScoiaEasy.cardIndices.PushBack(3); 
-			ScoiaEasy.cardIndices.PushBack(4); 
-			ScoiaEasy.cardIndices.PushBack(5); 
-			ScoiaEasy.cardIndices.PushBack(6); 
-			ScoiaEasy.cardIndices.PushBack(306);
-			ScoiaEasy.cardIndices.PushBack(307);
-			ScoiaEasy.cardIndices.PushBack(308);
-			ScoiaEasy.cardIndices.PushBack(309);
-			ScoiaEasy.cardIndices.PushBack(310);
-			ScoiaEasy.cardIndices.PushBack(311);
-			ScoiaEasy.cardIndices.PushBack(312);
-			ScoiaEasy.cardIndices.PushBack(320);
-			ScoiaEasy.cardIndices.PushBack(325);
-			ScoiaEasy.cardIndices.PushBack(330);
-			ScoiaEasy.cardIndices.PushBack(331);
-			ScoiaEasy.cardIndices.PushBack(335);
-			ScoiaEasy.cardIndices.PushBack(336);
-			ScoiaEasy.cardIndices.PushBack(337);
-			ScoiaEasy.cardIndices.PushBack(340);
-			ScoiaEasy.cardIndices.PushBack(350);
-			ScoiaEasy.cardIndices.PushBack(351);
-			ScoiaEasy.cardIndices.PushBack(355);
-			ScoiaEasy.cardIndices.PushBack(360);
-			ScoiaEasy.specialCard = -1; 
+			//ScoiaEasy.deckName = "ScoiaEasy";
+			ScoiaEasy.cardIndices.PushBack(3); //Biting Frost
+			ScoiaEasy.cardIndices.PushBack(4); //Impenetrable Fog 
+			ScoiaEasy.cardIndices.PushBack(5); //Torrential Rain
+			ScoiaEasy.cardIndices.PushBack(6); //Clear Weather
+
+			if (difficulty == 3)
+			{
+				ScoiaEasy.cardIndices.PushBack(0); //Dummy
+				ScoiaEasy.cardIndices.PushBack(1); //Horn
+				ScoiaEasy.cardIndices.PushBack(300); // [10] Eithne [HERO]
+				ScoiaEasy.cardIndices.PushBack(9); // [10] Yennefer [NURSE][HERO]
+			}
+
+			ScoiaEasy.cardIndices.PushBack(306);//Milva
+			ScoiaEasy.cardIndices.PushBack(307);//Ida
+			ScoiaEasy.cardIndices.PushBack(308);//Filavandrel
+			ScoiaEasy.cardIndices.PushBack(309);//Yaevinn
+			ScoiaEasy.cardIndices.PushBack(310);//Toruviel
+			ScoiaEasy.cardIndices.PushBack(311);//Riordain
+			ScoiaEasy.cardIndices.PushBack(312);//Ciaran
+			ScoiaEasy.cardIndices.PushBack(320);//Hav'caaren Support
+			ScoiaEasy.cardIndices.PushBack(325);//Vrihedd Brigade
+			ScoiaEasy.cardIndices.PushBack(330);//Dol Blathanna Infantry
+			ScoiaEasy.cardIndices.PushBack(331);//Dol Blathanna Infantry
+			ScoiaEasy.cardIndices.PushBack(335);//Dwarf Skirmisher
+			ScoiaEasy.cardIndices.PushBack(336);//Dwarf Skirmisher
+			ScoiaEasy.cardIndices.PushBack(337);//Dwarf Skirmisher
+			ScoiaEasy.cardIndices.PushBack(340);//Mahakam
+			ScoiaEasy.cardIndices.PushBack(350);//Elf Skirmisher
+			ScoiaEasy.cardIndices.PushBack(351);//Elf Skirmisher
+			ScoiaEasy.cardIndices.PushBack(355);//Vrihedd Cadet 
+			ScoiaEasy.cardIndices.PushBack(360);//Dol Blathanna Archer
+			ScoiaEasy.specialCard = -1; // Change this to a card ID to always have it be in the AI's hand when drawing cards
 			ScoiaEasy.leaderIndex = 3001;
 			enemyDecks.PushBack(ScoiaEasy);
+
 			
-			
-			ScoiaNormal.cardIndices.PushBack(0); 
-			ScoiaNormal.cardIndices.PushBack(1); 
-			ScoiaNormal.cardIndices.PushBack(2); 
-			ScoiaNormal.cardIndices.PushBack(2); 
-			ScoiaNormal.cardIndices.PushBack(3); 
-			ScoiaNormal.cardIndices.PushBack(6); 
-			ScoiaNormal.cardIndices.PushBack(5); 
+			//ScoiaNormal.deckName = "ScoiaNormal";
+ 			if (difficulty == 1)
+			{
+				ScoiaNormal.cardIndices.PushBack(0); //Dummy
+				ScoiaNormal.cardIndices.PushBack(1); //Horn
+				ScoiaNormal.cardIndices.PushBack(3); //Biting Frost
+				ScoiaNormal.cardIndices.PushBack(4); //Fog
+				ScoiaNormal.cardIndices.PushBack(5); //Torrential Rain
+				ScoiaNormal.cardIndices.PushBack(6); //Clear Weather
+			}
+			if (difficulty == 2)
+			{
+				ScoiaNormal.cardIndices.PushBack(0); //Dummy
+				ScoiaNormal.cardIndices.PushBack(1); //Horn
+				ScoiaNormal.cardIndices.PushBack(2); //Scorch
+				ScoiaNormal.cardIndices.PushBack(2); //Scorch
+				ScoiaNormal.cardIndices.PushBack(3); //Biting Frost
+				ScoiaNormal.cardIndices.PushBack(6); //Clear Weather
+				ScoiaNormal.cardIndices.PushBack(5); //Torrential Rain
+				ScoiaNormal.cardIndices.PushBack(301);	// Saskia/Saesenthessis [10] ***[HERO]***
+				ScoiaNormal.cardIndices.PushBack(302);	// Isengrim Faoiltiarna   [10] ***[HERO]***
+			}
+			if (difficulty == 3)
+			{
+				ScoiaNormal.cardIndices.PushBack(0); //Dummy
+				ScoiaNormal.cardIndices.PushBack(0); //Dummy
+				ScoiaNormal.cardIndices.PushBack(1); //Horn
+				ScoiaNormal.cardIndices.PushBack(2); //Scorch
+				ScoiaNormal.cardIndices.PushBack(6); //Clear Weather
+				ScoiaNormal.cardIndices.PushBack(5); //Torrential Rain
+				ScoiaNormal.cardIndices.PushBack(301);	// Saskia/Saesenthessis [10] ***[HERO]***
+				ScoiaNormal.cardIndices.PushBack(302);	// Isengrim Faoiltiarna   [10] ***[HERO]***
+			}
  
-			ScoiaNormal.cardIndices.PushBack(16);   
-			ScoiaNormal.cardIndices.PushBack(301);	
-			ScoiaNormal.cardIndices.PushBack(302);	
-			ScoiaNormal.cardIndices.PushBack(303);	
-			ScoiaNormal.cardIndices.PushBack(305);	
-			ScoiaNormal.cardIndices.PushBack(306);	
-			ScoiaNormal.cardIndices.PushBack(307);  
-			ScoiaNormal.cardIndices.PushBack(308);	
-			ScoiaNormal.cardIndices.PushBack(309);	
-			ScoiaNormal.cardIndices.PushBack(313);	
-			ScoiaNormal.cardIndices.PushBack(320);	
-			ScoiaNormal.cardIndices.PushBack(321);	
-			ScoiaNormal.cardIndices.PushBack(322);	
-			ScoiaNormal.cardIndices.PushBack(325);	
-			ScoiaNormal.cardIndices.PushBack(326);	
-			ScoiaNormal.cardIndices.PushBack(330);  
-			ScoiaNormal.cardIndices.PushBack(331);  
-			ScoiaNormal.cardIndices.PushBack(335);	
-			ScoiaNormal.cardIndices.PushBack(336);	
-			ScoiaNormal.cardIndices.PushBack(337);	
-			ScoiaNormal.cardIndices.PushBack(365);	
-			ScoiaNormal.cardIndices.PushBack(366);	
-			ScoiaNormal.cardIndices.PushBack(367);	
+			ScoiaNormal.cardIndices.PushBack(16);   // 0 Avallac'h  [SPY]
+			ScoiaNormal.cardIndices.PushBack(303);	// Iorveth [10] ***[HERO]***
+			ScoiaNormal.cardIndices.PushBack(305);	// 6 dennis
+			ScoiaNormal.cardIndices.PushBack(306);	// 10 milva
+			ScoiaNormal.cardIndices.PushBack(307);  // 6 Ida
+			ScoiaNormal.cardIndices.PushBack(308);	// 6 filavandrel AGILE
+			ScoiaNormal.cardIndices.PushBack(309);	// 6 Yaevin AGILE
+			ScoiaNormal.cardIndices.PushBack(313);	// 6 barclay AGILE
+			ScoiaNormal.cardIndices.PushBack(320);	// 4 havekar support SUMMON CLONES
+			ScoiaNormal.cardIndices.PushBack(321);	// 4 havekar support ^
+			ScoiaNormal.cardIndices.PushBack(322);	// 4 havekar support ^	
+			ScoiaNormal.cardIndices.PushBack(325);	// 5 Vrihed AGILE
+			ScoiaNormal.cardIndices.PushBack(326);	// 5 Vrihed AGILE
+			ScoiaNormal.cardIndices.PushBack(330);  // 6 Dol Blathanna Infantry
+			ScoiaNormal.cardIndices.PushBack(331);  // 6 Dol Blathanna Infantry
+			ScoiaNormal.cardIndices.PushBack(335);	// 3 Dwarf Skirmisher SUMMON CLONES
+			ScoiaNormal.cardIndices.PushBack(336);	// 3 Dwarf Skirmisher ^
+			ScoiaNormal.cardIndices.PushBack(337);	// 3 Dwarf Skirmisher ^
+			ScoiaNormal.cardIndices.PushBack(365);	// 0 Hav'caaren Support [NURSE]
+			ScoiaNormal.cardIndices.PushBack(366);	// 0 Hav'caaren Support [NURSE]
+			ScoiaNormal.cardIndices.PushBack(367);	// 0 Hav'caaren Support [NURSE]
 
 
-			ScoiaNormal.dynamicCardRequirements.PushBack(215);	
-			ScoiaNormal.dynamicCards.PushBack(12); 
-			ScoiaNormal.dynamicCardRequirements.PushBack(220);	
-			ScoiaNormal.dynamicCards.PushBack(15); 
-			ScoiaNormal.dynamicCardRequirements.PushBack(230);	
-			ScoiaNormal.dynamicCards.PushBack(10); 
+			ScoiaNormal.dynamicCardRequirements.PushBack(diff12);
+			ScoiaNormal.dynamicCards.PushBack(12); //Dandelion
+			ScoiaNormal.dynamicCardRequirements.PushBack(diff13);
+			ScoiaNormal.dynamicCards.PushBack(15); //Villentretenmerth
+			ScoiaNormal.dynamicCardRequirements.PushBack(diff15);
+			ScoiaNormal.dynamicCards.PushBack(10); //Ciri
 
-			ScoiaNormal.specialCard = -1; 
+			ScoiaNormal.specialCard = -1; // Change this to a card ID to always have it be in the AI's hand when drawing cards
 			ScoiaNormal.leaderIndex = 3002;
 			enemyDecks.PushBack(ScoiaNormal);
-			
-			
-			ScoiaHard.cardIndices.PushBack(3); 
-			ScoiaHard.cardIndices.PushBack(1); 
-			ScoiaHard.cardIndices.PushBack(1); 
-			ScoiaHard.cardIndices.PushBack(2); 
-			ScoiaHard.cardIndices.PushBack(2); 
-			ScoiaHard.cardIndices.PushBack(0); 
 
-			ScoiaHard.cardIndices.PushBack(15); 
-			ScoiaHard.cardIndices.PushBack(16); 
-			ScoiaHard.cardIndices.PushBack(7); 
-			ScoiaHard.cardIndices.PushBack(12); 
-			ScoiaHard.cardIndices.PushBack(10); 
-			ScoiaHard.cardIndices.PushBack(300);	
-			ScoiaHard.cardIndices.PushBack(301);	
-			ScoiaHard.cardIndices.PushBack(302);	
-			ScoiaHard.cardIndices.PushBack(303);	
-			ScoiaHard.cardIndices.PushBack(305);	
-			ScoiaHard.cardIndices.PushBack(306);	
-			ScoiaHard.cardIndices.PushBack(308);	
-			ScoiaHard.cardIndices.PushBack(309);	
-			ScoiaHard.cardIndices.PushBack(313);	
-			ScoiaHard.cardIndices.PushBack(320);	
-			ScoiaHard.cardIndices.PushBack(321);	
-			ScoiaHard.cardIndices.PushBack(322);	
-			ScoiaHard.cardIndices.PushBack(325);	
-			ScoiaHard.cardIndices.PushBack(326);	
-			ScoiaHard.cardIndices.PushBack(365);	
-			ScoiaHard.cardIndices.PushBack(366);	
-			ScoiaHard.cardIndices.PushBack(367);	
 
-			ScoiaHard.specialCard = -1; 
+			//ScoiaHard.deckName = "ScoiaHard";
+			ScoiaHard.cardIndices.PushBack(3); //Frost
+			ScoiaHard.cardIndices.PushBack(1); //Horn
+			ScoiaHard.cardIndices.PushBack(1); //Horn
+			ScoiaHard.cardIndices.PushBack(2); //Scorch	
+			ScoiaHard.cardIndices.PushBack(2); //Scorch	
+			ScoiaHard.cardIndices.PushBack(0); //Dummy	
+
+ 			if (difficulty == 1)
+			{
+				ScoiaHard.cardIndices.PushBack(4); //Fog
+			}
+			if (difficulty == 2)
+			{
+				ScoiaHard.cardIndices.PushBack(7);  //Geralt
+				ScoiaHard.cardIndices.PushBack(10); //Ciri
+				ScoiaHard.cardIndices.PushBack(301);	// 10 Saskia/Saesenthessis
+				ScoiaHard.cardIndices.PushBack(302);	// 10 Isengrim Faoiltiarna  
+			}
+			if (difficulty == 3)
+			{
+				ScoiaHard.cardIndices.PushBack(7);  //Geralt
+				ScoiaHard.cardIndices.PushBack(10); //Ciri
+				ScoiaHard.cardIndices.PushBack(301);	// 10 Saskia/Saesenthessis
+				ScoiaHard.cardIndices.PushBack(302);	// 10 Isengrim Faoiltiarna 
+				ScoiaHard.cardIndices.PushBack(9); //Yennefer
+			}
+
+			ScoiaHard.cardIndices.PushBack(15); //Villentretenmerth  [7] 
+			ScoiaHard.cardIndices.PushBack(16); //Avallac'hh  [SPY]
+			ScoiaHard.cardIndices.PushBack(12); //Dandelion
+			ScoiaHard.cardIndices.PushBack(300);	// 10 Eithné
+			ScoiaHard.cardIndices.PushBack(303);	// 10 ioveth HERO
+			ScoiaHard.cardIndices.PushBack(305);	// 6 dennis
+			ScoiaHard.cardIndices.PushBack(306);	// 10 milva
+			ScoiaHard.cardIndices.PushBack(308);	// 6 filavandrel AGILE
+			ScoiaHard.cardIndices.PushBack(309);	// 6 Yaevin AGILE
+			ScoiaHard.cardIndices.PushBack(313);	// 6 barclay AGILE
+			ScoiaHard.cardIndices.PushBack(320);	// 4 havekar support SUMMON CLONES
+			ScoiaHard.cardIndices.PushBack(321);	// 4 havekar support ^
+			ScoiaHard.cardIndices.PushBack(322);	// 4 havekar support ^	
+			ScoiaHard.cardIndices.PushBack(325);	// 5 Vrihed AGILE
+			ScoiaHard.cardIndices.PushBack(326);	// 5 Vrihed AGILE
+			ScoiaHard.cardIndices.PushBack(365);	// 5 Hav'caaren Support 
+			ScoiaHard.cardIndices.PushBack(366);	// 5 Hav'caaren Support ^
+			ScoiaHard.cardIndices.PushBack(367);	// 5 Hav'caaren Support ^
+
+			ScoiaHard.specialCard = -1; // Change this to a card ID to always have it be in the AI's hand when drawing cards
 			ScoiaHard.leaderIndex = 3003;
 			enemyDecks.PushBack(ScoiaHard);
 			
@@ -1791,113 +2813,163 @@ import class CR4GwintManager extends IGameSystem
 		var NMLNormal			:SDeckDefinition;
 		var NMLHard				:SDeckDefinition;
 		
-			
-			NMLEasy.cardIndices.PushBack(3); 
-			NMLEasy.cardIndices.PushBack(4); 
-			NMLEasy.cardIndices.PushBack(5); 
-			NMLEasy.cardIndices.PushBack(6); 
+			//NMLEasy.deckName = "NMLEasy";
+			NMLEasy.cardIndices.PushBack(3); //Biting Frost
+			NMLEasy.cardIndices.PushBack(4); //Impenetrable Fog 
+			NMLEasy.cardIndices.PushBack(5); //Torrential Rain
+			NMLEasy.cardIndices.PushBack(6); //Clear Weather
 
-			NMLEasy.cardIndices.PushBack(405); 
-			NMLEasy.cardIndices.PushBack(407); 
-			NMLEasy.cardIndices.PushBack(410); 
-			NMLEasy.cardIndices.PushBack(413); 
-			NMLEasy.cardIndices.PushBack(415); 
-			NMLEasy.cardIndices.PushBack(417); 
-			NMLEasy.cardIndices.PushBack(420); 
-			NMLEasy.cardIndices.PushBack(423); 
-			NMLEasy.cardIndices.PushBack(425); 
-			NMLEasy.cardIndices.PushBack(427); 
-			NMLEasy.cardIndices.PushBack(430); 
-			NMLEasy.cardIndices.PushBack(433); 
-			NMLEasy.cardIndices.PushBack(435); 
-			NMLEasy.cardIndices.PushBack(437); 
-			NMLEasy.cardIndices.PushBack(450); 
-			NMLEasy.cardIndices.PushBack(455); 
-			NMLEasy.cardIndices.PushBack(456); 
-			NMLEasy.cardIndices.PushBack(460); 
-			NMLEasy.cardIndices.PushBack(470); 
-			NMLEasy.cardIndices.PushBack(475); 
-			NMLEasy.specialCard = -1; 
+			if (difficulty == 3)
+			{
+				NMLEasy.cardIndices.PushBack(476); // [ 6 ] Weavess ^
+				NMLEasy.cardIndices.PushBack(9); //Yennefer
+			}
+
+			NMLEasy.cardIndices.PushBack(405); //Forktail
+			NMLEasy.cardIndices.PushBack(407); //Earth Elemental
+			NMLEasy.cardIndices.PushBack(410); //Fiend
+			NMLEasy.cardIndices.PushBack(413); //Plague Maiden
+			NMLEasy.cardIndices.PushBack(415); //Griffin
+			NMLEasy.cardIndices.PushBack(417); //Werewolf
+			NMLEasy.cardIndices.PushBack(420); //Botchling
+			NMLEasy.cardIndices.PushBack(423); //Frightener
+			NMLEasy.cardIndices.PushBack(425); //Ice Giant
+			NMLEasy.cardIndices.PushBack(427); //Endrega
+			NMLEasy.cardIndices.PushBack(430); // Harpy
+			NMLEasy.cardIndices.PushBack(433); //Cockatrice
+			NMLEasy.cardIndices.PushBack(435); //Gargoyle
+			NMLEasy.cardIndices.PushBack(437); //Celaeno Harpy
+			NMLEasy.cardIndices.PushBack(450); //Arachas Behemoth
+			NMLEasy.cardIndices.PushBack(455); //Nekker
+			NMLEasy.cardIndices.PushBack(456); //Nekker
+			NMLEasy.cardIndices.PushBack(460); //Ekkimma
+			NMLEasy.cardIndices.PushBack(470); //Ghoul
+			NMLEasy.cardIndices.PushBack(475); //Crone Brewess
+			NMLEasy.specialCard = -1; // Change this to a card ID to always have it be in the AI's hand when drawing cards
 			NMLEasy.leaderIndex = 4001;
 			enemyDecks.PushBack(NMLEasy);
+
 			
-			
-			NMLNormal.cardIndices.PushBack(4); 
-			NMLNormal.cardIndices.PushBack(5); 
-			NMLNormal.cardIndices.PushBack(1); 	
-			NMLNormal.cardIndices.PushBack(1); 	
-			NMLNormal.cardIndices.PushBack(2); 	
-			NMLNormal.cardIndices.PushBack(2); 	
-			NMLNormal.cardIndices.PushBack(6); 
-			NMLNormal.cardIndices.PushBack(0); 	
+			//NMLNormal.deckName = "NMLNormal";
+			NMLNormal.cardIndices.PushBack(4); //Impenetrable Fog 
+			NMLNormal.cardIndices.PushBack(5); //Torrential Rain		
+			NMLNormal.cardIndices.PushBack(6); 	//Clear Weather
+			NMLNormal.cardIndices.PushBack(0); 	//Dummy	
+
+ 			if (difficulty == 1)
+			{
+				NMLNormal.cardIndices.PushBack(4); //Fog
+				NMLNormal.cardIndices.PushBack(1); 	//Horn		
+				NMLNormal.cardIndices.PushBack(2); 	//Scorch
+			}
+			if (difficulty == 2)
+			{
+				NMLNormal.cardIndices.PushBack(1); 	//Horn	
+				NMLNormal.cardIndices.PushBack(1); 	//Horn		
+				NMLNormal.cardIndices.PushBack(2); 	//Scorch		
+				NMLNormal.cardIndices.PushBack(2); 	//Scorch
+				NMLNormal.cardIndices.PushBack(400); //Draug 10 [Hero]
+			}
+			if (difficulty == 3)
+			{
+				NMLNormal.cardIndices.PushBack(1); 	//Horn	
+				NMLNormal.cardIndices.PushBack(1); 	//Horn		
+				NMLNormal.cardIndices.PushBack(2); 	//Scorch		
+				NMLNormal.cardIndices.PushBack(0); 	//Dummy
+				NMLNormal.cardIndices.PushBack(0); 	//Dummy
+				NMLNormal.cardIndices.PushBack(7);  //Geralt
+				NMLNormal.cardIndices.PushBack(9);  //Yennefer
+				NMLNormal.cardIndices.PushBack(400); //Draug 10 [Hero]
+			}
+
+			NMLNormal.cardIndices.PushBack(402); //Imlerith 10 [Hero]
+			NMLNormal.cardIndices.PushBack(403); //Leshen 10
+			NMLNormal.cardIndices.PushBack(407); //Earth Elemental 6
+			NMLNormal.cardIndices.PushBack(410); //Fiend 6
+			NMLNormal.cardIndices.PushBack(415); //Griffin 5
+			NMLNormal.cardIndices.PushBack(417); //Werewolf 5
+			NMLNormal.cardIndices.PushBack(423); //Frightener 5 
+			NMLNormal.cardIndices.PushBack(425); //Ice Giant 5
+			NMLNormal.cardIndices.PushBack(450); //Arachas Behemoth
+			NMLNormal.cardIndices.PushBack(451); //Arachas ^
+			NMLNormal.cardIndices.PushBack(452); //Arachas ^
+			NMLNormal.cardIndices.PushBack(453); //Arachas ^
+			NMLNormal.cardIndices.PushBack(460); // [ 4 ] Ekkima Summon 5x
+			NMLNormal.cardIndices.PushBack(463); // [ 4 ] Bruxa ^
+			NMLNormal.cardIndices.PushBack(461); // [ 4 ] Fleder ^
+			NMLNormal.cardIndices.PushBack(462); // [ 4 ] Garkain ^
+			NMLNormal.cardIndices.PushBack(464); // [ 4 ] Katakan ^
+			NMLNormal.cardIndices.PushBack(475); // [ 6 ] Brewess Summon 3x
+			NMLNormal.cardIndices.PushBack(476); // [ 6 ] Weavess ^
+			NMLNormal.cardIndices.PushBack(477); // [ 6 ] Whispess ^
 
 
-			NMLNormal.cardIndices.PushBack(400); 
-			NMLNormal.cardIndices.PushBack(402); 
-			NMLNormal.cardIndices.PushBack(403); 
-			NMLNormal.cardIndices.PushBack(407); 
-			NMLNormal.cardIndices.PushBack(410); 
-			NMLNormal.cardIndices.PushBack(415); 
-			NMLNormal.cardIndices.PushBack(417); 
-			NMLNormal.cardIndices.PushBack(423); 
-			NMLNormal.cardIndices.PushBack(425); 
-			NMLNormal.cardIndices.PushBack(450); 
-			NMLNormal.cardIndices.PushBack(451); 
-			NMLNormal.cardIndices.PushBack(452); 
-			NMLNormal.cardIndices.PushBack(453); 
-			NMLNormal.cardIndices.PushBack(460); 
-			NMLNormal.cardIndices.PushBack(463); 
-			NMLNormal.cardIndices.PushBack(461); 
-			NMLNormal.cardIndices.PushBack(462); 
-			NMLNormal.cardIndices.PushBack(464); 
-			NMLNormal.cardIndices.PushBack(475); 
-			NMLNormal.cardIndices.PushBack(476); 
-			NMLNormal.cardIndices.PushBack(477); 
+			NMLNormal.dynamicCardRequirements.PushBack(diff12);
+			NMLNormal.dynamicCards.PushBack(401); //Kayran
+			NMLNormal.dynamicCardRequirements.PushBack(diff13);
+			NMLNormal.dynamicCards.PushBack(16); //Avallah
+			NMLNormal.dynamicCardRequirements.PushBack(diff15);
+			NMLNormal.dynamicCards.PushBack(15); //Villentretenmerth
 
-
-			NMLNormal.dynamicCardRequirements.PushBack(215);	
-			NMLNormal.dynamicCards.PushBack(401); 
-			NMLNormal.dynamicCardRequirements.PushBack(220);	
-			NMLNormal.dynamicCards.PushBack(16); 
-			NMLNormal.dynamicCardRequirements.PushBack(230);	
-			NMLNormal.dynamicCards.PushBack(15); 
-
-			NMLNormal.specialCard = -1; 
+			NMLNormal.specialCard = -1; // Change this to a card ID to always have it be in the AI's hand when drawing cards
 			NMLNormal.leaderIndex = 4002;
 			enemyDecks.PushBack(NMLNormal);
-			
-			
-			NMLHard.cardIndices.PushBack(1); 		
-			NMLHard.cardIndices.PushBack(1); 		
-			NMLHard.cardIndices.PushBack(2); 		
-			NMLHard.cardIndices.PushBack(2); 		
-			NMLHard.cardIndices.PushBack(0); 		
 
-			NMLHard.cardIndices.PushBack(15);	
-			NMLHard.cardIndices.PushBack(16);	
-			NMLHard.cardIndices.PushBack(401);	
-			NMLHard.cardIndices.PushBack(402);	
-			NMLHard.cardIndices.PushBack(403);	
-			NMLHard.cardIndices.PushBack(407);	
-			NMLHard.cardIndices.PushBack(450);	
-			NMLHard.cardIndices.PushBack(451);	
-			NMLHard.cardIndices.PushBack(452);	
-			NMLHard.cardIndices.PushBack(455);	
-			NMLHard.cardIndices.PushBack(456);	
-			NMLHard.cardIndices.PushBack(457);	
-			NMLHard.cardIndices.PushBack(460);	
-			NMLHard.cardIndices.PushBack(463);	
-			NMLHard.cardIndices.PushBack(461);	
-			NMLHard.cardIndices.PushBack(462);	
-			NMLHard.cardIndices.PushBack(464);	
-			NMLHard.cardIndices.PushBack(470);	
-			NMLHard.cardIndices.PushBack(471);	
-			NMLHard.cardIndices.PushBack(472);	
-			NMLHard.cardIndices.PushBack(475);	
-			NMLHard.cardIndices.PushBack(476);	
-			NMLHard.cardIndices.PushBack(477);	
+			
+			//NMLHard.deckName = "NMLHard";	
+			NMLHard.cardIndices.PushBack(1); 		//Horn	
+			NMLHard.cardIndices.PushBack(2); 		//Scorch
+			NMLHard.cardIndices.PushBack(0); 		//Dummy	
 
-			NMLHard.specialCard = -1; 
+ 			if (difficulty == 1)
+			{
+				NMLHard.cardIndices.PushBack(4); 	//Fog
+				NMLHard.cardIndices.PushBack(3); 	//Frost		
+				NMLHard.cardIndices.PushBack(2); 	//Scorch
+			}
+			if (difficulty == 2)
+			{
+				NMLHard.cardIndices.PushBack(1); 	//Horn		
+				NMLHard.cardIndices.PushBack(2); 	//Scorch
+				NMLHard.cardIndices.PushBack(15);	// Villentretenmerth [7]
+				NMLHard.cardIndices.PushBack(402);	// [ 10 ] Imlerith HERO
+				NMLHard.cardIndices.PushBack(476);	// [ 6 ] Weavess ^
+				NMLHard.cardIndices.PushBack(451);	// [ 4 ] Arachas ^
+			}
+			if (difficulty == 3)
+			{
+				NMLHard.cardIndices.PushBack(1); 	//Horn		
+				NMLHard.cardIndices.PushBack(2); 	//Scorch
+				NMLHard.cardIndices.PushBack(0); 	//Dummy	
+				NMLHard.cardIndices.PushBack(15);	// Villentretenmerth [7]
+				NMLHard.cardIndices.PushBack(402);	// [ 10 ] Imlerith HERO
+				NMLHard.cardIndices.PushBack(476);	// [ 6 ] Weavess ^
+				NMLHard.cardIndices.PushBack(451);	// [ 4 ] Arachas ^
+				NMLHard.cardIndices.PushBack(9);  //Yennefer
+			}
+
+		
+			NMLHard.cardIndices.PushBack(16);	// Avallac'h		
+			NMLHard.cardIndices.PushBack(401);	// [ 10 ] Kayran HERO
+			NMLHard.cardIndices.PushBack(403);	// [ 10 ] Leshen HERO
+			NMLHard.cardIndices.PushBack(407);	// [ 6 ] Earth Elem
+			NMLHard.cardIndices.PushBack(450);	// [ 6 ] Behemoth  Summon 4x
+			NMLHard.cardIndices.PushBack(452);	// [ 4 ] Arachas ^
+			NMLHard.cardIndices.PushBack(455);	// [ 2 ] Nekker Summon 3x
+			NMLHard.cardIndices.PushBack(456);	// [ 2 ] Nekker ^
+			NMLHard.cardIndices.PushBack(457);	// [ 2 ] Nekker ^
+			NMLHard.cardIndices.PushBack(460);	// [ 4 ] Ekkima Summon 5x
+			NMLHard.cardIndices.PushBack(463);	// [ 4 ] Bruxa ^
+			NMLHard.cardIndices.PushBack(461);	// [ 4 ] Fleder ^
+			NMLHard.cardIndices.PushBack(462);	// [ 4 ] Garkain ^
+			NMLHard.cardIndices.PushBack(464);	// [ 4 ] Katakan ^
+			NMLHard.cardIndices.PushBack(470);	// [ 1 ] Ghoul Summon 3x
+			NMLHard.cardIndices.PushBack(471);	// [ 1 ] Ghoul ^
+			NMLHard.cardIndices.PushBack(472);	// [ 1 ] Ghoul ^
+			NMLHard.cardIndices.PushBack(475);	// [ 6 ] Brewess Summon 3x
+			NMLHard.cardIndices.PushBack(477);	// [ 6 ] Whispess ^
+
+			NMLHard.specialCard = -1; // Change this to a card ID to always have it be in the AI's hand when drawing cards
 			NMLHard.leaderIndex = 4003;
 			enemyDecks.PushBack(NMLHard);
 	}
@@ -1905,28 +2977,28 @@ import class CR4GwintManager extends IGameSystem
 	{
 		var NilfPrologue		: SDeckDefinition;
 			
-			
-			NilfPrologue.cardIndices.PushBack(3); 
-			NilfPrologue.cardIndices.PushBack(4); 
-			NilfPrologue.cardIndices.PushBack(5); 
-			NilfPrologue.cardIndices.PushBack(6); 
+			//NilfPrologue.deckName = "NilfPrologue";
+			NilfPrologue.cardIndices.PushBack(3); //Biting Frost
+			NilfPrologue.cardIndices.PushBack(4); //Impenetrable Fog 
+			NilfPrologue.cardIndices.PushBack(5); //Torrential Rain
+			NilfPrologue.cardIndices.PushBack(6); //Clear Weather
 
-			NilfPrologue.cardIndices.PushBack(205); 
-			NilfPrologue.cardIndices.PushBack(207);
-			NilfPrologue.cardIndices.PushBack(209); 
-			NilfPrologue.cardIndices.PushBack(210); 
-			NilfPrologue.cardIndices.PushBack(211); 
-			NilfPrologue.cardIndices.PushBack(212); 
-			NilfPrologue.cardIndices.PushBack(215); 
-			NilfPrologue.cardIndices.PushBack(215); 
-			NilfPrologue.cardIndices.PushBack(217); 
-			NilfPrologue.cardIndices.PushBack(221);
-			NilfPrologue.cardIndices.PushBack(221);
-			NilfPrologue.cardIndices.PushBack(241);
-			NilfPrologue.cardIndices.PushBack(245);
-			NilfPrologue.cardIndices.PushBack(250);
-			NilfPrologue.cardIndices.PushBack(251);
-			NilfPrologue.specialCard = 219; 
+			NilfPrologue.cardIndices.PushBack(205); //Albrich [2]
+			NilfPrologue.cardIndices.PushBack(207);//Cynthia
+			NilfPrologue.cardIndices.PushBack(209); // Morteisen [3]
+			NilfPrologue.cardIndices.PushBack(210); //Rainfarn [4]
+			NilfPrologue.cardIndices.PushBack(211); //Renuald aep Matsen  [5] 
+			NilfPrologue.cardIndices.PushBack(212); //Rotten Mangonel [3]
+			NilfPrologue.cardIndices.PushBack(215); //Sweers [2]
+			NilfPrologue.cardIndices.PushBack(215); //Sweers [2]
+			NilfPrologue.cardIndices.PushBack(217); //Vanhemar [4]
+			NilfPrologue.cardIndices.PushBack(221);//Puttkammer
+			NilfPrologue.cardIndices.PushBack(221);//Puttkammer
+			NilfPrologue.cardIndices.PushBack(241);//Zerri
+			NilfPrologue.cardIndices.PushBack(245);//Impera
+			NilfPrologue.cardIndices.PushBack(250);//Nausicaa
+			NilfPrologue.cardIndices.PushBack(251);//Nausicaa
+			NilfPrologue.specialCard = 219; // Change this to a card ID to always have it be in the AI's hand when drawing cards
 			NilfPrologue.leaderIndex = 2001;
 			enemyDecks.PushBack(NilfPrologue);
 	}
@@ -1935,96 +3007,119 @@ import class CR4GwintManager extends IGameSystem
 		var NKTournament		: SDeckDefinition;
 		var NilfTournament		: SDeckDefinition;
 
-			
-			NKTournament.cardIndices.PushBack(2); 
-			NKTournament.cardIndices.PushBack(2); 
-			NKTournament.cardIndices.PushBack(0); 
-			NKTournament.cardIndices.PushBack(1); 
-			NKTournament.cardIndices.PushBack(1); 
-			NKTournament.cardIndices.PushBack(3); 
-			NKTournament.cardIndices.PushBack(3); 
-			NKTournament.cardIndices.PushBack(4); 
+			//NKTournament.deckName = "NKTournament";	
+			NKTournament.cardIndices.PushBack(2); //Scorch
+			NKTournament.cardIndices.PushBack(0); //Dummy
+			NKTournament.cardIndices.PushBack(1); //Horn	
+			NKTournament.cardIndices.PushBack(3); //Biting Frost	
+			NKTournament.cardIndices.PushBack(3); //Biting Frost
+			NKTournament.cardIndices.PushBack(4); //Impenetrable Fog
 
-			NKTournament.cardIndices.PushBack(102);	
-			NKTournament.cardIndices.PushBack(103);	
-			NKTournament.cardIndices.PushBack(105); 
-			NKTournament.cardIndices.PushBack(109);	
-			NKTournament.cardIndices.PushBack(116); 
-			NKTournament.cardIndices.PushBack(120); 
-			NKTournament.cardIndices.PushBack(140); 
-			NKTournament.cardIndices.PushBack(141); 
-			NKTournament.cardIndices.PushBack(145); 
-			NKTournament.cardIndices.PushBack(160);	
-			NKTournament.cardIndices.PushBack(161); 
-			NKTournament.cardIndices.PushBack(170); 
-			NKTournament.cardIndices.PushBack(175);	
+ 			if (difficulty == 1)
+			{	
+				NKTournament.cardIndices.PushBack(6); // Clear Sky
+				NKTournament.cardIndices.PushBack(108); // 2 Yarpen
+				NKTournament.cardIndices.PushBack(113); // 4 Sabrina
+				NKTournament.cardIndices.PushBack(114); // 4 Sheldon
+			}
+			else
+			{
+				NKTournament.cardIndices.PushBack(2); //Scorch
+				NKTournament.cardIndices.PushBack(1); //Horn
+				NKTournament.cardIndices.PushBack(105); //Thaler [4] [SPY]
+			}
+
+			NKTournament.cardIndices.PushBack(102);	// esterad [ 10 ][ HERO ][ MELEE ]
+			NKTournament.cardIndices.PushBack(103);	// philippa [ 10 ][ RANGED ][ HERO ]
+			NKTournament.cardIndices.PushBack(109);	// Sigismund Dijkstra  [4] [SPY]
+			NKTournament.cardIndices.PushBack(116); //Stennis [5] [SPY]
+			NKTournament.cardIndices.PushBack(120); //Trebuchet [6]
+			NKTournament.cardIndices.PushBack(140); //Catapult [5] [TightBond]
+			NKTournament.cardIndices.PushBack(141); //Catapult [5] [TightBond]
+			NKTournament.cardIndices.PushBack(145); //Ballista [6]
+			NKTournament.cardIndices.PushBack(160);	//Blue Stripes Commando [4] [TightBond]
+			NKTournament.cardIndices.PushBack(161); //Blue Stripes Commando [4] [TightBond]
+			NKTournament.cardIndices.PushBack(170); //Siege Tower [6]
+			NKTournament.cardIndices.PushBack(175);	// dun_banner_medic [ 0 ][ SIEGE ][ EFFECT_NURSE ]
 			
-			NKTournament.dynamicCardRequirements.PushBack(150);	
+			NKTournament.dynamicCardRequirements.PushBack(diff2);	
 			NKTournament.dynamicCards.PushBack(13);				
-			NKTournament.dynamicCardRequirements.PushBack(165);	
-			NKTournament.dynamicCards.PushBack(151); 				
-			NKTournament.dynamicCardRequirements.PushBack(170);	
-			NKTournament.dynamicCards.PushBack(12); 				
-			NKTournament.dynamicCardRequirements.PushBack(180);	
-			NKTournament.dynamicCards.PushBack(11); 				
-			NKTournament.dynamicCardRequirements.PushBack(180);	
-			NKTournament.dynamicCards.PushBack(7); 				
-			NKTournament.dynamicCardRequirements.PushBack(180);	
-			NKTournament.dynamicCards.PushBack(15); 				
-			NKTournament.dynamicCardRequirements.PushBack(190);	
+			NKTournament.dynamicCardRequirements.PushBack(diff5);	
+			NKTournament.dynamicCards.PushBack(151); 				// kaedweni_siege [ 1 ][ SIEGE ][ EFFECT_IMPROVE_NEIGHBOURS ]
+			NKTournament.dynamicCardRequirements.PushBack(diff6);	
+			NKTournament.dynamicCards.PushBack(12); 				// [ 2 ] Dangelion 2x Boost
+			NKTournament.dynamicCardRequirements.PushBack(diff8);	
+			NKTournament.dynamicCards.PushBack(11); 				// [ 7 ] Triss HERO
+			NKTournament.dynamicCardRequirements.PushBack(diff8);	
+			NKTournament.dynamicCards.PushBack(7); 				// [ 15 ] Geralt of Rivia
+			NKTournament.dynamicCardRequirements.PushBack(diff8);	
+			NKTournament.dynamicCards.PushBack(15); 				// [ 7 ] Villen Scorch 				
+			NKTournament.dynamicCardRequirements.PushBack(diff10);	
 			NKTournament.dynamicCards.PushBack(10);
-			NKTournament.dynamicCardRequirements.PushBack(190);	
-			NKTournament.dynamicCards.PushBack(9); 				
+			NKTournament.dynamicCardRequirements.PushBack(diff10);	
+			NKTournament.dynamicCards.PushBack(9); 				// [ 7 ] Yennefer RESSURECT
 			
-			NKTournament.specialCard = 16;	
+			NKTournament.specialCard = 16;	// Avallach [ 0 ][ EFFECT_DRAW_X2 ]
 			NKTournament.leaderIndex = 1004; 
 			enemyDecks.PushBack(NKTournament);
 
 			
-			
-			NilfTournament.cardIndices.PushBack(0); 
-			NilfTournament.cardIndices.PushBack(0); 
-			NilfTournament.cardIndices.PushBack(0); 
-			NilfTournament.cardIndices.PushBack(1); 
-			NilfTournament.cardIndices.PushBack(1); 
-			NilfTournament.cardIndices.PushBack(2); 
-			NilfTournament.cardIndices.PushBack(2); 
-			NilfTournament.cardIndices.PushBack(6); 
-			NilfTournament.cardIndices.PushBack(200); 
-			NilfTournament.cardIndices.PushBack(201);
-			NilfTournament.cardIndices.PushBack(202);
-			NilfTournament.cardIndices.PushBack(203); 
-			NilfTournament.cardIndices.PushBack(208); 
-			NilfTournament.cardIndices.PushBack(213); 
-			NilfTournament.cardIndices.PushBack(214); 
-			NilfTournament.cardIndices.PushBack(218); 
-			NilfTournament.cardIndices.PushBack(230);
-			NilfTournament.cardIndices.PushBack(231);
-			NilfTournament.cardIndices.PushBack(235);
-			NilfTournament.cardIndices.PushBack(236);
-			NilfTournament.cardIndices.PushBack(240);
-			NilfTournament.cardIndices.PushBack(241);
-			NilfTournament.cardIndices.PushBack(260);
-			NilfTournament.cardIndices.PushBack(261);
+			//NilfTournament.deckName = "NilfTournament";
+			NilfTournament.cardIndices.PushBack(0); // Dummy
+			NilfTournament.cardIndices.PushBack(1); //Horn
+			NilfTournament.cardIndices.PushBack(2); //Scorch
+			NilfTournament.cardIndices.PushBack(2); //Scorch
+			NilfTournament.cardIndices.PushBack(6); //Clear Weather
 
-			
-			NilfTournament.dynamicCardRequirements.PushBack(145);	
-			NilfTournament.dynamicCards.PushBack(15); 
-			NilfTournament.dynamicCardRequirements.PushBack(160);	
-			NilfTournament.dynamicCards.PushBack(16); 
-			NilfTournament.dynamicCardRequirements.PushBack(160);	
-			NilfTournament.dynamicCards.PushBack(12); 
-			NilfTournament.dynamicCardRequirements.PushBack(170);	
-			NilfTournament.dynamicCards.PushBack(248); 
-			NilfTournament.dynamicCardRequirements.PushBack(170);	
-			NilfTournament.dynamicCards.PushBack(11); 
-			NilfTournament.dynamicCardRequirements.PushBack(180);	
-			NilfTournament.dynamicCards.PushBack(7); 
-			NilfTournament.dynamicCardRequirements.PushBack(190);	
-			NilfTournament.dynamicCards.PushBack(9); 
+ 			if (difficulty == 1)
+			{	
+				NilfTournament.cardIndices.PushBack(6); // Clear Sky
+				NilfTournament.cardIndices.PushBack(205); // 2 Albrich
+				NilfTournament.cardIndices.PushBack(209); // 3 Morstein
+				NilfTournament.cardIndices.PushBack(212); // 3 Rotten
+			}
+			else
+			{
+				NilfTournament.cardIndices.PushBack(0); // Dummy
+				NilfTournament.cardIndices.PushBack(0); // Dummy
+				NilfTournament.cardIndices.PushBack(1); //Horn
+				NilfTournament.cardIndices.PushBack(218); //Vattier de Rideaux Vattier [1] [SPY]
+				NilfTournament.cardIndices.PushBack(200); //Letho of Gulet  [10] ***[HERO]***
+				NilfTournament.cardIndices.PushBack(230);//Archer Support [NURSE]
+			}
+
+			NilfTournament.cardIndices.PushBack(201);//Menno Coehoorn 
+			NilfTournament.cardIndices.PushBack(202);//Morvran Voorhis
+			NilfTournament.cardIndices.PushBack(203); //Tibor Eggebracht [10] ***[HERO]***//Tibor Eggebracht
+			NilfTournament.cardIndices.PushBack(208); //Fringilla Vigo 
+			NilfTournament.cardIndices.PushBack(213); //Shilard Fitz-Oesterlen  [4] [SPY]
+			NilfTournament.cardIndices.PushBack(214); //Stefan Skellen  [1] [SPY]
+			NilfTournament.cardIndices.PushBack(231);//Archer Support [NURSE]
+			NilfTournament.cardIndices.PushBack(235);//Siege Support [NURSE]
+			NilfTournament.cardIndices.PushBack(236);//Black Infantry Archer
+			NilfTournament.cardIndices.PushBack(240);//Heavy Zerri
+			NilfTournament.cardIndices.PushBack(241);//Zerri
+			NilfTournament.cardIndices.PushBack(260);//Young Emissary
+			NilfTournament.cardIndices.PushBack(261);//Young Emissary
+
+			// Autobalance
+			NilfTournament.dynamicCardRequirements.PushBack(diff1);
+			NilfTournament.dynamicCards.PushBack(15);
+			NilfTournament.dynamicCardRequirements.PushBack(diff4);
+			NilfTournament.dynamicCards.PushBack(16);
+			NilfTournament.dynamicCardRequirements.PushBack(diff4);
+			NilfTournament.dynamicCards.PushBack(12);
+			NilfTournament.dynamicCardRequirements.PushBack(diff6);
+			NilfTournament.dynamicCards.PushBack(248);
+			NilfTournament.dynamicCardRequirements.PushBack(diff6);
+			NilfTournament.dynamicCards.PushBack(11);
+			NilfTournament.dynamicCardRequirements.PushBack(diff8);
+			NilfTournament.dynamicCards.PushBack(7); // [ 15 ] Geralt of Rivia
+			NilfTournament.dynamicCardRequirements.PushBack(diff10);
+			NilfTournament.dynamicCards.PushBack(9);
 
 
-			NilfTournament.specialCard = -1; 
+			NilfTournament.specialCard = -1; // Change this to a card ID to always have it be in the AI's hand when drawing cards
 			NilfTournament.leaderIndex = 2004;
 			enemyDecks.PushBack(NilfTournament);
 		
@@ -2036,99 +3131,117 @@ import class CR4GwintManager extends IGameSystem
 		var NMLTournament		: SDeckDefinition;
 		var ScoiaTournament		: SDeckDefinition;
 
-			
-			ScoiaTournament.cardIndices.PushBack(0); 
-			ScoiaTournament.cardIndices.PushBack(1); 
-			ScoiaTournament.cardIndices.PushBack(2); 
-			ScoiaTournament.cardIndices.PushBack(2); 
-			ScoiaTournament.cardIndices.PushBack(3); 
-			ScoiaTournament.cardIndices.PushBack(4); 
-			ScoiaTournament.cardIndices.PushBack(5); 
-			ScoiaTournament.cardIndices.PushBack(301);	
-			ScoiaTournament.cardIndices.PushBack(302);	
-			ScoiaTournament.cardIndices.PushBack(303);	
-			ScoiaTournament.cardIndices.PushBack(305);	
-			ScoiaTournament.cardIndices.PushBack(306);	
-			ScoiaTournament.cardIndices.PushBack(307);	
-			ScoiaTournament.cardIndices.PushBack(308);	
-			ScoiaTournament.cardIndices.PushBack(309);	
-			ScoiaTournament.cardIndices.PushBack(313);	
-			ScoiaTournament.cardIndices.PushBack(320);	
-			ScoiaTournament.cardIndices.PushBack(321);	
-			ScoiaTournament.cardIndices.PushBack(322);	
-			ScoiaTournament.cardIndices.PushBack(365);	
-			ScoiaTournament.cardIndices.PushBack(366);	
-			ScoiaTournament.cardIndices.PushBack(367);	
-			
-			ScoiaTournament.dynamicCardRequirements.PushBack(145);	
-			ScoiaTournament.dynamicCards.PushBack(15); 
-			ScoiaTournament.dynamicCardRequirements.PushBack(150);	
-			ScoiaTournament.dynamicCards.PushBack(12); 
-			ScoiaTournament.dynamicCardRequirements.PushBack(170);	
-			ScoiaTournament.dynamicCards.PushBack(300); 
-			ScoiaTournament.dynamicCardRequirements.PushBack(180);	
-			ScoiaTournament.dynamicCards.PushBack(11); 
-			ScoiaTournament.dynamicCardRequirements.PushBack(180);	
-			ScoiaTournament.dynamicCards.PushBack(14); 
-			ScoiaTournament.dynamicCardRequirements.PushBack(190);	
-			ScoiaTournament.dynamicCards.PushBack(7); 
-			ScoiaTournament.dynamicCardRequirements.PushBack(190);	
-			ScoiaTournament.dynamicCards.PushBack(10); 
+			//ScoiaTournament.deckName = "ScoiaTournament";
+			ScoiaTournament.cardIndices.PushBack(0); //Dummy	
+			ScoiaTournament.cardIndices.PushBack(1); //Horn
+			ScoiaTournament.cardIndices.PushBack(2); //Scorch		
+			ScoiaTournament.cardIndices.PushBack(3); //Biting Frost	
+			ScoiaTournament.cardIndices.PushBack(4); //Impenetrable Fog 
+			ScoiaTournament.cardIndices.PushBack(5); //Torrential Rain
+
+ 			if (difficulty == 1)
+			{	
+				ScoiaTournament.cardIndices.PushBack(310); // 2 Toruviel
+				ScoiaTournament.cardIndices.PushBack(312); // 3 Ciaran
+				ScoiaTournament.cardIndices.PushBack(335); // 3 Dwarf
+			}
+			else
+			{
+				ScoiaTournament.cardIndices.PushBack(2); //Scorch
+				ScoiaTournament.cardIndices.PushBack(301);	// 10 Eithné
+				ScoiaTournament.cardIndices.PushBack(302);	// 10 Isengrim Faoiltiarna 
+				ScoiaTournament.cardIndices.PushBack(366);	// 5 Hav'caaren Support ^
+			}
+ 
+			ScoiaTournament.cardIndices.PushBack(303);	// 10 ioveth HERO
+			ScoiaTournament.cardIndices.PushBack(305);	// 6 dennis
+			ScoiaTournament.cardIndices.PushBack(306);	// 10 milva
+			ScoiaTournament.cardIndices.PushBack(307);	// 6 ida
+			ScoiaTournament.cardIndices.PushBack(308);	// 6 filavandrel AGILE
+			ScoiaTournament.cardIndices.PushBack(309);	// 6 Yaevin AGILE
+			ScoiaTournament.cardIndices.PushBack(313);	// 6 barclay AGILE
+			ScoiaTournament.cardIndices.PushBack(320);	// 4 havekar support SUMMON CLONES
+			ScoiaTournament.cardIndices.PushBack(321);	// 4 havekar support ^
+			ScoiaTournament.cardIndices.PushBack(322);	// 4 havekar support ^	
+			ScoiaTournament.cardIndices.PushBack(365);	// 5 Hav'caaren Support 
+			ScoiaTournament.cardIndices.PushBack(367);	// 5 Hav'caaren Support ^
+			// Autobalance
+			ScoiaTournament.dynamicCardRequirements.PushBack(diff1);
+			ScoiaTournament.dynamicCards.PushBack(15);
+			ScoiaTournament.dynamicCardRequirements.PushBack(diff2);
+			ScoiaTournament.dynamicCards.PushBack(12);
+			ScoiaTournament.dynamicCardRequirements.PushBack(diff6);
+			ScoiaTournament.dynamicCards.PushBack(300);
+			ScoiaTournament.dynamicCardRequirements.PushBack(diff8);
+			ScoiaTournament.dynamicCards.PushBack(11);
+			ScoiaTournament.dynamicCardRequirements.PushBack(diff8);
+			ScoiaTournament.dynamicCards.PushBack(14);
+			ScoiaTournament.dynamicCardRequirements.PushBack(diff10);
+			ScoiaTournament.dynamicCards.PushBack(7); // [ 15 ] Geralt of Rivia
+			ScoiaTournament.dynamicCardRequirements.PushBack(diff10);
+			ScoiaTournament.dynamicCards.PushBack(10);
 
 
-			ScoiaTournament.specialCard = -1; 
+			ScoiaTournament.specialCard = -1; // Change this to a card ID to always have it be in the AI's hand when drawing cards
 			ScoiaTournament.leaderIndex = 3004; 
 			enemyDecks.PushBack(ScoiaTournament);
 
+			//NMLTournament.deckName = "NMLTournament";	
+			NMLTournament.cardIndices.PushBack(0); 		//Dummy
+			NMLTournament.cardIndices.PushBack(1); 		//Horn	
+			NMLTournament.cardIndices.PushBack(5);		//Torrential Rain	
+			NMLTournament.cardIndices.PushBack(5);		//Torrential Rain	
+			NMLTournament.cardIndices.PushBack(6);		//Clear Weather		
+			NMLTournament.cardIndices.PushBack(6);		//Clear Weather
+
+ 			if (difficulty == 1)
+			{	
+				NMLTournament.cardIndices.PushBack(420);	// [ 4 ] Botchling
+				NMLTournament.cardIndices.PushBack(420);	// [ 2 ] Endrega
+			}
+			else
+			{
+				NMLTournament.cardIndices.PushBack(0); 		// Dummy		
+				NMLTournament.cardIndices.PushBack(1); 		//Horn	
+				NMLTournament.cardIndices.PushBack(403);	// [ 10 ] Leshen HERO
+				NMLTournament.cardIndices.PushBack(477);	// [ 6 ] Whispess ^
+			}
+
+			NMLTournament.cardIndices.PushBack(401);	// [ 10 ] Kayran HERO 
+			NMLTournament.cardIndices.PushBack(402);	// [ 10 ] Imlerith HERO
+			NMLTournament.cardIndices.PushBack(407);	// [ 6 ] Earth Elem
+			NMLTournament.cardIndices.PushBack(450);	// [ 6 ] Behemoth  Summon 4x
+			NMLTournament.cardIndices.PushBack(451);	// [ 4 ] Arachas ^
+			NMLTournament.cardIndices.PushBack(452);	// [ 4 ] Arachas ^
+			NMLTournament.cardIndices.PushBack(460);	// [ 4 ] Ekkima Summon 5x
+			NMLTournament.cardIndices.PushBack(463);	// [ 4 ] Bruxa ^
+			NMLTournament.cardIndices.PushBack(461);	// [ 4 ] Fleder ^
+			NMLTournament.cardIndices.PushBack(462);	// [ 4 ] Garkain ^
+			NMLTournament.cardIndices.PushBack(464);	// [ 4 ] Katakan ^
+			NMLTournament.cardIndices.PushBack(475);	// [ 6 ] Brewess Summon 3x
+			NMLTournament.cardIndices.PushBack(476);	// [ 6 ] Weavess ^
 			
-			NMLTournament.cardIndices.PushBack(0); 		
-			NMLTournament.cardIndices.PushBack(0); 		
-			NMLTournament.cardIndices.PushBack(1); 		
-			NMLTournament.cardIndices.PushBack(1); 		
+			// Autobalance
+			NMLTournament.dynamicCardRequirements.PushBack(diff1);	
+			NMLTournament.dynamicCards.PushBack(1);				// Horn
+			NMLTournament.dynamicCardRequirements.PushBack(diff3);	
+			NMLTournament.dynamicCards.PushBack(11); 				// [ 7 ] Triss HERO
+			NMLTournament.dynamicCardRequirements.PushBack(diff4);	
+			NMLTournament.dynamicCards.PushBack(12); 				// [ 2 ] Dangelion 2x Boost
+			NMLTournament.dynamicCardRequirements.PushBack(diff4);	
+			NMLTournament.dynamicCards.PushBack(2); 				// [ 15 ] Ciri HERO
+			NMLTournament.dynamicCardRequirements.PushBack(diff6);	
+			NMLTournament.dynamicCards.PushBack(15); 				// [ 7 ] Villen Scorch
+			NMLTournament.dynamicCardRequirements.PushBack(diff7);	
+			NMLTournament.dynamicCards.PushBack(14); 				// [ 5 ] Emiel 
+			NMLTournament.dynamicCardRequirements.PushBack(diff8);	
+			NMLTournament.dynamicCards.PushBack(13); 				// [ 5 ] Zoltan
+			NMLTournament.dynamicCardRequirements.PushBack(diff10);	
+			NMLTournament.dynamicCards.PushBack(7); 				// [ 15 ] Geralt
+			NMLTournament.dynamicCardRequirements.PushBack(diff10);	
+			NMLTournament.dynamicCards.PushBack(16); 				// [ 0 ] Avallach			
 			
-			
-			NMLTournament.cardIndices.PushBack(5);		
-			NMLTournament.cardIndices.PushBack(5);		
-			
-			NMLTournament.cardIndices.PushBack(6);		
-			NMLTournament.cardIndices.PushBack(6);		
-			NMLTournament.cardIndices.PushBack(401);	
-			NMLTournament.cardIndices.PushBack(402);	
-			NMLTournament.cardIndices.PushBack(403);	
-			NMLTournament.cardIndices.PushBack(407);	
-			NMLTournament.cardIndices.PushBack(450);	
-			NMLTournament.cardIndices.PushBack(451);	
-			NMLTournament.cardIndices.PushBack(452);	
-			NMLTournament.cardIndices.PushBack(460);	
-			NMLTournament.cardIndices.PushBack(463);	
-			NMLTournament.cardIndices.PushBack(461);	
-			NMLTournament.cardIndices.PushBack(462);	
-			NMLTournament.cardIndices.PushBack(464);	
-			NMLTournament.cardIndices.PushBack(475);	
-			NMLTournament.cardIndices.PushBack(476);	
-			NMLTournament.cardIndices.PushBack(477);	
-			
-			
-			NMLTournament.dynamicCardRequirements.PushBack(145);	
-			NMLTournament.dynamicCards.PushBack(1);				
-			NMLTournament.dynamicCardRequirements.PushBack(155);	
-			NMLTournament.dynamicCards.PushBack(11); 				
-			NMLTournament.dynamicCardRequirements.PushBack(160);	
-			NMLTournament.dynamicCards.PushBack(12); 				
-			NMLTournament.dynamicCardRequirements.PushBack(160);	
-			NMLTournament.dynamicCards.PushBack(2); 				
-			NMLTournament.dynamicCardRequirements.PushBack(170);	
-			NMLTournament.dynamicCards.PushBack(15); 				
-			NMLTournament.dynamicCardRequirements.PushBack(175);	
-			NMLTournament.dynamicCards.PushBack(14); 				
-			NMLTournament.dynamicCardRequirements.PushBack(180);	
-			NMLTournament.dynamicCards.PushBack(13); 				
-			NMLTournament.dynamicCardRequirements.PushBack(190);	
-			NMLTournament.dynamicCards.PushBack(7); 				
-			NMLTournament.dynamicCardRequirements.PushBack(190);	
-			NMLTournament.dynamicCards.PushBack(16); 				
-			
-			NMLTournament.specialCard = 401; 	
+			NMLTournament.specialCard = 401; 	// [ 8 ] kayran +1 HERO
 			NMLTournament.leaderIndex = 4004; 
 			enemyDecks.PushBack(NMLTournament);
 	}
@@ -2137,21 +3250,25 @@ import class CR4GwintManager extends IGameSystem
 	{
 		switch ( val )
 		{
-			case 'gwint_card_foltest_bronze':	return 1002; 
-			case 'gwint_card_foltest_silver':	return 1003; 
-			case 'gwint_card_foltest_gold':		return 1004; 
-			 
-			case 'gwint_card_emhyr_bronze':		return 2002; 
-			case 'gwint_card_emhyr_silver':		return 2003; 
-			case 'gwint_card_emhyr_gold':		return 2004; 
-			 
-			case 'gwint_card_francesca_bronze':	return 3002; 
-			case 'gwint_card_francesca_silver':	return 3003; 
-			case 'gwint_card_francesca_gold':	return 3004; 
+			case 'gwint_card_foltest_bronze':		return 1002; 
+			case 'gwint_card_foltest_silver':		return 1003; 
+			case 'gwint_card_foltest_gold':			return 1004; 
+			case 'gwint_card_foltest_platinium':	return 1005;
+ 
+			case 'gwint_card_emhyr_bronze':			return 2002; 
+			case 'gwint_card_emhyr_silver':			return 2003; 
+			case 'gwint_card_emhyr_gold':			return 2004; 
+			case 'gwint_card_emhyr_platinium':		return 2005;
+ 
+			case 'gwint_card_francesca_bronze':		return 3002; 
+			case 'gwint_card_francesca_silver':		return 3003; 
+			case 'gwint_card_francesca_gold':		return 3004;
+			case 'gwint_card_francesca_platinium':	return 3005;
 				
-			case 'gwint_card_eredin_bronze':	return 4002; 
-			case 'gwint_card_eredin_silver':	return 4003; 
-			case 'gwint_card_eredin_gold':		return 4004; 
+			case 'gwint_card_eredin_bronze':		return 4002; 
+			case 'gwint_card_eredin_silver':		return 4003; 
+			case 'gwint_card_eredin_gold':			return 4004; 
+			case 'gwint_card_eredin_platinium':		return 4005; 
 			default: return	0;
 		}
 	}
@@ -2275,7 +3392,8 @@ import class CR4GwintManager extends IGameSystem
 			case 'gwint_card_dol_archer':			return 360;	
 			case 'gwint_card_havekar_nurse':		return 365;	
 			case 'gwint_card_havekar_nurse2':		return 366;	
-			case 'gwint_card_havekar_nurse3':		return 367;	
+			case 'gwint_card_havekar_nurse3':		return 367;
+			case 'gwint_card_schirru':				return 368;	
 			default: return 0;
 		}
 	}
@@ -2324,6 +3442,7 @@ import class CR4GwintManager extends IGameSystem
 			case 'gwint_card_crone_brewess':		return 475;	
 			case 'gwint_card_crone_weavess':		return 476;	
 			case 'gwint_card_crone_whispess':		return 477;	
+			case 'gwint_card_toad':					return 478;	
 			default: return 0;
 		}
 	}
@@ -2341,7 +3460,11 @@ import class CR4GwintManager extends IGameSystem
 			case 'gwint_card_zoltan':				return 13; 	
 			case 'gwint_card_emiel':				return 14; 	
 			case 'gwint_card_villen':				return 15; 	
-			case 'gwint_card_avallach':				return 16; 	
+			case 'gwint_card_avallach':				return 16;
+			case 'gwint_card_olgierd':				return 17;
+			case 'gwint_card_mrmirror':				return 18;
+			case 'gwint_card_mrmirror_foglet':		return 19;
+			case 'gwint_card_cow':					return 20;
 			default: return 0;
 		}
 	}

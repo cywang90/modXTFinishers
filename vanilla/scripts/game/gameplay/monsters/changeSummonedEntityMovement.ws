@@ -1,22 +1,18 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
-
-
-
-
-
-
-
+﻿//>--------------------------------------------------------------------------
+// BTTaskChangeSummonedEntityMovement
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Change the movement values of the summoned entity with SlideToTarget component
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// R.Pergent - 05-September-2014
+// Copyright © 2014 CD Projekt RED
+//---------------------------------------------------------------------------
 class BTTaskChangeSummonedEntityMovement extends IBehTreeTask
 {
-	
-	
-	
+	//>----------------------------------------------------------------------
+	// VARIABLES
+	//-----------------------------------------------------------------------
 	public var	speed 							: float;
 	public var	stopDistance 					: float;
 	public var	fallBackSpeed 					: float;
@@ -32,29 +28,29 @@ class BTTaskChangeSummonedEntityMovement extends IBehTreeTask
 	public var	verticalOscilationSpeed			: float;
 	
 	private var m_summonerCmp					: W3SummonerComponent;
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function Initialize()
 	{
 		m_summonerCmp = ( W3SummonerComponent ) GetNPC().GetComponentByClassName('W3SummonerComponent');
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function IsAvailable() : bool
 	{
 		var l_summonedEntities 	: array<CEntity>;
 		l_summonedEntities = m_summonerCmp.GetSummonedEntities();
 		return l_summonedEntities.Size() > 0;
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function OnActivate() : EBTNodeStatus
 	{
 		ChangeValues( );
 		return BTNS_Active;
 	}		
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	private function ChangeValues( )
 	{
 		var i 					: int;
@@ -85,14 +81,14 @@ class BTTaskChangeSummonedEntityMovement extends IBehTreeTask
 }
 
 
-
-
+//>----------------------------------------------------------------------
+//-----------------------------------------------------------------------
 class BTTaskChangeSummonedEntityMovementDef extends IBehTreeTaskDefinition
 {
 	default instanceClass = 'BTTaskChangeSummonedEntityMovement';
 
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------	
 	private editable var	speed 							: float;
 	private editable var	stopDistance					: float;
 	private editable var	fallBackSpeed					: float;

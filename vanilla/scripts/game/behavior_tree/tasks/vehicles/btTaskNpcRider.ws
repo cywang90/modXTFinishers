@@ -1,13 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/**/
 
 
-
-
-
-
-
+//Very Much NOT FINAL
+//FIX: this is high level task and should be in proper directory
 class CBTTaskNpcRider extends IBehTreeTask
 {
 	private var activate : bool;

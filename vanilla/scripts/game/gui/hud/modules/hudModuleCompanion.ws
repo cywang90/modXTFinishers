@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CR4HudModuleCompanion extends CR4HudModuleBase 
+﻿class CR4HudModuleCompanion extends CR4HudModuleBase // #B
 {	
 	private var m_fxSetNameSFF				: CScriptedFlashFunction;
 	private var m_fxSetPortraitSFF			: CScriptedFlashFunction;
@@ -26,7 +22,7 @@ class CR4HudModuleCompanion extends CR4HudModuleBase
 	private var companionName 				: string;
 	private var companionName2 				: string;
 
-	event  OnConfigUI()
+	event /* flash */ OnConfigUI()
 	{		
 		var flashModule : CScriptedFlashSprite;
 		var hud : CR4ScriptedHud;
@@ -113,7 +109,6 @@ class CR4HudModuleCompanion extends CR4HudModuleBase
 			playerWitcher.RemoveCompanionDisplayNameTimer();
 		}
 		m_fxSetPortrait2SFF.InvokeSelfOneArg(FlashArgString(""));
-		playerWitcher.SetCompanionNPCIconPath2("");
 	}
 	
 	function ShowCompanionSecond( npcTag : name, optional iconPath : string )
@@ -129,7 +124,7 @@ class CR4HudModuleCompanion extends CR4HudModuleBase
 		if( bShow )
 		{
 			playerWitcher.SetCompanionNPCTag2( npcTag );
-			playerWitcher.SetCompanionNPCIconPath(iconPath);
+			playerWitcher.SetCompanionNPCIconPath2(iconPath);
 			
 			companionNPC2 = theGame.GetNPCByTag( npcTag );
 			if ( companionNPC2 )
@@ -240,7 +235,7 @@ class CR4HudModuleCompanion extends CR4HudModuleBase
 			
 			if( l_currentVitality != m_LastVitality ||  l_currentMaxVitality != m_LastMaxVitality )
 			{
-				
+				//Percentage is between 0 and 1
 				m_fxSetVitalitySFF.InvokeSelfOneArg( FlashArgNumber(  l_currentVitality / l_currentMaxVitality ) );
 				m_LastVitality = l_currentVitality;
 				m_LastMaxVitality = l_currentMaxVitality;
@@ -259,7 +254,7 @@ class CR4HudModuleCompanion extends CR4HudModuleBase
 			
 			if( l_currentVitality != m_LastVitality2 ||  l_currentMaxVitality != m_LastMaxVitality2 )
 			{
-				
+				//Percentage is between 0 and 1
 				m_fxSetVitality2SFF.InvokeSelfOneArg( FlashArgNumber(  l_currentVitality / l_currentMaxVitality ) );
 				m_LastVitality2 = l_currentVitality;
 				m_LastMaxVitality2 = l_currentMaxVitality;

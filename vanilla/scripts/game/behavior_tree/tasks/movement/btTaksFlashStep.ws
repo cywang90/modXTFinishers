@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** FlashSteps
+/***********************************************************************/
+/** Copyright © 2013
+/** Author : Andrzej Kwiatkowski
+/***********************************************************************/
 
 class CBTTaskFlashStep extends IBehTreeTask
 {
@@ -80,7 +79,7 @@ class CBTTaskFlashStep extends IBehTreeTask
 		
 		if ( teleportOutsidePlayerFOV )
 		{
-		
+		//	whereTo = theGame.GetCameraWorldPosition() - randVec;
 		}
 		else if ( teleportType == TT_ToPlayer || teleportType == TT_FromLastPosition )
 		{
@@ -102,11 +101,11 @@ class CBTTaskFlashStep extends IBehTreeTask
 			Sleep( 0.1 );
 		}		
 		isTeleporting = true;
-		
+		//res = npc.ActionSlideTo(whereTo, duration);
 		npc.TeleportWithRotation(whereTo, VecToRotation( npc.GetTarget().GetWorldPosition() ));
-		
-		
-			
+		//if( res )
+		//{
+			//npc.RaiseForceEvent( 'ForceWalkStart' );
 			if( appearFXName != emptyName )
 			{
 				npc.PlayEffect( appearFXName );
@@ -115,7 +114,7 @@ class CBTTaskFlashStep extends IBehTreeTask
 			nextTeleTime = GetLocalTime() + cooldown;
 			alreadyTeleported = true;
 			return BTNS_Completed;
-		
+		//}
 		
 		return BTNS_Failed;
 	}
@@ -162,13 +161,13 @@ class CBTTaskFlashStep extends IBehTreeTask
 		
 		if ( teleportOutsidePlayerFOV )
 		{
-		
+		//	cameraToPlayerDistance = VecDistance( theGame.GetCameraWorldPosition(), thePlayer.GetWorldPosition() );
 			if ( cameraToPlayerDistance*1.2 > minDistance )
 			{
 				minDistance = cameraToPlayerDistance*1.2;
 				maxDistance = ( maxDistance + ( cameraToPlayerDistance - minDistance ))*1.2;
 			}
-		
+		//	randVec = VecConeRand( theGame.GetCameraWorldHeading(), 45, minDistance, maxDistance );
 		}
 		else if ( teleportType == TT_FromLastPosition )
 		{

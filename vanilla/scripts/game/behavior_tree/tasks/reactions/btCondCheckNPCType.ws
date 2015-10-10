@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTCondCheckNPCType extends IBehTreeTask
+﻿class CBTCondCheckNPCType extends IBehTreeTask
 {
 	public var npcType : ENPCGroupType;
 	

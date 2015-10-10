@@ -1,11 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 class W3NPCBackgroundNew extends CEntity
 {
-	editable var behaviorWorkNumber : int;	
+	editable var behaviorWorkNumber : int;	//type of work (animation) to play
 	editable var randomized : bool;
 	editable var maxWorkNumber : int;
 	editable var excludeIdle : bool;

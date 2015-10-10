@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3LeshyRootProjectile extends CProjectileTrajectory
+﻿class W3LeshyRootProjectile extends CProjectileTrajectory
 {
 	editable var fxEntityTemplate 	: CEntityTemplate;
 	private var fxEntity 			: CEntity;
@@ -38,6 +34,7 @@ class W3LeshyRootProjectile extends CProjectileTrajectory
 			{
 				this.StopEffect( 'ground_fx' );
 				projPos = this.GetWorldPosition();
+				theGame.GetWorld().StaticTrace( projPos + Vector(0,0,3), projPos - Vector(0,0,3), projPos, normal );
 				projRot = this.GetWorldRotation();
 				fxEntity = theGame.CreateEntity( fxEntityTemplate, projPos, projRot );
 				fxEntity.PlayEffect( 'attack_fx1', fxEntity );
@@ -72,7 +69,7 @@ class W3LeshyRootProjectile extends CProjectileTrajectory
 		
 		
 		FindGameplayEntitiesInRange( victims, fxEntity, 2, 99, , FLAG_OnlyAliveActors );
-		
+		//thePlayer.GetVisualDebug().AddSphere( 'test', 2, fxEntity.GetWorldPosition(), true, Color( 255, 0, 0 ), 5 );
 		if ( victims.Size() > 0 )
 		{
 			for ( i = 0 ; i < victims.Size() ; i += 1 )
@@ -92,6 +89,8 @@ class W3LeshyRootProjectile extends CProjectileTrajectory
 	
 	event OnRangeReached()
 	{
+		var normal : Vector;
+		
 		StopAllEffects();
 		StopProjectile();
 		
@@ -99,15 +98,13 @@ class W3LeshyRootProjectile extends CProjectileTrajectory
 		{
 			projExpired = true;
 			projPos = this.GetWorldPosition();
-			
-			projPos.Z -= 1.0f;
+			theGame.GetWorld().StaticTrace( projPos + Vector(0,0,3), projPos - Vector(0,0,3), projPos, normal );
 			projRot = this.GetWorldRotation();
 			fxEntity = theGame.CreateEntity( fxEntityTemplate, projPos, projRot );
 			fxEntity.PlayEffect( 'attack_fx1', fxEntity );
 			GCameraShake(1.0, true, fxEntity.GetWorldPosition(), 30.0f);
 			DelayDamage( 0.3 );
 			fxEntity.DestroyAfter( 10.0 );
-			
 			AddTimer('TimeDestroy', 5.0, false);
 		}
 	}
@@ -162,7 +159,6 @@ class W3LeshyBirdProjectile extends CProjectileTrajectory
 			action.SetHitAnimationPlayType(EAHA_ForceYes);
 			action.AddDamage(theGame.params.DAMAGE_NAME_RENDING, birdDmg );
 			theGame.damageMgr.ProcessAction( action );
-			
 			
 			AddTimer('TimeDestroy', 5.0, false);
 		}

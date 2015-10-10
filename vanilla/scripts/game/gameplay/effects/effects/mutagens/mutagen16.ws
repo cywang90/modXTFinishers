@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : 
+/***********************************************************************/
 
 class W3Mutagen16_Effect extends W3Mutagen_Effect
 {
@@ -20,7 +18,7 @@ class W3Mutagen16_Effect extends W3Mutagen_Effect
 	{	
 		super.OnEffectRemoved();
 		
-		
+		//needs to be called after supper as encumbrance checks if we have this buff on character or not
 		UpdateEncumbrance();
 	}	
 	

@@ -1,16 +1,16 @@
-﻿/*
-Copyright © CD Projekt RED 2015
+﻿/***********************************************************************/
+/** Copyright © 2012-2014
+/** Author : Tomek Kozera
+/***********************************************************************/
+
+/*
+	Effect that regenerates particular character stat.
 */
-
-
-
-
-
 abstract class W3RegenEffect extends CBaseGameplayEffect
 {
-	protected var regenStat : ECharacterRegenStats;			
-	protected saved var stat : EBaseCharacterStats;			
-	private var isOnMonster : bool;							
+	protected var regenStat : ECharacterRegenStats;			//regenstat (checked from xml) based on which we set the stat to regenerate - it's set in child classes
+	protected saved var stat : EBaseCharacterStats;			//stat to regenerate
+	private var isOnMonster : bool;							//if false then buff is on human
 		
 	default isPositive = true;
 	default isNeutral = false;
@@ -22,23 +22,32 @@ abstract class W3RegenEffect extends CBaseGameplayEffect
 		var canRegen : bool;
 		var hpRegenPauseBuff : W3Effect_DoTHPRegenReduce;
 		var pauseRegenVal, armorModVal : SAbilityAttributeValue;
-	
+		var baseStaminaRegenVal : float;
+		
 		super.OnUpdate(dt);
 		
-		
-		canRegen = (target.GetStatPercents(stat) < 1);
+		//regen only if stat not maxed or
+		if(stat == BCS_Vitality && isOnPlayer && target == GetWitcherPlayer() && GetWitcherPlayer().HasRunewordActive('Runeword 4 _Stats'))
+		{
+			canRegen = true;
+		}
+		else
+		{
+			canRegen = (target.GetStatPercents(stat) < 1);
+		}
 		
 		if(canRegen)
 		{
-			
+			//max must be read all the time (cannot be cached) because it might change as a result of some other buff
 			regenPoints = effectValue.valueAdditive + effectValue.valueMultiplicative * target.GetStatMax(stat);
 			
 			if (isOnPlayer && regenStat == CRS_Stamina && attributeName == RegenStatEnumToName(regenStat) && GetWitcherPlayer())
 			{
-				armorModVal = GetWitcherPlayer().GetAttributeValue('staminaRegen_armor_mod');
-				regenPoints *= 1 + armorModVal.valueMultiplicative;
+				baseStaminaRegenVal = CalculatedArmorStaminaRegenBonus();
+				//regenPoints *= 1 + armorModVal.valueMultiplicative;
+				regenPoints *= 1 + baseStaminaRegenVal;
 			}
-			
+			//reduced if monster and hp regen lowered due to DOT damage
 			else if(regenStat == CRS_Vitality || regenStat == CRS_Essence)
 			{
 				hpRegenPauseBuff = (W3Effect_DoTHPRegenReduce)target.GetBuff(EET_DoTHPRegenReduce);
@@ -54,13 +63,62 @@ abstract class W3RegenEffect extends CBaseGameplayEffect
 		}
 	}
 	
+	protected function CalculatedArmorStaminaRegenBonus() : float
+	{
+		var armorEq, glovesEq, pantsEq, bootsEq : bool;
+		var tempItem : SItemUniqueId;
+		var staminaRegenVal : float;
+		var armorRegenVal : SAbilityAttributeValue;
+		
+		armorEq = target.GetInventory().GetItemEquippedOnSlot( EES_Armor, tempItem );
+		glovesEq = target.GetInventory().GetItemEquippedOnSlot( EES_Gloves, tempItem );
+		pantsEq = target.GetInventory().GetItemEquippedOnSlot( EES_Pants, tempItem );
+		bootsEq =  target.GetInventory().GetItemEquippedOnSlot( EES_Boots, tempItem );
+		
+		
+		if ( target.HasAbility( 'Glyphword 2 _Stats', true ))
+		{
+			if ( armorEq )
+				staminaRegenVal += 0.1;
+			if ( glovesEq )
+				staminaRegenVal += 0.02;
+			if ( pantsEq )
+				staminaRegenVal += 0.1;
+			if ( bootsEq )
+				staminaRegenVal += 0.03;
+			
+		}
+		else if ( target.HasAbility( 'Glyphword 3 _Stats', true ))
+		{
+			staminaRegenVal = 0;
+		}
+		else if ( target.HasAbility( 'Glyphword 4 _Stats', true ))
+		{
+			if ( armorEq )
+				staminaRegenVal -= 0.1;
+			if ( glovesEq )
+				staminaRegenVal -= 0.02;
+			if ( pantsEq )
+				staminaRegenVal -= 0.1;
+			if ( bootsEq )
+				staminaRegenVal -= 0.03;
+		}
+		else
+		{
+			armorRegenVal = GetWitcherPlayer().GetAttributeValue('staminaRegen_armor_mod');
+			staminaRegenVal = armorRegenVal.valueMultiplicative;
+		}
+		
+		return staminaRegenVal;
+	}
+	
 	event OnEffectAdded(optional customParams : W3BuffCustomParams)
 	{
 		var null : SAbilityAttributeValue;
 		
 		super.OnEffectAdded(customParams);
 	
-		
+		//deactivate this buff if regen value is undefined
 		if(effectValue == null)
 		{
 			isActive = false;
@@ -97,7 +155,7 @@ abstract class W3RegenEffect extends CBaseGameplayEffect
 							
 		super.CacheSettings();
 		
-		
+		//find which stat we're regenerating - regenstat set in child classes but let's make sure
 		if(regenStat == CRS_Undefined)
 		{
 			dm = theGame.GetDefinitionsManager();

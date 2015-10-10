@@ -1,10 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-import class CHeadManagerComponent extends CSelfUpdatingComponent
+﻿import class CHeadManagerComponent extends CSelfUpdatingComponent
 {
 	import final function SetTattoo( hasTattoo : bool );
+	import final function SetDemonMark( hasDemonMark : bool );	
 	import final function SetBeardStage( maxStage : bool, optional stage : int );
 	import final function SetCustomHead( head : name );
 	import final function RemoveCustomHead();

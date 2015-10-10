@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 class CBTCondTargetHasItemHeld extends IBehTreeTask
 {
 	public var itemCategory 				: name;

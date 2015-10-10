@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 class CBTTaskMiscreantCrying extends IBehTreeTask
 {
 	var miscreantName			: name;		default miscreantName	= 'Miscreant';
@@ -22,10 +18,10 @@ class CBTTaskMiscreantCrying extends IBehTreeTask
 		var npc : CNewNPC = GetNPC();
 		
 		
-		
+		// Get the miscreant entity
 		GrabMiscreant();
 		
-		
+		// Set params
 		SendBehGraphEvent( 'CryStart' );
 		
 		return BTNS_Active;
@@ -46,7 +42,7 @@ class CBTTaskMiscreantCrying extends IBehTreeTask
 	{
 		if( eventName == cryStopEventName )
 		{		
-			
+			// Deactivate it
 			isAvailable	= false;
 			Complete( true );
 			
@@ -74,7 +70,7 @@ class CBTTaskMiscreantCrying extends IBehTreeTask
 	
 	private function GrabMiscreant()
 	{
-		
+		// If we already have it
 		if( miscreant )
 		{
 			return;
@@ -122,16 +118,16 @@ class CBTTaskCarryMiscreant extends IBehTreeTask
 		var npc : CNewNPC = GetNPC();
 		
 		
-		
+		// Get the miscreant entity
 		GrabMiscreant();
 		
-		
+		// disable it's collision
 		DisableMiscreantCollision();
 		
-		
+		// Set the miscreant in place
 		miscreant.Teleport( npc.GetBoneWorldPosition( attachmentBone ) );
 		
-		
+		// Create bone attachment
 		if( !miscreant.CreateAttachmentAtBoneWS( ( CEntity ) npc , attachmentBone, Vector( 0, 0, 0 ), EulerAngles( 0, 0, 0 ) ) )
 		{
 			LogChannel( 'Miscreant',"Could not create attachment to bone " + attachmentBone );
@@ -145,14 +141,14 @@ class CBTTaskCarryMiscreant extends IBehTreeTask
 	{
 		var npc : CNewNPC = GetNPC();
 		
-		
-		
+		// Destroy attachment
+		//miscreant.BreakAttachment();
 	}
 	
 	
 	private function GrabMiscreant()
 	{
-		
+		// If we already have it
 		if( miscreant )
 		{
 			return;
@@ -172,7 +168,11 @@ class CBTTaskCarryMiscreant extends IBehTreeTask
 		if( miscreant )
 		{
 			miscreant.EnableCharacterCollisions( false );
-			
+			/*miscreantMAC	= miscrantActor.GetMovingAgentComponent();
+			if( miscreantMAC )
+			{
+				miscreantMAC.SetAnimatedMovement( true );
+			}*/
 		}
 	}
 };

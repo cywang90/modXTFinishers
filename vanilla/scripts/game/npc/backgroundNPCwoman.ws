@@ -1,11 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Copyright © ?
+/** Author : ?
+/***********************************************************************/
 
-
-
-
-
+//Enum used in behavior to decide which type of work to use with given entity
 enum EBackgroundNPCWomanWork
 {
 	EBNWW_None,
@@ -19,7 +17,7 @@ enum EBackgroundNPCWomanWork
 
 class W3NPCBackgroundWoman extends CGameplayEntity
 {
-	public editable var work : EBackgroundNPCWomanWork;					
+	public editable var work : EBackgroundNPCWomanWork;					//type of work (animation) to play
 
 	event OnSpawned(spawnData : SEntitySpawnData)
 	{

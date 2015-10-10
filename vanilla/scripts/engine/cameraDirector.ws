@@ -1,19 +1,16 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Camera Director
+/***********************************************************************/
 
 import class CCameraDirector
 {
-	
+	// Converts screen coordinates to vector in world coordinates
 	import final function ViewCoordsToWorldVector( x, y : int, out rayStart : Vector, out rayDirection : Vector );
 	
-	
+	// Converts screen coordinates to vector in world coordinates
 	import final function WorldVectorToViewCoords( worldPos : Vector, out x : int, out y : int );
 	
-	
+	// Returns screen space ratio from -1 to 1. Returns false if object is behind the camera.
 	import final function WorldVectorToViewRatio( worldPos : Vector, out x : float, out y : float ) : bool;
 	
 	import final function GetCameraPosition() : Vector;
@@ -29,7 +26,7 @@ import class CCameraDirector
 	import final function GetTopmostCameraObject() : IScriptable;
 	
 	
-	
+	//>-----------------------------------------------------------------------------------------------------------------
 	public function GetCameraForwardOnHorizontalPlane() : Vector
 	{
 		var l_ForwardV	: Vector;

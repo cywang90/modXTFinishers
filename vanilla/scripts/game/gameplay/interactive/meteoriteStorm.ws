@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-statemachine class CMeteoriteStormEntity extends CGameplayEntity
+﻿statemachine class CMeteoriteStormEntity extends CGameplayEntity
 {		
 	editable var resourceName : name;
 	editable var timeBetweenSpawn : float;

@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Play voice set
+/** Copyright © 2012
+/***********************************************************************/
 
 class CBTTaskPlayVoiceSet extends IBehTreeTask
 {		
@@ -22,7 +21,7 @@ class CBTTaskPlayVoiceSet extends IBehTreeTask
 	
 	function IsAvailable() : bool
 	{
-		
+		//here should be check GetActor().HasVoiceSet(voiceSet); but there is no such function!! :(((
 		if ( dontActivateWhileSpeaking )
 			return !GetActor().IsSpeaking();
 			

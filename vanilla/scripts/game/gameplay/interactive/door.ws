@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2013
+/** Author : Tomasz Kozera
+/***********************************************************************/
 
 enum EDoorOperation
 {
@@ -15,7 +13,7 @@ enum EDoorOperation
 	DO_ToggleLock,
 }
 
-
+//Class for handling doors
 class W3Door extends W3LockableEntity
 {
 	editable var rotDir : int;
@@ -34,7 +32,7 @@ class W3Door extends W3LockableEntity
 	{		
 		if( closeInteractionComponent )
 		{
-			closeInteractionComponent.SetEnabled( false ); 
+			closeInteractionComponent.SetEnabled( false ); // this is a problem, should be handled by data itself
 		}
 			
 		if((!spawnData.restored && initiallyOpened) || (spawnData.restored && isOpened))
@@ -44,7 +42,7 @@ class W3Door extends W3LockableEntity
 		}
 		else
 		{
-			isOpened = false;			
+			isOpened = false;			//need to be like this since we check isOpenen in the if statement above
 		}
 		
 		SetFocusModeVisibility( FMV_Interactive );		
@@ -61,7 +59,7 @@ class W3Door extends W3LockableEntity
 			
 		processed = super.OnInteraction(actionName, activator);
 		if(processed)
-			return true;		
+			return true;		//handled by super
 			
 		if(actionName == "Open")
 		{			
@@ -78,7 +76,7 @@ class W3Door extends W3LockableEntity
 	{
 		var i, size : int;
 		
-		
+		// todo check if locked on opening/closing?
 		size = operations.Size();
 		for ( i = 0; i < size; i += 1 )
 		{
@@ -218,7 +216,7 @@ class W3Door extends W3LockableEntity
 		super.OnStateChange( newState );
 	}
 	
-	
+	// Called when entity gets within interaction range
 	event OnInteractionActivated( interactionComponentName : string, activator : CEntity )
 	{
 		super.OnInteractionActivated(interactionComponentName, activator);

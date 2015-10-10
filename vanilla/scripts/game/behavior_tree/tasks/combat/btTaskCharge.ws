@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Copyright © 2013 CD Projekt RED
+/** Author : Patryk Fiutowski, Andrzej Kwiatkowski
+/***********************************************************************/
 
 
 class CBTTaskCharge extends CBTTaskAttack
@@ -18,7 +17,7 @@ class CBTTaskCharge extends CBTTaskAttack
 	var collidedActor 					: CActor;
 	var chargeType						: EChargeAttackType;
 	
-	
+	//var cameraIndex 					: int;
 	
 	default bCollisionWithActor 		= false;
 	
@@ -111,7 +110,7 @@ class CBTTaskCharge extends CBTTaskAttack
 				}
 				else
 				{
-					
+					//FIXME - there is no need to use damage action - simply add the buff
 					action = new W3Action_Attack in theGame.damageMgr;
 					
 					switch (chargeType)

@@ -1,9 +1,5 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿// copyrajt orajt
+// W. Zerek
 
 class CBTTaskDisableHitReactionFor extends IBehTreeTask
 {

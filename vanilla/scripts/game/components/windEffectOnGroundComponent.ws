@@ -1,21 +1,17 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
-
-
-
-
-
-
+﻿//----------------------------------------------------------------------
+// W3WindEffectOnGroundComponent
+//----------------------------------------------------------------------
+//>---------------------------------------------------------------
+// Entity with this component applies a post FX to the ground
+//----------------------------------------------------------------
+// Copyright © 2014 CDProjektRed
+// Author : R.Pergent - 17-April-2014
+//----------------------------------------------------------------------
 class W3WindEffectOnGroundComponent extends CSelfUpdatingComponent
 {
-	
-	
-	
+	//>---------------------------------------------------------------
+	// Variable
+	//----------------------------------------------------------------		
 	editable var maxDistanceFromGround	: float;
 	editable var activeAtStart			: bool;
 	editable var playOnAnimEvent		: bool;
@@ -25,7 +21,7 @@ class W3WindEffectOnGroundComponent extends CSelfUpdatingComponent
 	editable var delayBetweenEffects	: float;	
 	editable var effectTemplate			: CEntityTemplate;
 	
-	
+	// private
 	private var m_isActive				: bool;
 	private var m_effectEntity			: CEntity;
 	private var m_collisionGroupNames 	: array<name>;
@@ -41,8 +37,8 @@ class W3WindEffectOnGroundComponent extends CSelfUpdatingComponent
 	default delayBetweenEffects 	= 0.1f;
 	
 	hint maxDistanceFromGround = "How far from the ground can the entity be until the effect is not displayed anymore";
-	
-	
+	//>---------------------------------------------------------------
+	//----------------------------------------------------------------
 	event OnComponentAttached()
 	{
 		var l_actor : CActor;
@@ -68,8 +64,8 @@ class W3WindEffectOnGroundComponent extends CSelfUpdatingComponent
 			Activate();
 		}
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//>----------------------------------------------------------------------
 	event OnAnimEvent_Custom( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{	
 		if ( animEventName == animEvent )
@@ -86,8 +82,8 @@ class W3WindEffectOnGroundComponent extends CSelfUpdatingComponent
 			Deactivate();
 		}
 	}
-	
-	
+	//>---------------------------------------------------------------
+	//----------------------------------------------------------------
 	event OnComponentTick ( _Dt : float )
 	{
 		m_delayUntilNextEffect -= _Dt;
@@ -96,15 +92,15 @@ class W3WindEffectOnGroundComponent extends CSelfUpdatingComponent
 			PlayEffect();
 		}
 	}
-	
-	
+	//>---------------------------------------------------------------
+	//----------------------------------------------------------------
 	public function Activate()
 	{
 		m_isActive = true;
 		StartTicking();
 	}	
-	
-	
+	//>---------------------------------------------------------------
+	//----------------------------------------------------------------
 	public function Deactivate()
 	{
 		m_isActive = false;
@@ -112,8 +108,8 @@ class W3WindEffectOnGroundComponent extends CSelfUpdatingComponent
 		m_effectEntity.StopAllEffects();
 		m_delayUntilNextEffect = 0;
 	}
-	
-	
+	//>---------------------------------------------------------------
+	//----------------------------------------------------------------
 	private function PlayEffect( )
 	{
 		var l_pos, l_contact,  l_normal		: Vector;
@@ -159,8 +155,8 @@ class W3WindEffectOnGroundComponent extends CSelfUpdatingComponent
 			m_effectEntity.PlayEffect('ground');
 		}
 		
-		
-		
+		//l_actor.GetVisualDebug().AddText('windEffectText', "WindEffect", l_contact, true, 14 );
+		//l_actor.GetVisualDebug().AddSphere( 'windEffect', 1.f, l_contact, true, Color( 0, 0, 255 ) );
 		
 		m_delayUntilNextEffect = delayBetweenEffects;
 		

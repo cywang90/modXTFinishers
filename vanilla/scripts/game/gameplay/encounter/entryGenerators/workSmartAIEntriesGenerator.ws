@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 import struct SWorkEntryGeneratorParam
 {
 	import editable var creatureEntry 	: SCreatureEntryEntryGeneratorNodeParam;

@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2012
+/** Author : Tomasz Kozera
+/***********************************************************************/
 
 abstract class W3SE_CustomScript extends W3SwitchEvent
 {
@@ -15,7 +14,7 @@ abstract class W3SE_CustomScript extends W3SwitchEvent
 	private function Perform( parnt : CEntity )
 	{
 		LogChannel('Switch', "W3SE_CustomScript.Activate: custom switch script <<"+scriptID+">> is about to be called");
-		
-		
+		//switch(scriptID)
+		//	put your menace code here		
 	}
 }

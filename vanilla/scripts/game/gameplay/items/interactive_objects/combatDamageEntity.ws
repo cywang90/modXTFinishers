@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3CombatDamageEntity extends CInteractiveEntity
+﻿class W3CombatDamageEntity extends CInteractiveEntity
 {
 	var victims 	: array< CActor >;
 	var victim 		: CActor;
@@ -72,7 +68,7 @@ state Untouched in W3FlammableDamageEntity
 		
 		parent.pos = parent.GetWorldPosition();
 		
-		
+		//parent.DealAdditionalDamage();
 		parent.SpawnDamageArea();
 		parent.PlayBurningEffect();
 		parent.PushState( 'Burnt' );

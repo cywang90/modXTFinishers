@@ -1,10 +1,6 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CR4HudModuleCrosshair extends CR4HudModuleBase
+﻿class CR4HudModuleCrosshair extends CR4HudModuleBase
 {	
-	event  OnConfigUI()
+	event /* flash */ OnConfigUI()
 	{		
 		m_anchorName = "mcAnchorCrosshair";
 		super.OnConfigUI();

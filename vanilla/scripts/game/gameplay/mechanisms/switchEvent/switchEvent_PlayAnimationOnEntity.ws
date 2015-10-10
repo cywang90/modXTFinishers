@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3SE_PlayAnimationOnEntity extends W3SwitchEvent
+﻿class W3SE_PlayAnimationOnEntity extends W3SwitchEvent
 {
 	editable var entityTag		: name;
 	editable var animationName	: name;
@@ -11,7 +7,7 @@ class W3SE_PlayAnimationOnEntity extends W3SwitchEvent
 	editable var playLengthScale: float;							default playLengthScale = 1;
 	editable var playMode		: EPropertyCurveMode;
 	editable var rewindTime		: float;							default rewindTime = 0;
-	
+	// Not in yet - editable var delayAnimation : float;
 	
 	hint entityTag		= "Entity tag to to play animation on";
 	hint animationName	= "Animation to play on entity (needs to be defined in CGameplayEntity properties)";
@@ -20,7 +16,7 @@ class W3SE_PlayAnimationOnEntity extends W3SwitchEvent
 	hint playLengthScale= "Playing length scale (applies only to 'Play' operation)";
 	hint playMode		= "Playing mode (applies only to 'Play' operation)";
 	hint rewindTime		= "Time position to rewind animation to (applies only to 'Rewind' operation)";
-	
+	// Not in yet - hint delayAnimation = "Time in seconds to wait before executing animation";
 	
 	public function Perform( parnt : CEntity )
 	{	
@@ -70,7 +66,7 @@ class W3SE_PlayAnimationOnEntity extends W3SwitchEvent
 	
 	private function DamageIfDamager( animatingEntity : CGameplayEntity )
 	{
-		var animatingDamageEntity : W3PhysicalDamageMechanism; 
+		var animatingDamageEntity : W3PhysicalDamageMechanism; //If animating entity is a damagedoer, we enable it's damage phantomcomponent.
 		animatingDamageEntity = (W3PhysicalDamageMechanism)animatingEntity;
 		if (animatingDamageEntity)
 		{

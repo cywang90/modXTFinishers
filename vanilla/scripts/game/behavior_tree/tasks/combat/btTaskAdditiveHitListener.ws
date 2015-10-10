@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class BTTaskAdditiveHitListener extends IBehTreeTask
+﻿class BTTaskAdditiveHitListener extends IBehTreeTask
 {
 	var currentFightStageIs 	: ENPCFightStage;
 	var playHitSound 			: bool;
@@ -16,21 +12,21 @@ class BTTaskAdditiveHitListener extends IBehTreeTask
 	default timeStamp = 0;
 	
 	
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function OnActivate() : EBTNodeStatus
 	{
 		GetActor().AddAbility( 'AdditiveHits' );
 		return BTNS_Active;
 	}
 	
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------	
 	function OnGameplayEvent( eventName : name ) : bool
 	{		
 		var owner 	: CNewNPC = GetNPC();
 		var data 	: CDamageData;
-		
+		// play hit but not more frequent then 0.4 sec
 		if ( eventName == 'BeingHit' && timeStamp + 0.4 <= GetLocalTime() )
 		{
 			data = (CDamageData) GetEventParamBaseDamage();
@@ -60,7 +56,7 @@ class BTTaskAdditiveHitListener extends IBehTreeTask
 		var npc 				: CNewNPC = GetNPC();
 		var playerToOwnerAngle 	: float;
 		
-		
+		// reaction to player's Signs attack
 		if ( manageIgnoreSignsEvents )
 		{
 			if ( eventName == 'IgnoreSigns' )

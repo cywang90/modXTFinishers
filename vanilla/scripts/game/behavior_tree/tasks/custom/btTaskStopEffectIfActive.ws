@@ -1,12 +1,8 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
-
-
+﻿// CBTTaskStopEffectIfActive
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Stops an effect on actor if it's active
+//---------------------------------------------------------------------------
 class CBTTaskStopEffectIfActive extends IBehTreeTask
 {
 	var npc					: CNewNPC;
@@ -14,10 +10,9 @@ class CBTTaskStopEffectIfActive extends IBehTreeTask
 	var onActivate			: bool;
 	var onDeactivate		: bool;
 
-	
 	function OnActivate() : EBTNodeStatus
 	{	
-		if ( onActivate )
+		if( onActivate )
 		{
 			npc = GetNPC();
 			npc.StopEffectIfActive(	effectName );
@@ -28,21 +23,41 @@ class CBTTaskStopEffectIfActive extends IBehTreeTask
 	
 	function OnDeactivate()
 	{
-		if ( onDeactivate )
+		if( onDeactivate )
 		{
 			npc = GetNPC();
 			npc.StopEffectIfActive(	effectName );
 		}
 	}
-	
 }
 
 class CBTTaskStopEffectIfActiveDef extends IBehTreeTaskDefinition
 {
 	default instanceClass = 'CBTTaskStopEffectIfActive';
 	
-	var npc							: CNewNPC;
 	editable var effectName			: name;
 	editable var onActivate			: bool;
 	editable var onDeactivate		: bool;
+}
+
+
+class CBTTaskIsEffectActive extends IBehTreeTask
+{
+	var npc					: CNewNPC;
+	var effectName			: name;
+	
+	function IsAvailable() : bool
+	{	
+		npc = GetNPC();
+
+		return npc.IsEffectActive( effectName );
+	}
+}
+
+class CBTTaskIsEffectActiveDef extends IBehTreeTaskDefinition
+{
+	default instanceClass = 'CBTTaskIsEffectActive';
+	
+	var npc							: CNewNPC;
+	editable var effectName			: name;
 }

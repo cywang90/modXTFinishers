@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-import class CR4MapPinEntity extends CGameplayEntity
+﻿import class CR4MapPinEntity extends CGameplayEntity
 {
 	import var entityName			: name;
 	import var radius				: float;
@@ -70,7 +66,7 @@ class W3FastTravelEntity extends CR4FastTravelEntity
 	event OnAreaEnter( area : CTriggerAreaComponent, activator : CComponent )
 	{
 		var mapManager : CCommonMapManager = theGame.GetCommonMapManager();
-		
+		//var initData : W3MapInitData;
 		
 		if ( activator.GetEntity() == thePlayer && GetWitcherPlayer() )
 		{
@@ -105,7 +101,7 @@ class W3FastTravelEntity extends CR4FastTravelEntity
 	
 	event OnAreaExit( area : CTriggerAreaComponent, activator : CComponent )
 	{
-		
+		//var initData : W3MapInitData;
 		
 		if ( activator.GetEntity() == thePlayer )
 		{
@@ -160,7 +156,7 @@ class W3FastTravelEntity extends CR4FastTravelEntity
 			mac = (CMovingAgentComponent)vehicle.GetComponentByClassName( 'CMovingAgentComponent' );
 			if ( mac )
 			{
-				
+				// it's a horse!
 				shift = mac.GetVelocityBasedOnRequestedMovement();
 				shift.Z = 0;
 				shift *= -1;
@@ -172,15 +168,28 @@ class W3FastTravelEntity extends CR4FastTravelEntity
 				bc = (CBoatComponent)vehicle.GetComponentByClassName( 'CBoatComponent' );
 				if ( bc )
 				{
+					// it's a boat!
+
+					if ( thePlayer.GetCurrentStateName() == 'DismountBoat' )
+					{
+						// special case
+						// player dismounts a motionless boat and crosses world border during animation
+						// we can't use boat speed to calculate vector since we're gonna get [0,0,0]
+						shift = VecFromHeading( rotation.Yaw );
+						shift.Z = 0;
+						shift *= -1;
+						rotation.Yaw += 180;
+					}
+					else
+					{
+						shift = bc.GetCurrentSpeed();
+						shift.Z = 0;
+						shift *= -1;
+						rotation.Yaw += 90; // doesn't seem to work for boats
+						useStaticTrace = false;
 					
-					
-					shift = bc.GetCurrentSpeed();
-					shift.Z = 0;
-					shift *= -1;
-					rotation.Yaw += 90; 
-					useStaticTrace = false;
-					
-					SHIFT_DISTANCE *= 2;
+						SHIFT_DISTANCE *= 2;
+					}
 				}
 			}
 		}
@@ -189,7 +198,7 @@ class W3FastTravelEntity extends CR4FastTravelEntity
 			mac = ( CMovingAgentComponent )thePlayer.GetMovingAgentComponent();
 			if ( mac )
 			{
-				
+				// player on foot
 				shift = mac.GetVelocityBasedOnRequestedMovement();
 				shift.Z = 0;
 				shift *= -1;
@@ -230,7 +239,7 @@ class W3FastTravelEntity extends CR4FastTravelEntity
 			
 			if(GetWitcherPlayer())
 			{
-				thePlayer.PlayVoiceset(100, "Input");	
+				thePlayer.PlayVoiceset(100, "Input");	//great name btw...
 			}
 		}
 	}

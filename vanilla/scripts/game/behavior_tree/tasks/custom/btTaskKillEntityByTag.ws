@@ -1,12 +1,8 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
-
-
+﻿// CBTTaskKillEntityByTag
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Kills an actor by his tag
+//---------------------------------------------------------------------------
 class CBTTaskKillEntityByTag extends IBehTreeTask
 {
 	var npc				: array<CNewNPC>;

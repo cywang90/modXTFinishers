@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 class CBTTaskSelectTargetFromList extends IBehTreeTask
 {
 	public var targetList : array<name>;

@@ -1,10 +1,11 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Copyright © 2013 CDProjektRed
+/** Author : Dexio ?
+/** 		 Bartosz Bigaj
+/**			 Tomasz Kozera
+/***********************************************************************/
 
 enum EArmorType
 {
@@ -14,8 +15,8 @@ enum EArmorType
 	EAT_Heavy
 }
 
-
-
+//#B !!! IMPORTANT !!!
+// Match with as red.game.witcher3.constants.InventorySlotType.as, change order (only here) and slot in inventory panel will be broken
 enum EEquipmentSlots
 {
 	EES_InvalidSlot,
@@ -30,7 +31,7 @@ enum EEquipmentSlots
 	EES_RangedWeapon,
 	EES_Quickslot1,
 	EES_Quickslot2,
-	EES_Unused,
+EES_Unused,
 	EES_Hair,
 	EES_Potion1,
 	EES_Potion2,
@@ -47,7 +48,93 @@ enum EEquipmentSlots
 	EES_HorseBlinders,
 	EES_HorseSaddle,
 	EES_HorseBag,
-	EES_HorseTrophy
+	EES_HorseTrophy,
+	EES_Potion3,
+	EES_Potion4
+}
+
+function IsSlotHorseSlot(slot : EEquipmentSlots) : bool
+{
+	if(slot == EES_HorseBlinders || slot == EES_HorseSaddle || slot == EES_HorseBag || slot == EES_HorseTrophy)
+		return true;
+		
+	return false;
+}
+
+function SlotEnumToName(slot : EEquipmentSlots) : name
+{
+	if(slot == EES_InvalidSlot) return 'EES_InvalidSlot';
+	else if(slot == EES_SilverSword) return 'EES_SilverSword';
+	else if(slot == EES_SteelSword) return 'EES_SteelSword';
+	else if(slot == EES_Armor) return 'EES_Armor';
+	else if(slot == EES_Boots) return 'EES_Boots';
+	else if(slot == EES_Pants) return 'EES_Pants';
+	else if(slot == EES_Gloves) return 'EES_Gloves';
+	else if(slot == EES_Petard1) return 'EES_Petard1';
+	else if(slot == EES_Petard2) return 'EES_Petard2';
+	else if(slot == EES_RangedWeapon) return 'EES_RangedWeapon';
+	else if(slot == EES_Quickslot1) return 'EES_Quickslot1';
+	else if(slot == EES_Quickslot2) return 'EES_Quickslot2';
+	else if(slot == EES_Unused) return 'EES_Unused';
+	else if(slot == EES_Hair) return 'EES_Hair';
+	else if(slot == EES_Potion1) return 'EES_Potion1';
+	else if(slot == EES_Potion2) return 'EES_Potion2';
+	else if(slot == EES_Mask) return 'EES_Mask';
+	else if(slot == EES_Bolt) return 'EES_Bolt';
+	else if(slot == EES_PotionMutagen1) return 'EES_PotionMutagen1';
+	else if(slot == EES_PotionMutagen2) return 'EES_PotionMutagen2';
+	else if(slot == EES_PotionMutagen3) return 'EES_PotionMutagen3';
+	else if(slot == EES_PotionMutagen4) return 'EES_PotionMutagen4';
+	else if(slot == EES_SkillMutagen1) return 'EES_SkillMutagen1';
+	else if(slot == EES_SkillMutagen2) return 'EES_SkillMutagen2';
+	else if(slot == EES_SkillMutagen3) return 'EES_SkillMutagen3';
+	else if(slot == EES_SkillMutagen4) return 'EES_SkillMutagen4';
+	else if(slot == EES_HorseBlinders) return 'EES_HorseBlinders';
+	else if(slot == EES_HorseSaddle) return 'EES_HorseSaddle';
+	else if(slot == EES_HorseBag) return 'EES_HorseBag';
+	else if(slot == EES_HorseTrophy) return 'EES_HorseTrophy';
+	else if(slot == EES_Potion3) return 'EES_Potion3';
+	else if(slot == EES_Potion4) return 'EES_Potion4';
+	
+	return '';
+}
+
+function SlotNameToEnum(slot : name) : EEquipmentSlots
+{
+	if(slot == 'EES_InvalidSlot') return EES_InvalidSlot;
+	else if(slot == 'EES_SilverSword') return EES_SilverSword;
+	else if(slot == 'EES_SteelSword') return EES_SteelSword;
+	else if(slot == 'EES_Armor') return EES_Armor;
+	else if(slot == 'EES_Boots') return EES_Boots;
+	else if(slot == 'EES_Pants') return EES_Pants;
+	else if(slot == 'EES_Gloves') return EES_Gloves;
+	else if(slot == 'EES_Petard1') return EES_Petard1;
+	else if(slot == 'EES_Petard2') return EES_Petard2;
+	else if(slot == 'EES_RangedWeapon') return EES_RangedWeapon;
+	else if(slot == 'EES_Quickslot1') return EES_Quickslot1;
+	else if(slot == 'EES_Quickslot2') return EES_Quickslot2;
+	else if(slot == 'EES_Unused') return EES_Unused;
+	else if(slot == 'EES_Hair') return EES_Hair;
+	else if(slot == 'EES_Potion1') return EES_Potion1;
+	else if(slot == 'EES_Potion2') return EES_Potion2;
+	else if(slot == 'EES_Mask') return EES_Mask;
+	else if(slot == 'EES_Bolt') return EES_Bolt;
+	else if(slot == 'EES_PotionMutagen1') return EES_PotionMutagen1;
+	else if(slot == 'EES_PotionMutagen2') return EES_PotionMutagen2;
+	else if(slot == 'EES_PotionMutagen3') return EES_PotionMutagen3;
+	else if(slot == 'EES_PotionMutagen4') return EES_PotionMutagen4;
+	else if(slot == 'EES_SkillMutagen1') return EES_SkillMutagen1;
+	else if(slot == 'EES_SkillMutagen2') return EES_SkillMutagen2;
+	else if(slot == 'EES_SkillMutagen3') return EES_SkillMutagen3;
+	else if(slot == 'EES_SkillMutagen4') return EES_SkillMutagen4;
+	else if(slot == 'EES_HorseBlinders') return EES_HorseBlinders;
+	else if(slot == 'EES_HorseSaddle') return EES_HorseSaddle;
+	else if(slot == 'EES_HorseBag') return EES_HorseBag;
+	else if(slot == 'EES_HorseTrophy') return EES_HorseTrophy;
+	else if(slot == 'EES_Potion3') return EES_Potion3;
+	else if(slot == 'EES_Potion4') return EES_Potion4;
+	
+	return EES_InvalidSlot;
 }
 
 enum EItemGroup
@@ -87,6 +174,8 @@ function GetLocNameFromEquipSlot(slotType : EEquipmentSlots) : name
 		return '';
 	case EES_Potion1:
 	case EES_Potion2:
+	case EES_Potion3:
+	case EES_Potion4:
 		return 'panel_inventory_paperdoll_slotname_potions';
 	case EES_Mask:
 		return '';
@@ -115,15 +204,15 @@ function GetLocNameFromEquipSlot(slotType : EEquipmentSlots) : name
 	return '';
 }
 
-
+//returns true if given slot is one of slots that are in multiple (e.g. potions)
 function IsMultipleSlot(slot : EEquipmentSlots) : bool
 {
-	return slot == EES_Petard1 || slot == EES_Petard2 || slot == EES_Quickslot1 || slot == EES_Quickslot2 || slot == EES_Potion1 || slot == EES_Potion2
+	return slot == EES_Petard1 || slot == EES_Petard2 || slot == EES_Quickslot1 || slot == EES_Quickslot2 || IsSlotPotionSlot(slot)
 			|| slot == EES_PotionMutagen1 || slot == EES_PotionMutagen2 || slot == EES_PotionMutagen3 || slot == EES_PotionMutagen4
 			|| slot == EES_SkillMutagen1 || slot == EES_SkillMutagen2 || slot == EES_SkillMutagen3 || slot == EES_SkillMutagen4;
 }
 
-
+// Match witcher3.constants.InvntoryFilterType
 enum EInventoryFilterType
 {
 	IFT_None,
@@ -138,8 +227,8 @@ enum EInventoryFilterType
 	IFT_AllExceptHorseItem
 }
 
-
-
+// Match witcher3.constants.InventoryActionType 
+// !!!!!! TELL UI TEAM ABOUT YOUR CHANGE !!!!!!!
 enum EInventoryActionType
 {
 	IAT_None,
@@ -154,14 +243,14 @@ enum EInventoryActionType
 	IAT_Transfer,
 	IAT_Sell,
 	IAT_Buy,
-	
+	//IAT_MobileCampfire,
 	IAT_Repair,
 	IAT_Divide,
 	IAT_Socket
 }
 
-
-
+// Match witcher3.constants.InvntoryFilterType
+// !!!!!! TELL UI TEAM ABOUT YOUR CHANGE !!!!!!!
 struct SItemDataStub
 {
 	var id : SItemUniqueId;
@@ -173,29 +262,29 @@ struct SItemDataStub
 	var isNew : bool;
 	var actionType : int;
 	var price : int;
-	var userData : string; 
+	var userData : string; // #B tooltip text - > to change
 	var category : string;
 	var equipped : int;
 	var isReaded : bool;
 }
 
-
+// Returns invalid unique id - for comparision
 function GetInvalidUniqueId() : SItemUniqueId
 {
 	var invalidUniqueId : SItemUniqueId;
 	return invalidUniqueId;
 }
 
-
+//tooltip item comparison types
 enum ECompareType
 {
 	ECT_Incomparable,
 	ECT_Compare
 }
 
-
-
-
+/////////////////////////////////////////////
+// SItemUniqueId
+/////////////////////////////////////////////
 
 import struct SInventoryItem { };
 
@@ -214,8 +303,8 @@ import struct SItemParts
 	import var quantity : int;
 }
 
-
-
+// operator( SItemUniqueId == SItemUniqueId ) : bool;
+// operator( SItemUniqueId != SItemUniqueId ) : bool;
 
 function GetFilterTypeName( filterType : EInventoryFilterType ) : name
 {
@@ -242,7 +331,7 @@ function GetFilterTypeName( filterType : EInventoryFilterType ) : name
 	}
 }
 
-function GetFilterTypeByName( filterName : name ) : EInventoryFilterType 
+function GetFilterTypeByName( filterName : name ) : EInventoryFilterType // #B
 {
 	switch(filterName)
 	{
@@ -267,7 +356,7 @@ function GetFilterTypeByName( filterName : name ) : EInventoryFilterType
 	}
 }
 
-
+//Returns equipment slot for item with given category and tags. If it's a quickslot item then EES_Quickslot1 is returned.
 function GetSlotForItem(category : name, tags : array<name>, isPlayer : bool) : EEquipmentSlots
 {
 	if (isPlayer && tags.Contains('PlayerUnwearable') ) return EES_InvalidSlot;
@@ -338,25 +427,25 @@ function IsSlotPotionMutagen(slot : EEquipmentSlots) : bool
 	return slot == EES_PotionMutagen1 || slot == EES_PotionMutagen2 || slot == EES_PotionMutagen3 || slot == EES_PotionMutagen4;
 }
 
-
+//returns true if given slot is any quickslot slot
 function IsSlotQuickslot(slot : EEquipmentSlots) : bool
 {
 	return slot == EES_Quickslot1 || slot == EES_Quickslot2;
 }
 
-
+//returns true if given slot is any mutagen slot
 function IsSlotMutagen(slot : EEquipmentSlots) : bool
 {
 	return slot == EES_PotionMutagen1 || slot == EES_PotionMutagen2 || slot == EES_PotionMutagen3 || slot == EES_PotionMutagen4;
 }
 
-
-function IsSlotPotionslot(slot : EEquipmentSlots) : bool
+//#B returns true if given slot is any potionslot slot
+function IsSlotPotionSlot(slot : EEquipmentSlots) : bool
 {
-	return slot == EES_Potion1 || slot == EES_Potion2 ;
+	return slot == EES_Potion1 || slot == EES_Potion2 || slot == EES_Potion3 || slot == EES_Potion4;
 }
 
-
+//#B returns true if given slot is any petardslot slot
 function IsSlotPetardslot(slot : EEquipmentSlots) : bool
 {
 	return slot == EES_Petard1 || slot == EES_Petard2;
@@ -366,7 +455,7 @@ function GetItemActionFriendlyName( itemAction : EInventoryActionType, optional 
 {
 	switch(itemAction)
 	{
-			
+			//case IAT_None :
 		case IAT_Equip :
 			if( isEquipped )
 			{
@@ -377,7 +466,8 @@ function GetItemActionFriendlyName( itemAction : EInventoryActionType, optional 
 			return "panel_button_inventory_consume";	
 		case IAT_Read :
 			return "panel_button_inventory_read";	
-		
+		/*case IAT_MobileCampfire :
+			return "panel_button_inventory_create_campfire";		*/
 		case IAT_Drop :
 			return "panel_button_common_drop";	
 		case IAT_Transfer :
@@ -394,7 +484,10 @@ function GetItemActionFriendlyName( itemAction : EInventoryActionType, optional 
 			return "ERROR_ItemActionFriendlyName";
 	}
 	
-	
+	/*IAT_UpgradeWeapon,
+	IAT_UpgradeWeaponSteel,
+	IAT_UpgradeWeaponSilver,
+	IAT_UpgradeArmor,*/
 }
 
 function IsBookTextureTag( tag : string ) : bool
@@ -410,18 +503,18 @@ function IsBookTextureTag( tag : string ) : bool
 	return false;
 }
 
-
-
-
+/////////////////////////////////////////////
+// LOOT MANAGER
+/////////////////////////////////////////////
 
 struct SAreaItemDefinition
 {
-	saved var itemName : name;		
-	saved var maxCount : int;			
+	saved var itemName : name;		//item name
+	saved var maxCount : int;			//max amount of items we are allowed to find in this area
 };
 
 struct SAreaLootParams
 {
-	saved var remainingItemDrops : array<SAreaItemDefinition>;			
-	saved var areaType : EAreaName;										
+	saved var remainingItemDrops : array<SAreaItemDefinition>;			//remaining allowed item drops
+	saved var areaType : EAreaName;										//area type
 };

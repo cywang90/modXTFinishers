@@ -1,13 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-struct SUISavedData
+﻿struct SUISavedData
 {
 	var panelName : name;
 	var selectedTag : name;
-	
-	
+	//var selectedItemId : SItemUniqueID;
+	//var selectedSkillId : SItemUniqueID;
 	var openedCategories : array<name>;
 	var gridItem : SItemUniqueId;
 	var slotID : int;
@@ -32,6 +28,21 @@ struct SCraftingFilters
 	var showCraftable : bool; default showCraftable = true;
 	var showMissingIngre : bool; default showMissingIngre = true;
 	var showAlreadyCrafted : bool; default showAlreadyCrafted = true;
+}
+
+struct SEnchantmentFilters
+{
+	var showHasIngredients : bool; default showHasIngredients = true;
+	var showMissingIngredients : bool; default showMissingIngredients = true;
+	var showLevel1 : bool; default showLevel1 = true;
+	var showLevel2 : bool; default showLevel2 = true;
+	var showLevel3 : bool; default showLevel3 = true;
+}
+
+import struct SGuiEnhancementInfo
+{
+	import var enhancedItem : name;
+	import var enhancement : name;
 }
 
 enum EUserDialogButtons
@@ -79,7 +90,7 @@ import class CR4GuiManager extends CGuiManager
 {
 	private var lastOpenedCommonMenuName : name;
 	
-	private var isColorBlindMode:bool; 
+	private var isColorBlindMode:bool; // #Y Temp solution!
 	
 	saved var displayedObjectivesGUID : array<CGUID>;
 	
@@ -114,6 +125,8 @@ import class CR4GuiManager extends CGuiManager
 	protected var guiSceneController : CR4GuiSceneController;
 	protected var hudEventController : CR4HudEventController;
 	
+	public var lastRequestedCreditsIndex : int;
+	
 	saved var NewestItems : array<SItemUniqueId>;
 	saved var GlossaryEntries : array<SGlossaryEntry>;
 	saved var AlchemyEntries : array<SGlossaryEntry>;
@@ -122,6 +135,7 @@ import class CR4GuiManager extends CGuiManager
 	saved var MappinEntries : array<SMappinEntry>;
 	saved var CraftingFilters : SCraftingFilters;
 	saved var AlchemyFiltters : SCraftingFilters;
+	saved var EnchantmentFilters : SEnchantmentFilters;
 	saved var PinnedCraftingRecipe : name;
 	saved var InventorySortingMode : int;
 	
@@ -149,10 +163,10 @@ import class CR4GuiManager extends CGuiManager
 	import final function GetPopupList( out popupNames : array< name > );
 	import final function SendCustomUIEvent( eventName : name );
 	
-	
+	// scene
 	import final function SetSceneEntityTemplate( template : CEntityTemplate , optional animationName : name );
 	import final function ApplyAppearanceToSceneEntity( appearanceName : name );
-	import final function UpdateSceneEntityItems( items : array< name > );
+	import final function UpdateSceneEntityItems( items : array< name >, enhancements : array< SGuiEnhancementInfo > );
 	import final function SetSceneCamera( cameraPosition : Vector, cameraRotation : EulerAngles );
 	import final function SetupSceneCamera( lookAtPos : Vector, cameraRotation : EulerAngles, distance : float, fov : float );
 	import final function SetEntityTransform( position : Vector, rotation : EulerAngles, scale : Vector );
@@ -160,7 +174,7 @@ import class CR4GuiManager extends CGuiManager
 	import final function EnableScenePhysics( enable : bool );
 	import final function SetBackgroundTexture( texture : CResource );
 	
-	event  OnGameStart( newOrRestored : bool )
+	event /* C++ */ OnGameStart( newOrRestored : bool )
 	{
 		var ingameMenu : CR4IngameMenu;
 		
@@ -188,20 +202,41 @@ import class CR4GuiManager extends CGuiManager
 		}
 	}
 	
-	event  OnGameEnd()
+	event /* C++ */ OnGameEnd()
 	{
 	}
 
-	event  OnWorldStart( newOrRestored : bool )
+	event /* C++ */ OnWorldStart( newOrRestored : bool )
 	{
 	}
 
-	event  OnWorldEnd()
+	event /* C++ */ OnWorldEnd()
 	{
 	}
 	
-	event  OnFailedCreateMenu()
+	event /* C++ */ OnFailedCreateMenu()
 	{
+	}
+	
+	public function RequestCreditsMenu(creditsIndex : int)
+	{
+		var rootMenu : CR4Menu;
+		var ingameMenu : CR4IngameMenu;
+		
+		lastRequestedCreditsIndex = creditsIndex;
+		rootMenu = theGame.GetGuiManager().GetRootMenu();
+		if ( rootMenu )
+		{
+			ingameMenu = (CR4IngameMenu)rootMenu.GetSubMenu();
+			if ( ingameMenu )
+			{
+				ingameMenu.OnRequestSubMenu( 'CreditsMenu' );
+			}
+		}
+		else
+		{
+			theGame.RequestMenu( 'CreditsMenu' );
+		}
 	}
 	
 	public function GetInGameConfigBufferedWrapper() : CInGameConfigBufferedWrapper
@@ -224,7 +259,7 @@ import class CR4GuiManager extends CGuiManager
 	
 	public function GetCraftingFilters() : SCraftingFilters
 	{
-		
+		// The following is illegal and can occur after loading a save
 		if (CraftingFilters.showCraftable == false && CraftingFilters.showMissingIngre == false && CraftingFilters.showAlreadyCrafted == false)
 		{
 			CraftingFilters.showCraftable = true;
@@ -244,7 +279,7 @@ import class CR4GuiManager extends CGuiManager
 	
 	public function GetAlchemyFiltters() : SCraftingFilters
 	{
-		
+		// The following is illegal and can occur after loading a save
 		if (AlchemyFiltters.showCraftable == false && AlchemyFiltters.showMissingIngre == false && AlchemyFiltters.showAlreadyCrafted == false)
 		{
 			AlchemyFiltters.showCraftable = true;
@@ -253,6 +288,31 @@ import class CR4GuiManager extends CGuiManager
 		}
 		
 		return AlchemyFiltters;
+	}
+	
+	public function SetEnchantmentFilters(showHasIngredients : bool, showMissingIngredients : bool, showLevel1 : bool, showLevel2 : bool, showLevel3 : bool) : void
+	{
+		EnchantmentFilters.showHasIngredients = showHasIngredients;
+		EnchantmentFilters.showMissingIngredients = showMissingIngredients;
+		EnchantmentFilters.showLevel1 = showLevel1;
+		EnchantmentFilters.showLevel2 = showLevel2;
+		EnchantmentFilters.showLevel3 = showLevel3;
+	}
+	
+	public function GetEnchantmentFilters() : SEnchantmentFilters
+	{
+		// The following is illegal and can occur after loading a save
+		if (EnchantmentFilters.showHasIngredients == false && EnchantmentFilters.showMissingIngredients == false && 
+			EnchantmentFilters.showLevel1 == false && EnchantmentFilters.showLevel2 == false && EnchantmentFilters.showLevel3 == false)
+		{
+			EnchantmentFilters.showHasIngredients = true;
+			EnchantmentFilters.showMissingIngredients = true;
+			EnchantmentFilters.showLevel1 = true;
+			EnchantmentFilters.showLevel2 = true;
+			EnchantmentFilters.showLevel3 = true;
+		}
+		
+		return EnchantmentFilters;	
 	}
 	
 	public function SetPinnedCraftingRecipe(tag : name):void
@@ -279,7 +339,7 @@ import class CR4GuiManager extends CGuiManager
 		
 		buffer = GetInGameConfigBufferedWrapper();
 		
-		if (buffer.buffer.Size() > 0) 
+		if (buffer.buffer.Size() > 0) // hehe double names woooo (tired)
 		{
 			if (keepValues)
 			{
@@ -355,8 +415,8 @@ import class CR4GuiManager extends CGuiManager
 		
 		if( signInChangeInProgress )
 		{
-			
-			
+			// Make sure to close the "please wait" dialog if it's open
+			// Such as being signed out whilst the account picker is open in the main menu
 			HideUserDialog( UMID_SigningInPleaseWait );
 			
 			startScreenMenu = (CR4StartScreenMenu)(GetRootMenu());
@@ -486,7 +546,7 @@ import class CR4GuiManager extends CGuiManager
 		menuBase = (CR4MenuBase)GetRootMenu();
 		
 		startScreenMenu = (CR4StartScreenMenu)(menuBase);
-		if (startScreenMenu) 
+		if (startScreenMenu) // If in start screen, fade out
 		{
 			startScreenMenu.startFade();
 		}
@@ -507,7 +567,7 @@ import class CR4GuiManager extends CGuiManager
 	{
 		signoutOccurred = true;
 		
-		
+		// Prevent the user profile manager from processing any further input until we return to the start screen
 		theGame.ToggleUserProfileManagerInputProcessing( true );
 	}
 	
@@ -521,7 +581,7 @@ import class CR4GuiManager extends CGuiManager
 			return;
 		}
 		
-		
+		// Only show this once per run
 		if( bKinectMessageAlreadyShown )
 		{
 			return;
@@ -563,7 +623,18 @@ import class CR4GuiManager extends CGuiManager
 		ShowUserDialog( UMID_UserSettingsCorrupted, "", "error_message_settings_corrupted", UDB_Ok );
 	}
 	
-	
+	/* defined on C++ side:
+	enum ESessionRestoreResult
+	{
+		RESTORE_Success,			// ok
+		RESTORE_DataCorrupted,		// corrupted save data
+		RESTORE_DLCRequired,		// save made on DLC, and now that DLC is not enabled
+		RESTORE_MissingContent,		// missing game content chunk (incomplete streaming install)
+		RESTORE_InternalError,		// internal error, should not happen
+		RESTORE_NoGameDefinition,	// save was made on a game definition that is missing now (like: some debug definition)
+		RESTORE_WrongGameVersion,	// save was made on a newer game version (like: ptched game, while we're running unpatched)
+	};
+	*/
 	
 	public function OnLoadingFailed( sres : ESessionRestoreResult, missingContent : array< name > ) : void
 	{
@@ -684,10 +755,26 @@ import class CR4GuiManager extends CGuiManager
 	}
 	
 	
+	/*
+	@param videoFile the filename of the USM to play.
 	
+	The hud or top-level menu can implement the following events to be notified on movie status:
+	- OnVideoStarted()
+	- OnVideoStopped()
+	- OnVideoSubtitles( subtitles:string )
+	
+	The logic for what gets the events is simple: 
+	*) if there's a hud and it's attached, then the hud gets the events.
+	*) otherwise if there's a top-level menu, then that menu gets the events.
+	
+	One use for started/stopped events is to hide parts of the menu to show the video.
+	
+	The file is relative to "r4data\movies\cutscenes\".
+	E.g., if videoFile is "flashbacks\\test.usm" then it will try to play "r4data\movies\cutscenes\flashbacks\test.usm"
+	*/
 	import final function PlayFlashbackVideoAsync( videoFile : string, optional looped : bool );
 	
-	
+	// Cancel any playing flashback video.
 	import final function CancelFlashbackVideo();
 
 	event OnCanSkipChanged( newVal : bool )
@@ -711,9 +798,17 @@ import class CR4GuiManager extends CGuiManager
 	}
 
 
-	
+	/*
+	enum EStandardSwipe
+	{
+		SWIPE_LEFT,
+		SWIPE_RIGHT,
+		SWIPE_DOWN,
+		SWIPE_UP
+	};
+	*/
 
-	event  OnSwipe( swipe : int ) 
+	event /* C++ */ OnSwipe( swipe : int ) 
 	{
 		var outKeys : array< name >;
 		var lastMenuName : name;
@@ -726,12 +821,50 @@ import class CR4GuiManager extends CGuiManager
 			return false;
 		}
 		
-		if ( swipe == 2 || swipe == 3 ) 
+		if ( swipe == 2 || swipe == 3 ) // SWIPE_DOWN || SWIPE_UP
 		{
 			if(thePlayer.IsActionAllowed(EIAB_OpenMap))
 				theGame.RequestMenuWithBackground( 'MapMenu', 'CommonMenu' );
 				
+			/*
+			theInput.GetAllActionsNamesForCurrentContext( outKeys );
 			
+			if ( !IsAnyMenu() && outKeys.Contains('FastMenu') )
+			{
+				if ( lastOpenedCommonMenuName == '' )
+				{
+					lastOpenedCommonMenuName = 'InventoryMenu';
+				}
+				
+				allowOpen = true;
+				
+				if( lastOpenedCommonMenuName == 'InventoryMenu' )
+				{
+					allowOpen = thePlayer.IsActionAllowed(EIAB_OpenInventory);
+				}
+				else if( lastOpenedCommonMenuName == 'GwintMenu' )
+				{
+					allowOpen = thePlayer.IsActionAllowed(EIAB_OpenInventory);
+				}
+				else if( lastOpenedCommonMenuName == 'MapMenu' )
+				{
+					allowOpen = thePlayer.IsActionAllowed(EIAB_OpenMap);
+				}
+				else if( lastOpenedCommonMenuName == 'JournalParent' )
+				{
+					allowOpen = thePlayer.IsActionAllowed(EIAB_OpenJournal);
+				}
+				else if( lastOpenedCommonMenuName == 'AlchemyMenu' )
+				{
+					allowOpen = thePlayer.IsActionAllowed(EIAB_OpenAlchemy);
+				}
+				
+				if( allowOpen )
+				{
+					theGame.RequestMenuWithBackground( lastOpenedCommonMenuName, 'CommonMenu' );
+				}
+			}
+			*/
 		}
 	}
 	
@@ -832,7 +965,7 @@ import class CR4GuiManager extends CGuiManager
 		return hideMessageRequestId;
 	}
 	
-	
+	// Dialog with callback
 	public function ShowUserDialog( messageId : int, title : string, message : string, type : EUserDialogButtons)
 	{
 		if( messageId != UMID_ControllerDisconnected )
@@ -868,7 +1001,7 @@ import class CR4GuiManager extends CGuiManager
 		messageData.progressType = progressType;
 		messageData.progressTag = progressTag;
 		
-		
+		// #J Progress dialogs do not recover right now if another dialog goes above them. If you want to change this you need to fix progrses dialogs
 		if (messageId == UMID_ControllerDisconnected)
 		{
 			messageData.priority = 1;
@@ -900,13 +1033,13 @@ import class CR4GuiManager extends CGuiManager
 		messagePopupRef = (CR4MessagePopup)GetPopup('MessagePopup');
 		if (messagePopupRef && messagePopupRef.GetCurrentMsgId() == messageId)
 		{
-			
-			
+			// Hardcoding UMPT_Content because as of writing this new system it was only value and I have a feeling this function is never called but just in case 
+			// making it work like before
 			messagePopupRef.DisplayProgressBar(progressValue, UMPT_Content); 
 		}
 		else
 		{
-			
+			// warning (or creating new dialog?)
 		}
 	}
 	
@@ -967,7 +1100,7 @@ import class CR4GuiManager extends CGuiManager
 				initData = new W3MenuInitData in this;
 				initData.setDefaultState('SaveGame');
 				
-				
+				//theGame.RequestMenuWithBackground( 'IngameMenu','IngameMenu', initData );
 				theGame.RequestMenu( 'IngameMenu', initData );
 			}
 			else
@@ -1059,7 +1192,7 @@ import class CR4GuiManager extends CGuiManager
 		}
 	}
 	
-	
+	// immediateHide - without hidding animation
 	public function HideLoadingIndicator(optional immediateHide : bool):void
 	{
 		var overlayPopupRef  : CR4OverlayPopup;
@@ -1080,7 +1213,7 @@ import class CR4GuiManager extends CGuiManager
 		}
 	}
 	
-	
+	// immediateHide - without hidding animation
 	public function HideSavingIndicator(optional immediateHide : bool):void
 	{
 		var overlayPopupRef  : CR4OverlayPopup;
@@ -1159,7 +1292,7 @@ import class CR4GuiManager extends CGuiManager
 		}
 	}
 	
-	
+	//to avoid issue when EnableHudHoldIndicator called before HUD loaded
 	public function checkHoldIndicator():void
 	{
 		if (m_cachedHold)
@@ -1171,10 +1304,10 @@ import class CR4GuiManager extends CGuiManager
 	
 	public function DisableHudHoldIndicator():void
 	{
-		
-		
+		//if (label == "panel_input_action_horsedismount")
+		//{
 			horseUnmountFeedbackActive = false;
-		
+		//}
 		
 		DisableHudHoldIndicator_Impl();	
 	}
@@ -1326,6 +1459,10 @@ import class CR4GuiManager extends CGuiManager
 	
 	public function DisplayPortalConfirmationPopup( pause : bool, allowInMenu : bool ) : void
 	{
+		var LEVEL_REQUAREMENT_GAME : int = 22;
+		var LEVEL_REQUAREMENT_GAMEPLUS : int = 52;		
+		var arrInt : array<int>;
+		
 		var popupData : W3PortalConfirmationPopupData;
 		
 		if (IsAnyMenu() && !allowInMenu)
@@ -1337,11 +1474,20 @@ import class CR4GuiManager extends CGuiManager
 		{
 			popupData = new W3PortalConfirmationPopupData in this;
 			
-			popupData.SetMessageTitle(GetLocStringByKeyExt("panel_portal_confirmation_popup_title"));
-			popupData.SetMessageText(GetLocStringByKeyExt("panel_portal_confirmation_popup_text"));	
+			if (FactsQuerySum("NewGamePlus") > 0 )
+			{
+				arrInt.PushBack(LEVEL_REQUAREMENT_GAMEPLUS);
+			}
+			else
+			{
+				arrInt.PushBack(LEVEL_REQUAREMENT_GAME);
+			}
+			
+			popupData.SetMessageText(GetLocStringByKeyExtWithParams("panel_portal_confirmation_popup_text", arrInt));
+			popupData.SetMessageTitle(GetLocStringByKeyExt("panel_portal_confirmation_popup_title"));			
 			popupData.BlurBackground = true;
 			popupData.PauseGame = pause;
-				
+			
 			theGame.RequestMenu('PopupMenu', popupData);
 		}
 	}

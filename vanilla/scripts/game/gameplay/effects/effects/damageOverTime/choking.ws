@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2015
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 class W3Effect_Choking extends W3DamageOverTimeEffect
 {
@@ -20,7 +18,7 @@ class W3Effect_Choking extends W3DamageOverTimeEffect
 	{
 		super.OnUpdate(dt);
 		
-		
+		//stop choking if player found some air
 		if(target.GetStat(BCS_Air) > 0)
 		{
 			isActive = false;

@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2013-2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 class W3Effect_CounterStrikeHit extends W3CriticalEffect
 {

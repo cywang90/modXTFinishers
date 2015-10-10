@@ -1,9 +1,6 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2013
+/***********************************************************************/
 
 class W3WeatherShrine extends CGameplayEntity
 {
@@ -42,7 +39,7 @@ class W3WeatherShrine extends CGameplayEntity
 	{
 		var currentWeather : name = GetWeatherConditionName();
 		
-		
+		//this intearaction is for player only
 		if ( thePlayer.GetInventory().GetMoney() < price )
 			return false;
 		

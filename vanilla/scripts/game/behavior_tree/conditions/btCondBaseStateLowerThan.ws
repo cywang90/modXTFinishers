@@ -1,13 +1,14 @@
-﻿/*
-Copyright © CD Projekt RED 2015
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2012
+/** Author : Andrzej Kwiatkowski
+/***********************************************************************/
+
+
+/**
+	who do you check
 */
-
-
-
-
-
-
-
 enum EStatOwner
 {
 	SO_NPC,
@@ -23,7 +24,9 @@ class BTCondBaseStatLowerThan extends IBehTreeTask
 	var percentage		: bool;
 	var ifNot			: bool;
 	
+	/**
 	
+	*/
 	function IsAvailable() : bool
 	{
 		var target : CActor;
@@ -110,7 +113,7 @@ class BTCondStaminaLowerThan extends IBehTreeTask
 			getStat = false;
 		}
 		
-		
+		//WTF so for example it checks if stamina is lower than essence?
 		if ( npc.GetStat( BCS_Stamina ) < statValue )
 		{
 			return false;

@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file - gwint deck builder
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author : Jason Slama
+/***********************************************************************/
 
 class W3GwintQuitConfPopup extends ConfirmationPopupData
 {
@@ -23,7 +22,7 @@ class CR4GwintBaseMenu extends CR4MenuBase
 	protected var gwintManager : CR4GwintManager;
 	protected var flashConstructor : CScriptedFlashObject;
 
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{
 		m_hideTutorial = true;
 		m_forceHideTutorial = true;
@@ -37,7 +36,7 @@ class CR4GwintBaseMenu extends CR4MenuBase
 		theGame.FadeInAsync( 0.2 );
 	}
 	
-	event  OnClosingMenu()
+	event /* C++ */ OnClosingMenu()
 	{
 		theInput.RestoreContext( 'EMPTY_CONTEXT', true );
 		super.OnClosingMenu();
@@ -185,7 +184,7 @@ class CR4GwintBaseMenu extends CR4MenuBase
 		}
 	}
 	
-	event  OnConfirmSurrender():void
+	event /*flash*/ OnConfirmSurrender():void
 	{
 		quitConfPopup = new W3GwintQuitConfPopup in this;
 		

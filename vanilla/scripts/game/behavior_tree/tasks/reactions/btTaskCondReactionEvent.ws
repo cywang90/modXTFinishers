@@ -1,13 +1,19 @@
-﻿/*
-Copyright © CD Projekt RED 2015
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Copyright © 2013 CD Projekt RED
+/** Author : Andrzej Kwiatkowski
+/***********************************************************************/
+
+// Reaction event name list
+/*
+PlayerAttack
+PlayerCastSign
+PlayerThrowItem
+PlayerEvade
+PlayerSpecialAttack
+PlayerSprint
 */
-
-
-
-
-
-
-
 
 class CBTTaskCondReactionEvent extends IBehTreeTask
 {

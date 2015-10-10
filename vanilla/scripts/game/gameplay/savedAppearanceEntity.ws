@@ -1,10 +1,6 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿//////////////////////////////////////////////////////////////
+// hacked version of saving CGameplayEntity's appearance
+//////////////////////////////////////////////////////////////
 
 class W3SavedAppearanceEntity extends CGameplayEntity
 {
@@ -13,7 +9,7 @@ class W3SavedAppearanceEntity extends CGameplayEntity
 	
 	event OnSpawned( spawnData : SEntitySpawnData )
 	{		
-		
+		// don't change appearance if not restored or default appearance wasn't changed
 		if ( IsNameValid( appearanceName ) && spawnData.restored )
 		{
 			ApplyAppearance( appearanceName );		

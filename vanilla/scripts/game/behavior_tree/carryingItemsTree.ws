@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CSpawnTreeInitializerCarryItemWanderAI extends ISpawnTreeInitializerIdleSmartAI
+﻿class CSpawnTreeInitializerCarryItemWanderAI extends ISpawnTreeInitializerIdleSmartAI
 {
 	function GetObjectForPropertiesEdition() : IScriptable
 	{

@@ -1,9 +1,5 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿// copyrajt orajt
+// W. Żerek
 
 class CBTTaskIceGiantFallingIcicles extends CBTTaskAttack
 {
@@ -15,7 +11,7 @@ class CBTTaskIceGiantFallingIcicles extends CBTTaskAttack
 	{
 		npc = GetNPC();
 		
-		
+		// search for existing icicles
 		FindGameplayEntitiesInRange( icicles, npc, rangeForIcyclesActivation, 10, 'icicle' );
 		
 		if( icicles.Size() )
@@ -34,9 +30,9 @@ class CBTTaskIceGiantFallingIcicles extends CBTTaskAttack
 		{
 			for( i = 0; i < icicles.Size(); i += 1 )
 			{
-				
-				
-				
+				// DO STUFF WITH ICICLES HERE
+				// pick random
+				//LogChannel('ICICLES', "destroyed icicle no.: " + i );
 			}
 			
 			return true;

@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2014
+/** Author : R.Pergent - 14-February-2014
+/***********************************************************************/
 
 enum EMonsterTactic
 {
@@ -14,14 +13,14 @@ enum EMonsterTactic
 
 class BTCondMonsterTacticIsUsed extends IBehTreeTask
 {
-	
-	
-	
+	//>----------------------------------------------------------------------
+	// VARIABLES
+	//-----------------------------------------------------------------------
 	var tactic 				: EMonsterTactic;
 	var distanceToCheck 	: float;
 	var ignoreMyself 		: bool;
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function IsAvailable() : bool
 	{
 		var i				: int;
@@ -46,9 +45,9 @@ class BTCondMonsterTacticIsUsed extends IBehTreeTask
 class BTCondMonsterTacticIsUsedDef extends IBehTreeConditionalTaskDefinition
 {
 	default instanceClass = 'BTCondMonsterTacticIsUsed';
-	
-	
-	
+	//>----------------------------------------------------------------------
+	// VARIABLES
+	//-----------------------------------------------------------------------
 	editable var tactic 			: EMonsterTactic;
 	editable var distanceToCheck 	: float;
 	editable var ignoreMyself		: bool;

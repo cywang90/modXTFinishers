@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿// CBTTaskVolumetricPursueTarget
 class CBTTaskVolumetricPursueTarget extends CBTTaskVolumetricMove
 {
 	var distanceOffset : float;
@@ -121,7 +117,7 @@ class CBTTaskVolumetricPursueTargetDef extends IBehTreeTaskDefinition
 };
 
 
-
+// CBTTaskVolumetricFlyAroundTarget
 class CBTTaskVolumetricFlyAroundTarget extends CBTTaskVolumetricMove
 {
 	var distance : float;

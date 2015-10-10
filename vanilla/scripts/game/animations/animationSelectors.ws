@@ -1,13 +1,28 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿
+/*enum EAnimationAttackType
+{
+	AAT_None, is default and it means any attack is ok
+	AAT_Jab,
+	AAT_Horizontal_LeftRight,
+	AAT_Horizontal_RightLeft,
+	AAT_Vertical_UpDown,
+	AAT_Vertical_DownUp,
+	AAT_Diagonal_UpLeftDownRight,
+	AAT_Diagonal_UpRightDownLeft,
+	AAT_Diagonal_DownLeftUpRight,
+	AAT_Diagonal_DownRightUpLeft,
+}*/
 
+/*enum EAnimationTrajectorySelectorType
+{
+	ATST_None,
+	ATST_IK,
+	ATST_Blend2,
+	ATST_Blend3,
+	ATST_Blend2Direction
+};*/
 
-
-
-
-
-
+///////////////////////////////////////////////////////////////////////////////////
 
 import struct SAnimationTrajectoryPlayerInput
 {
@@ -55,4 +70,4 @@ import class AnimationTrajectoryPlayerScriptWrapper extends CObject
 	import public final latent function WaitForFinish() : bool;
 }
 
-
+///////////////////////////////////////////////////////////////////////////////////

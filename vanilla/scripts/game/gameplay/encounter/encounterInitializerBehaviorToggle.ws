@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Spawn tree initializer that toggles AI behaviors on/off
+/** Copyright © 2014
+/***********************************************************************/
 
 
 import class ISpawnTreeInitializerToggleBehavior extends ISpawnTreeInitializer

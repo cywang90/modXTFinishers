@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2012-2014
+/** Author : ?, Tomasz Kozera
+/***********************************************************************/
 
 enum EBirdType
 {
@@ -26,8 +24,9 @@ struct SBirdSpawnpoint
 
 struct SFishSpawnpoint
 {
+	var shouldBeErased : bool;
 	var isFishSpawned : bool;
-	var fish : W3CurveFish;
 	var position : Vector;
 	var rotation : EulerAngles;
+	var spawnHandler : CCreateEntityHelper;
 };

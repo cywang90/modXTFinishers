@@ -1,11 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
-
-
-
-
+//stamina regen
 class W3Effect_WellHydrated extends W3RegenEffect
 {
 	private var level : int;
@@ -14,6 +12,29 @@ class W3Effect_WellHydrated extends W3RegenEffect
 	default isPositive = true;
 	default isNeutral = false;
 	default isNegative = false;
+	
+	event OnEffectAdded(optional customParams : W3BuffCustomParams)
+	{
+		super.OnEffectAdded(customParams);
+		
+		if(isOnPlayer && thePlayer == GetWitcherPlayer() && GetWitcherPlayer().HasRunewordActive('Runeword 6 _Stats'))
+		{		
+			iconPath = theGame.effectMgr.GetPathForEffectIconTypeName('icon_effect_Dumplings');
+		}
+	}
+	
+	protected function CalculateDuration(optional setInitialDuration : bool)
+	{
+		var val : SAbilityAttributeValue;
+		
+		super.CalculateDuration(setInitialDuration);
+		
+		if(isOnPlayer && thePlayer == GetWitcherPlayer() && GetWitcherPlayer().HasRunewordActive('Runeword 6 _Stats'))
+		{
+			val = target.GetAttributeValue('runeword6_duration_bonus');
+			duration *= 1 + val.valueMultiplicative;
+		}
+	}
 	
 	protected function GetSelfInteraction( e : CBaseGameplayEffect) : EEffectInteract
 	{

@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTask3StateProjectileAttack extends CBTTask3StateAttack
+﻿class CBTTask3StateProjectileAttack extends CBTTask3StateAttack
 {
 	public var attackRange			: float;
 	public var projEntity			: CEntityTemplate;
@@ -71,8 +67,18 @@ class CBTTask3StateProjectileAttack extends CBTTask3StateAttack
 		var projectileFlightTime : float;
 		var target : CActor = GetCombatTarget();
 		
-		projPos = npc.GetWorldPosition();
-		projPos.Z += 1.5f;
+		var projOriginMat : Matrix;
+		
+		if ( npc.CalcEntitySlotMatrix( 'projectile_origin', projOriginMat ) )
+		{
+			projPos	= MatrixGetTranslation( projOriginMat );
+		}
+		else
+		{
+			projPos = npc.GetWorldPosition();
+			projPos.Z += 1.5f;
+		}
+		
 		projRot = npc.GetWorldRotation();
 		projectile = (W3AdvancedProjectile)theGame.CreateEntity( projEntity, projPos, projRot );
 		projectile.Init( npc );
@@ -93,7 +99,7 @@ class CBTTask3StateProjectileAttack extends CBTTask3StateAttack
 		{
 			distanceToTarget = VecDistance( npc.GetWorldPosition(), target.GetWorldPosition() );		
 			
-			
+			// used to dodge projectile before it hits
 			projectileFlightTime = distanceToTarget / projectile.projSpeed;
 			target.SignalGameplayEventParamFloat('Time2DodgeProjectile', projectileFlightTime );
 		}
@@ -107,7 +113,7 @@ class CBTTask3StateProjectileAttackDef extends CBTTask3StateAttackDef
 	default instanceClass = 'CBTTask3StateProjectileAttack';
 
 	editable var attackRange 		: float;
-	
+	//editable var projEntity	 		: CEntityTemplate;
 	editable var projectileName	 	: name;
 	editable var dodgeable			: bool;
 	editable var useLookatTarget	: bool;

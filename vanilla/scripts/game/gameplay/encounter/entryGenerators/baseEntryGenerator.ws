@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 import struct SCreatureDefinitionWrapper
 {
 	import var creatureDefinition : name;
@@ -59,7 +55,7 @@ import struct SWorkSmartAIEntryGeneratorNodeParam
 
 struct SCreatureEntrySpawnerParams
 {
-	
+	// TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! SPAWN STRATEGY
 	editable var visibility : ESpawnTreeSpawnVisibility;
 	editable var spawnpointDelay :float;
 };
@@ -92,12 +88,12 @@ import class CSpawnTreeBaseEntryGenerator extends ISpawnTreeLeafNode
 	
 	function AplyCreatureSpawnerParams( cEntry : CCreatureEntry, cfg : SCreatureEntrySpawnerParams )
 	{
-		
+		// TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! SPAWN STRATEGY
 		cEntry.baseSpawner.spawnpointDelay 	= cfg.spawnpointDelay;
 		cEntry.baseSpawner.visibility 		= cfg.visibility;
 	}
 	
-	
+	//should be implemented by subclasses
 	function GenerateEntries(){}
 	function GetFriendlyName() : string { return "Entry generator"; }
 }

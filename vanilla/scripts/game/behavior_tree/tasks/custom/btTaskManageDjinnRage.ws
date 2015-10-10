@@ -1,24 +1,20 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
-
-
-
-
-
-
-
+﻿//>--------------------------------------------------------------------------
+// BTTaskManageDjinnRage
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Manages reactions to Signs for Djinn enemy
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Andrzej Kwiatkowski - 30-01-2015
+// Copyright © 2015 CD Projekt RED
+//---------------------------------------------------------------------------
 
 class BTTaskManageDjinnRage extends IBehTreeTask
 {
-	
-	
-	
-	
+	//>--------------------------------------------------------------------------
+	// VARIABLES
+	//---------------------------------------------------------------------------
+	// public
 	public var defaultFXName				: name;
 	public var playFXOnAardHit				: name;
 	public var playFXOnIgniHit				: name;
@@ -29,7 +25,7 @@ class BTTaskManageDjinnRage extends IBehTreeTask
 	public var removeWeakenedStateOnCounter	: bool;
 	
 	
-	
+	// private
 	private var m_isInYrden					: bool;
 	private var m_inRageState				: bool;
 	private var m_inWeakenedState			: bool;
@@ -37,8 +33,8 @@ class BTTaskManageDjinnRage extends IBehTreeTask
 	private var m_enterWeakendTimeStamp 	: float;
 	
 	
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	latent function Main() : EBTNodeStatus
 	{
 		var l_owner		: CNewNPC = GetNPC();
@@ -66,9 +62,9 @@ class BTTaskManageDjinnRage extends IBehTreeTask
 	}
 	
 	
-	
-	
-	
+	//>----------------------------------------------------------------------
+	// Helper functions
+	//-----------------------------------------------------------------------
 	private function EnterRageState()
 	{
 		var l_owner		: CNewNPC = GetNPC();
@@ -82,8 +78,8 @@ class BTTaskManageDjinnRage extends IBehTreeTask
 	}
 	
 	
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	private function RemoveRageState()
 	{
 		var l_owner		: CNewNPC = GetNPC();
@@ -96,8 +92,8 @@ class BTTaskManageDjinnRage extends IBehTreeTask
 	}
 	
 	
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	private function EnterWeakenedState()
 	{
 		var l_owner		: CNewNPC = GetNPC();
@@ -116,8 +112,8 @@ class BTTaskManageDjinnRage extends IBehTreeTask
 	}
 	
 	
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	private function RemoveWeakenedState()
 	{
 		var l_owner			: CNewNPC = GetNPC();
@@ -130,8 +126,8 @@ class BTTaskManageDjinnRage extends IBehTreeTask
 	}
 	
 	
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function OnListenedGameplayEvent( eventName : name ) : bool
 	{
 		var l_owner			: CNewNPC = GetNPC();
@@ -145,7 +141,7 @@ class BTTaskManageDjinnRage extends IBehTreeTask
 		else if ( eventName == 'LeavesYrden' )
 		{
 			m_isInYrden = false;
-			
+			//RemoveWeakenedState();
 			return true;
 		}
 		else if ( removeWeakenedStateOnCounter && ( eventName == 'LaunchCounterAttack' || eventName == 'HitReactionTaskCompleted' ) )
@@ -183,13 +179,13 @@ class BTTaskManageDjinnRage extends IBehTreeTask
 	}
 };
 
-
-
+//>--------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 class BTTaskManageDjinnRageDef extends IBehTreeTaskDefinition
 {
-	
-	
-	
+	//>--------------------------------------------------------------------------
+	// VARIABLES
+	//---------------------------------------------------------------------------
 	editable var defaultFXName					: name;
 	editable var playFXOnAardHit				: name;
 	editable var playFXOnIgniHit				: name;

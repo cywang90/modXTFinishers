@@ -1,33 +1,29 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
-
-
-
-
-
-
-
+﻿//>--------------------------------------------------------------------------
+// CBTTaskSpawnMultipleProjectilesAttack
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Extension of btTaskSpawnMultipleEntitiesAttack to fire projectiles.
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// B.Lansford - 04-April-2014
+// Copyright © 2014 CD Projekt RED
+//---------------------------------------------------------------------------
 class CBTTaskSpawnMultipleProjectilesAttack extends CBTTaskSpawnMultipleEntitiesAttack
 {
-	
-	
-	
+	//>--------------------------------------------------------------------------
+	// VARIABLES
+	//---------------------------------------------------------------------------
 	var projectileAngle				: float;
 	var projectileAngleRandomness	: float;
 	var projectileSpeed				: float;
 	var projectileSpeedRandomness	: float;
 	var dodgeable					: bool;
+	// privates
 	
-	
-	
-	
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function CreateEntity( _SpawnPos : Vector, _Rotation : EulerAngles ) : CEntity
 	{
 		var l_target 				: CActor = GetCombatTarget();
@@ -55,7 +51,7 @@ class CBTTaskSpawnMultipleProjectilesAttack extends CBTTaskSpawnMultipleEntities
 		{
 			l_distanceToTarget = VecDistance( GetNPC().GetWorldPosition(), l_target.GetWorldPosition() );		
 			
-			
+			// used to dodge projectile before it hits
 			l_projectileFlightTime = l_distanceToTarget / l_velocity;
 			l_target.SignalGameplayEventParamFloat('Time2DodgeProjectile', l_projectileFlightTime );
 		}
@@ -66,9 +62,9 @@ class CBTTaskSpawnMultipleProjectilesAttack extends CBTTaskSpawnMultipleEntities
 class CBTTaskSpawnMultipleProjectilesAttackDef extends CBTTaskSpawnMultipleEntitiesAttackDef
 {
 	default instanceClass = 'CBTTaskSpawnMultipleProjectilesAttack';
-	
-	
-	
+	//>--------------------------------------------------------------------------
+	// VARIABLES
+	//---------------------------------------------------------------------------
 	editable var projectileAngle				: float;
 	editable var projectileAngleRandomness		: float;
 	editable var projectileSpeed				: float;
@@ -76,7 +72,7 @@ class CBTTaskSpawnMultipleProjectilesAttackDef extends CBTTaskSpawnMultipleEntit
 	editable var dodgeable						: bool;
 	
 	default projectileSpeed = 1;
-	
+	// privates
 	hint projectileAngleRandomness = "Random value to add to projectiles angle";
 	hint projectileSpeedRandomness = "Random value to add to projectiles speed";
 }

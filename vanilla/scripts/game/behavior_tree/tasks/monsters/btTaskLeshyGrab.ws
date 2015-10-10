@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2013
+/** Author : Andrzej Kwiatkowski
+/***********************************************************************/
 
 class CBTTaskLeshyGrabAttack extends IBehTreeTask
 {
@@ -26,7 +25,14 @@ class CBTTaskLeshyGrabAttack extends IBehTreeTask
 		theGame.GetSyncAnimManager().SetupSimpleSyncAnim('LeshyHeadGrab', master, slaveComponent.GetEntity() );		
 		return BTNS_Active;
 	}
-	
+	/*
+	function OnDeactivate()
+	{
+		var npc : CNewNPC = GetNPC();
+		
+		
+	}
+	*/
 	function OnGameplayEvent( eventName : name ) : bool
 	{
 		var npc : CNewNPC = GetNPC();

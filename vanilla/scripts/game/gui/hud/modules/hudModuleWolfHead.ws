@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CR4HudModuleWolfHead extends CR4HudModuleBase
+﻿class CR4HudModuleWolfHead extends CR4HudModuleBase
 {	
 	private	var m_fxSetVitality						: CScriptedFlashFunction;
 	private	var m_fxSetStamina						: CScriptedFlashFunction;
@@ -19,6 +15,7 @@ class CR4HudModuleWolfHead extends CR4HudModuleBase
 	private var m_fxSetFocusPointsSFF				: CScriptedFlashFunction;
 	private var m_fxLockFocusPointsSFF				: CScriptedFlashFunction;	
 	private var m_fxSetCiriAsMainCharacter			: CScriptedFlashFunction;
+	private var m_fxSetCoatOfArms					: CScriptedFlashFunction;
 	private var m_fxSetShowNewLevelIndicator		: CScriptedFlashFunction;
 	private var m_fxSetAlwaysDisplayed				: CScriptedFlashFunction;
 	private var m_fxDisplayOverloadedIcon			: CScriptedFlashFunction;
@@ -53,7 +50,7 @@ class CR4HudModuleWolfHead extends CR4HudModuleBase
 	default m_iCurrentNegativeEffectsSize = 0;
 	default m_IsPlayerCiri				  = false;
 
-	 event OnConfigUI()
+	/* flash */ event OnConfigUI()
 	{
 		var flashModule : CScriptedFlashSprite;
 		var hud : CR4ScriptedHud;
@@ -79,6 +76,7 @@ class CR4HudModuleWolfHead extends CR4HudModuleBase
 		m_fxSetFocusPointsSFF				= flashModule.GetMemberFlashFunction( "setFocusPoints" );
 		m_fxLockFocusPointsSFF				= flashModule.GetMemberFlashFunction( "lockFocusPoints" );
 		m_fxSetCiriAsMainCharacter			= flashModule.GetMemberFlashFunction( "setCiriAsMainCharacter" );
+		m_fxSetCoatOfArms					= flashModule.GetMemberFlashFunction( "setCoatOfArms" );
 		m_fxSetShowNewLevelIndicator		= flashModule.GetMemberFlashFunction( "setShowNewLevelIndicator" );
 		m_fxSetAlwaysDisplayed				= flashModule.GetMemberFlashFunction( "setAlwaysDisplayed" );
 		m_fxDisplayOverloadedIcon 			= flashModule.GetMemberFlashFunction( "displayOverloadedIcon" );
@@ -93,6 +91,8 @@ class CR4HudModuleWolfHead extends CR4HudModuleBase
 			hud.UpdateHudConfig('WolfMedalion', true);
 		}
 		DisplayNewLevelIndicator();
+		
+		UpdateCoatOfArms();
 	}
 	
 	function DisplayNewLevelIndicator()
@@ -130,12 +130,12 @@ class CR4HudModuleWolfHead extends CR4HudModuleBase
 		
 		UpdateExperience();
 		UpdateMedallion();
-		
+		//UpdateBuffsCounter();
 		UpdateFocusPoints();
 		UpdateStateByPlayer();
+		//UpdateOverloadedIcon();
 		
-		
-		
+		//always wolf's head when combat music is playing OR if our toxicity is above 0 OR if our health is below MAX
 		if ( thePlayer.IsCombatMusicEnabled() || (m_curToxicity > 0.f || m_lockedToxicity > 0.f) || (m_curVitality < m_maxVitality) )
 			SetAlwaysDisplayed( true );
 		else
@@ -154,7 +154,7 @@ class CR4HudModuleWolfHead extends CR4HudModuleBase
 
 		if( l_currentVitality != m_LastVitality ||  l_currentMaxVitality != m_LastMaxVitality )
 		{
-			
+			//Percentage is between 0 and 1
 			m_fxSetVitality.InvokeSelfOneArg( FlashArgNumber(  l_currentVitality / l_currentMaxVitality ) );
 			m_LastVitality = l_currentVitality;
 			m_LastMaxVitality = l_currentMaxVitality;
@@ -178,18 +178,18 @@ class CR4HudModuleWolfHead extends CR4HudModuleBase
 			m_LastStamina 	 = l_curStamina;
 			m_LastMaxStamina = l_curMaxStamina;
 			
-			if ( l_curStamina <= l_curMaxStamina*0.60 ) 
+			if ( l_curStamina <= l_curMaxStamina*0.60 ) // if 60% of stamina play soundcue
 				playStaminaSoundCue = true;
 				
 			if ( l_curStamina <= 0 )
 			{
 				thePlayer.SoundEvent("gui_no_stamina");
-				theGame.VibrateControllerVeryLight(); 
+				theGame.VibrateControllerVeryLight(); // no stamina
 			}
 			else if ( l_curStamina >= l_curMaxStamina && playStaminaSoundCue )
 			{
 				thePlayer.SoundEvent("gui_stamina_recharged");
-				theGame.VibrateControllerVeryLight(); 
+				theGame.VibrateControllerVeryLight(); // stamina recharged
 				playStaminaSoundCue = false;
 			}
 		}
@@ -203,7 +203,7 @@ class CR4HudModuleWolfHead extends CR4HudModuleBase
 
 	public function UpdateToxicity() : void
 	{
-		var curToxicity 	: float;	
+		var curToxicity 	: float;	//current toxicity WITHOUT offset lock
 		var curMaxToxicity 	: float;
 		var curLockedToxicity: float;
 		var damageThreshold	: float;
@@ -213,13 +213,13 @@ class CR4HudModuleWolfHead extends CR4HudModuleBase
 		
 		curLockedToxicity = thePlayer.GetStat(BCS_Toxicity) - curToxicity;
 		
-		
+		//need to keep track of these for displaying/hiding the module
 		m_curToxicity = curToxicity;
 		m_lockedToxicity = curLockedToxicity;
 		
 		if ( m_LastToxicity != curToxicity || m_LastMaxToxicity != curMaxToxicity || m_LastLockedToxicity != curLockedToxicity )
 		{
-			
+			//update locked toxicity if lock or max changed
 			if( m_LastLockedToxicity != curLockedToxicity || m_LastMaxToxicity != curMaxToxicity)
 			{
 				m_fxSetLockedToxicity.InvokeSelfOneArg( FlashArgNumber( ( curLockedToxicity )/ curMaxToxicity ) );
@@ -237,7 +237,7 @@ class CR4HudModuleWolfHead extends CR4HudModuleBase
 				m_bLastDeadlyToxicity = curDeadlyToxicity;
 			}
 			
-			
+			//keep the wolfhead module displayed if 
 		}
 	}
 
@@ -314,16 +314,64 @@ class CR4HudModuleWolfHead extends CR4HudModuleBase
 	
 	public function LockFocusPoints( value : int )
 	{
-		
+		//we only have 3 adrenaline points
 		if ( value <= 3 )
 			m_fxLockFocusPointsSFF.InvokeSelfOneArg( FlashArgInt( value) );
 	}
 	
+	// #J Moved into buffs module. Keeping here in case we change our mind
+	/*private function UpdateOverloadedIcon():void
+	{
+		var isPlayerOveloaded : bool;
+		var encumbrance 	  : int;
+		var encumbranceMax    : int;
+		
+		isPlayerOveloaded = thePlayer.HasBuff( EET_OverEncumbered );
+		if (m_oveloadedIconVisible != isPlayerOveloaded)
+		{
+			m_oveloadedIconVisible = isPlayerOveloaded;
+			m_fxDisplayOverloadedIcon.InvokeSelfOneArg( FlashArgBool(m_oveloadedIconVisible) );
+		}
+	}*/
 	
-	
-	
-	
-	
+	// #J Will now always show the full buffs list. Keeping this code in case we change our mind
+	/*private function UpdateBuffsCounter()
+	{
+		var l_PositiveEffectsSize : int;
+		var l_NegativeEffectsSize : int;
+		var effectArray : array< CBaseGameplayEffect >;
+		var i : int;
+		
+		effectArray = thePlayer.GetCurrentEffects();
+		l_PositiveEffectsSize = 0;
+		l_NegativeEffectsSize = 0;
+		
+		for ( i = 0; i < effectArray.Size(); i += 1 )
+		{
+			if(effectArray[i].ShowOnHUD())
+			{				
+				if(effectArray[i].IsPositive() )
+				{
+					l_PositiveEffectsSize += 1;
+				}
+				else
+				{
+					l_NegativeEffectsSize += 1;
+				}
+			}
+		}
+		
+		if( l_PositiveEffectsSize != m_iCurrentPositiveEffectsSize )
+		{
+			m_iCurrentPositiveEffectsSize = l_PositiveEffectsSize;
+			m_fxSetPositiveEffectsCounterSFF.InvokeSelfOneArg(FlashArgInt(m_iCurrentPositiveEffectsSize));
+		}		
+		if( l_NegativeEffectsSize != m_iCurrentNegativeEffectsSize )
+		{
+			m_iCurrentNegativeEffectsSize = l_NegativeEffectsSize;
+			m_fxSetNegativeEffectsCounterSFF.InvokeSelfOneArg(FlashArgInt(m_iCurrentNegativeEffectsSize));
+		}
+	}*/
 	
 	public function UpdateSignData()
 	{
@@ -343,6 +391,18 @@ class CR4HudModuleWolfHead extends CR4HudModuleBase
 			m_fxSetCiriAsMainCharacter.InvokeSelfOneArg(FlashArgBool(m_IsPlayerCiri));
 			DisplayNewLevelIndicator();
 		}
+	}
+	
+	public function SetCoatOfArms( val : bool )
+	{
+		thePlayer.SetUsingCoatOfArms( val );
+		
+		UpdateCoatOfArms();
+	}
+	
+	private function UpdateCoatOfArms()
+	{
+		m_fxSetCoatOfArms.InvokeSelfOneArg( FlashArgBool( thePlayer.IsUsingCoatOfArms() ) );
 	}
 	
 	private function GetSignIcon() : string
@@ -388,5 +448,21 @@ exec function AlwaysDisplayHUD( value : bool )
 	if ( hudWolfHeadModule )
 	{
 		hudWolfHeadModule.SetAlwaysDisplayed(value);
+	}
+}
+
+exec function coa( val : bool )
+{
+	var hud : CR4ScriptedHud;
+	var hudWolfHeadModule : CR4HudModuleWolfHead;		
+
+	hud = (CR4ScriptedHud)theGame.GetHud();
+	if ( hud )
+	{
+		hudWolfHeadModule = (CR4HudModuleWolfHead)hud.GetHudModule( "WolfHeadModule" );
+		if ( hudWolfHeadModule )
+		{
+			hudWolfHeadModule.SetCoatOfArms( val );
+		}
 	}
 }

@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3GuiPaperdollInventoryComponent extends W3GuiPlayerInventoryComponent
+﻿class W3GuiPaperdollInventoryComponent extends W3GuiPlayerInventoryComponent
 {
 	default bPaperdoll = true;
 
@@ -12,19 +8,30 @@ class W3GuiPaperdollInventoryComponent extends W3GuiPlayerInventoryComponent
 
 		_inv.GetItemTags( item, itemTags );
 
-		LogChannel('PAPERDOLLITEMS'," shuld show ? "+(super.ShouldShowItem( item ) && isEquipped( item )  )+" item "+_inv.GetItemName(item));
-		return super.ShouldShowItem( item ) && isEquipped( item ) ; 
+		LogChannel('PAPERDOLLITEMS'," shuld show ? "+(super.ShouldShowItem( item ) && isEquipped( item ) /*&& !itemTags.Contains('Mutagen')*/ )+" item "+_inv.GetItemName(item));
+		return super.ShouldShowItem( item ) && isEquipped( item ) /*&& !itemTags.Contains('Mutagen')*/; //@FIXME BIDON - check if super.ShouldShowItem( item ) is needed here
 	}
 	
-	protected function GetTooltipText(item : SItemUniqueId):string 
+	protected function GetTooltipText(item : SItemUniqueId):string // #B why it's commented ?
 	{
 		var debugTooltip : string;
 		var TooltipType : ECompareType;
+		/*		
+		TooltipType = _inv.GetItemRelativeTooltipType(item, _inv, SecondItemID);
 		
+		switch(TooltipType)
+		{
+			case ECT_Compare:	//TODO #B
+				debugTooltip = GetItemTooltipText(item, _inv);
+				break;				
+			default:
+				debugTooltip = GetItemTooltipText(item, _inv);
+				break;
+		}*/
 		
-		
-		
-		
+		//LogChannel('W3PaperdollInventoryDataProvider',"");
+		//LogChannel('W3PaperdollInventoryDataProvider',"DP GetTooltipText item "+ _inv.GetItemName(item) +" vs "+_inv.GetItemName(SecondItemID));
+		//LogChannel('W3PaperdollInventoryDataProvider'," TooltipType "+TooltipType +" debugTooltip "+debugTooltip);
 		
 		return debugTooltip;
 	}
@@ -49,7 +56,7 @@ class W3GuiPaperdollInventoryComponent extends W3GuiPlayerInventoryComponent
 		return false;
 	}
 	
-	public  function SetInventoryFlashObjectForItem( itemId : SItemUniqueId, out flashObject : CScriptedFlashObject) : void
+	public /*override*/ function SetInventoryFlashObjectForItem( itemId : SItemUniqueId, out flashObject : CScriptedFlashObject) : void
 	{
 		var slotType 			  : EEquipmentSlots;
 		var canDrop				  : bool;
@@ -63,6 +70,13 @@ class W3GuiPaperdollInventoryComponent extends W3GuiPlayerInventoryComponent
 		{
 			flashObject.SetMemberFlashBool( "canDrop", false );
 		}
+		
 		flashObject.SetMemberFlashInt( "slotType", slotType );
+		
+		if ( _inv.ItemHasTag(itemId, 'Edibles') && GetWitcherPlayer().HasRunewordActive('Runeword 6 _Stats') )
+		{
+			flashObject.SetMemberFlashString( "iconPath",  "icons/inventory/food/food_dumpling_64x64.png" );
+			flashObject.SetMemberFlashBool( "enchanted", true);
+		}
 	}
 }

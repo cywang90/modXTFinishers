@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author : Łukasz Szczepankowski
+/***********************************************************************/
 
 class W3TreasureHuntMappinEntity extends CR4MapPinEntity
 {

@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CSkullPileEntity extends CGameplayEntity
+﻿class CSkullPileEntity extends CGameplayEntity
 {	
 	public editable	var factName 			: string;	default factName			= "CollidedAlert";
 	public editable	var tagToCollideWith	: name;		default tagToCollideWith	= 'PLAYER';

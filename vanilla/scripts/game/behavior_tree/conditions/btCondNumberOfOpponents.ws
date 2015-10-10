@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-enum EOperator
+﻿enum EOperator
 {
 	EO_Equal,
 	EO_NotEqual,

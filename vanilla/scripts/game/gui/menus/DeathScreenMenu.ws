@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file - Main Menu
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author : Bartosz Bigaj
+/***********************************************************************/
 
 class CR4DeathScreenMenu extends CR4MenuBase
 {
@@ -12,7 +11,7 @@ class CR4DeathScreenMenu extends CR4MenuBase
 	
 	private var m_fxShowInputFeedback : CScriptedFlashFunction;
 	
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{
 		var tutorialPopupRef  : CR4TutorialPopup;
 		
@@ -43,7 +42,7 @@ class CR4DeathScreenMenu extends CR4MenuBase
 	{
 	}
 	
-	event  OnClosingMenu()
+	event /* C++ */ OnClosingMenu()
 	{
 		m_guiManager.RequestMouseCursor(false);
 		
@@ -58,7 +57,7 @@ class CR4DeathScreenMenu extends CR4MenuBase
 		RequestSubMenu( menuName, initData );
 	}
 
-	event  OnCloseMenu()
+	event /*flash*/ OnCloseMenu()
 	{
 		var menu			: CR4MenuBase;
 		
@@ -93,7 +92,21 @@ class CR4DeathScreenMenu extends CR4MenuBase
 		
 		m_fxShowInputFeedback.InvokeSelfOneArg(FlashArgBool(true));
 		
-		
+		/*menu = (CR4MenuBase)GetSubMenu();
+	
+		if( menu )
+		{
+			//menu.CloseMenu();
+			menuToOpen = GetParentMenuName(currentMenuName);
+			if( menuToOpen )
+			{
+				OnRequestSubMenu( menuToOpen, GetMenuInitData() );
+			}
+			else
+			{
+				CloseMenu();
+			}
+		}*/
 	}
 	
 	function PopulateData()
@@ -146,7 +159,7 @@ class CR4DeathScreenMenu extends CR4MenuBase
 		m_flashModule.SetAlpha(value);
 	}
 	
-	event  OnPress( tag : name )
+	event /* flash */ OnPress( tag : name )
 	{
 		switch( tag )
 		{
@@ -155,11 +168,11 @@ class CR4DeathScreenMenu extends CR4MenuBase
 				break;
 			case 'Respawn' :
 				OnRespawn();
-				
+				//ShowElement();
 				break;
 			case 'Quit' :
 				OnQuit();
-				
+				//CloseMenu();
 				break;
 		}
 	}
@@ -169,19 +182,19 @@ class CR4DeathScreenMenu extends CR4MenuBase
 		m_fxShowInputFeedback.InvokeSelfOneArg(FlashArgBool(false));
 	}
 	
-	event  OnLoad()
+	event /* flash */ OnLoad()
 	{
 		var initData : W3MenuInitData = new W3MenuInitData in this;
 		initData.setDefaultState('LoadGame');
 		RequestSubMenu( 'IngameMenu', initData );
 	}		
 
-	event  OnQuit()
+	event /* flash */ OnQuit()
 	{
 		theGame.GetGuiManager().TryQuitGame();
 	}		
 	
-	event  OnRespawn()
+	event /* flash */ OnRespawn()
 	{
 		theGame.SetIsRespawningInLastCheckpoint();
 		theGame.LoadLastGameInit( true );

@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2013-2014
+/** Author : Wojtek Żerek
+/***********************************************************************/
 
 class W3Effect_Snowstorm extends W3CriticalDOTEffect
 {
@@ -20,10 +18,10 @@ class W3Effect_Snowstorm extends W3CriticalDOTEffect
 		
 		if( isOnPlayer )
 		{
-			
+			//dafuq?
 			thePlayer.UnblockAction( EIAB_Interactions, EffectTypeToName( effectType ) );
 			
-			
+			//cam settings
 			params = (W3SnowstormCustomParams)customParams;
 			if(params && params.showCamEffect)
 			{
@@ -40,7 +38,7 @@ class W3Effect_Snowstorm extends W3CriticalDOTEffect
 	{
 		super.OnEffectAddedPost();
 		
-		
+		//Snowstorm of any buff needs to break quen as it causes issues with quests
 		if(isOnPlayer && GetWitcherPlayer())
 			GetWitcherPlayer().FinishQuen(false);
 	}

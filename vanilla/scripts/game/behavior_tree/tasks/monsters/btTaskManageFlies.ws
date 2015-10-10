@@ -1,22 +1,18 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
-
-
-
-
-
-
-
+﻿//>--------------------------------------------------------------------------
+// BTTaskManageFlies
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Summon and manage flies
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// R.Pergent - 05-September-2014
+// Copyright © 2014 CD Projekt RED
+//---------------------------------------------------------------------------
 class BTTaskManageFlies extends IBehTreeTask
 {
-	
-	
-	
+	//>----------------------------------------------------------------------
+	// VARIABLES
+	//-----------------------------------------------------------------------
 	public 	var entityToSummon			: CEntityTemplate;
 	
 	public 	var maxFliesAlive			: int;
@@ -26,21 +22,21 @@ class BTTaskManageFlies extends IBehTreeTask
 	private var m_summonerCmp			: W3SummonerComponent;
 	private var m_DelayToNextSpawn		: float;
 	
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function Initialize()
 	{
 		m_summonerCmp = ( W3SummonerComponent ) GetNPC().GetComponentByClassName('W3SummonerComponent');
 		m_DelayToNextSpawn = RandRangeF( delayToRespawn.max, delayToRespawn.min );
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function IsAvailable() : bool
 	{
 		return true;
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function OnActivate() : EBTNodeStatus
 	{
 		var i 					: int;
@@ -63,8 +59,8 @@ class BTTaskManageFlies extends IBehTreeTask
 		
 		return BTNS_Active;
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	latent function Main() : EBTNodeStatus
 	{
 		var l_numOfFlies 		: int;
@@ -100,8 +96,8 @@ class BTTaskManageFlies extends IBehTreeTask
 		
 		return BTNS_Active;
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	private function SummonFlies( _Pos : Vector, optional _Rotation : EulerAngles )
 	{
 		var l_flies 			: W3SummonedFlies;
@@ -113,8 +109,8 @@ class BTTaskManageFlies extends IBehTreeTask
 		
 		m_summonerCmp.AddEntity( l_flies );
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	private function OnDeactivate()
 	{
 		var i 					: int;
@@ -135,8 +131,8 @@ class BTTaskManageFlies extends IBehTreeTask
 			}
 		}
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function OnListenedGameplayEvent( eventName : name ) : bool
 	{
 		if( eventName == 'FliesDestroyed' )
@@ -149,13 +145,13 @@ class BTTaskManageFlies extends IBehTreeTask
 }
 
 
-
-
+//>----------------------------------------------------------------------
+//-----------------------------------------------------------------------
 class BTTaskManageFliesDef extends IBehTreeTaskDefinition
 {
 	default instanceClass = 'BTTaskManageFlies';
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	private editable var entityToSummon			: CEntityTemplate;
 	private editable var maxFliesAlive			: int;
 	private editable var delayBetweenSpawns		: SRangeF;

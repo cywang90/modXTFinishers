@@ -1,10 +1,6 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿
+// Class pointed to by "theTimer"
+// Do not instanciate directly
 import class CTimerScriptKeyword extends CObject
 {
 	import public const var timeDelta : float;

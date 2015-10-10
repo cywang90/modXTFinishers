@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** MoveTo actor latent action
+/** Copyright © 2012
+/***********************************************************************/
 
 class W3ActorLatentActionMoveTo extends IPresetActorLatentAction
 {

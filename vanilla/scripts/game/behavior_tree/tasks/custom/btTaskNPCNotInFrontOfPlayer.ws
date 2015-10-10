@@ -1,12 +1,8 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
-
-
+﻿//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//		btTaskNPCNotInFronOfPlayer - script checks if NPC is in front of player (inside cone) and if not - returns TRUE				//
+//																																	//
+//		written by Wojciech Żerek, w.zerek@gmail.com																				//
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class CBTTaskNPCNotInFrontOfPLayer extends IBehTreeTask
 {
@@ -21,14 +17,14 @@ class CBTTaskNPCNotInFrontOfPLayer extends IBehTreeTask
 	
 	function IsAvailable() : bool
 	{
-		
+		// calculating cone parameters
 		playerHeading = thePlayer.GetHeading() + angleOffset;
 		
+		//var angleMin, angleMax : float;
+		//angleMin = AngleNormalize180( playerHeading - ( coneAngle/2 ) );
+		//angleMax = AngleNormalize180( playerHeading + ( coneAngle/2 ) );
 		
-		
-		
-		
-		
+		// checking if enemy is inside cone
 		npc = GetNPC();
 		distance = VecDistance2D( npc.GetWorldPosition(), thePlayer.GetWorldPosition() );
 		testedAngle = NodeToNodeAngleDistance( npc, thePlayer );

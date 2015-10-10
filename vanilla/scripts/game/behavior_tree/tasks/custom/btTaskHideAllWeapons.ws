@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskHideAllWeapons extends IBehTreeTask
+﻿class CBTTaskHideAllWeapons extends IBehTreeTask
 {
 	latent function Main() : EBTNodeStatus
 	{

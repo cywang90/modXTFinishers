@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2013
+/** Author : Tomek Kozera, Andrzej Kwiatkowski
+/***********************************************************************/
 
 enum EMerchantMapPinType
 {
@@ -14,7 +12,8 @@ enum EMerchantMapPinType
 	EMMPT_Hairdresser,
 	EMMPT_Herbalist,
 	EMMPT_Alchemist,
-	EMMPT_Innkeeper
+	EMMPT_Innkeeper,
+	EMMPT_Enchanter
 }
 
 class W3MerchantComponent extends CScriptedComponent
@@ -42,21 +41,23 @@ class W3MerchantComponent extends CScriptedComponent
 				return 'Herbalist';
 			case EMMPT_Innkeeper:
 				return 'Innkeeper';
+			case EMMPT_Enchanter:
+				return 'Enchanter';
 		}
 		return '';
 	}
 
-	
-	public function  GetScriptInfo( type : name, cacheable : bool )
+	// do not delete or modify, called from C++
+	public function /* C++ */ GetScriptInfo( type : name, cacheable : bool )
 	{
 		var merchantNPC : W3MerchantNPC;
 
 		merchantNPC = (W3MerchantNPC)GetEntity();
 
-		
+		// type
 		type = GetMapPinType();
 		
-		
+		// cacheable
 		cacheable = merchantNPC.cacheMerchantMappin;
 	}
 };

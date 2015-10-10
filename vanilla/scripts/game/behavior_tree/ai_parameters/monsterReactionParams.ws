@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CAIMonsterCombatReactionsTree extends CAIReactionTree
+﻿class CAIMonsterCombatReactionsTree extends CAIReactionTree
 {
 	default aiTreeName = "resdef:ai\reactions/monster_base_reactions";
 
@@ -61,20 +57,20 @@ class CAIMonsterReactionsTree extends CAIReactionTree
 	}
 };
 
-
+// Base Reaction Tree Params
 class CAIMonsterReactionsTreeParams extends CAIReactionsParameters
 {
 	editable inlined var reactions : array< CAIMonsterActionSubtree >;
 	editable var canFly	: bool;
 };
 
-
+// Howl
 class CAIReactionHowl extends CAINpcReaction
 {
 	default aiTreeName = "resdef:ai\reactions/reaction_monster_howl";
 };
 
-
+// Search for target
 abstract class CAIMonsterActionSubtree extends CAINpcActionSubtree
 {
 	default dontSetActionTarget 				= false;
@@ -85,7 +81,7 @@ abstract class CAIMonsterActionSubtree extends CAINpcActionSubtree
 	default disallowWhileOnHorse			 	= false;
 }
 
-
+// Search for target
 class CAIActionSearchForTarget extends CAIMonsterActionSubtree
 {
 	default reactionPriority = 20;
@@ -101,7 +97,7 @@ class CAIActionSearchForTarget extends CAIMonsterActionSubtree
 	}
 };
 
-
+// Join search for target
 class CAIActionAllySearchesTarget extends CAIMonsterActionSubtree
 {
 		
@@ -118,7 +114,7 @@ class CAIActionAllySearchesTarget extends CAIMonsterActionSubtree
 	}
 };
 
-
+// Play around
 class CAIActionPlayWithTarget extends CAIMonsterActionSubtree
 {
 	default reactionPriority = 20;
@@ -135,7 +131,7 @@ class CAIActionPlayWithTarget extends CAIMonsterActionSubtree
 	}
 };
 
-
+// Move to Lure
 class CAIActionMoveToLure extends CAIMonsterActionSubtree
 {
 	default reactionPriority = 20;
@@ -153,7 +149,7 @@ class CAIActionMoveToLure extends CAIMonsterActionSubtree
 	}
 };
 
-
+// Move out
 class CAIActionMoveOut extends CAIMonsterActionSubtree
 {	
 	default reactionPriority 		= 20;
@@ -170,7 +166,7 @@ class CAIActionMoveOut extends CAIMonsterActionSubtree
 	}
 };
 
-
+// Move in pack
 class CAIActionMoveInPack extends CAIMonsterActionSubtree
 {
 	public editable var chanceToFollowPack : float;
@@ -193,7 +189,7 @@ class CAIActionMoveInPack extends CAIMonsterActionSubtree
 	}
 };
 
-
+// Run wild in pack
 class CAIActionRunWildInPack extends CAIMonsterActionSubtree
 {
 	default reactionPriority = 20;
@@ -211,7 +207,7 @@ class CAIActionRunWildInPack extends CAIMonsterActionSubtree
 	}
 };
 
-
+// Lead Escape
 class CAIActionLeadEscape extends CAIMonsterActionSubtree
 {
 	public editable var saveReactionTargetUnder : name;
@@ -232,7 +228,7 @@ class CAIActionLeadEscape extends CAIMonsterActionSubtree
 	}
 };
 
-
+// Escape in pack
 class CAIActionEscapeInPack extends CAIMonsterActionSubtree
 {		
 	default reactionPriority = 100;
@@ -250,53 +246,53 @@ class CAIActionEscapeInPack extends CAIMonsterActionSubtree
 	}
 };
 
-
+// Search for target
 class CAINpcReactionSearchTarget extends CAINpcReaction
 {	
 	default aiTreeName = "resdef:ai\reactions\reaction_search_target";
 };
-
+// Join search for target
 class CAINpcReactionJoinSearchForTarget extends CAINpcReaction
 {	
 	default aiTreeName = "resdef:ai\reactions\reaction_join_search_for_target";
 };
 
-
+// Play with target
 class CAINpcReactionPlayWithTarget extends CAINpcReaction
 {	
 	default aiTreeName = "resdef:ai\reactions\reaction_play_around";
 };
 
-
+// Move out
 class CAINpcReactionMoveOut extends CAINpcReaction
 {	
 	default aiTreeName = "resdef:ai\reactions\reaction_move_out";
 };
-
+// Move in pack
 class CAINpcReactionMoveInPack extends CAINpcReaction
 {	
 	default aiTreeName = "resdef:ai\reactions\reaction_move_in_pack";
 };
 
-
+// Run wild in pack
 class CAINpcReactionRunWildInPack extends CAINpcReaction
 {	
 	default aiTreeName = "resdef:ai\reactions\reaction_run_wild_in_pack";
 };
 
-
+// Move to lure
 class CAINpcReactionMoveToLure extends CAINpcReaction
 {	
 	default aiTreeName = "resdef:ai\reactions\reaction_monster_move_to_lure";
 };
 
-
+// Lead Escape
 class CAINpcReactionLeadEscape extends CAINpcReaction
 {	
 	default aiTreeName = "resdef:ai\reactions\reaction_monster_lead_escape";
 };
 
-
+// Escape in pack
 class CAINpcReactionEscapeInPack extends CAINpcReaction
 {	
 	default aiTreeName = "resdef:ai\reactions\reaction_monster_escape_in_pack";

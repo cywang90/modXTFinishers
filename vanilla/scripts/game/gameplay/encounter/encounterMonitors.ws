@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-enum EEncounterMonitorCounterType
+﻿enum EEncounterMonitorCounterType
 {
 	EMCT_KIlledByEntry,
 	EMCT_SpawnedByEntry,

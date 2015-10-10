@@ -1,12 +1,8 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3GuiDisassembleInventoryComponent extends W3GuiPlayerInventoryComponent
+﻿class W3GuiDisassembleInventoryComponent extends W3GuiPlayerInventoryComponent
 {
 	public var merchantInv : CInventoryComponent;
 	
-	public  function SetInventoryFlashObjectForItem( item : SItemUniqueId, out flashObject : CScriptedFlashObject) : void
+	public /* override */ function SetInventoryFlashObjectForItem( item : SItemUniqueId, out flashObject : CScriptedFlashObject) : void
 	{
 		super.SetInventoryFlashObjectForItem( item, flashObject );
 		addRecyclingPartsList( item, flashObject );
@@ -15,13 +11,13 @@ class W3GuiDisassembleInventoryComponent extends W3GuiPlayerInventoryComponent
 		flashObject.SetMemberFlashInt( "gridPosition", -1 );
 	}
 	
-	protected  function ShouldShowItem( item : SItemUniqueId ):bool
+	protected /* override */ function ShouldShowItem( item : SItemUniqueId ):bool
 	{
 		var itemTags : array<name>;
 		var parts : array<SItemParts>;
 		var showItem : bool;
 		
-		
+		//don't show equipped items (requested)
 		if(GetWitcherPlayer().IsItemEquipped(item))
 			return false;
 		
@@ -54,8 +50,8 @@ class W3GuiDisassembleInventoryComponent extends W3GuiPlayerInventoryComponent
 			curPartData.SetMemberFlashString("name", GetLocStringByKeyExt(_inv.GetItemLocalizedNameByName(curPart.itemName)));
 			curPartData.SetMemberFlashString("iconPath", _inv.GetItemIconPathByName(curPart.itemName));
 			
-			
-			
+			// #Y we get random amount of parts after disassemble, so we don't show exact quantity to player
+			//curPartData.SetMemberFlashInt("quantity", curPart.quantity);
 			curPartData.SetMemberFlashInt("quantity", 1);
 			
 			partDataList.PushBackFlashObject(curPartData);

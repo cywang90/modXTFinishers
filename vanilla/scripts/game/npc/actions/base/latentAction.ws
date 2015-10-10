@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Actor latent scripted actions
+/** Copyright © 2012
+/***********************************************************************/
 
 import abstract class IActorLatentAction extends IAIParameters
 {

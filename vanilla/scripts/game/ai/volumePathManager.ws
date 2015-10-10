@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Exports for Community System
+/** Copyright © 2012-2013
+/***********************************************************************/
 
 import class CVolumePathManager extends IGameSystem
 {

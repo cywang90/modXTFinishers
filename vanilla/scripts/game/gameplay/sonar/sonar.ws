@@ -1,10 +1,10 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Point of interest entity
+/** Copyright © 2014
+	Łukasz Szczepankowski
+/***********************************************************************/
 
 class W3SonarEnttity extends CEntity
 {

@@ -1,10 +1,6 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class  W3InventoryItemContext extends W3UIContext
+﻿class /*virtual*/ W3InventoryItemContext extends W3UIContext
 {
-	protected var currentItemId          : SItemUniqueId; 
+	protected var currentItemId          : SItemUniqueId; // Y# Store all ItemDataStub?
 	protected var currentSlot 			 : EEquipmentSlots;
 	
 	protected var invMenuRef	         : CR4InventoryMenu;
@@ -13,7 +9,7 @@ class  W3InventoryItemContext extends W3UIContext
 	protected var contextMenuPosition_x  : float;
 	protected var contextMenuPosition_y  : float;
 	
-	public  function Init(ownerManager:W3ContextManager)
+	public /*override*/ function Init(ownerManager:W3ContextManager)
 	{
 		super.Init(ownerManager);		
 		invComponentRef = invMenuRef.GetCurrentInventory(GetInvalidUniqueId());
@@ -45,11 +41,11 @@ class  W3InventoryItemContext extends W3UIContext
 		if (currentItemId != TargetItemId)
 		{
 			currentItemId = TargetItemId;
-			
+			//invMenuRef.RemoveNewItemMark(currentItemId);
 			updateInputFeedback();			
 		}
 		
-		
+		//triggerTooltip();
 	}
 	
 	protected function triggerTooltip():void
@@ -60,7 +56,7 @@ class  W3InventoryItemContext extends W3UIContext
 		}
 		else if (currentSlot > 0)
 		{
-			
+			//invMenuRef.GetEmptyPaperdollTooltip(currentSlot);
 		}
 		else
 		{
@@ -82,7 +78,7 @@ class  W3InventoryItemContext extends W3UIContext
 		}
 	}
 	
-	public  function HandleUserFeedback(keyName:string):void 
+	public /* override */ function HandleUserFeedback(keyName:string):void 
 	{
 		var itemsCount   : int;
 		var itemCategory : name;
@@ -114,12 +110,12 @@ class  W3InventoryItemContext extends W3UIContext
 			} else
 			if (invComponentRef.ItemHasTag(currentItemId, 'Potion'))
 			{
-				if (GetWitcherPlayer().ToxicityLowEnoughToDrinkPotion(EES_Potion1,currentItemId))
+				if (GetWitcherPlayer().ToxicityLowEnoughToDrinkPotion(EES_Potion1,currentItemId))	//what about other potion slots?
 				{
 					GetWitcherPlayer().DrinkPreparedPotion(EES_Potion1,currentItemId);
 					invMenuRef.InventoryUpdateItem(currentItemId);
 					
-					
+					//refresh UI if drunk Mutagen 3 (aka Cockatrice Decoction) - current and max ammo of alchemy items changes
 					if(thePlayer.inv.GetItemName(currentItemId) == 'Mutagen 3')
 					{
 						invMenuRef.PaperdollUpdateAll();
@@ -148,7 +144,7 @@ class  W3InventoryItemContext extends W3UIContext
 		else
 		if (keyName == "enter-gamepad_A")
 		{
-			if (!theInput.LastUsedPCInput() || IsPadBindingExist(keyName)) 
+			if (!theInput.LastUsedPCInput() || IsPadBindingExist(keyName)) // check dbl-click
 			{
 				execurePrimaryAction();
 			}
@@ -157,8 +153,8 @@ class  W3InventoryItemContext extends W3UIContext
 		if (keyName == "gamepad_Y")
 		{
 			invMenuRef.OnDropItem(currentItemId, itemsCount);
-			
-			
+			//invMenuRef.InventoryUpdateItem( currentItemId );
+			//invMenuRef.UpdateData();
 		}
 		else
 		if (keyName == "gamepad_L2")
@@ -188,14 +184,14 @@ class  W3InventoryItemContext extends W3UIContext
 		return false;
 	}
 	
-	
+	// virtual
 	protected function updateInputFeedback():void {}
 	protected function execurePrimaryAction():void {}
 }
 
 class W3InventoryGridContext extends W3InventoryItemContext
 {
-	protected  function updateInputFeedback():void
+	protected /* override */ function updateInputFeedback():void
 	{
 		var currentInventoryState : EInventoryMenuState;
 		var canDrop : bool;
@@ -221,8 +217,8 @@ class W3InventoryGridContext extends W3InventoryItemContext
 			isQuestItem = invComponentRef.ItemHasTag(currentItemId,'Quest');
 			isBodkinBolt = invComponentRef.GetItemName(currentItemId) == 'Bodkin Bolt';
 			
-			
-			
+			//Tutorial hack - in forced alchemy tutorial we cook Thunderbolt 1 potion and we have to make sure you cannot drop it.
+			//It's a general item so it cannot have NoDrop or Quest tags and there is no way to dynamically add/remove tags from items.
 			cantUse = FactsQuerySum("tut_forced_preparation") > 0 && invComponentRef.GetItemName(currentItemId) == 'Thunderbolt 1';
 			if(canDrop && cantUse)
 			{
@@ -232,7 +228,11 @@ class W3InventoryGridContext extends W3InventoryItemContext
 			switch (currentInventoryState)
 			{
 				case IMS_Player:				
-				
+					
+					if (invComponentRef.ItemHasTag(currentItemId, 'Painting'))
+					{
+						AddInputBinding("panel_button_common_examine", "enter-gamepad_A", IK_E, true);
+					}
 					if (invComponentRef.ItemHasTag(currentItemId, 'ReadableItem'))
 					{
 						AddInputBinding("panel_button_inventory_read", "enter-gamepad_A", IK_E, true);
@@ -262,10 +262,10 @@ class W3InventoryGridContext extends W3InventoryItemContext
 					else if ((invComponentRef.ItemHasTag(currentItemId, 'SteelOil') && GetWitcherPlayer().GetItemEquippedOnSlot(EES_SteelSword, curEquipedItem)) ||
 							 (invComponentRef.ItemHasTag(currentItemId, 'SilverOil') && GetWitcherPlayer().GetItemEquippedOnSlot(EES_SilverSword, curEquipedItem)))
 					{
-						
+						// Cannot apply oil if you don't have a valid sword equiped
 						AddInputBinding("panel_button_inventory_upgrade", "enter-gamepad_A", IK_E, true);
 					}
-					else if (invComponentRef.GetSlotForItemId(currentItemId) != EES_InvalidSlot) 
+					else if (invComponentRef.GetSlotForItemId(currentItemId) != EES_InvalidSlot) //#Y TEMP While we don't have horse inventory
 					{
 						AddInputBinding("panel_button_inventory_equip", "enter-gamepad_A", IK_Space, true);
 					}
@@ -323,7 +323,7 @@ class W3InventoryGridContext extends W3InventoryItemContext
 		m_managerRef.updateInputFeedback();
 	}
 	
-	protected  function execurePrimaryAction():void
+	protected /* override */ function execurePrimaryAction():void
 	{
 		var currentInventoryState : EInventoryMenuState;
 		var itemsCount : int;
@@ -337,7 +337,11 @@ class W3InventoryGridContext extends W3InventoryItemContext
 			switch (currentInventoryState)
 			{
 				case IMS_Player:
-					if (invComponentRef.ItemHasTag(currentItemId, 'ReadableItem'))
+					if ( invComponentRef.ItemHasTag(currentItemId, 'Painting') )
+					{
+						invMenuRef.ShowPainting(currentItemId);
+					}
+					else if (invComponentRef.ItemHasTag(currentItemId, 'ReadableItem'))
 					{
 						invMenuRef.OnReadBook(currentItemId);
 					}
@@ -394,7 +398,7 @@ class W3InventoryGridContext extends W3InventoryItemContext
 
 class W3ExternalGridContext extends W3InventoryItemContext
 {
-	protected  function updateInputFeedback():void
+	protected /* override */ function updateInputFeedback():void
 	{
 		var currentInventoryState : EInventoryMenuState;
 		var itemCategory : name;
@@ -448,7 +452,7 @@ class W3ExternalGridContext extends W3InventoryItemContext
 		m_managerRef.updateInputFeedback();
 	}
 	
-	public  function HandleUserFeedback(keyName:string):void 
+	public /* override */ function HandleUserFeedback(keyName:string):void 
 	{
 		var currentInventoryState : EInventoryMenuState;
 		
@@ -458,7 +462,7 @@ class W3ExternalGridContext extends W3InventoryItemContext
 		{
 			if (keyName == "enter-gamepad_A")
 			{
-				if (!theInput.LastUsedPCInput() || IsPadBindingExist(keyName)) 
+				if (!theInput.LastUsedPCInput() || IsPadBindingExist(keyName)) // check dbl-click
 				{
 					execurePrimaryAction();
 				}
@@ -470,7 +474,7 @@ class W3ExternalGridContext extends W3InventoryItemContext
 		}
 	}
 	
-	protected  function execurePrimaryAction():void
+	protected /* override */ function execurePrimaryAction():void
 	{
 		var currentInventoryState : EInventoryMenuState;
 		var itemsCount:int;
@@ -500,7 +504,7 @@ class W3ExternalGridContext extends W3InventoryItemContext
 
 class W3InventoryPaperdollContext extends W3InventoryItemContext
 {
-	protected  function updateInputFeedback():void
+	protected /* override */ function updateInputFeedback():void
 	{
 		var horsePaperdollInv  	  : W3GuiHorseInventoryComponent;
 		var currentInventoryState : EInventoryMenuState;
@@ -547,12 +551,12 @@ class W3InventoryPaperdollContext extends W3InventoryItemContext
 		m_managerRef.updateInputFeedback();
 	}
 	
-	public  function HandleUserFeedback(keyName:string):void 
+	public /* override */ function HandleUserFeedback(keyName:string):void 
 	{
 		super.HandleUserFeedback(keyName);
 	}
 	
-	protected  function execurePrimaryAction():void
+	protected /* override */ function execurePrimaryAction():void
 	{
 		if (invMenuRef.GetCurrentInventoryState() != IMS_HorseInventory)
 		{
@@ -584,7 +588,7 @@ class W3PlayerStatsContext extends W3UIContext
 		invMenuRef.ShowStatTooltip(statName);
 	}
 	
-	protected  function updateInputFeedback():void
+	protected /* override */ function updateInputFeedback():void
 	{
 		m_inputBindings.Clear();
 		m_contextBindings.Clear();

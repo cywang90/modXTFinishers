@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CVFXTrigger extends CGameplayEntity
+﻿class CVFXTrigger extends CGameplayEntity
 {
 	editable var fxOnEnter : name;
 	

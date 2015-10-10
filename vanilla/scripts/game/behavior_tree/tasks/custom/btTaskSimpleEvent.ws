@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 class CBTTaskSimpleEvent extends IBehTreeTask
 {
 	var available : bool;

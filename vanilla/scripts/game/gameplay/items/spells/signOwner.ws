@@ -1,16 +1,14 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : collective mind of the CDP
+/***********************************************************************/
 
-
-
-
-
-
-
-
-
-
+// Abstraction of "sign owner".
+// Allows actors to cast signs the same way as player does.
+// To do that respecive sign and projectile classes need to be implemented
+// "in general case" (look at aard or igni sign for the reference).
+// General implementation (W3SignOwner) can be used by actors.
+// For player one needs to use W3SignOwnerPlayer (see below).
 
 class W3SignOwner
 {
@@ -82,7 +80,7 @@ class W3SignOwner
 		return false;
 	}
 	
-	public function HasStaminaToUseSkill( skill : ESkill, optional perSec : bool, optional skipLock : bool ) : bool
+	public function HasStaminaToUseSkill( skill : ESkill, optional perSec : bool, optional signHack : bool ) : bool
 	{
 		return false;
 	}	
@@ -125,8 +123,8 @@ class W3SignOwner
 	}	
 }
 
-
-
+///////////////////////////////////////////////////////////////////////////////
+// sign owner implementation for CBTTaskCastSign
 
 class W3SignOwnerBTTaskCastSign extends W3SignOwner
 {
@@ -138,7 +136,7 @@ class W3SignOwnerBTTaskCastSign extends W3SignOwner
 		btTask = task;
 	}
 	
-	public function HasStaminaToUseSkill( skill : ESkill, optional perSec : bool, optional skipLock : bool ) : bool
+	public function HasStaminaToUseSkill( skill : ESkill, optional perSec : bool, optional signHack : bool ) : bool
 	{
 		return true;
 	}	
@@ -154,8 +152,8 @@ class W3SignOwnerBTTaskCastSign extends W3SignOwner
 	}	
 }
 
-
-
+///////////////////////////////////////////////////////////////////////////////
+// sign owner implementation for player
 
 class W3SignOwnerPlayer extends W3SignOwner
 {
@@ -187,7 +185,7 @@ class W3SignOwnerPlayer extends W3SignOwner
 			player.SetBehaviorVariable( 'alternateSignCast', 0 );
 			player.SetBehaviorVariable( 'IsCastingSign', 1 );
 						
-			
+			// break pheromone elixir effect?
 			player.BreakPheromoneEffect();
 			
 			return true;			
@@ -263,9 +261,9 @@ class W3SignOwnerPlayer extends W3SignOwner
 		return player.IsSkillEquipped( skill );
 	}
 	
-	public function HasStaminaToUseSkill( skill : ESkill, optional perSec : bool, optional skipLock : bool ) : bool
+	public function HasStaminaToUseSkill( skill : ESkill, optional perSec : bool, optional signHack : bool ) : bool
 	{
-		return player.HasStaminaToUseSkill( skill, perSec, skipLock );
+		return player.HasStaminaToUseSkill( skill, perSec, signHack );
 	}	
 
 	public function RemoveTemporarySkills()

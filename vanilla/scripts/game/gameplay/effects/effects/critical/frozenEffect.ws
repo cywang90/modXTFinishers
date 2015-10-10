@@ -1,17 +1,15 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
-
-
-
-
+//object that will pass custom params to this buff when added on Actor
 class W3FrozenEffectCustomParams extends W3BuffCustomParams
 {
-	var freezeFadeInTime : float;		
+	var freezeFadeInTime : float;		//fade in time for the effect to wear off
 }
 
-
+//Frozen buff - character is frozen in animation frame.
 class W3Effect_Frozen extends W3ImmobilizeEffect
 {
 	private saved var killOnHit : bool;
@@ -40,10 +38,10 @@ class W3Effect_Frozen extends W3ImmobilizeEffect
 		animatedComponent = ( CAnimatedComponent )target.GetComponentByClassName( 'CAnimatedComponent' );
 		if( animatedComponent )
 		{
-			params = (W3FrozenEffectCustomParams)customParams;		
+			params = (W3FrozenEffectCustomParams)customParams;		//cast params to our custom class
 			isJumping = false;
 						
-			
+			//flying enemies will fall on the ground if in air - in all other cases this should not matter
 			npc = (CNewNPC)target;
 			if(npc)
 			{
@@ -56,7 +54,7 @@ class W3Effect_Frozen extends W3ImmobilizeEffect
 						mpac.SetAnimatedMovement( false );
 				}
 				
-				
+				//in air
 				if(npc.IsVisuallyOffGround() && !targetWasFlying)
 				{
 					isJumping = true;
@@ -69,18 +67,23 @@ class W3Effect_Frozen extends W3ImmobilizeEffect
 			
 			if(!isJumping)
 			{
-				
-				
-				
+				//DISABLED as there is an issue when you start freezing an enemy on the ground and then it jumps up - freeze must be instant
+				//different calls based on passed param of fade in time
+				/*
+				if(!params || params.freezeFadeInTime <= 0.0f )
+					animatedComponent.FreezePose();
+				else
+					animatedComponent.FreezePoseFadeIn( params.freezeFadeInTime );
+				*/
 				animatedComponent.FreezePose();
 					
-				
+				//set unpushable
 				pushPriority = target.GetInteractionPriority();
 				target.SetInteractionPriority(IP_Max_Unpushable);
 			}
 			else
 			{
-				
+				//abort if jumping
 				isActive = false;
 				return true;
 			}
@@ -118,7 +121,7 @@ class W3Effect_Frozen extends W3ImmobilizeEffect
 		effectManager.ResumeAllRegenEffects('FrozenEffect');
 		target.RequestCriticalAnimStop();
 		
-		
+		//set unpushable
 		target.SetInteractionPriority(pushPriority);
 		if( wasKnockedDown )
 		{
@@ -132,7 +135,7 @@ class W3Effect_Frozen extends W3ImmobilizeEffect
 		return killOnHit;
 	}
 	
-	
+	//override
 	public function OnTimeUpdated(deltaTime : float)
 	{
 		if ( isActive )
@@ -147,8 +150,11 @@ class W3Effect_Frozen extends W3ImmobilizeEffect
 			OnUpdate(deltaTime);	
 		}
 		
-		
-		
+		// Deactivate the finisher if the time in critical effect left is too short to play the finish animation
+		/*if( timeLeft <= 1 )
+		{
+			target.SignalGameplayEvent('DisableFinisher');
+		}*/
 		
 		if(timeLeft <= 0)
 		{
@@ -172,7 +178,7 @@ class W3Effect_Frozen extends W3ImmobilizeEffect
 		killOnHit = CalculateAttributeValue(GetAttributeRandomizedValue(min, max));
 	}
 	
-	
+	//returns damage bonus percents (0-1) that is dealt each time frozen enemy is hit
 	public function GetAdditionalDamagePercents() : float
 	{
 		return bonusDamagePercents;

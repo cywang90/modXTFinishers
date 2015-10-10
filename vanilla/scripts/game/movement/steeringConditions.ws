@@ -1,19 +1,18 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Object classes exprots
+/** Copyright © 2009 Dexio's Late Night R&D Home Center
+/***********************************************************************/
 
 
-
-
-
-
-
+/////////////////////////////////////////////////////////////////////////
 
 import class CMoveSCScriptedCondition extends IMoveSteeringCondition
 {
 };
 
-
+/////////////////////////////////////////////////////////////////////////
 
 class CMoveSCPlayerIsRunning extends CMoveSCScriptedCondition
 {
@@ -102,4 +101,4 @@ class CMoveSCIsSmallCreature extends CMoveSCScriptedCondition
 		return false;
 	}
 };
-
+/////////////////////////////////////////////////////////////////////////

@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : Tomasz Kozera
+/***********************************************************************/
 
 class W3DynamicBlood extends W3MonsterClue
 {

@@ -1,9 +1,5 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/////////////////////////////////////////////////////
+// CBTTaskSetCanBeFollowed
 class CBTTaskSetCanBeFollowed extends IBehTreeTask
 {
 	var setCanBeFollowed : bool;

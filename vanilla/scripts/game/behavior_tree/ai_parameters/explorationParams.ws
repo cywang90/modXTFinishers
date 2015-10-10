@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 import abstract class IAIExplorationTree extends IAITree
 {
 };
@@ -17,7 +13,7 @@ class CAIDoorMoveExplorationTree extends IAIDoorExplorationTree
 };
 
 
-
+////////////////////////////////////////////////////////////
 class CAIUseExplorationActionTree extends IAIExplorationTree
 {
 	default aiTreeName = "resdef:ai\exploration/use_exploration_general";	
@@ -36,7 +32,7 @@ class CAIRunExplorationActionTree extends IAIBaseAction
 		params.OnCreated();
 	}
 };
-
+// CAIBasicAttackActionTreeParams
 class CAIRunExplorationActionTreeParams extends IAIActionParameters
 {
 	editable var explorationType : EExplorationType;

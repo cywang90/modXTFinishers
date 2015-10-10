@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTCondIsPlayerCiri extends IBehTreeTask
+﻿class CBTCondIsPlayerCiri extends IBehTreeTask
 {
 	function IsAvailable() : bool
 	{

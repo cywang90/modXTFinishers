@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file - Controls Feedback Hud Module
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author : Bartosz Bigaj
+/***********************************************************************/
 
 class CR4HudModuleControlsFeedback extends CR4HudModuleBase
 {		
@@ -26,7 +25,7 @@ class CR4HudModuleControlsFeedback extends CR4HudModuleBase
 	
 	private const var KEY_CONTROLS_FEEDBACK_LIST : string; 		default KEY_CONTROLS_FEEDBACK_LIST 		= "hud.module.controlsfeedback";
 
-	event  OnConfigUI()
+	event /* flash */ OnConfigUI()
 	{		
 		var flashModule : CScriptedFlashSprite;
 		var hud : CR4ScriptedHud;
@@ -265,7 +264,7 @@ class CR4HudModuleControlsFeedback extends CR4HudModuleBase
 					{
 						l_ActionsArray.PushBack('AttackLight');
 						l_ActionsArray.PushBack('AttackHeavy');
-						l_ActionsArray.PushBack('LockAndGuard'); 
+						l_ActionsArray.PushBack('LockAndGuard'); // #B should be block
 						l_ActionsArray.PushBack('Dodge');
 					}
 					else
@@ -280,9 +279,9 @@ class CR4HudModuleControlsFeedback extends CR4HudModuleBase
 					l_ActionsArray.PushBack('AttackLight');
 					l_ActionsArray.PushBack('CiriDodge');
 					if ( thePlayer.HasAbility('CiriCharge') )
-						l_ActionsArray.PushBack('CiriSpecialAttackHeavy'); 
+						l_ActionsArray.PushBack('CiriSpecialAttackHeavy'); //// CHECK IT!!! // add hold??
 					if ( thePlayer.HasAbility('CiriBlink') )
-						l_ActionsArray.PushBack('CiriSpecialAttack'); 
+						l_ActionsArray.PushBack('CiriSpecialAttack'); //// It's ok!
 					break;
 				default:
 					break;
@@ -295,7 +294,7 @@ class CR4HudModuleControlsFeedback extends CR4HudModuleBase
 				outKeysPC.Clear();
 				theInput.GetPadKeysForAction(curAction, outKeys );
 				
-				
+				// #Y HACK FOR FAST / HEAVY ATTACK
 				
 				if (m_lastUsedPCInput)
 				{
@@ -306,10 +305,10 @@ class CR4HudModuleControlsFeedback extends CR4HudModuleBase
 					
 					switch (curAction)
 					{
-						
-						
-						
-						
+						// AttackWithAlternateLight
+						// AttackWithAlternateHeavy
+						// * CiriSpecialAttackHeavy
+						// theInput.IsAttackWithAlternateBound()
 						
 						case 'AttackLight' :
 								
@@ -337,7 +336,7 @@ class CR4HudModuleControlsFeedback extends CR4HudModuleBase
 						case 'AttackHeavy' :
 						case 'CiriSpecialAttackHeavy' :
 								
-								
+								// #Y TODO: Move to fucntion, code duplication
 								
 								attackKeysPC.Clear();
 								theInput.GetPCKeysForAction('AttackWithAlternateHeavy', attackKeysPC );
@@ -365,16 +364,16 @@ class CR4HudModuleControlsFeedback extends CR4HudModuleBase
 					}
 				}
 				
+				// ----------------------------
 				
-				
-				switch (curAction) 
+				switch (curAction) // DEL ???
 				{
 					case 'Sprint' :
-						
-						
-						
-						
-						
+						//if ( theInput.IsToggleSprintBound() )
+						//{
+						//	outKeysPC.Clear();
+						//	theInput.GetPCKeysForAction('SprintToggle', outKeysPC );
+						//}
 						break;
 					case 'HorseDismount':
 						outKeys.PushBack(IK_Pad_B_CIRCLE);
@@ -490,13 +489,13 @@ class CR4HudModuleControlsFeedback extends CR4HudModuleBase
 			}
 		}
 		
-		
-		
+		// visibility of this hud module cannot be forced here because it caused some random errors (it's shown during cutscenes)
+		// since there is no central system managing visibility of hud modules, it needs to be handled the other, hacky way
 		if( l_ActionsArray.Size() > 0 )
 		{
 			m_flashValueStorage.SetFlashArray( KEY_CONTROLS_FEEDBACK_LIST, l_FlashArray );
-			
-			
+			// called in populateData in AS
+			//m_fxMakeVisible.InvokeSelfOneArg( FlashArgBool( true ) );
 		}
 		else
 		{
@@ -517,10 +516,10 @@ class CR4HudModuleControlsFeedback extends CR4HudModuleBase
 		var tempY				: float;
 		
 		l_flashModule 	= GetModuleFlash();
+		//theGame.GetUIHorizontalFrameScale()
+		//theGame.GetUIVerticalFrameScale()
 		
-		
-		
-		
+		// #J SUPER LAME
 		tempX = anchorX - (300.0 * (1.0 - theGame.GetUIHorizontalFrameScale()));
 		tempY = anchorY - (200.0 * (1.0 - theGame.GetUIVerticalFrameScale())); 
 		
@@ -530,7 +529,7 @@ class CR4HudModuleControlsFeedback extends CR4HudModuleBase
 	
 	event OnControllerChanged()
 	{
-		
+		//UpdateInputContext( m_currentInputContext );
 	}	
 
 	event OnInputHandled(NavCode:string, KeyCode:int, ActionId:int)

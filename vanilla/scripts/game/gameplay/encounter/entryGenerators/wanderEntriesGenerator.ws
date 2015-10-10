@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 struct SWanderEntryGeneratorParam
 {
 	editable var qualityMin				: int; default qualityMin = 1;

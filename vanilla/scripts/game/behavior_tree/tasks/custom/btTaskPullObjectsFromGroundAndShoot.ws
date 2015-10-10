@@ -1,24 +1,20 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
-
-
-
-
-
-
-
+﻿//>--------------------------------------------------------------------------
+// BTTaskPullObjectsFromGroundAndShoot
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Spawn multiple entities, pull them vertically from ground and shoot at target.
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Andrzej Kwiatkowski - 05-11-2014
+// Copyright © 2014 CD Projekt RED
+//---------------------------------------------------------------------------
 
 class BTTaskPullObjectsFromGroundAndShoot extends IBehTreeTask
 {
-	
-	
-	
-	
+	//>--------------------------------------------------------------------------
+	// VARIABLES
+	//---------------------------------------------------------------------------
+	// public
 	public var createEntityResourceName			: name;
 	public var numberToSpawn					: int;
 	public var numberOfCircles					: int;
@@ -51,7 +47,7 @@ class BTTaskPullObjectsFromGroundAndShoot extends IBehTreeTask
 	public var playEffectOnEntityCreation		: name;
 	public var stopEffectOnDeactivate			: name;
 	
-	
+	// private
 	private var m_Npc							: CNewNPC;
 	private var m_CreateEntityTemplate			: CEntityTemplate;
 	private var m_CreatedEntities				: array<CEntity>;
@@ -68,8 +64,8 @@ class BTTaskPullObjectsFromGroundAndShoot extends IBehTreeTask
 	
 	private var couldntLoadResource : bool;
 	
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function IsAvailable() : bool
 	{
 		if ( couldntLoadResource )
@@ -80,8 +76,8 @@ class BTTaskPullObjectsFromGroundAndShoot extends IBehTreeTask
 		return true;
 	}
 	
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function OnActivate() : EBTNodeStatus
 	{
 		m_Npc = GetNPC();
@@ -96,8 +92,8 @@ class BTTaskPullObjectsFromGroundAndShoot extends IBehTreeTask
 	}
 	
 	
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	latent function Main() : EBTNodeStatus
 	{
 		var l_lastLocalTime : float;
@@ -165,13 +161,13 @@ class BTTaskPullObjectsFromGroundAndShoot extends IBehTreeTask
 	}
 	
 	
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------	
 	function OnDeactivate()
 	{
 		var i : int;
 		
-		
+		// drop projectiles on ground when they are spawned but shoot event doesn't arrive
 		if ( m_entitiesToShoot.Size() > 0 )
 		{
 			for ( i = m_entitiesToShoot.Size() - 1 ; i >= 0 ; i -= 1 ) 
@@ -191,9 +187,9 @@ class BTTaskPullObjectsFromGroundAndShoot extends IBehTreeTask
 		m_aardHitEventReceived = false;
 	}
 	
-	
-	
-	
+	//>----------------------------------------------------------------------
+	// Helper functions
+	//-----------------------------------------------------------------------
 	private latent function PullObjectsFromGround( _DeltaTime : float )     
 	{
 		var l_speed						: float;
@@ -223,7 +219,7 @@ class BTTaskPullObjectsFromGroundAndShoot extends IBehTreeTask
 				
 				l_initialToFinalPosDist = VecDistance( m_finalPosArray[i], m_initialPosArray[i] );
 				
-				
+				// setting up initial speed from which projectiles will decelerate
 				if ( calculateSpeedFromPullDuration > 0 )
 				{
 					l_speedModifier = l_initialToFinalPosDist / calculateSpeedFromPullDuration;
@@ -235,9 +231,18 @@ class BTTaskPullObjectsFromGroundAndShoot extends IBehTreeTask
 					m_prevSpeed = drawSpeedLimit;
 				}
 				
+				/* accelerate then decelerate from half of the way
+				if ( l_entityToFinalPosDist > 0.5 * l_initialToFinalPosDist )
+				{
+					l_speed = m_prevSpeed + ( l_speedModifier * _DeltaTime );
+				}
+				else
+				{
+					l_speed = m_prevSpeed - ( l_speedModifier * _DeltaTime );
+				}
+				*/
 				
-				
-				
+				// only deceleration
 				l_speed = m_prevSpeed - ( l_speedModifier * _DeltaTime );
 				
 				if ( l_speed > drawSpeedLimit )
@@ -267,8 +272,8 @@ class BTTaskPullObjectsFromGroundAndShoot extends IBehTreeTask
 		}
 	}
 	
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	private function SetProjectilesPullPositions()
 	{
 		var l_owner		: CNewNPC = GetNPC();
@@ -290,8 +295,8 @@ class BTTaskPullObjectsFromGroundAndShoot extends IBehTreeTask
 		}
 	}
 	
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	latent function LatentSpawnEntity()
 	{
 		var l_spawnCenter			: Vector;
@@ -359,7 +364,7 @@ class BTTaskPullObjectsFromGroundAndShoot extends IBehTreeTask
 				l_circleRadiusMax = MinF( l_circleRadiusMin + randomnessInCircles, spawnRadiusMax );
 			}
 			
-			
+			//l_randomVector = VecConeRand( l_currentCone * l_coneAngle , l_coneWidth, l_circleRadiusMin, l_circleRadiusMax );
 			if ( spawnInTargetDirection )
 			{
 				l_npcToTargetAngle = NodeToNodeAngleDistance( GetCombatTarget(), m_Npc );
@@ -369,7 +374,7 @@ class BTTaskPullObjectsFromGroundAndShoot extends IBehTreeTask
 				l_randomVector = VecConeRand( l_npc.GetHeading() - ( spawnObjectsInConeAngle * 0.5 ) + ( l_coneAngle * l_currentCone ), l_coneWidth, l_circleRadiusMin, l_circleRadiusMax );			
 			l_spawnPos = l_spawnCenter + l_randomVector;
 			
-			
+			// spawn on ground
 			theGame.GetWorld().StaticTrace( l_spawnPos + Vector(0,0,5), l_spawnPos - Vector(0,0,5), l_spawnPos, l_normal );
 			
 			switch( spawnRotation )
@@ -430,8 +435,8 @@ class BTTaskPullObjectsFromGroundAndShoot extends IBehTreeTask
 		}
 	}
 	
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function CreateEntity( _SpawnPos : Vector, _Rotation : EulerAngles ) : CEntity
 	{		
 		var l_spawnedEntity 			: CEntity;
@@ -461,8 +466,8 @@ class BTTaskPullObjectsFromGroundAndShoot extends IBehTreeTask
 		return l_spawnedEntity;
 	}
 	
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function ProcessShootEntities( b : bool )
 	{
 		var i 		: int;
@@ -494,8 +499,8 @@ class BTTaskPullObjectsFromGroundAndShoot extends IBehTreeTask
 		}
 	}
 	
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function ShootProjectile( projectile : CEntity, optional allDirections : bool, optional deactivate : bool )
 	{
 		var target 						: CActor = GetCombatTarget();
@@ -576,14 +581,14 @@ class BTTaskPullObjectsFromGroundAndShoot extends IBehTreeTask
 			proj.ShootProjectileAtPosition( proj.projAngle, proj.projSpeed, targetPos, range, m_collisionGroups );
 		}
 		
-		
+		// allows npcs to dodge projectile before it hits
 		l_3DdistanceToTarget = VecDistance( m_Npc.GetWorldPosition(), combatTargetPos );		
 		l_projectileFlightTime = l_3DdistanceToTarget / drawSpeedLimit;
 		target.SignalGameplayEventParamFloat( 'Time2DodgeProjectile', l_projectileFlightTime );
 	}
 	
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo ) : bool
 	{
 		if ( IsNameValid( activateOnAnimEvent ) && animEventName == activateOnAnimEvent )
@@ -599,8 +604,8 @@ class BTTaskPullObjectsFromGroundAndShoot extends IBehTreeTask
 		return false;
 	}
 	
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function OnGameplayEvent( eventName : name ) : bool
 	{
 		if ( eventName == 'AardHitReceived' )
@@ -613,13 +618,13 @@ class BTTaskPullObjectsFromGroundAndShoot extends IBehTreeTask
 	}
 };
 
-
-
+//>--------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 class BTTaskPullObjectsFromGroundAndShootDef extends IBehTreeTaskDefinition
 {
-	
-	
-	
+	//>--------------------------------------------------------------------------
+	// VARIABLES
+	//---------------------------------------------------------------------------
 	private editable var createEntityResourceName			: name;
 	private editable var zAxisSpawnOffset					: float;
 	private editable var raiseObjectsToCapsuleHeightRatio	: float;

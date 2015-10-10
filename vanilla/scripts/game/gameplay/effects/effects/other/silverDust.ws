@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 class W3Effect_SilverDust extends CBaseGameplayEffect
 {
@@ -16,7 +14,7 @@ class W3Effect_SilverDust extends CBaseGameplayEffect
 	{
 		super.OnEffectAdded(customParams);
 		
-		
+		//target.PauseEffects(EET_AutoVitalityRegen, 'silver_dust');
 		target.PauseEffects(EET_AutoEssenceRegen, 'silver_dust');
 		
 		BlockAbilities(true);
@@ -24,7 +22,7 @@ class W3Effect_SilverDust extends CBaseGameplayEffect
 	
 	event OnEffectRemoved()
 	{	
-		
+		//target.ResumeEffects(EET_AutoVitalityRegen, 'silver_dust');
 		target.ResumeEffects(EET_AutoEssenceRegen, 'silver_dust');
 		
 		BlockAbilities(false);

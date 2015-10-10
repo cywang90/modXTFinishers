@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 class CBTTaskEnterDrinkingMinigame extends IBehTreeTask
 {
 	var Event : name;

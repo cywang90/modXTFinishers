@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTCondIsInSettlement extends IBehTreeTask
+﻿class CBTCondIsInSettlement extends IBehTreeTask
 {
 	function IsAvailable() : bool
 	{

@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿// See FlyingCrittersLairEntity::RequestGroupStateChange
 function FlyingSwarm_RequestGroupStateChange( lairTag : name, groupState : name, affectAllGroups : bool )
 {
 	var lair 			: CFlyingCrittersLairEntityScript;
@@ -21,7 +17,7 @@ function FlyingSwarm_RequestGroupStateChange( lairTag : name, groupState : name,
 	}
 }
 
-
+// See FlyingCrittersLairEntity::RequestGroupStateChange
 function FlyingSwarm_RequestCreateGroup( lairTag : name, boidCount : int, spawnPOI : name )
 {
 	var lair 			: CFlyingCrittersLairEntityScript;
@@ -40,7 +36,7 @@ function FlyingSwarm_RequestCreateGroup( lairTag : name, boidCount : int, spawnP
 	}
 }
 
-
+// See FlyingCrittersLairEntity::RequestAllGroupsInstantDespawn
 function FlyingSwarm_RequestAllGroupsInstantDespawn( lairTag : name )
 {
 	var lair 			: CFlyingCrittersLairEntityScript;
@@ -56,7 +52,7 @@ function FlyingSwarm_RequestAllGroupsInstantDespawn( lairTag : name )
 	}
 }
 
-
+// disables all the POI of a given tag, will be ignored by the swarm until enabled
 function Swarm_DisablePOIs( poiTag : name, disable : bool )
 {
 	var poiEntities 		: array< CEntity >;
@@ -83,7 +79,7 @@ function Swarm_DisablePOIs( poiTag : name, disable : bool )
 	}
 }
 
-
+// 
 function Swarm_DisableLair( lairTag : name, disable : bool )
 {
 	var lairEntity 		: CSwarmLairEntity;

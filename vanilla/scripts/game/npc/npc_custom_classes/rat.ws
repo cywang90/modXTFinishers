@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3Rat extends CNewNPC
+﻿class W3Rat extends CNewNPC
 {
 	editable saved var hasCollision : bool; default hasCollision = false;
 	
@@ -13,7 +9,11 @@ class W3Rat extends CNewNPC
 		EnableCharacterCollisions(hasCollision);
 	}
 	
-	
+	/*event OnAardHit( sign : W3AardProjectile )
+	{
+		super.OnAardHit(sign);
+		this.Kill();
+	}*/
 	
 	event OnChangeDyingInteractionPriorityIfNeeded()
 	{

@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Walk along a path latent action
+/** Copyright © 2012
+/***********************************************************************/
 
 class W3ActorLatentActionMoveAlongPath extends IPresetActorLatentAction
 {
@@ -60,7 +59,16 @@ class W3ActorLatentActionMoveAlongPathWithCompanion extends W3ActorLatentActionM
 	default minDistance = 4.0f;
 	default progressWhenCompanionIsAhead = false;
 	
-			
+	/*function OnActivate() : EBTNodeStatus
+	{
+		GetNPC().isPlayerFollower = true;
+		return BTNS_Active;
+	}
+	
+	function OnDeactive()
+	{
+		GetNPC().isPlayerFollower = false;
+	}*/		
 	
 	function ConvertToActionTree( parentObj : IScriptable ) : IAIActionTree
 	{

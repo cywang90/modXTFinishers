@@ -1,10 +1,6 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/************************** Class for fish ****************************/
+/***********************************************************************/
 
 class W3CurveFish extends CGameplayEntity
 {
@@ -48,7 +44,6 @@ class W3CurveFish extends CGameplayEntity
 		
 		PlayPropertyAnimation(selectedSwimCurve, 0, baseSpeed );
 		
-		AddTimer('DestructionTimer', 1.0, true, , , true);
 		AddTimer('SpeedHandler', 0.1, true);
 		
 	}
@@ -65,23 +60,6 @@ class W3CurveFish extends CGameplayEntity
 		currentSpeed = baseSpeed;
 	}
 	
-	
-	timer function DestructionTimer(dt : float, id : int)
-	{
-		var isVisible : bool;
-		var x, y : float;
-		
-		isVisible = theCamera.WorldVectorToViewRatio(GetWorldPosition(), x, y);
-		if(isVisible && (AbsF(x) > 1.1 && AbsF(y) > 1.1))
-			isVisible = false;
-		
-		if(!isVisible && VecDistance(GetWorldPosition(), theCamera.GetCameraPosition()) > destroyDistance)
-		{
-			manager.OnFishDestroyed(this);
-			Destroy();
-		}
-	}
-
 	function ModifyFishSpeed()
 	{
 		SetBehaviorVariable('Speed', currentSpeed * 0.5f );
@@ -131,37 +109,40 @@ class W3CurveFish extends CGameplayEntity
 
 }
 
-
-
-
+/***********************************************************************/
+/************************** Class for spawnpoint ***********************/
+/***********************************************************************/
 class W3CurveFishSpawnpoint extends CEntity {}
 
-
-
-
+/***********************************************************************/
+/************************** Class for manager **************************/
+/***********************************************************************/
 statemachine class W3CurveFishManager extends CGameplayEntity
 {
 	editable var fishSpawnPointsTag : name;
-	editable var spawnRange : float;
 	editable var fishTemplate : array<CEntityTemplate>;
-	editable var respawnDelay : float;
-	editable var respawnMinDistance : float;
 	editable var randomFishRotation : bool;
 
 	
 	private var fishSpawnpoints : array<SFishSpawnpoint>;
-	private var despawnTime : float;				
-	private var wasEverVisible : bool;				
 
+	editable var m_spawnDistance : float;
+	editable var m_despawnDistance : float;
+	private var m_spawned : bool;
+	
+	private var m_firstTimeCollectSpawnpoints : bool;
+	
+	private var m_spawnedFish : array< W3CurveFish >;
 
 	
-		default spawnRange = 50.0;
-		default respawnDelay = 15;
-		default respawnMinDistance = 15;	
-		default autoState = 'Default';
-		default wasEverVisible = false;
+	default autoState = 'Default';
 	
-		hint respawnMinDistance = "Min distance between manager and camera to allow fish to respawn";
+	default m_spawnDistance = 150.0f;
+	default m_despawnDistance = 300.0f;
+	default m_spawned = false;
+	default m_firstTimeCollectSpawnpoints = true;
+		
+	
 	
 	
 	
@@ -171,186 +152,125 @@ statemachine class W3CurveFishManager extends CGameplayEntity
 		super.OnSpawned(spawnData);
 	}
 	
-	
 	event OnDetaching()
 	{
-		var i : int;
-		
-		for(i = 0; i < fishSpawnpoints.Size(); i += 1)
-		{
-			if(fishSpawnpoints[i].fish)
-				fishSpawnpoints[i].fish.Destroy();
-		}
-	}
-	
-	
-	public function OnFishDestroyed(b : W3CurveFish)
-	{
-		var i : int;
-	
-		
-		for(i=0; i<fishSpawnpoints.Size(); i+=1)
-		{
-			if(fishSpawnpoints[i].fish == b)
-			{
-				fishSpawnpoints[i].fish = NULL;
-				break;
-			}
-		}
-		
-		for(i=0; i<fishSpawnpoints.Size(); i+=1)
-			if(fishSpawnpoints[i].fish)
-				return;
-		
-		despawnTime = theGame.GetEngineTimeAsSeconds();
+		DespawnFish();
 	}
 	
 	private function SelectFishTemplate () : CEntityTemplate
 	{
-		
 		return fishTemplate[ RandRange( fishTemplate.Size(), 0 ) ];
-		
 	}
 	
-	public function SpawnFish(optional forced : bool)
+	public function SpawnFish()
 	{
-		var i, size : int;
-		var x, y : float;
-		var isVisible : bool;
-		var fish : W3CurveFish;		
-		
+		var i : int;
+		var size : int;
 		var spawnRotation : EulerAngles;
 		
-		if(!forced)
+		if( m_firstTimeCollectSpawnpoints )
 		{
-			
-			if(theGame.GetEngineTimeAsSeconds() < (respawnDelay + despawnTime))
-				return;
-				
-			
-			if(VecDistance(GetWorldPosition(), theCamera.GetCameraPosition()) < respawnMinDistance)
-				return;
+			UpdateSpawnPointsList();
+			m_firstTimeCollectSpawnpoints = false;
 		}
 		
-		
-		UpdateSpawnPointsList();
 		size = fishSpawnpoints.Size();
 		
 		for(i = 0; i < size; i += 1)
 		{
-			if(!fishSpawnpoints[i].fish)
+			if(randomFishRotation)
 			{
-				if(!forced)
-				{
-					isVisible = theCamera.WorldVectorToViewRatio(fishSpawnpoints[i].position, x, y);
-					if(isVisible && (AbsF(x) > 1.1 && AbsF(y) > 1.1))
-						isVisible = false;
-				}
-				
-				if(randomFishRotation)
-				{
-					spawnRotation.Pitch = fishSpawnpoints[i].rotation.Pitch;
-					spawnRotation.Roll = fishSpawnpoints[i].rotation.Roll;
-					spawnRotation.Yaw = RandRangeF(359.0, 1.0);
-				}
-				else
-				{
-					spawnRotation = fishSpawnpoints[i].rotation;	
-				}
-				
-				
-				if(!isVisible || forced)
-				{
-					fish = (W3CurveFish)theGame.CreateEntity(SelectFishTemplate(), fishSpawnpoints[i].position, spawnRotation);
-					if(fish)
-					{
-						fish.SetFishManager(this);
-						fishSpawnpoints[i].fish = fish;
-					}
-				}
+				spawnRotation.Pitch = fishSpawnpoints[i].rotation.Pitch;
+				spawnRotation.Roll = fishSpawnpoints[i].rotation.Roll;
+				spawnRotation.Yaw = RandRangeF(359.0, 1.0);
 			}
+			else
+			{
+				spawnRotation = fishSpawnpoints[i].rotation;	
+			}
+			
+			fishSpawnpoints[ i ].spawnHandler.SetPostAttachedCallback( this, 'OnFishSpawned' );
+			theGame.CreateEntityAsync( fishSpawnpoints[ i ].spawnHandler, SelectFishTemplate(), fishSpawnpoints[i].position, spawnRotation );
 		}
 	}
 	
-	
+	//Gets the spawnpoints list and updates stored spawnpoints list. Some spawnpoints might stream in or out.
+	// @MS : they never stream out cause they are not streamed entities.
 	private function UpdateSpawnPointsList()
 	{
 		var spawnstruct : SFishSpawnpoint;
 		var nodes : array<CNode>;
 		var spawnpoint : W3CurveFishSpawnpoint;
 		var collisionPos, testVec, normal : Vector;
-		var world : CWorld;
-		var i, j, lastExistingSpawnPoint : int;
+		var i, j, fishSpawnpointsOldSize : int;
 		var exists : bool;
-		var foundSpawnpoints : array<int>;
 		var collisionGroups : array<name>;
 		
 		
 		
-		lastExistingSpawnPoint = fishSpawnpoints.Size()-1;
+		fishSpawnpointsOldSize = fishSpawnpoints.Size()-1;
 		theGame.GetNodesByTag(fishSpawnPointsTag, nodes);
-		world = theGame.GetWorld();
 		
+		for( i = 0; i <= fishSpawnpointsOldSize; i += 1 )
+		{
+			fishSpawnpoints[ i ].shouldBeErased = true;
+		}
 		
 		for(i=0; i<nodes.Size(); i+=1)
 		{
 			spawnpoint = (W3CurveFishSpawnpoint)nodes[i];
 			if(spawnpoint)
 			{
-				
+				//Get spawnpoint position
 				spawnstruct.position = spawnpoint.GetWorldPosition();				
 				
-				
-				
-				
+				//now check if we already have this spawnpoint in array
 				exists = false;
-				for(j=0; j<=lastExistingSpawnPoint; j+=1)
+				for(j=0; j<=fishSpawnpointsOldSize; j+=1)
 				{
 					if(fishSpawnpoints[j].position == spawnstruct.position)
 					{
-						foundSpawnpoints.PushBack(j);
+						fishSpawnpoints[ j ].shouldBeErased = false;
 						exists = true;
 						break;
 					}
 				}
 				
-				
+				//if not then append it
 				if(!exists)
 				{
 					spawnstruct.rotation = spawnpoint.GetWorldRotation();
-					fishSpawnpoints.PushBack(spawnstruct);
+					spawnstruct.shouldBeErased = false;
+					spawnstruct.spawnHandler = new CCreateEntityHelper in this;		
+					fishSpawnpoints.PushBack( spawnstruct );
 				}
 			}
 		}
 		
-		
-		for(i=lastExistingSpawnPoint; i>=0; i-=1)
+		//now remove spawnpoints which streamed out
+		for( i = 0; i < fishSpawnpoints.Size(); )
 		{
-			exists = false;
-			for(j=0; j<foundSpawnpoints.Size(); j+=1)
+			if( fishSpawnpoints[ i ].shouldBeErased )
 			{
-				if(i == foundSpawnpoints[j])
-				{
-					exists = true;
-					foundSpawnpoints.Erase(j);	
-					break;
-				}
+				fishSpawnpoints.EraseFast( i );
 			}
-			
-			if(!exists)
-				fishSpawnpoints.Erase(i);		
-		}		
+			else
+			{
+				i += 1;
+			}
+		}	
 	}
 	
 	private function DespawnFish()
 	{
 		var i : int;
 			
-		for(i = 0; i < fishSpawnpoints.Size(); i += 1)
+		for( i = 0; i < m_spawnedFish.Size(); i += 1 )
 		{
-			if(fishSpawnpoints[i].fish)
-				fishSpawnpoints[i].fish.Destroy();
+			m_spawnedFish[ i ].Destroy();
 		}
+		
+		m_spawnedFish.Clear();
 	}
 	
 	event OnDestroyed()
@@ -359,53 +279,41 @@ statemachine class W3CurveFishManager extends CGameplayEntity
 		RemoveTimer('FishSpawnCheck');
 	}
 	
-	
 	timer function FishSpawnCheck(td : float, id : int)
 	{
-		var x, y, dist : float;
-		var i : int;
 		var pos : Vector;
-		var isVisible, areFishSpawned : bool;
-	
+		var dist : float;
+		var i : int;
 		
 		pos = GetWorldPosition();
-		isVisible = theCamera.WorldVectorToViewRatio(pos, x, y);
-		x = AbsF(x);
-		y = AbsF(y);
+		dist = VecDistance( pos, theCamera.GetCameraPosition() );
 		
-		if(isVisible && (x >= 1.1 || y >= 1.1) )
-			isVisible = false;
-			
-		if(isVisible)
-			wasEverVisible = true;
-			
-		if(!isVisible)
+		if( ( dist <= m_spawnDistance ) && !m_spawned )
 		{
-			dist = VecDistance(pos, theCamera.GetCameraPosition());
-			
-			areFishSpawned = false;
-			for(i=0; i<fishSpawnpoints.Size(); i+=1)
-			{
-				if(fishSpawnpoints[i].fish)
-				{
-					areFishSpawned = true;
-					break;
-				}
-			}
-			
-			if(areFishSpawned)
-			{
-				if(dist > spawnRange && wasEverVisible)
-					DespawnFish();
-			}
-			else
-			{
-				if((x < 1.3 || y < 1.3) && dist <= spawnRange)
-					SpawnFish(true);
-			}
+			SpawnFish();
+			m_spawned = true;
+		}
+		else if( ( dist >= m_despawnDistance ) && m_spawned )
+		{
+			m_spawned = false;
 		}
 		
+		if( !m_spawned )
+		{
+			DespawnFish();
+		}
+	}
+	
+	private function OnFishSpawned( fishEnt : CEntity )
+	{
+		var fish : W3CurveFish;
 		
+		fish = ( W3CurveFish )fishEnt;
+		if( fish )
+		{
+			fish.SetFishManager( this );
+			m_spawnedFish.PushBack( fish );
+		}
 	}
 }
 
@@ -418,7 +326,6 @@ state Default in W3CurveFishManager
 	
 	entry function StateDefault()
 	{
-		parent.SpawnFish(true);		
-		parent.AddTimer('FishSpawnCheck', 0.3, true);
+		parent.AddTimer('FishSpawnCheck', 1.0f, true);
 	}
 }

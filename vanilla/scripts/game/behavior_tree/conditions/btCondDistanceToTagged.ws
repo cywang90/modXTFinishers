@@ -1,8 +1,6 @@
-﻿/*
-Copyright © CD Projekt RED 2015
+﻿/**
+
 */
-
-
 class BTCondDistanceToTagged extends IBehTreeTask
 {
 	var minDistance : float;

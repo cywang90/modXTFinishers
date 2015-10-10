@@ -1,15 +1,17 @@
-﻿/*
-Copyright © CD Projekt RED 2015
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2012
+/** Author : Tomasz Kozera
+/**			 Rafal Jarczewski
+/***********************************************************************/
+
+/**
+
 */
-
-
-
-
-
-
 class W3VirtualSwitch_Sequence extends W3VirtualSwitch
 {
-	private saved var nextSwitchIndex : int;						
+	private saved var nextSwitchIndex : int;						//index of the next switch to be triggered
 	
 	public function Notify( activeSwitch : W3Switch )
 	{
@@ -44,12 +46,12 @@ class W3VirtualSwitch_Sequence extends W3VirtualSwitch
 					
 		if( activeSwitchIndex == requiredSwitches.Size() - 1 )
 		{
-			
+			// sequence completed, toggle virtual switch
 			Toggle( NULL, false, false );
 		}
 		else
 		{
-			
+			// wait for next switch
 			nextSwitchIndex += 1;
 		}
 	}

@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CSpawnTreeInitializerSetImmortality extends ISpawnTreeScriptedInitializer
+﻿class CSpawnTreeInitializerSetImmortality extends ISpawnTreeScriptedInitializer
 {
 	editable var immortalityMode : EActorImmortalityMode;
 

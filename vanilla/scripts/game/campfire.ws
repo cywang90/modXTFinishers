@@ -1,10 +1,10 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Campfires need to turn off if there's no one around
+/** Copyright © 2014 
+/** Author: Shadi Dadenji
+/***********************************************************************/
  
 
 class W3Campfire extends CGameplayEntity
@@ -57,26 +57,26 @@ class W3Campfire extends CGameplayEntity
 		var i : int;
 		var actor : CActor;
 
-		
+		//we only perform the check if the player is OUTSIDE a certain radius from the campfire's pos
 		range = 30.f;
 		if ( VecDistanceSquared( GetWorldPosition(), thePlayer.GetWorldPosition() ) <= range*range )
 			return;
 
 		FindGameplayEntitiesInRange(entities, this, 20.0, 10,, 2);
 
-		
+		//no entities found so no people, turn fire off
 		if ( entities.Size() == 0 )
 		{
 			ToggleFire( false );		
 		}
 		else
 		{
-			
+			//one live npc is enough to turn the light on
 			for ( i = 0; i < entities.Size(); i+=1 )
 			{
 				actor = (CActor)entities[i];
 
-				
+				//we've found one person, light up and exit
 				if ( actor.IsHuman() )
 				{
 					ToggleFire( true );
@@ -84,8 +84,8 @@ class W3Campfire extends CGameplayEntity
 				}
 			}
 			
-			
-			
+			//we finished the loop and found no people (they would've been caught in the if up there)
+			//so the fire goes out
 			ToggleFire( false );
 		}
 	}

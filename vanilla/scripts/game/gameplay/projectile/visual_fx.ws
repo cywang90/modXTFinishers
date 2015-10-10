@@ -1,13 +1,10 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3VisualFx extends CEntity
+﻿class W3VisualFx extends CEntity
 {
 	editable var effectName : name;
 	editable var destroyEffectTime : float;
 	
-	private var timedFxDestroyName : name;			
+	private var timedFxDestroyName : name;			//name of the fx that will trigger Destroy() once not playing anymore
+	private var parentActorHandle : EntityHandle;
 	
 	event OnSpawned( spawnData : SEntitySpawnData )
 	{
@@ -60,5 +57,23 @@ class W3VisualFx extends CEntity
 	timer function DestroyVisualFX( td : float , id : int)
 	{
 		Destroy();
+	}
+	
+	public final function DestroyOnActorDeath(p : CActor)
+	{
+		EntityHandleSet(parentActorHandle, p);
+		AddTimer('CheckParentDeath', 1.0f, true, , , true);
+	}
+	
+	timer function CheckParentDeath(td : float , id : int)
+	{
+		var parentActor : CActor;
+		
+		parentActor = (CActor)EntityHandleGet(parentActorHandle);
+		if(parentActor && !parentActor.IsAlive())
+		{
+			FunctionStopVisualFX();
+			RemoveTimer('CheckParentDeath');
+		}
 	}
 }

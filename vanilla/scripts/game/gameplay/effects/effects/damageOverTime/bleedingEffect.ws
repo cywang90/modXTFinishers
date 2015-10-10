@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2012
+/** Author : Tomasz Kozera
+/***********************************************************************/
 
 class W3Effect_Bleeding extends W3DamageOverTimeEffect
 {	
@@ -12,7 +10,7 @@ class W3Effect_Bleeding extends W3DamageOverTimeEffect
 	
 	public function OnDamageDealt(dealtDamage : bool)
 	{
-		
+		//if target received no damage then we shut off the particle effect
 		if(!dealtDamage)
 		{
 			shouldPlayTargetEffect = false;

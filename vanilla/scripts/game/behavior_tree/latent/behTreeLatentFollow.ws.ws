@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** MoveTo actor latent action
+/** Copyright © 2012
+/***********************************************************************/
 
 class W3ActorLatentActionFollowPlayer extends IPresetActorLatentAction
 {
@@ -24,7 +23,16 @@ class W3ActorLatentActionFollowPlayer extends IPresetActorLatentAction
 	default teleportToCatchup			= false;
 	default cachupDistance				= 75.0;
 	
-		
+	/*function OnActivate() : EBTNodeStatus
+	{
+		GetNPC().isPlayerFollower = true;
+		return BTNS_Active;
+	}
+	
+	function OnDeactive()
+	{
+		GetNPC().isPlayerFollower = false;
+	}*/	
 	
 	function ConvertToActionTree( parentObj : IScriptable ) : IAIActionTree
 	{

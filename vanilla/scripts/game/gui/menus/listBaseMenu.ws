@@ -1,10 +1,10 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file - list base menu abstract, 
+/**	used by journal, alchemy, glossary, crafting
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author :		 Bartosz Bigaj
+/***********************************************************************/
 
 class CR4ListBaseMenu extends CR4MenuBase
 {	
@@ -20,23 +20,23 @@ class CR4ListBaseMenu extends CR4MenuBase
 
 	var itemsNames 						: array< name >;
 	
-	event  OnConfigUI() 
+	event /*flash*/ OnConfigUI() // #B specific per class, only get menager here, except alchemy and crafting :P
 	{	
 		super.OnConfigUI();
 		
-		
+		//currentTag = UISavedData.selectedTag;  // #Y doesn't work, so disabled for now
 		openedTabs = UISavedData.openedCategories;
 		m_journalManager = theGame.GetJournalManager();
 	}
 
-	event  OnClosingMenu() 
+	event /* C++ */ OnClosingMenu() // #B common
 	{
 		SaveStateData();
 		super.OnClosingMenu();
 		theGame.GetGuiManager().SetLastOpenedCommonMenuName( GetMenuName() );
 	}
 
-	event  OnCloseMenu() 
+	event /*flash*/ OnCloseMenu() //#B common
 	{
 		var commonMenu : CR4CommonMenu;
 		
@@ -46,7 +46,7 @@ class CR4ListBaseMenu extends CR4MenuBase
 			commonMenu.ChildRequestCloseMenu();
 		}
 		
-		theSound.SoundEvent( 'gui_global_quit' ); 
+		theSound.SoundEvent( 'gui_global_quit' ); // #B sound - quit - find better place
 		CloseMenu();
 	}
 	
@@ -79,14 +79,14 @@ class CR4ListBaseMenu extends CR4MenuBase
 		}
 	}
 
-	event OnEntryRead( tag : name ) 
+	event OnEntryRead( tag : name ) // #B common
 	{
 		var journalEntry : CJournalBase;
 		journalEntry = m_journalManager.GetEntryByTag( tag );
 		m_journalManager.SetEntryUnread( journalEntry, false );
 	}
 
-	event OnEntrySelected( tag : name ) 
+	event OnEntrySelected( tag : name ) // #B common
 	{
 		var journalEntry : CJournalBase;
 		var journalQuestObj : CJournalQuestObjective;
@@ -97,7 +97,7 @@ class CR4ListBaseMenu extends CR4MenuBase
 		if ( journalEntry )
 		{
 			journalQuestObj = (CJournalQuestObjective)journalEntry;
-			if (lastSentTag != tag && !journalQuestObj) 
+			if (lastSentTag != tag && !journalQuestObj) //#J Had to use another tag since currentTag is saved from last time menu open ><
 			{
 				lastSentTag = tag;
 				UpdateDescription(tag);
@@ -116,7 +116,7 @@ class CR4ListBaseMenu extends CR4MenuBase
 		}
 	}
 	
-	event OnEntryPress( tag : name ) 
+	event OnEntryPress( tag : name ) // #B class specific
 	{
 	}
 	
@@ -126,7 +126,7 @@ class CR4ListBaseMenu extends CR4MenuBase
 		OnEntrySelected(currentTag);
 	}
 
-	function PopulateData() 
+	function PopulateData() // #B class specific
 	{
 	}
 
@@ -160,7 +160,7 @@ class CR4ListBaseMenu extends CR4MenuBase
 		var itemName : name = itemsNames[index];
 		var dm : CDefinitionsManagerAccessor = theGame.GetDefinitionsManager();		
 		
-		flashObject.SetMemberFlashInt( "id", index + 1 ); 
+		flashObject.SetMemberFlashInt( "id", index + 1 ); // ERRR
 		flashObject.SetMemberFlashInt( "quantity",  GetItemQuantity(index));
 		flashObject.SetMemberFlashString( "iconPath",  dm.GetItemIconPath( itemName ) );
 		flashObject.SetMemberFlashInt( "gridPosition", index );
@@ -181,10 +181,10 @@ class CR4ListBaseMenu extends CR4MenuBase
 		return playerInv.GetItemQuantityByName(itemName);
 	}
 	
-	event OnGetItemData(item : int, compareItemType : int) 
+	event OnGetItemData(item : int, compareItemType : int) // #B in that case item is ID !!!
 	{
-		
-		
+		//var compareItemStats	: array<SAttributeTooltip>;
+		//var itemStats 			: array<SAttributeTooltip>;
 		var itemName 			: string;
 		var category			: name;
 		var typeStr				: string;
@@ -194,7 +194,7 @@ class CR4ListBaseMenu extends CR4MenuBase
 		var statsList			: CScriptedFlashArray;		
 		var dm 					: CDefinitionsManagerAccessor = theGame.GetDefinitionsManager();
 		item = item - 1;
-		
+		//itemName = itemsNames[item];
 		resultData = m_flashValueStorage.CreateTempFlashObject();
 		statsList = m_flashValueStorage.CreateTempFlashArray();
 		
@@ -202,10 +202,10 @@ class CR4ListBaseMenu extends CR4MenuBase
 		itemName = GetLocStringByKeyExt(itemName);
 		resultData.SetMemberFlashString("ItemName", itemName);
 		
+		//tooltipInv.GetItemStats(item, itemStats);
+		//CompareItemsStats(itemStats, compareItemStats, statsList);
 		
-		
-		
-		
+		//resultData.SetMemberFlashArray("StatsList", statsList);
 		resultData.SetMemberFlashString("PriceValue", dm.GetItemPrice(itemsNames[item]));
 				
 		category = dm.GetItemCategory(itemsNames[item]);
@@ -217,13 +217,13 @@ class CR4ListBaseMenu extends CR4MenuBase
 			|| dm.ItemHasTag(itemsNames[item], 'SilverOil') 
 			|| dm.ItemHasTag(itemsNames[item], 'SteelOil') 
 			|| category == 'petard' 
-			|| category == 'bolt' )
+			|| category == 'bolt' )// #B item weight check
 		{
 			weight = 0;
 		}
 		else
 		{
-			weight = 1; 
+			weight = 1; // no way to get it
 		}
 		
 		resultData.SetMemberFlashString("WeightValue", NoTrailZeros(weight));

@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file - gwint deck builder
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author : Jason Slama
+/***********************************************************************/
 
 class CR4DeckBuilderMenu extends CR4GwintBaseMenu
 {
@@ -17,14 +16,14 @@ class CR4DeckBuilderMenu extends CR4GwintBaseMenu
 	function EnableJournalTutorialEnries()
 	{
 		var tutSystem : CR4TutorialSystem;
-		
+		// Journal - Enable Gwent tutorial entries
 		tutSystem = theGame.GetTutorialSystem();
 		tutSystem.ActivateJournalEntry('deckpanelMERGEDNEW');
 		tutSystem.ActivateJournalEntry('deckcompositionNEW');
-		
+		//tutSystem.ActivateJournalEntry('leadercardsMERGED'); // uncommenting this will lead to 2x almost the same entry in journal	
 	}
 	
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{
 		var selectedDeckIndex : eGwintFaction;
 		var tutSystem : CR4TutorialSystem;		
@@ -65,7 +64,7 @@ class CR4DeckBuilderMenu extends CR4GwintBaseMenu
 		}
 	}
 	
-	event  OnClosingMenu()
+	event /* C++ */ OnClosingMenu()
 	{
 		super.OnClosingMenu();
 		
@@ -150,26 +149,26 @@ class CR4DeckBuilderMenu extends CR4GwintBaseMenu
 		m_flashValueStorage.SetFlashArray("gwint.deckbuilder.leaderList", colList);
 	}
 	
-	event  OnTabChanged(tabIndex:int)
+	event /*flash*/ OnTabChanged(tabIndex:int)
 	{
 	}
 	
-	event  OnCardAddedToDeck(factionID:int, cardId:int)
+	event /*flash*/ OnCardAddedToDeck(factionID:int, cardId:int)
 	{
 		gwintManager.AddCardToDeck(factionID, cardId);
 	}
 	
-	event  OnCardRemovedFromDeck(factionID:int, cardId:int)
+	event /*flash*/ OnCardRemovedFromDeck(factionID:int, cardId:int)
 	{
 		gwintManager.RemoveCardFromDeck(factionID, cardId);
 	}
 	
-	event  OnSelectedDeckChanged(factionID:int)
+	event /*flash*/ OnSelectedDeckChanged(factionID:int)
 	{
 		gwintManager.SetSelectedPlayerDeck(factionID);
 	}
 	
-	event  OnLeaderChanged(factionID:int, leaderID:int)
+	event /*flash*/ OnLeaderChanged(factionID:int, leaderID:int)
 	{
 		var deckDefinition : SDeckDefinition;
 		
@@ -181,7 +180,7 @@ class CR4DeckBuilderMenu extends CR4GwintBaseMenu
 		}
 	}
 	
-	event  OnLackOfUnitsError(numCards:int)
+	event /*flash*/ OnLackOfUnitsError(numCards:int)
 	{
 		var errorString:string;
 		var argsInt : array<int>;
@@ -194,7 +193,7 @@ class CR4DeckBuilderMenu extends CR4GwintBaseMenu
 		OnPlaySoundEvent("gui_global_denied");
 	}
 	
-	event  OnTooManySpecialCards()
+	event /*flash*/ OnTooManySpecialCards()
 	{
 		showNotification(GetLocStringByKeyExt("gwint_special_card_limit"));
 		OnPlaySoundEvent("gui_global_denied");

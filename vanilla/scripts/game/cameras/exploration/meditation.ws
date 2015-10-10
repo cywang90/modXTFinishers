@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 class W3MeditationCameraRotationController extends ICustomCameraScriptedPivotRotationController
 {

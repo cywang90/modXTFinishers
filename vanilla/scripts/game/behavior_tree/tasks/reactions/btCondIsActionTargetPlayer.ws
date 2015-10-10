@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTCondIsActionTargetPlayer extends IBehTreeTask
+﻿class CBTCondIsActionTargetPlayer extends IBehTreeTask
 {
 	function IsAvailable() : bool
 	{

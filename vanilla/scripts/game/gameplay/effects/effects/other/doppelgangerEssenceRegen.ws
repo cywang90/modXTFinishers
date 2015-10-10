@@ -1,11 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : R. Pergent
+/***********************************************************************/
 
-
-
-
-
+// Automatic essence regeneration - The speed depends on the number of doppelgangers
 class W3Effect_DoppelgangerEssenceRegen extends CBaseGameplayEffect
 {
 	private var usesVitality : bool;
@@ -47,7 +45,7 @@ class W3Effect_DoppelgangerEssenceRegen extends CBaseGameplayEffect
 		{
 			if( l_doppelgangers[i].GetBehaviorVariable('isDancing') == 1 )
 			{
-				
+				// % per second per doppelganger
 				l_amountToHeal += 0.01f;
 			}
 		}

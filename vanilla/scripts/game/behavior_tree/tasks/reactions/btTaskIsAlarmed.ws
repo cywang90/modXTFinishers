@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskIsAlarmed extends IBehTreeTask
+﻿class CBTTaskIsAlarmed extends IBehTreeTask
 {
 	protected var storageHandler 	: CAIStorageHandler;
 	protected var reactionDataStorage : CAIStorageReactionData;

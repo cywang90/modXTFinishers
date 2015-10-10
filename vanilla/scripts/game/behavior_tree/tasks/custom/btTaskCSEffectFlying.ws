@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2012
+/** Author : Patryk Fiutowski
+/***********************************************************************/
 
 class CBehTreeTaskCSEffectFlying extends CBehTreeTaskCSEffect
 {
@@ -27,9 +26,9 @@ class CBehTreeTaskCSEffectFlying extends CBehTreeTaskCSEffect
 			owner.SetBehaviorVariable( 'DistanceFromGround', distToGround );
 			
 			
-			
+			//if ( owner.GetMovingAgentComponent().IsFlying() && CSType != ECST_Hypnotized && CSType != ECST_Confusion )
 			owner.SetBehaviorVariable( '5AnimCriticalState', 1.0 );
-			owner.EnablePhysicalMovement( true ); 
+			owner.EnablePhysicalMovement( true ); // enable physics
 			((CMovingPhysicalAgentComponent)owner.GetComponentByClassName('CMovingPhysicalAgentComponent')).SetAnimatedMovement( true );
 			wasFlying = true;
 				
@@ -81,11 +80,11 @@ class CBehTreeTaskCSEffectFlying extends CBehTreeTaskCSEffect
 			{
 				OnGroundContact();
 			}
-			else 
+			else // If is still flying
 			{
 				((CMovingPhysicalAgentComponent)owner.GetComponentByClassName('CMovingPhysicalAgentComponent')).SetAnimatedMovement( true );
-				owner.EnablePhysicalMovement( true ); 
-				owner.SetBehaviorVariable('ForceExitCSEffect', 1); 
+				owner.EnablePhysicalMovement( true ); // enable physics
+				owner.SetBehaviorVariable('ForceExitCSEffect', 1); // In case the branch gets interrupted by a scripted action, stop the critical falling animation
 			}
 		}
 		

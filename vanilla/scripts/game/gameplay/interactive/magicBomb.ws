@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CMagicBombEntity extends CGameplayEntity
+﻿class CMagicBombEntity extends CGameplayEntity
 {
 	editable var damageRadius		: float;
 	editable var damageVal			: float;

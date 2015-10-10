@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CMoveTRGActorFlee extends CMoveTRGScript
+﻿class CMoveTRGActorFlee extends CMoveTRGScript
 {
 	public var dangerNode : CNode;
 	public var distance : float;
@@ -10,7 +6,7 @@ class CMoveTRGActorFlee extends CMoveTRGScript
 	
 	default pursue = false;
 	
-	
+	// Called in order to update the movement goal's channels
 	function UpdateChannels( out goal : SMoveLocomotionGoal )
 	{
 		var newHeading : Vector;

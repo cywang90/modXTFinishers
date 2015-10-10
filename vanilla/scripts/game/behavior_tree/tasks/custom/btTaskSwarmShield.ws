@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2013
+/** Author : Andrzej Kwiatkowski
+/***********************************************************************/
 
 class CBTTaskSwarmShield extends CBTTaskPlayAnimationEventDecorator
 {
@@ -38,7 +37,7 @@ class CBTTaskSwarmShield extends CBTTaskPlayAnimationEventDecorator
 			else
 			{
 				shieldGroupId = lair.GetGroupId( 'shield' );
-				
+				//lair.RequestGroupStateChange_ByGroupId( shieldGroupId, 'shield' );
 				lair.SignalArrivalAtNode( 'gotoBirdMaster', npc, 'shield', shieldGroupId );
 			}
 		}

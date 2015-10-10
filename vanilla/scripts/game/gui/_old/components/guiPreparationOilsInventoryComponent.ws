@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3GuiPreparationOilsInventoryComponent extends W3GuiPlayerInventoryComponent
+﻿class W3GuiPreparationOilsInventoryComponent extends W3GuiPlayerInventoryComponent
 {	
 	protected function ShouldShowItem( item : SItemUniqueId ):bool
 	{

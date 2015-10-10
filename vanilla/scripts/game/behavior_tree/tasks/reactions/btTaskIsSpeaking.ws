@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskIsSpeaking extends IBehTreeTask
+﻿class CBTTaskIsSpeaking extends IBehTreeTask
 {
 	function IsAvailable() : bool
 	{

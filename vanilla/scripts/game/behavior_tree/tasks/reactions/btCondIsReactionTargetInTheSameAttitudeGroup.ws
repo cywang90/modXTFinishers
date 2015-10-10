@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTCondIsReactionTargetInTheSameAttitudeGroup extends IBehTreeTask
+﻿class CBTCondIsReactionTargetInTheSameAttitudeGroup extends IBehTreeTask
 {
 	function IsAvailable() : bool
 	{

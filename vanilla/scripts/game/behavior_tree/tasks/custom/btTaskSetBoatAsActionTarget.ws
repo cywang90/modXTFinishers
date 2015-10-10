@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2014
+/** Author : Patryk Fiutowski
+/***********************************************************************/
 
 class CBTTaskSetBoatAsActionTarget extends IBehTreeTask
 {
@@ -34,7 +33,11 @@ class CBTTaskSetBoatAsActionTarget extends IBehTreeTask
 		if ( GetCombatTarget() == thePlayer && thePlayer.IsSailing() )
 		{
 			this.SetActionTarget(thePlayer.GetUsedVehicle());
-			
+			/*destructionComp = (CBoatDestructionComponent)thePlayer.GetUsedVehicle().GetComponentByClassName('CBoatDestructionComponent');
+			if ( destructionComp )
+			{
+				this.SetActionTarget(thePlayer.GetUsedVehicle())
+			}*/
 		}
 	}
 }

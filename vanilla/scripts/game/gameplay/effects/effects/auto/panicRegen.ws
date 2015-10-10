@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3Effect_AutoPanicRegen extends W3AutoRegenEffect
+﻿class W3Effect_AutoPanicRegen extends W3AutoRegenEffect
 {
 	default effectType = EET_AutoPanicRegen;
 	default regenStat = CRS_Panic;

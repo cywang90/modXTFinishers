@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class BTTaskRotateOnRotateEvent extends IBehTreeTask
+﻿class BTTaskRotateOnRotateEvent extends IBehTreeTask
 {
 	function OnGameplayEvent( eventName : name ) : bool
 	{

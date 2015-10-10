@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : Tomasz Kozera
+/***********************************************************************/
 
 class W3Effect_WeatherBonus extends CBaseGameplayEffect
 {

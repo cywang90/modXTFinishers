@@ -1,8 +1,10 @@
 ﻿/*
-Copyright © CD Projekt RED 2015
+enum EMoveFailureAction
+{
+	MFA_REPLAN,
+	MFA_EXIT
+}
 */
-
-
 
 class CMoveTRGAnimalFlee extends CMoveTRGScript
 {
@@ -64,7 +66,7 @@ class CBTTaskAnimalFlee extends IBehTreeTask
 		
 		distToTarget = VecDistance( actor.GetWorldPosition(), whereFrom );
 		res = actor.ActionMoveToWithHeading( whereTo, heading, moveType, 0.f, 2.f );
-		
+		//I know it's very bad but it's for the demo, and I'll get rid of it ASAP
 		Sleep( 5.f );
 		
 		isMoving = false;

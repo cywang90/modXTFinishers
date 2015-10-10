@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskProjectileAttack extends CBTTaskAttack
+﻿class CBTTaskProjectileAttack extends CBTTaskAttack
 {
 	var attackRange				: float;
 	var resourceName	 		: name;
@@ -14,6 +10,11 @@ class CBTTaskProjectileAttack extends CBTTaskAttack
 	var useLookatTarget 		: bool;
 	var startPosFrontOffset 	: float;
 	var playFXOnShootProjectile	: name;
+	var useCustomCollisionGroups	: bool;
+	var collideWithRagdoll			: bool;
+	var collideWithTerrain			: bool;
+	var collideWithStatic			: bool;
+	var collideWithWater			: bool;
 	
 	var distance : float;
 	
@@ -23,6 +24,7 @@ class CBTTaskProjectileAttack extends CBTTaskAttack
 	protected var projectile 	: W3AdvancedProjectile;
 	
 	default distance = 8.f;
+	default useCustomCollisionGroups = false;
 	
 	function IsAvailable() : bool
 	{
@@ -187,7 +189,7 @@ class CBTTaskProjectileAttack extends CBTTaskAttack
 		{
 			l_3DdistanceToTarget = VecDistance( npc.GetWorldPosition(), target.GetWorldPosition() );		
 			
-			
+			// used to dodge projectile before it hits
 			l_projectileFlightTime = l_3DdistanceToTarget / l_projectile.projSpeed;
 			target.SignalGameplayEventParamFloat( 'Time2DodgeProjectile', l_projectileFlightTime );
 		}
@@ -230,18 +232,40 @@ class CBTTaskProjectileAttack extends CBTTaskAttack
 	
 	function Initialize()
 	{
-		collisionGroups.PushBack('Ragdoll');
-		collisionGroups.PushBack('Terrain');
-		collisionGroups.PushBack('Static');
-		collisionGroups.PushBack('Water');
+		if( !useCustomCollisionGroups )
+		{
+			collisionGroups.PushBack('Ragdoll');
+			collisionGroups.PushBack('Terrain');
+			collisionGroups.PushBack('Static');
+			collisionGroups.PushBack('Water');
+		}
+		else
+		{
+			if( collideWithRagdoll )
+			{
+				collisionGroups.PushBack('Ragdoll');
+			}
+			if( collideWithTerrain )
+			{
+				collisionGroups.PushBack('Terrain');
+			}
+			if( collideWithStatic )
+			{
+				collisionGroups.PushBack('Static');
+			}
+			if( collideWithWater )
+			{
+				collisionGroups.PushBack('Water');
+			}
+		}
 	}	
 	
 	
-	
-	
+	//>---------------------------------------------------------------------
+	//----------------------------------------------------------------------
 	protected function GetProjectileStartPosition() : Vector
 	{
-		
+		// Get position of 'projectile_origin' slot inside trap entity
 		var slotWorldPos : Vector;
 		var slotMatrix : Matrix;
 		
@@ -276,6 +300,11 @@ class CBTTaskProjectileAttackDef extends CBTTaskAttackDef
 	editable var useLookatTarget			: bool;
 	editable var startPosFrontOffset		: float;
 	editable var playFXOnShootProjectile	: name;
+	editable var useCustomCollisionGroups	: bool;
+	editable var collideWithRagdoll			: bool;
+	editable var collideWithTerrain			: bool;
+	editable var collideWithStatic			: bool;
+	editable var collideWithWater			: bool;
 	
 	var projEntity 							: CEntityTemplate;
 	
@@ -335,6 +364,14 @@ class CBTTaskProjectileAttackWithPrepare extends CBTTaskProjectileAttack
 		var distToTarget 			: float;
 		var l_3DdistanceToTarget	: float;
 		var l_projectileFlightTime	: float;
+		var l_boneIndex				: int;
+		var l_position				: Vector;
+		var l_rotation				: EulerAngles;
+		var l_forwardRotation		: Vector;
+			
+		var useLookAtBone 			: bool;	
+		var lookAtBone				: name = 'head';
+		
 		
 		if ( !projectile )
 			CreateProjectile();
@@ -364,11 +401,20 @@ class CBTTaskProjectileAttackWithPrepare extends CBTTaskProjectileAttack
 			targetPos = projectile.GetWorldPosition() + VecNormalize(VecFromHeading(customHeading))* distToTarget;
 			targetPos.Z = combatTargetPos.Z;
 		}
+		else if ( useLookAtBone )
+		{
+			l_boneIndex = npc.GetBoneIndex( lookAtBone );
+			npc.GetBoneWorldPositionAndRotationByIndex( l_boneIndex, l_position, l_rotation );
+			l_forwardRotation = RotForward( l_rotation );
+			targetPos =  l_position + l_forwardRotation * range;
+			
+		}
 		else
 		{
 			targetPos = projectile.GetWorldPosition() +  VecNormalize(npc.GetHeadingVector())* distToTarget;
 			targetPos.Z = combatTargetPos.Z;
 		}
+		
 		
 		if ( !shootOnGround )
 			targetPos.Z = combatTargetPos.Z + 1.5;
@@ -383,7 +429,7 @@ class CBTTaskProjectileAttackWithPrepare extends CBTTaskProjectileAttack
 		{
 			l_3DdistanceToTarget = VecDistance( npc.GetWorldPosition(), target.GetWorldPosition() );		
 			
-			
+			// used to dodge projectile before it hits
 			l_projectileFlightTime = l_3DdistanceToTarget / projectile.projSpeed;
 			target.SignalGameplayEventParamFloat( 'Time2DodgeProjectile', l_projectileFlightTime );
 		}
@@ -396,8 +442,10 @@ class CBTTaskProjectileAttackWithPrepareDef extends CBTTaskProjectileAttackDef
 {
 	default instanceClass = 'CBTTaskProjectileAttackWithPrepare';
 
-	editable var boneName : name;
-	editable var rawTarget : bool;
+	editable var boneName 		: name;
+	editable var rawTarget 		: bool;
+	editable var useLookAtBone 	: bool;	
+	editable var lookAtBone		: name;
 	
 	hint boneName = "Name of the bone that projectile will be attached on 'Prepare' anim event";
 	hint rawTarget = "if set to true it will take rawTarget position instead of calculating it from currentHeading + attackRange";

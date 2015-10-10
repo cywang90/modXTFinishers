@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3Effect_SlowdownFrost extends CBaseGameplayEffect
+﻿class W3Effect_SlowdownFrost extends CBaseGameplayEffect
 {
 	private saved var slowdownCauserId : int;
 

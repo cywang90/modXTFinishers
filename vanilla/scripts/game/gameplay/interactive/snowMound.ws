@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3SnowMound extends CInteractiveEntity
+﻿class W3SnowMound extends CInteractiveEntity
 {
 	editable var TagRemovedAfterMelt : name;
 	

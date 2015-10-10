@@ -1,13 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CR4UIRescaleMenu extends CR4MenuBase
+﻿class CR4UIRescaleMenu extends CR4MenuBase
 {
 	var hud : CR4ScriptedHud;
 	private var m_fxSetCurrentUsername  : CScriptedFlashFunction;
 
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{
 		var inGameConfigWrapper : CInGameConfigWrapper;
 		var username 			: string;
@@ -42,23 +38,23 @@ class CR4UIRescaleMenu extends CR4MenuBase
 		theGame.GetGuiManager().OnEnteredConfigScreen();
 	}
 	
-	event  OnClosingMenu()
+	event /* C++ */ OnClosingMenu()
 	{
 		theGame.GetGuiManager().RequestMouseCursor(false);
 	}
 
-	event  OnCloseMenu()
+	event /*flash*/ OnCloseMenu()
 	{
 		CloseMenu();
 	}	
 	
-	event  OnConfirmRescale( frameScaleX : float, frameScaleY : float )
+	event /*flash*/ OnConfirmRescale( frameScaleX : float, frameScaleY : float )
 	{
 		UpdateRescale( frameScaleX, frameScaleY, 0, 0 );
 		CloseMenu();
 	}	
 
-	event  OnUpdateRescale( frameScaleX : float, frameScaleY : float )
+	event /*flash*/ OnUpdateRescale( frameScaleX : float, frameScaleY : float )
 	{
 		UpdateRescale( frameScaleX, frameScaleY, 0, 0 );
 	}
@@ -83,16 +79,16 @@ class CR4UIRescaleMenu extends CR4MenuBase
 			inGameConfigWrapper.SetVarValue('Hidden', 'uiVerticalFrameScale', FloatToString(frameScaleY));
 			needRescale = true;
 		}		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
+		//if( theGame.GetUIScale() != scale )
+		//{
+		//	theGame.SetUIScale(scale);
+		//	needRescale = true;
+		//}	
+		//if( theGame.GetUIOpacity() != opacity )
+		//{
+		//	theGame.SetUIOpacity(opacity);
+		//	needRescale = true;
+		//}
 		
 		if( needRescale && hud ) 
 		{

@@ -1,30 +1,54 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Player skills are divided into trees/groups (sword, alchemy, signs).
+/** Each skill tree has its ring levels (reflecting the rings in GUI, where
+/** the innermost ring is the highest one). In order to learn a skill of 
+/** Nth level you must know at least one skill on the (N-1)th level (you
+/** can always learn ring 1 skills). The lowest ring level is 1.
+/** Some skills have a ring level of -1 -> this means that this is a skill
+/** that is learned automatically without spending skill points (e.g. some 
+/** mastery skill).
+/**
+/** Skills are grouped in skill definitions. A definition holds information 
+/** about which skills are available, to which trees and rings they belong
+/** etc. Basically if you would like to make several character classes then
+/** each of them would use a different skill definition (e.g. mage, warrior).
+/** Each definition can make it's own skill placement so for example skill A
+/** might be a sword tree ring 2 skill in warriors definition and a combat
+/** tree ring 5 skill in rogue definition.
+/** This manager loads whole definition and caches it - that's all the skill
+/** data you need for this player object.
+/**
+/** This can be used in multiplayer, addons or for replacers.
+/***********************************************************************/
+/** Copyright © 2012-2014
+/** Author : Tomek Kozera
+/**			 Bartosz Bigaj
+/***********************************************************************/
 
 class W3PlayerAbilityManager extends W3AbilityManager
 {
-	private   saved var skills : array<SSkill>;									
+	private   saved var skills : array<SSkill>;									//all skills in all skill trees
 	
-	private   saved var resistStatsItems : array<array<SResistanceValue>>;		
-	private   saved var toxicityOffset : float;									
-	private 		var pathPointsSpent : array<int>;							
-	private   saved var skillSlots : array<SSkillSlot>;							
-	protected saved var skillAbilities : array<name>;							
-	private 		var totalSkillSlotsCount : int;								
-	private 		var tempSkills : array<ESkill>;								
-	private   saved var mutagenSlots : array<SMutagenSlot>;						
-	private			var temporaryTutorialSkills : array<STutorialTemporarySkill>;	
+	private   saved var resistStatsItems : array<array<SResistanceValue>>;		//holds cached resist stats from items
+	private   saved var toxicityOffset : float;									//mutagens, locked percent of max toxicity
+	private 		var pathPointsSpent : array<int>;							//amount of skillpoints spent in each skill path
+	private   saved var skillSlots : array<SSkillSlot>;							//skill slots for skills chosen by player	
+	protected saved var skillAbilities : array<name>;							//cached list of non-blocked non-GlobalPassive skill abilities
+	private 		var totalSkillSlotsCount : int;								//amount of skill slots
+	private 		var tempSkills : array<ESkill>;								//list of temporarily added skills
+	private   saved var mutagenSlots : array<SMutagenSlot>;						//list of mutagen slots
+	private			var temporaryTutorialSkills : array<STutorialTemporarySkill>;	//temp skills added for duration of mutagens tutorial in character panel
+	private   saved var ep1SkillsInitialized : bool;
+	private   saved var ep2SkillsInitialized : bool;
 	
-	private const var LINK_BONUS_BLUE, LINK_BONUS_GREEN, LINK_BONUS_RED : name;	
+	private const var LINK_BONUS_BLUE, LINK_BONUS_GREEN, LINK_BONUS_RED : name;	//ability added on link color match
 	
 		default LINK_BONUS_BLUE = 'SkillLinkBonus_Blue';
 		default LINK_BONUS_GREEN = 'SkillLinkBonus_Green';
 		default LINK_BONUS_RED = 'SkillLinkBonus_Red';
+		
+		default ep1SkillsInitialized = false;
+		default ep2SkillsInitialized = false;
 	
 	public final function Init(ownr : CActor, cStats : CCharacterStats, isFromLoad : bool, diff : EDifficultyMode) : bool
 	{
@@ -44,41 +68,90 @@ class W3PlayerAbilityManager extends W3AbilityManager
 			return false;
 		}
 		
-		
+		//array init
 		resistStatsItems.Resize(EnumGetMax('EEquipmentSlots')+1);
 		pathPointsSpent.Resize(EnumGetMax('ESkillPath')+1);
 		
-		
+		//add default player character ability
 		ownr.AddAbility(theGame.params.GLOBAL_PLAYER_ABILITY);
 		
 		if(!super.Init(ownr,cStats, isFromLoad, diff))
 			return false;
 			
 		LogChannel('CHR', "Init W3PlayerAbilityManager "+isFromLoad);		
-
 		
+		// init skills
 		if(!isFromLoad)
 		{
 			InitSkillSlots();
-				
-			
+	
+			//set skill definitions
 			skillDefs = charStats.GetAbilitiesWithTag('SkillDefinitionName');		
 			LogAssert(skillDefs.Size()>0, "W3PlayerAbilityManager.Init: actor <<" + owner + ">> has no skills!!");
-		
+			
 			for(i=0; i<skillDefs.Size(); i+=1)
 				CacheSkills(skillDefs[i], skills);
-			
+				
 			LoadMutagenSlotsDataFromXML();
 			
-			
+			//add initial skills
 			InitSkills();
 			
 			PrecacheModifierSkills();
+		}
+		else
+		{
+			tempSkills.Clear();
+			temporaryTutorialSkills.Clear();
+			
+			if ( !ep1SkillsInitialized && theGame.GetDLCManager().IsEP1Available() )
+			{				
+				ep1SkillsInitialized = FixMissingSkills();
+			}
+			if ( !ep2SkillsInitialized && theGame.GetDLCManager().IsEP2Available() )
+			{
+				ep2SkillsInitialized = FixMissingSkills();
+			}			
 		}
 		
 		isInitialized = true;
 		
 		return true;	
+	}
+	
+	private function FixMissingSkills() : bool
+	{
+		var i : int;
+		var newSkills : array<SSkill>;
+		var skillDefs : array<name>;
+		var fixedSomething : bool;
+		
+		skillDefs = charStats.GetAbilitiesWithTag('SkillDefinitionName');		
+		LogAssert(skillDefs.Size()>0, "W3PlayerAbilityManager.Init: actor <<" + owner + ">> has no skills!!");
+		fixedSomething = false;
+		
+		for( i = 0; i < skillDefs.Size(); i+=1 )
+			CacheSkills(skillDefs[i], newSkills);	
+
+		for(i=0; i<newSkills.Size(); i+=1)
+		{
+			//completely new skill
+			if(i >= skills.Size())
+			{
+				skills.PushBack( newSkills[i] );
+				fixedSomething = true;
+				continue;
+			}
+	
+			//missing skill in the middle of array
+			if(skills[i].skillType == S_SUndefined && newSkills[i].skillType != S_SUndefined)
+			{
+				skills[i] = newSkills[i];
+				fixedSomething = true;
+			}
+		}
+		
+		return fixedSomething;
 	}
 	
 	public function OnOwnerRevived()
@@ -106,7 +179,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		
 		for( skillIT = 0; skillIT < skills.Size(); skillIT += 1 )
 		{
-			
+			//skill = skills[ skillIT ];
 			
 			for( i = 0; i < skills.Size(); i += 1 )
 			{
@@ -114,7 +187,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 				{
 					for( j = 0; j < skills[ skillIT ].modifierTags.Size(); j += 1)
 					{
-						
+						//if skill has modifier tag
 						if( dm.AbilityHasTag( skills[ i ].abilityName, skills[ skillIT ].modifierTags[ j ] ) )
 						{
 							skills[ skillIT ].precachedModifierSkills.PushBack( i );
@@ -125,7 +198,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		}
 	}
 	
-	
+	// Called after Init() when other managers are initialized (since effect manager is and must be initialized after ability manager)
 	public final function PostInit()
 	{		
 		var i, playerLevel : int;
@@ -133,7 +206,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		if(CanUseSkill(S_Sword_5))
 			AddPassiveSkillBuff(S_Sword_5);
 			
-		
+		//fill skill slot availability
 		if( (W3PlayerWitcher)owner )
 		{
 			playerLevel = ((W3PlayerWitcher)owner).GetLevel();
@@ -144,7 +217,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		}
 	}
 	
-	public final function GetPlayerSkills() : array<SSkill> 
+	public final function GetPlayerSkills() : array<SSkill> //#B
 	{
 		return skills;
 	}
@@ -176,12 +249,12 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		return ret;
 	}
 
-	public final function GetPlayerSkill(type : ESkill) : SSkill 
+	public final function GetPlayerSkill(type : ESkill) : SSkill //#B
 	{
 		return skills[type];
 	}
 	
-	
+	// Adds a passive skill Buff from given skill
 	private final function AddPassiveSkillBuff(skill : ESkill)
 	{
 		if(skill == S_Sword_5 && GetStat(BCS_Focus) >= 1)
@@ -213,15 +286,16 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		}
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////    ---===  @EVENTS  ===---    ////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		
-	
+	// Called when Focus Stat current value has changed
 	protected final function OnFocusChanged()
 	{
 		var points : float;
-	
+		var buff : W3Effect_Toxicity;
+		
 		points = GetStat(BCS_Focus);
 		
 		if(points < 1 && owner.HasBuff(EET_BattleTrance))
@@ -233,9 +307,14 @@ class W3PlayerAbilityManager extends W3AbilityManager
 			if(CanUseSkill(S_Sword_5))
 				owner.AddEffectDefault(EET_BattleTrance, owner, "BattleTranceSkill");
 		}
+		
+		if ( points >= owner.GetStatMax(BCS_Focus) && owner.HasAbility('Runeword 8 _Stats', true) && !owner.HasBuff(EET_Runeword8) )
+		{
+			owner.AddEffectDefault(EET_Runeword8, owner, "max focus");
+		}
 	}
 	
-	
+	// Called when Vitality Stat current value has changed
 	protected final function OnVitalityChanged()
 	{
 		var vitPerc : float;
@@ -246,10 +325,13 @@ class W3PlayerAbilityManager extends W3AbilityManager
 			owner.AddEffectDefault(EET_LowHealth, owner, 'vitality_change');
 		else if(vitPerc >= theGame.params.LOW_HEALTH_EFFECT_SHOW && owner.HasBuff(EET_LowHealth))
 			owner.RemoveBuff(EET_LowHealth);
+			
+		if(vitPerc < 1.f)
+			ResetOverhealBonus();
 	
 		theTelemetry.SetCommonStatFlt(CS_VITALITY, GetStat(BCS_Vitality));
 	}
-	
+	// Called when Air Stat current value has changed
 	protected final function OnAirChanged()
 	{
 		if(GetStat(BCS_Air) > 0)
@@ -262,7 +344,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		}
 	}
 	
-	
+	// Called when Toxicity Stat current value has changed
 	protected final function OnToxicityChanged()
 	{
 		var tox : float;
@@ -272,7 +354,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 			
 		tox = GetStat(BCS_Toxicity);
 	
-		
+		//apply toxicity debuff
 		if(tox == 0 && owner.HasBuff(EET_Toxicity))
 			owner.RemoveBuff(EET_Toxicity);
 		else if(tox > 0 && !owner.HasBuff(EET_Toxicity))
@@ -281,9 +363,9 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		theTelemetry.SetCommonStatFlt(CS_TOXICITY, GetStat(BCS_Toxicity));
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////    ---===  @MUTAGENS  ===---    /////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	public final function GetPlayerSkillMutagens() : array<SMutagenSlot>
 	{
@@ -301,7 +383,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		return mutagenSlots[i].skillGroupID;
 	}
 	
-	
+	//returns true if given mutagen slot is unlocked and can be used
 	public final function IsSkillMutagenSlotUnlocked(eqSlot : EEquipmentSlots) : bool
 	{
 		var i : int;
@@ -341,7 +423,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		return -1;
 	}
 	
-	
+	//returns index of mutagen slot paired with given equipment slot
 	private final function GetMutagenSlotIndex(eqSlot : EEquipmentSlots) : int
 	{
 		var i : int;
@@ -353,7 +435,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		return -1;
 	}
 	
-	
+	//returns index of mutagen slot paired with given item
 	private final function GetMutagenSlotIndexFromItemId(item : SItemUniqueId) : int
 	{
 		var i : int;
@@ -377,17 +459,17 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		
 		mutagenSlots[i].item = item;
 		
-		
+		//update link
 		newColor = GetSkillGroupColor(mutagenSlots[i].skillGroupID);
 		LinkUpdate(newColor, prevColor );
 		
-		
+		//"synergy" skill bonus
 		if(CanUseSkill(S_Alchemy_s19))
 		{
 			MutagenSynergyBonusEnable(item, true, GetSkillLevel(S_Alchemy_s19));
 		}
 		
-		
+		//tutorial
 		if(ShouldProcessTutorial('TutorialCharDevMutagens'))
 		{
 			tutState = (W3TutorialManagerUIHandlerStateCharDevMutagens)theGame.GetTutorialSystem().uiHandler.GetCurrentState();
@@ -399,7 +481,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		
 		theTelemetry.LogWithValueStr(TE_HERO_MUTAGEN_USED, owner.GetInventory().GetItemName( item ) );
 		
-		
+		//trial of grasses achievement
 		theGame.GetGamerProfile().CheckTrialOfGrasses();
 	}
 	
@@ -412,7 +494,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		if(i<0)
 			return;
 		
-		
+		//"synergy" skill bonus
 		if(CanUseSkill(S_Alchemy_s19))
 		{
 			MutagenSynergyBonusEnable(item, false, GetSkillLevel(S_Alchemy_s19));
@@ -424,7 +506,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		LinkUpdate(newColor, prevColor);
 	}
 	
-	
+	//called after mutagens were swapped (without equip/unequip handling)
 	public final function OnSwappedMutagensPost(a : SItemUniqueId, b : SItemUniqueId)
 	{
 		var oldSlotIndexA, oldSlotIndexB : int;
@@ -446,7 +528,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		LinkUpdate(newColorB, oldColorB);
 	}
 	
-	
+	//Called when "synergy" skill is equipped or unequipped. Goes through all mutagens and enables/disables the bonus
 	private final function MutagensSyngergyBonusProcess(enable : bool, skillLevel : int)
 	{
 		var i : int;
@@ -455,7 +537,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		inv = owner.GetInventory();
 		for(i=0; i<mutagenSlots.Size(); i+=1)
 		{
-			
+			//has mutagen in this slot
 			if(inv.IsIdValid(mutagenSlots[i].item))
 			{
 				MutagenSynergyBonusEnable(mutagenSlots[i].item, enable, skillLevel);
@@ -463,7 +545,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		}
 	}
 	
-	
+	//turns on/off "syngergy" skill bonus for given mutagen
 	private final function MutagenSynergyBonusEnable(mutagenItemId : SItemUniqueId, enable : bool, bonusSkillLevel : int)
 	{
 		var i, count : int;
@@ -475,7 +557,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		{
 			if (mutagenSlots[i].item == mutagenItemId)
 			{
-				
+				//skillGroupID
 				color = owner.GetInventory().GetSkillMutagenColor( mutagenItemId );
 				count += GetGroupBonusCount(color, mutagenSlots[i].skillGroupID);
 				break;
@@ -492,7 +574,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		}
 	}
 	
-	
+	//returns name of ability holding "syngery" skill bonus for this mutagen
 	public final function GetMutagenBonusAbilityName(mutagenItemId : SItemUniqueId) : name
 	{
 		var i : int;
@@ -507,10 +589,68 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		return '';
 	}
 	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////    ---===  @LINKS BETWEEN SKILLSLOTS ===---    //////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/*
+	private final function GetLinkColor(skillSlotIndex : int, dir : EDirectionZ) : ESkillColor
+	{
+		var ind : int;
+		var color : ESkillColor;
 	
+		ind = GetSkillIndex(skillSlots[skillSlotIndex].socketedSkill);
+		if(ind < 0)
+			return SC_Undefined;
+			
+		if(dir == DZ_Left)
+			color = skills[ind].linkLeft;
+		else if(dir == DZ_Right)
+			color = skills[ind].linkRight;
+		else if(dir == DZ_Up || dir == DZ_Down)
+			color = skills[ind].linkVertical;
+			
+		if(color == SC_Socketable && HasSkillMutagen(skills[ind].skillType))
+			color = theGame.GetDefinitionsManager().GetMutagenIngredientColor(skills[ind].equippedMutagenName);
+		
+		return color;
+	}
 	
+	//given skill slot index and direction returns color of the opposite slot's link
+	private final function GetLinkOppositeColor(skillSlotIndex : int, dir : EDirectionZ) : ESkillColor
+	{
+		var neighbourSlotID, neighbourSkillIndex : int;
 	
-	
+		switch(dir)
+		{
+			case DZ_Down : 
+				neighbourSlotID = skillSlots[skillSlotIndex].neighbourDown;
+				break;
+			case DZ_Up : 
+				neighbourSlotID = skillSlots[skillSlotIndex].neighbourUp;
+				break;
+			case DZ_Left : 
+				neighbourSlotID = skillSlots[skillSlotIndex].neighbourLeft;
+				break;
+			case DZ_Right : 
+				neighbourSlotID = skillSlots[skillSlotIndex].neighbourRight;
+				break;
+		}
+		
+		if(neighbourSlotID < 0)
+			return SC_Undefined;
+			
+		neighbourSkillIndex = GetSkillIndexFromSlotID(neighbourSlotID);
+		if(neighbourSkillIndex < 0)
+			return SC_Undefined;
+		
+		switch(dir)
+		{
+			case DZ_Up :
+			case DZ_Down : 		return skills[neighbourSkillIndex].linkVertical;
+			case DZ_Left : 		return skills[neighbourSkillIndex].linkLeft;
+			case DZ_Right :		return skills[neighbourSkillIndex].linkRight;
+		}
+	}*/
 	
 	public final function GetSkillGroupIdFromSkillSlotId(skillSlotId : int) : int
 	{
@@ -539,7 +679,12 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		
 		groupColor = GetSkillGroupColor(groupID);
 		
-		
+		/*if(groupColor != SC_None)
+		{
+			//if mutagen overrides color then there is no basic bonus
+			if(GetWitcherPlayer().GetItemEquippedOnSlot(GetMutagenSlotForGroupId(groupID), item))
+				return '';
+		}*/
 		
 		switch (groupColor)
 		{
@@ -557,11 +702,16 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		
 		groupColorCount = GetSkillGroupColorCount(commonColor, groupID);
 		
-		
+		/*if(groupColor != SC_None)
+		{
+			//if mutagen overrides color then there is no basic bonus
+			if(GetWitcherPlayer().GetItemEquippedOnSlot(GetMutagenSlotForGroupId(groupID), item))
+				return '';
+		}*/
 			return groupColorCount;
 	}	
 	
-	
+	//returns color of the whole group
 	public final function GetSkillGroupColor(groupID : int) : ESkillColor
 	{
 		var i : int;
@@ -570,7 +720,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		var skillColors : array<ESkillColor>;
 		var item : SItemUniqueId;
 		
-		
+		//get skills' colors
 		for(i=0; i<skillSlots.Size(); i+=1)
 		{
 			if(skillSlots[i].unlocked && skillSlots[i].groupID == groupID)
@@ -579,11 +729,11 @@ class W3PlayerAbilityManager extends W3AbilityManager
 			}
 		}
 		
-		
+		//check for common color
 		commonColor = SC_None;
 		for(i=0; i<skillColors.Size(); i+=1)
 		{
-			if(skillColors[i] != SC_None && skillColors[i] != SC_Yellow)	
+			if(skillColors[i] != SC_None && skillColors[i] != SC_Yellow)	//color not set (bug?) or perk
 			{
 				if(commonColor == SC_None)
 				{
@@ -591,18 +741,18 @@ class W3PlayerAbilityManager extends W3AbilityManager
 				}
 				else if(skillColors[i] != commonColor)
 				{
-					
+					//bonus broken
 					commonColor = SC_None;
 					break;
 				}
 			}
 		}
 		
-		
+		//no bonus
 		if(commonColor == SC_None)
 			return SC_None;
 			
-		
+		//if bonus, check for mutagen override
 		mutagenSlot = GetMutagenSlotForGroupId(groupID);
 		if(IsSkillMutagenSlotUnlocked(mutagenSlot))
 		{
@@ -613,7 +763,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		return commonColor;
 	}
 	
-	
+	//returns color of the whole group - how many common color
 	public final function GetSkillGroupColorCount(commonColor : ESkillColor, groupID : int) : ESkillColor
 	{
 		var count, i : int;
@@ -621,7 +771,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		var skillColors : array<ESkillColor>;
 		var item : SItemUniqueId;
 		
-		
+		//get skills' colors
 		for(i=0; i<skillSlots.Size(); i+=1)
 		{
 			if(skillSlots[i].unlocked && skillSlots[i].groupID == groupID && CanUseSkill(skillSlots[i].socketedSkill))
@@ -630,11 +780,11 @@ class W3PlayerAbilityManager extends W3AbilityManager
 			}
 		}
 		
-		
+		//check for common color
 		count = 0;
 		for(i=0; i<skillColors.Size(); i+=1)
 		{
-			if(skillColors[i] == commonColor )	
+			if(skillColors[i] == commonColor )	//color not set (bug?) or perk
 			{
 				count = count + 1;
 			}
@@ -643,19 +793,19 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		return count;
 	}	
 		
-	
+	//checks which bonus to update on given link and calls update
 	private final function LinkUpdate(newColor : ESkillColor, prevColor : ESkillColor)
 	{
-		
+		//no change
 		if(newColor == prevColor)
 			return;
 		
-		
+		//remove previous link and add current
 		UpdateLinkBonus(prevColor, false);
 		UpdateLinkBonus(newColor, true);
 	}
 	
-	
+	//updates link bonus
 	private final function UpdateLinkBonus(a : ESkillColor, added : bool)
 	{	
 		return;
@@ -691,13 +841,71 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		}
 	}
 	
+	/*
+	public final function GetSkillLinkColorVertical(skill : ESkill, out color : ESkillColor, out isJoker : bool)
+	{
+		var ind : int;
+		
+		ind = GetSkillIndex(skill);
+		if(ind < 0)
+		{
+			isJoker = false;
+			color = SC_Undefined;
+		}
+		else
+		{
+			//TODO
+			color = skills[ind].linkVertical;
+			isJoker = false;
+		}
+	}
 	
+	public final function GetSkillLinkColorLeft(skill : ESkill, out color : ESkillColor, out isJoker : bool)
+	{
+		var ind : int;
+		
+		ind = GetSkillIndex(skill);
+		if(ind < 0)
+		{
+			isJoker = false;
+			color = SC_Undefined;
+		}
+		else
+		{
+			//TODO
+			color = skills[ind].linkLeft;
+			isJoker = false;
+		}
+	}
 	
+	public final function GetSkillLinkColorRight(skill : ESkill, out color : ESkillColor, out isJoker : bool)
+	{
+		var ind : int;
+		
+		ind = GetSkillIndex(skill);
+		if(ind < 0)
+		{
+			isJoker = false;
+			color = SC_Undefined;
+		}
+		else
+		{
+			//TODO
+			color = skills[ind].linkRight;
+			isJoker = false;
+		}
+	}*/
 	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////    ---===  @SKILLS  ===---    ///////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	public final function GetSkillLevel(skill : ESkill) : int
+	{
+		return skills[skill].level;
+	}
+	
+	public final function GetBoughtSkillLevel(skill : ESkill) : int
 	{
 		return skills[skill].level;
 	}
@@ -715,7 +923,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 	
 		ability = '';
 		
-		
+		//search skills
 		if(CanUseSkill(skill))
 			ability = GetSkillAbilityName(skill);
 		
@@ -726,7 +934,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		
 		ret = GetSkillAttributeValue(ability, attributeName, true, true);
 		
-		
+		//cost reduction
 		reductionCounter = GetSkillLevel(skill) - 1;
 		if(reductionCounter > 0)
 		{
@@ -739,7 +947,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 	
 	public final function GetSkillAttributeValue(abilityName: name, attributeName : name, addBaseCharAttribute : bool, addSkillModsAttribute : bool) : SAbilityAttributeValue
 	{
-		
+		// OPTIMIZE
 		var min, max, ret : SAbilityAttributeValue;
 		var i, j : int;
 		var dm : CDefinitionsManagerAccessor;
@@ -747,13 +955,13 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		var skillEnum : ESkill;
 		var skillLevel : int;
 	
-		
+		//value from skill ability
 		ret = super.GetSkillAttributeValue(abilityName, attributeName, addBaseCharAttribute, addSkillModsAttribute);
 				
-		
+		//bonus from other skills that modify this value
 		if(addSkillModsAttribute)
 		{
-			
+			//find skill/perk/bookperk structure for given ability
 			
 			skillEnum = SkillNameToEnum( abilityName );
 			if( skillEnum != S_SUndefined )
@@ -776,13 +984,13 @@ class W3PlayerAbilityManager extends W3AbilityManager
 				{
 					dm.GetAbilityAttributeValue(skills[i].abilityName, attributeName, min, max);
 
-					skillLevel = skills[ i ].level;
+					skillLevel = GetSkillLevel(i);
 					ret += GetAttributeRandomizedValue( min * skillLevel, max * skillLevel );
 				}
 			}
 		}
 		
-		
+		//value from character stats
 		if(addBaseCharAttribute)
 		{
 			ret += GetAttributeValueInternal(attributeName);
@@ -818,7 +1026,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 			cost.valueMultiplicative = 0;
 		}
 		
-		
+		//level 3 blizzard potion removes stamina cost if you also have battle trance and maxed focus
 		if(thePlayer.HasBuff(EET_Blizzard) && owner == GetWitcherPlayer() && GetWitcherPlayer().GetPotionBuffLevel(EET_Blizzard) == 3 && thePlayer.HasBuff(EET_BattleTrance) && GetStatPercents(BCS_Focus) == 1)
 		{
 			cost.valueAdditive = 0;
@@ -827,9 +1035,29 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		}
 	}
 		
+	/*
+		TK - apparently not wanted currently - commenting out entire final function	
+		
+	//returns action's stamina cost and delay
+	public final function GetStaminaActionCost(action : EStaminaActionType, out cost : float, out delay : float, optional fixedCost : float, optional fixedDelay : float, optional abilityName : name, optional dt : float, optional costMult : float)
+	{
+		super.GetStaminaActionCost(action, cost, delay, fixedCost, fixedDelay, abilityName, dt, costMult);
+		
+		if(dt == 0)
+		{
+			//round up to full stamina segments if not a continuous mode
+			//cost = CeilF(cost / theGame.params.STAMINA_SEGMENT_SIZE) * theGame.params.STAMINA_SEGMENT_SIZE;
+			//i commented it because it was taking 10 stamina instead of 0.2.../ PF - which is as intended...
+		}
+	}
+	*/
 	
-	
-	
+	/*
+		Returns list of skill related abilities that the character has:
+		- only known skills
+		- only unblocked abilities
+		- all abilities having one of the tags passed (can be empty)
+	*/
 	protected final function GetNonBlockedSkillAbilitiesList( optional tags : array<name> ) : array<name>
 	{
 		var i, j : int;
@@ -841,7 +1069,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 			return ret;
 	
 		dm = theGame.GetDefinitionsManager();
-		for(i=0; i<skillAbilities.Size(); i+=1)		
+		for(i=0; i<skillAbilities.Size(); i+=1)		//skill abilities holds only abilities of equipped skills
 		{
 			abilityName = skillAbilities[i];
 			
@@ -862,7 +1090,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		return skills[skill].remainingBlockedTime != 0;
 	}
 	
-	
+	//returns true if lock changed state
 	public final function BlockSkill(skill : ESkill, block : bool, optional cooldown : float) : bool
 	{
 		var i : int;
@@ -871,15 +1099,15 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		if(block)
 		{
 			if(skills[skill].remainingBlockedTime == -1 || (cooldown > 0 && cooldown <= skills[skill].remainingBlockedTime) )
-				return false;	
+				return false;	//already locked for good or locked for longer
 			
-			
+			//lock			
 			if(cooldown > 0)
 				skills[skill].remainingBlockedTime = cooldown;
 			else
 				skills[skill].remainingBlockedTime = -1;
 				
-			
+			//find next timer call time
 			min = 1000000;
 			for(i=0; i<skills.Size(); i+=1)
 			{
@@ -889,11 +1117,11 @@ class W3PlayerAbilityManager extends W3AbilityManager
 				}
 			}
 			
-			
+			//schedule next update
 			if(min != 1000000)
 				GetWitcherPlayer().AddTimer('CheckBlockedSkills', min, , , , true);
 			
-			
+			//also block skill's ability
 			if(theGame.GetDefinitionsManager().IsAbilityDefined(skills[skill].abilityName) && charStats.HasAbility(skills[skill].abilityName))
 				BlockAbility(GetSkillAbilityName(skill), block, cooldown);
 			
@@ -905,7 +1133,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		else
 		{
 			if(skills[skill].remainingBlockedTime == 0)
-				return false;		
+				return false;		//already unlocked
 		
 			skills[skill].remainingBlockedTime = 0;
 			
@@ -919,8 +1147,8 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		}
 	}
 	
-	
-	
+	// Runs through all skills and checks their cooldowns. Unblocks those that have their cooldown finished.
+	// Returns time till next call or -1 if no calls needed
 	public final function CheckBlockedSkills(dt : float) : float
 	{
 		var i : int;
@@ -950,21 +1178,21 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		return min;
 	}
 	
-	
+	//@Override
 	public final function BlockAbility(abilityName : name, block : bool, optional cooldown : float) : bool
 	{
 		var i : int;
 	
 		if( super.BlockAbility(abilityName, block, cooldown))
 		{
-			
+			//if ability was blocked then remove it from cached arrays
 			if(block)
 			{
 				skillAbilities.Remove(abilityName);
 			}
 			else
 			{
-				
+				//if added then if it's a skill ability then put it to proper cached array
 				for(i=0; i<skills.Size(); i+=1)
 				{	
 					if(skills[i].abilityName == abilityName)
@@ -983,7 +1211,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		return false;
 	}
 		
-	
+	//adds all initial skills to the player
 	protected final function InitSkills()
 	{
 		var atts : array<name>;
@@ -1011,12 +1239,12 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		return skills[skill].isCoreSkill;
 	}
 	
-	
+	// Loads a single skill definition for this player from the XML and caches it (basically loads all skills data)
 	protected final function CacheSkills(skillDefinitionName : name, out cache : array<SSkill>)
 	{
 		var dm : CDefinitionsManagerAccessor;
 		var main, sks : SCustomNode;
-		var i, size : int;
+		var i, size, size2, j : int;
 		var skillType : ESkill;
 		var bFound : bool;
 		var tmpName : name;
@@ -1025,9 +1253,11 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		dm = theGame.GetDefinitionsManager();
 		sks = dm.GetCustomDefinition('skills');
 		
-		
+		//find definition
 		bFound = false;
-		size = sks.subNodes.Size();
+		size = sks.subNodes.Size();		
+		cache.Clear();
+		cache.Resize( S_Perk_MAX );
 		for( i = 0; i < size; i += 1 )
 		{
 			if(dm.GetCustomNodeAttributeValueName(sks.subNodes[i], 'def_name', tmpName))
@@ -1036,7 +1266,29 @@ class W3PlayerAbilityManager extends W3AbilityManager
 				{
 					bFound = true;
 					main = sks.subNodes[i];
-					break;
+					
+					//do the caching					
+					size2 = main.subNodes.Size();
+					for( j = 0; j < size2; j += 1 )
+					{
+						dm.GetCustomNodeAttributeValueName(main.subNodes[j], 'skill_name', tmpName);
+						skillType = SkillNameToEnum(tmpName);
+						
+						if( skillType != S_SUndefined )
+						{
+							if( cache[skillType].skillType == skillType )
+							{
+								LogChannel('Skills', "W3AbilityManager.CacheSkills: actor's <<" + this + ">> skill <<" + skillType + ">> is already defined!!! Skipping!!!");
+								continue;
+							}
+							
+							CacheSkill( skillType, tmpName, main.subNodes[j], cache[skillType] );
+						}
+						else
+						{
+							LogAssert(false, "W3PlayerAbilityManager.CacheSkills: skill <<" + tmpName + ">> is not defined in PST enum, ignoring skill!");
+						}
+					}
 				}
 			}
 		}
@@ -1044,32 +1296,6 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		if( !bFound )
 		{
 			LogAssert(false, "W3AbilityManager.CacheSkills: cannot find skill definition named <<" + skillDefinitionName + ">> aborting!");
-			return;
-		}
-		
-		
-		cache.Clear();
-		cache.Resize( S_Perk_MAX );
-		size = main.subNodes.Size();
-		for( i = 0; i < size; i += 1 )
-		{
-			dm.GetCustomNodeAttributeValueName(main.subNodes[i], 'skill_name', tmpName);
-			skillType = SkillNameToEnum(tmpName);
-			
-			if( skillType != S_SUndefined )
-			{
-				if( cache[skillType].skillType == skillType )
-				{
-					LogChannel('Skills', "W3AbilityManager.CacheSkills: actor's <<" + this + ">> skill <<" + skillType + ">> is already defined!!! Skipping!!!");
-					continue;
-				}
-				
-				CacheSkill( skillType, tmpName, main.subNodes[i], cache[skillType] );
-			}
-			else
-			{
-				LogAssert(false, "W3PlayerAbilityManager.CacheSkills: skill <<" + tmpName + ">> is not defined in PST enum, ignoring skill!");
-			}
 		}
 	}
 	
@@ -1087,31 +1313,31 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		skill.wasEquippedOnUIEnter = false;
 		skill.level = 0;
 		
-		
+		//skill type
 		skill.skillType = skillType;
 		skill.abilityName = abilityName;
 		
-		
+		//path type
 		if(dm.GetCustomNodeAttributeValueName(definitionNode, 'pathType_name', tmpName))
 		{
 			pathType = SkillPathNameToType(tmpName);
 			if(pathType != ESP_NotSet)
 				skill.skillPath = pathType;
-			else if(skill.skillType != S_Perk_08)	
+			else if(skill.skillType != S_Perk_08)	//perk 08 is a hidden skill now
 				LogAssert(false, "W3PlayerAbilityManager.CacheSkill: skill <<" + skill.skillType + ">> has wrong path type set <<" + tmpName + ">>");
 		}
 		
-		
+		//subpath type
 		if(dm.GetCustomNodeAttributeValueName(definitionNode, 'subpathType_name', tmpName))
 		{
 			subpathType = SkillSubPathNameToType(tmpName);
 			if(subpathType != ESSP_NotSet)
 				skill.skillSubPath = subpathType;
-			else if(skill.skillType != S_Perk_08)	
+			else if(skill.skillType != S_Perk_08)	//perk 08 is a hidden skill now
 				LogAssert(false, "W3PlayerAbilityManager.CacheSkill: skill <<" + skill.skillType + ">> has wrong subpath type set <<" + tmpName + ">>");
 		}
 		
-		
+		//required skills list
 		reqSkills = dm.GetCustomDefinitionSubNode(definitionNode,'required_skills');
 		if(reqSkills.values.Size() > 0)
 		{
@@ -1125,19 +1351,19 @@ class W3PlayerAbilityManager extends W3AbilityManager
 			}
 		}
 		
-		
+		//required skills 'mode'
 		if(dm.GetCustomNodeAttributeValueBool(reqSkills, 'isAlternative', tmpBool))
 			skill.requiredSkillsIsAlternative = tmpBool;
 		
-		
+		//skill priority used for autoleveling
 		if(dm.GetCustomNodeAttributeValueInt(definitionNode, 'priority', tmpInt))
 			skill.priority = tmpInt;
 		
-		
+		//required points spent in same path
 		if(dm.GetCustomNodeAttributeValueInt(definitionNode, 'requiredPointsSpent', tmpInt))
 			skill.requiredPointsSpent = tmpInt;
 		
-		
+		//localisation
 		if(dm.GetCustomNodeAttributeValueString(definitionNode, 'localisationName', tmpString))
 			skill.localisationNameKey = tmpString;
 		if(dm.GetCustomNodeAttributeValueString(definitionNode, 'localisationDescription', tmpString))
@@ -1147,25 +1373,25 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		if(dm.GetCustomNodeAttributeValueString(definitionNode, 'localisationDescriptionLevel3', tmpString))
 			skill.localisationDescriptionLevel3Key = tmpString;
 			
-		
+		//cost
 		if(dm.GetCustomNodeAttributeValueInt(definitionNode, 'cost', tmpInt))
 			skill.cost = tmpInt;
 			
-		
+		//maxLevel
 		if(dm.GetCustomNodeAttributeValueInt(definitionNode, 'maxLevel', tmpInt))
 			skill.maxLevel = tmpInt;
 		else
 			skill.maxLevel = 1;
 			
-		
+		//is core skill
 		if(dm.GetCustomNodeAttributeValueBool(definitionNode, 'isCoreSkill', tmpBool))
 			skill.isCoreSkill = tmpBool;
 			
-		
+		//GUI ID
 		if(dm.GetCustomNodeAttributeValueInt(definitionNode, 'guiPositionID', tmpInt))
 			skill.positionID = tmpInt;
 	
-		
+		//modifier tags
 		modifiers = dm.GetCustomDefinitionSubNode(definitionNode,'modifier_tags');
 		if(modifiers.values.Size() > 0)
 		{
@@ -1179,12 +1405,23 @@ class W3PlayerAbilityManager extends W3AbilityManager
 			}
 		}
 		
-		
+		//icon
 		if(dm.GetCustomNodeAttributeValueString(definitionNode, 'iconPath', tmpString))
 			skill.iconPath = tmpString;
 			
-		
-		
+		//link colors
+		/*
+		if(!skill.isCoreSkill)
+		{
+			if(dm.GetCustomNodeAttributeValueString(main.subNodes[i], 'linkVertical', tmpString))
+				skill.linkVertical = LinkStringToType(tmpString);
+			
+			if(dm.GetCustomNodeAttributeValueString(main.subNodes[i], 'linkLeft', tmpString))
+				skill.linkLeft = LinkStringToType(tmpString);
+				
+			if(dm.GetCustomNodeAttributeValueString(main.subNodes[i], 'linkRight', tmpString))
+				skill.linkRight = LinkStringToType(tmpString);
+		}*/
 	}
 	
 	private final function LoadMutagenSlotsDataFromXML()
@@ -1194,7 +1431,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		var mutagen : SMutagenSlot;
 		var dm : CDefinitionsManagerAccessor;
 	
-		
+		//mutagen slots
 		dm = theGame.GetDefinitionsManager();
 		mut = dm.GetCustomDefinition('mutagen_slots');		
 		
@@ -1216,8 +1453,8 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		}
 	}
 	
-	
-	
+	//Acquires skill. 
+	//The temporary flag informs that the skill was not developed through character development but as a temporary bonus and will be lost soon
 	public final function AddSkill(skill : ESkill, isTemporary : bool)
 	{
 		var i : int;
@@ -1231,7 +1468,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		if(!ret)
 			return;
 			
-		
+		//dendrology achievement - fully develop one skill tree
 		tree = GetSkillPathType(skill);
 		
 		learnedAll = true;
@@ -1247,7 +1484,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		if(learnedAll)
 			theGame.GetGamerProfile().AddAchievement(EA_Dendrology);
 		
-		
+		//tutorial
 		if(ShouldProcessTutorial('TutorialCharDevBuySkill'))
 		{
 			uiStateCharDev = (W3TutorialManagerUIHandlerStateCharacterDevelopment)theGame.GetTutorialSystem().uiHandler.GetCurrentState();
@@ -1277,10 +1514,10 @@ class W3PlayerAbilityManager extends W3AbilityManager
 			return false;
 		}
 		
-		
+		//add skill
 		skills[skill].level += 1;
 		
-		
+		//add path point spent if not core skill
 		if(!skills[skill].isCoreSkill)
 			pathPointsSpent[skills[skill].skillPath] = pathPointsSpent[skills[skill].skillPath] + 1;
 		
@@ -1291,15 +1528,15 @@ class W3PlayerAbilityManager extends W3AbilityManager
 			if(spendPoints)
 				((W3PlayerWitcher)owner).levelManager.SpendPoints(ESkillPoint, skills[skill].cost);
 			if ( this.IsSkillEquipped(skill) )
-				OnSkillEquippedLevelChange(skill, skills[skill].level - 1, skills[skill].level);
+				OnSkillEquippedLevelChange(skill, GetSkillLevel(skill) - 1, GetSkillLevel(skill));
 			theTelemetry.LogWithValueStr(TE_HERO_SKILL_UP, SkillEnumToName(skill));
 		}
 		
 		return true;
 	}	
 		
-	
-	
+	//removes temporary skill granted through another skill's bonus
+	//FIXME - update for skill slots - used by non-tutorial testing fakes and skill_swors_s19
 	public final function RemoveTemporarySkill(skill : SSimpleSkill) : bool
 	{
 		var ind : int;
@@ -1343,31 +1580,56 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		var j : int;
 		var hasSomeRequiredSkill : bool;
 		
-		
+		//if skill type is valid at all
 		if(skill == S_SUndefined)
 			return false;
 		
-		
+		//if skill is already known
 		if(skills[skill].level >= skills[skill].maxLevel)
 			return false;
 			
+		//if requirements are not met
+		// #J removed this logic since it does not apply to current design
+		/*if(skills[skill].requiredSkills.Size() > 0)
+		{
+			if(skills[skill].requiredSkillsIsAlternative)
+				hasSomeRequiredSkill = false;
+			else
+				hasSomeRequiredSkill = true;
 		
+			for(j=0; j<skills[skill].requiredSkills.Size(); j+=1)
+			{
+				if(skills[skill].requiredSkillsIsAlternative)
+				{
+					if(HasLearnedSkill(skills[skill].requiredSkills[j]))
+					{
+						hasSomeRequiredSkill = true;
+						break;
+					}
+				}
+				else if(!HasLearnedSkill(skills[skill].requiredSkills[j]))
+				{
+					return false;	//conjunction check and some skill is missing
+				}
+			}
+			
+			if(!hasSomeRequiredSkill)
+				return false;		//alternative check and no skill is known
+		}*/
 		
-		
-		
-		
+		//path spent points requirement
 		if(skills[skill].requiredPointsSpent > 0 && pathPointsSpent[skills[skill].skillPath] < skills[skill].requiredPointsSpent)
 			return false;
 			
-		
+		//cost
 		if(((W3PlayerWitcher)owner).levelManager.GetPointsFree(ESkillPoint) < skills[skill].cost)
 			return false;
 			
-		
+		//all conditions ok
 		return true;
 	}
 	
-	public final function HasSpentEnoughPoints(skill : ESkill) : bool 
+	public final function HasSpentEnoughPoints(skill : ESkill) : bool // #J
 	{
 		if (skills[skill].requiredPointsSpent > 0 && pathPointsSpent[skills[skill].skillPath] < skills[skill].requiredPointsSpent)
 		{
@@ -1382,23 +1644,23 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		return pathPointsSpent[skillPath];
 	}
 	
-	public final function PathPointsSpentInSkillPathOfSkill(skill : ESkill) : int 
+	public final function PathPointsSpentInSkillPathOfSkill(skill : ESkill) : int // #J
 	{
 		return pathPointsSpent[skills[skill].skillPath];
 	}
 	
-	
+	// Returns ability name that this skill grants
 	public final function GetSkillAbilityName(skill : ESkill) : name
 	{
 		return skills[skill].abilityName;
 	}
 
-	public final function GetSkillLocalisationKeyName(skill : ESkill) : string 
+	public final function GetSkillLocalisationKeyName(skill : ESkill) : string //#B
 	{
 		return skills[skill].localisationNameKey;
 	}
 
-	public final function GetSkillLocalisationKeyDescription(skill : ESkill, optional level : int) : string 
+	public final function GetSkillLocalisationKeyDescription(skill : ESkill, optional level : int) : string //#B
 	{
 		switch (level)
 		{
@@ -1415,7 +1677,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		}
 	}
 
-	public final function GetSkillIconPath(skill : ESkill) : string 
+	public final function GetSkillIconPath(skill : ESkill) : string //#B
 	{
 		return skills[skill].iconPath;
 	}
@@ -1430,9 +1692,9 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		return skills[skill].skillPath;
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////    ---===  @RESISTS  ===---    //////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 	
 	protected function GetItemResistStatIndex( slot : EEquipmentSlots, stat : ECharacterDefenseStats ) : int
 	{
@@ -1448,8 +1710,8 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		return -1;
 	}
 	
-	
-	
+	//@Override
+	//updates resist stat value - Overrides parent, we need to take armor durability into considreation
 	protected final function RecalcResistStat(stat : ECharacterDefenseStats)
 	{		
 		var witcher : W3PlayerWitcher;
@@ -1458,10 +1720,10 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		var itemResists : array<ECharacterDefenseStats>;
 		var resistStat : SResistanceValue;
 
-		
+		//take all resists
 		super.RecalcResistStat(stat);
 		
-		
+		//check if character can have item slots => durability
 		witcher = (W3PlayerWitcher)owner;
 		if(!witcher)
 			return;
@@ -1470,21 +1732,21 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		
 		for(slot=0; slot < resistStatsItems.Size(); slot+=1)
 		{
-			
+			//get item if it has durability
 			if( witcher.GetItemEquippedOnSlot(slot, item) && witcher.inv.HasItemDurability(item))
 			{
 				itemResists = witcher.inv.GetItemResistanceTypes(item);
-				
+				//check if item boosts resist stat
 				if(itemResists.Contains(stat))
 				{			
-					
+					//remove resists from items		
 					resistStat.points.valueBase -= CalculateAttributeValue(witcher.inv.GetItemAttributeValue(item, ResistStatEnumToName(stat, true)));
 					resistStat.percents.valueBase -= CalculateAttributeValue(witcher.inv.GetItemAttributeValue(item, ResistStatEnumToName(stat, false)));
 
-					
+					//calculate item durability modified resistances
 					SetItemResistStat(slot, stat);
 
-					
+					//then add resists from items with durability modification
 					idxItems = GetItemResistStatIndex( slot, stat );
 					if(idxItems >= 0)
 					{
@@ -1498,7 +1760,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		SetResistStat( stat, resistStat );
 	}
 	
-	
+	// Updates cached durability-modified item resist
 	private final function SetItemResistStat(slot : EEquipmentSlots, stat : ECharacterDefenseStats)
 	{
 		var item : SItemUniqueId;
@@ -1510,21 +1772,21 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		if(!witcher)
 			return;
 			
-		
+		//get cached stat index
 		i = GetItemResistStatIndex( slot, stat );
 		
-		
+		//get equipped item
 		if( witcher.GetItemEquippedOnSlot(slot, item) && witcher.inv.HasItemDurability(item) )
 		{
-			
+			//set item resist with durability
 			if(i >= 0)
 			{
-				
+				//if this resist is already cached then update the value
 				witcher.inv.GetItemResistStatWithDurabilityModifiers(item, stat, resistStatsItems[slot][i].points, resistStatsItems[slot][i].percents);
 			}
 			else
 			{
-				
+				//if this resist is not cached then add it to cached array
 				witcher.inv.GetItemResistStatWithDurabilityModifiers(item, stat, tempResist.points, tempResist.percents);
 				tempResist.type = stat;
 				resistStatsItems[slot].PushBack(tempResist);
@@ -1532,12 +1794,12 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		}
 		else if(i >= 0)
 		{
-			
+			//no item in that slot but something cached - delete the cached item resist
 			resistStatsItems[slot].Erase(i);
 		}
 	}
 		
-	
+	// called when item durability has changed to update the cached durability-modified resists from that item
 	public final function RecalcItemResistDurability(slot : EEquipmentSlots, itemId : SItemUniqueId)
 	{
 		var i : int;
@@ -1558,7 +1820,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		}
 	}
 	
-	
+	// updates resistances of given type from given item. When we call this we know that the item HAS NOT CHANGED
 	private final function RecalcResistStatFromItem(stat : ECharacterDefenseStats, slot : EEquipmentSlots)
 	{
 		var deltaResist, prevCachedResist : SResistanceValue;
@@ -1568,14 +1830,14 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		idx = GetItemResistStatIndex( slot, stat );
 		prevCachedResist = resistStatsItems[slot][idx];
 						
-		
+		//calculate new item durability modified resistances
 		SetItemResistStat(slot, stat);
 		
-		
+		//get diff
 		deltaResist.points = resistStatsItems[slot][idx].points - prevCachedResist.points;
 		deltaResist.percents = resistStatsItems[slot][idx].percents - prevCachedResist.percents;
 		
-		
+		//update global resist
 		if ( GetResistStat( stat, resistStat ) )
 		{
 			resistStat.percents += deltaResist.percents;
@@ -1584,9 +1846,9 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		}
 	}
 		
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////    ---===  @STATS  ===---    ////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	public final function DrainStamina(action : EStaminaActionType, optional fixedCost : float, optional fixedDelay : float, optional abilityName : name, optional dt : float, optional costMult : float) : float
 	{	
@@ -1601,19 +1863,19 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		
 		if(cost > 0 && dt > 0)
 		{
-			
+			//if it's continuous cost then set up a timer that will do the flooring once the continuous cost stops
 			owner.AddTimer('AbilityManager_FloorStaminaSegment', 0.1, , , , true);
 		}
 		
-		
+		// Mutagen 21 - action costing stamina heal geralt, Whirl and Rend handled separately due to their hacks
 		if (cost > 0 && dt <= 0 && owner == thePlayer && thePlayer.HasBuff(EET_Mutagen21) && abilityName != 'sword_s1' && abilityName != 'sword_s2')
 		{	
 			mutagen = (W3Mutagen21_Effect)thePlayer.GetBuff(EET_Mutagen21);
 			mutagen.Heal();
 		}
 		
-		
-		
+		//Force abort sign cast if stamina reached 0. Otherwise if we have regen, stamina might regenerate before it is checked in 
+		//next tick and as a result making even per tick test will always see your stamina >0
 		if(owner == GetWitcherPlayer() && GetStat(BCS_Stamina, true) <= 0.f)
 		{
 			GetWitcherPlayer().GetSignEntity(GetWitcherPlayer().GetCurrentlyCastSign()).OnSignAborted(true);
@@ -1622,14 +1884,28 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		return cost;
 	}
 	
-	
-	public final function FloorStaminaSegment()
+	public function GainStat( stat : EBaseCharacterStats, amount : float )
 	{
-		
-		
+		//while under runeword 8 effect, don't add focus
+		if(stat == BCS_Focus && owner.HasBuff(EET_Runeword8))
+			return;
+			
+		super.GainStat(stat, amount);
 	}
 	
+	//floors current stamina to full segment
+	public final function FloorStaminaSegment()
+	{
+		//someone forgot to disable stamina segments when they disabled stamina segments... I want to strangle them...
+		/*
+		var wastedStamina : float;
 	
+		wastedStamina = ModF(GetStat(BCS_Stamina, true), theGame.params.STAMINA_SEGMENT_SIZE);
+		InternalReduceStat(BCS_Stamina,	wastedStamina);
+		*/
+	}
+	
+	//needs to make a locked stamina check
 	public final function GetStat(stat : EBaseCharacterStats, optional skipLock : bool) : float	
 	{
 		var value, lock : float;
@@ -1650,6 +1926,12 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		if(val > 0)
 			toxicityOffset += val;
 	}
+	
+	public final function SetToxicityOffset( val : float)
+	{
+		if(val >= 0)
+			toxicityOffset = val;
+	}
 		
 	public final function RemoveToxicityOffset(val : float)
 	{
@@ -1660,7 +1942,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 			toxicityOffset = 0;
 	}
 	
-	
+	// #Y TODO: Implement calculation
 	public final function GetOffenseStat():int
 	{
 		var steelDmg, silverDmg : float;
@@ -1670,14 +1952,14 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		var item : SItemUniqueId;
 		var value : SAbilityAttributeValue;
 		
-		
+		// steel and silve ap bonus
 		if (CanUseSkill(S_Sword_s04))
 			attackPower += GetSkillAttributeValue(SkillEnumToName(S_Sword_s04), PowerStatEnumToName(CPS_AttackPower), false, true) * GetSkillLevel(S_Sword_s04);
 		if (CanUseSkill(S_Sword_s21))
 			attackPower += GetSkillAttributeValue(SkillEnumToName(S_Sword_s21), PowerStatEnumToName(CPS_AttackPower), false, true) * GetSkillLevel(S_Sword_s21); 
 		attackPower = attackPower * 0.5;
 		
-		
+		// steel and silve crit and crit dmg bonus
 		if (CanUseSkill(S_Sword_s08)) 
 		{
 			steelCritChance += CalculateAttributeValue(GetSkillAttributeValue(SkillEnumToName(S_Sword_s08), theGame.params.CRITICAL_HIT_CHANCE, false, true)) * GetSkillLevel(S_Sword_s08);
@@ -1738,7 +2020,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		return RoundMath((steelDmg + silverDmg)/2);
 	}
 	
-	
+	// #Y TODO: Implement calculation
 	public final function GetDefenseStat():int
 	{
 		var valArmor : SAbilityAttributeValue;
@@ -1766,7 +2048,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		return RoundMath(fVal1);
 	}
 	
-	
+	// #Y TODO: Implement calculation
 	public final function GetSignsStat():float
 	{
 		var sp : SAbilityAttributeValue;
@@ -1781,9 +2063,9 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		return sp.valueMultiplicative;
 	}
 		
-	
-	
-	
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////  @SLOTS  //////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	event OnLevelGained(currentLevel : int)
 	{
@@ -1796,7 +2078,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		}
 	}
 	
-	
+	//loads skill slots data from XML
 	private final function InitSkillSlots()
 	{
 		var slot : SSkillSlot;
@@ -1841,7 +2123,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 			else
 				slot.neighbourRight = -1;
 				
-			
+			//slot.unlocked =  cannot set it now since LevelManager does not exist yet. Instead it's set in PostLoad			
 			totalSkillSlotsCount = Max(totalSkillSlotsCount, slot.id);
 			LogChannel('CHR', "Init W3PlayerAbilityManager, totalSkillSlotsCount "+totalSkillSlotsCount);
 			skillSlots.PushBack(slot);
@@ -1856,7 +2138,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		}
 	}
 	
-	
+	//returns skill slot ID for given equipped skill
 	public final function GetSkillSlotID(skill : ESkill) : int
 	{
 		var i : int;
@@ -1886,7 +2168,11 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		return -1;
 	}
 	
-	
+	/*
+		Returns index of skillSlot for given slot ID.
+		Returns -1 if not found.
+		If checkIfUnlocked flag is set will return -1 if given slot in locked.
+	*/
 	public final function GetSkillSlotIndex(slotID : int, checkIfUnlocked : bool) : int
 	{
 		var i : int;
@@ -1919,7 +2205,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		return -1;
 	}
 	
-	
+	//returns true if succeeded
 	public final function EquipSkill(skill : ESkill, slotID : int) : bool
 	{
 		var idx : int;
@@ -1945,7 +2231,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		return true;
 	}
 	
-	
+	//returns true if succeeded
 	public final function UnequipSkill(slotID : int) : bool
 	{
 		var idx : int;
@@ -1956,11 +2242,11 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		if(idx < 0)
 			return false;
 		
-		
+		// Update synegry bonus
 		if ( CanUseSkill(S_Alchemy_s19) )
 			MutagensSyngergyBonusProcess(false, GetSkillLevel(S_Alchemy_s19));
 			
-		
+		//update links
 		prevColor = GetSkillGroupColor(skillSlots[idx].groupID);
 		skill = skillSlots[idx].socketedSkill;
 		skillSlots[idx].socketedSkill = S_SUndefined;
@@ -1970,34 +2256,40 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		return true;
 	}
 	
-	
+	//called when char panel closes and a skill equip was done
 	private final function OnSkillEquip(skill : ESkill)
 	{
 		var skillName : name;
-		var names : array<name>;
+		var names, abs : array<name>;
 		var buff : W3Effect_Toxicity;
 		var witcher : W3PlayerWitcher;
-		var i : int;
+		var i, skillLevel : int;
 		var isPassive, isNight : bool;
 		var m_alchemyManager : W3AlchemyManager;
 		var recipe : SAlchemyRecipe;
 		var uiState : W3TutorialManagerUIHandlerStateCharacterDevelopment;
 		var battleTrance : W3Effect_BattleTrance;
 		var mutagens : array<CBaseGameplayEffect>;
+		var trophy : SItemUniqueId;
+		var horseManager : W3HorseManager;
+		var weapon, armor : W3RepairObjectEnhancement;
+		var foodBuff : W3Effect_WellFed;
+		var commonMenu : CR4CommonMenu;
+		var guiMan : CR4GuiManager;
 		
-		
+		//always active
 		if(IsCoreSkill(skill))
 			return;
 		
 		witcher = GetWitcherPlayer();
 	
-		
+		//add passive Buff that this skill grants
 		AddPassiveSkillBuff(skill);
 		
-		
+		//cache skill ability
 		isPassive = theGame.GetDefinitionsManager().AbilityHasTag(skills[skill].abilityName, theGame.params.SKILL_GLOBAL_PASSIVE_TAG);
 		
-		for( i = 0; i < skills[skill].level; i += 1 )
+		for( i = 0; i < GetSkillLevel(skill); i += 1 )
 		{
 			if(isPassive)
 				owner.AddAbility(skills[skill].abilityName, true);
@@ -2005,25 +2297,25 @@ class W3PlayerAbilityManager extends W3AbilityManager
 				skillAbilities.PushBack(skills[skill].abilityName);
 		}
 		
-		
+		//M.J. - adrenaline hack for sword skills
 		if(GetSkillPathType(skill) == ESP_Sword)
 		{
 			owner.AddAbilityMultiple('sword_adrenalinegain', GetSkillLevel(skill) );
 		}
 		
-		
+		//some stamina hack for magic skills
 		if(GetSkillPathType(skill) == ESP_Signs)
 		{
 			owner.AddAbilityMultiple('magic_staminaregen', GetSkillLevel(skill) );
 		}
 		
-		
+		//M.J. - potion duration hack for alchemy skills
 		if(GetSkillPathType(skill) == ESP_Alchemy)
 		{
 			owner.AddAbilityMultiple('alchemy_potionduration', GetSkillLevel(skill) );
 		}
 		
-		
+		// Update Synergy bonus
 		if ( CanUseSkill(S_Alchemy_s19) )
 		{
 			MutagensSyngergyBonusProcess(false, GetSkillLevel(S_Alchemy_s19));
@@ -2034,7 +2326,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 			if ( GetWitcherPlayer().GetStatPercents(BCS_Toxicity) >= GetWitcherPlayer().GetToxicityDamageThreshold() )
 				owner.AddEffectDefault(EET_IgnorePain, owner, 'IgnorePain');
 		}
-		
+		//custom instant skill checks
 		if(skill == S_Alchemy_s18)
 		{
 			m_alchemyManager = new W3AlchemyManager in this;
@@ -2059,23 +2351,23 @@ class W3PlayerAbilityManager extends W3AbilityManager
 			if(mutagens.Size() > 0)
 				charStats.AddAbilityMultiple(GetSkillAbilityName(skill), GetSkillLevel(skill));
 		}		
-		else if(skill == S_Magic_s11)		
+		else if(skill == S_Magic_s11)		//yrden damaging
 		{
 			((W3YrdenEntity) (witcher.GetSignEntity(ST_Yrden))).SkillEquipped(skill);
 		}
-		else if(skill == S_Magic_s07)		
+		else if(skill == S_Magic_s07)		//battle trance spell power bonus
 		{
 			if(owner.HasBuff(EET_BattleTrance))
 				owner.AddAbility( GetSkillAbilityName(S_Magic_s07) );
 		}
 		else if(skill == S_Perk_08)
 		{
-			
+			//change level 3 items abilities from 2 to 3
 			thePlayer.ChangeAlchemyItemsAbilities(true);
 		}
 		else if(skill == S_Alchemy_s19)
 		{
-		
+		//	MutagensSyngergyBonusProcess(true, GetSkillLevel(skill));
 		}
 		else if(skill == S_Perk_01)
 		{
@@ -2100,11 +2392,30 @@ class W3PlayerAbilityManager extends W3AbilityManager
 			if(battleTrance)
 				battleTrance.OnPerk11Equipped();
 		}
+		else if(skill == S_Perk_19 && witcher.HasBuff(EET_BattleTrance))
+		{
+			skillLevel = FloorF(witcher.GetStat(BCS_Focus));
+			witcher.RemoveAbilityMultiple(thePlayer.GetSkillAbilityName(S_Sword_5), skillLevel);
+			witcher.AddAbilityMultiple(thePlayer.GetSkillAbilityName(S_Perk_19), skillLevel);
+		}		
+		else if(skill == S_Perk_22)
+		{
+			GetWitcherPlayer().UpdateEncumbrance();
+			guiMan = theGame.GetGuiManager();
+			if(guiMan)
+			{
+				commonMenu = theGame.GetGuiManager().GetCommonMenu();
+				if(commonMenu)
+				{
+					commonMenu.UpdateItemsCounter();
+				}
+			}
+		}
 		
 		if(GetSkillPathType(skill) == ESP_Alchemy)
 			witcher.RecalcPotionsDurations();
 		
-		
+		//tutorial
 		if(ShouldProcessTutorial('TutorialCharDevEquipSkill'))
 		{
 			uiState = (W3TutorialManagerUIHandlerStateCharacterDevelopment)theGame.GetTutorialSystem().uiHandler.GetCurrentState();
@@ -2112,7 +2423,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 				uiState.EquippedSkill();
 		}
 		
-		
+		//trial of grasses achievement
 		theGame.GetGamerProfile().CheckTrialOfGrasses();
 	}
 	
@@ -2124,18 +2435,27 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		var ents : array<CGameplayEntity>;
 		var mutagens : array<CBaseGameplayEffect>;
 		var tox : W3Effect_Toxicity;
-		var names : array<name>;
+		var names, abs : array<name>;
 		var skillName : name;
 		var battleTrance : W3Effect_BattleTrance;
+		var trophy : SItemUniqueId;
+		var horseManager : W3HorseManager;
+		var witcher : W3PlayerWitcher;
+		var weapon, armor : W3RepairObjectEnhancement;
+		var foodBuff : W3Effect_WellFed;
+		var commonMenu : CR4CommonMenu;
+		var guiMan : CR4GuiManager;
 		
-		
+		//always active
 		if(IsCoreSkill(skill))
 			return;
 			
-		
+		//cache skill ability
 		isPassive = theGame.GetDefinitionsManager().AbilityHasTag(skills[skill].abilityName, theGame.params.SKILL_GLOBAL_PASSIVE_TAG);
 		
-		for( i = 0; i < skills[skill].level; i += 1 )
+		skillLevel = skills[skill].level;
+			
+		for( i = 0; i < skillLevel; i += 1 )
 		{
 			if(isPassive)
 				owner.RemoveAbility(skills[skill].abilityName);
@@ -2143,38 +2463,53 @@ class W3PlayerAbilityManager extends W3AbilityManager
 				skillAbilities.Remove(skills[skill].abilityName);
 		}
 		
-		
+		//M.J. - adrenaline hack for sword skills
 		if(GetSkillPathType(skill) == ESP_Sword)
 		{
-			owner.RemoveAbilityMultiple('sword_adrenalinegain', GetSkillLevel(skill) );
+			owner.RemoveAbilityMultiple('sword_adrenalinegain', skillLevel );
 		}
 		
-		
+		//some hack for magic skills
 		if(GetSkillPathType(skill) == ESP_Signs)
 		{
 			owner.RemoveAbilityMultiple('magic_staminaregen', GetSkillLevel(skill) );
 		}
 		
-		
+		//M.J. - potion duration hack for alchemy skills
 		if(GetSkillPathType(skill) == ESP_Alchemy)
 		{
 			owner.RemoveAbilityMultiple('alchemy_potionduration', GetSkillLevel(skill) );
 		}
 		
-		
-		if(skill == S_Magic_s11)		
+		//custom skill stuff		
+		if(skill == S_Magic_s11)		//yrden damaging
 		{
 			((W3YrdenEntity) (GetWitcherPlayer().GetSignEntity(ST_Yrden))).SkillUnequipped(skill);
 		}
-		else if(skill == S_Magic_s07)	
+		else if(skill == S_Magic_s07)	//battle trance spell power bonus
 		{
 			owner.RemoveAbility( GetSkillAbilityName(S_Magic_s07) );
 		}
-		else if(skill == S_Alchemy_s04)	
+		else if(skill == S_Alchemy_s04)	//bonus random potion effect when drinking potion
 		{
 			owner.RemoveEffect(GetWitcherPlayer().GetSkillBonusPotionEffect());
 		}
-		
+		/*
+		else if(skill == PROXIMITY_BOMBS)	//proximity -> explode existing proximities, disable proxy on flying ones
+		{
+			FindGameplayEntitiesInSphere(ents, owner.GetWorldPosition(), theGame.params.MAX_THROW_RANGE + 0.5, 1000);
+			for(i=ents.Size()-1; i>=0; i-=1)
+			{
+				petard = (W3Petard)ents[i];
+				if(petard)
+				{
+					if(petard.IsStuck())
+						petard.ProcessEffect();
+					else if(petard.IsProximity())
+						petard.DisableProximity();
+				}
+			}
+		}*/
 		else if(skill == S_Alchemy_s13)
 		{
 			mutagens = GetWitcherPlayer().GetDrunkMutagens();
@@ -2191,14 +2526,14 @@ class W3PlayerAbilityManager extends W3AbilityManager
 			tox = (W3Effect_Toxicity)owner.GetBuff(EET_Toxicity);
 			tox.RecalcEffectValue();
 		}
-		else if(skill == S_Alchemy_s18)			
+		else if(skill == S_Alchemy_s18)			//toxicity pool upgrade per known recipe
 		{
 			names = GetWitcherPlayer().GetAlchemyRecipes();
 			skillName = SkillEnumToName(S_Alchemy_s18);
 			for(i=0; i<names.Size(); i+=1)
 				charStats.RemoveAbility(skillName);
 		}
-		else if(skill == S_Sword_s13)			
+		else if(skill == S_Sword_s13)			//slowmo for aiming
 		{
 			theGame.RemoveTimeScale( theGame.GetTimescaleSource(ETS_ThrowingAim) );
 		}
@@ -2210,7 +2545,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		}
 		else if(skill == S_Perk_08)
 		{
-			
+			//change level 3 items abilities from 3 to 2
 			thePlayer.ChangeAlchemyItemsAbilities(false);
 		}
 		else if(skill == S_Alchemy_s19)
@@ -2238,12 +2573,31 @@ class W3PlayerAbilityManager extends W3AbilityManager
 			battleTrance = (W3Effect_BattleTrance)owner.GetBuff(EET_BattleTrance);
 			if(battleTrance)
 				battleTrance.OnPerk11Unequipped();
+		}		
+		else if(skill == S_Perk_19 && owner.HasBuff(EET_BattleTrance))
+		{
+			skillLevel = FloorF(owner.GetStat(BCS_Focus));
+			owner.RemoveAbilityMultiple(thePlayer.GetSkillAbilityName(S_Perk_19), skillLevel);
+			owner.AddAbilityMultiple(thePlayer.GetSkillAbilityName(S_Sword_5), skillLevel);
+		}
+		else if(skill == S_Perk_22)
+		{
+			GetWitcherPlayer().UpdateEncumbrance();
+			guiMan = theGame.GetGuiManager();
+			if(guiMan)
+			{
+				commonMenu = theGame.GetGuiManager().GetCommonMenu();
+				if(commonMenu)
+				{
+					commonMenu.UpdateItemsCounter();
+				}
+			}
 		}
 		
 		if(GetSkillPathType(skill) == ESP_Alchemy)
 			GetWitcherPlayer().RecalcPotionsDurations();
 		
-		
+		// Update synegry bonus
 		if ( CanUseSkill(S_Alchemy_s19) )
 		{
 			MutagensSyngergyBonusProcess(false, GetSkillLevel(S_Alchemy_s19));
@@ -2251,7 +2605,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		}
 	}
 	
-	
+	//goes through all armor pieces and updates perk bonus
 	private final function SetPerkArmorBonus(skill : ESkill, enable : bool)
 	{
 		var item : SItemUniqueId;
@@ -2303,7 +2657,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 			UpdatePerkArmorBonus(skill, enable, cnt);
 	}
 	
-	
+	// adds/removes perk armor bonus
 	public final function UpdatePerkArmorBonus(skill : ESkill, enable : bool, optional count : int)
 	{
 		var abilityName : name;
@@ -2319,7 +2673,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 			charStats.RemoveAbilityMultiple(abilityName, count);
 	}	
 	
-	
+	//sets day/night perk01's abilities
 	public final function SetPerk01Abilities(enableDay : bool, enableNight : bool)
 	{
 		var abilityName : name;
@@ -2346,7 +2700,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		}
 	}
 	
-	
+	//called when equipped skill changes level
 	private final function OnSkillEquippedLevelChange(skill : ESkill, prevLevel : int, currLevel : int)
 	{
 		var cnt, i : int;
@@ -2357,7 +2711,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		var m_alchemyManager : W3AlchemyManager;
 		var ignorePain : W3Effect_IgnorePain;
 		
-		
+		//never changes levels
 		if(IsCoreSkill(skill))
 			return;
 		
@@ -2374,7 +2728,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 			skillAbilityName = SkillEnumToName(S_Alchemy_s18);
 			cnt = 0;
 			
-			
+			//count how much we should have
 			for(i=0; i<names.Size(); i+=1)
 			{
 				m_alchemyManager.GetRecipe(names[i], recipe);
@@ -2382,7 +2736,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 					cnt += 1;
 			}
 			
-			
+			//add/remove abilities
 			cnt -= owner.GetAbilityCount(skillAbilityName);
 			if(cnt > 0)
 				charStats.AddAbilityMultiple(skillAbilityName, cnt);
@@ -2401,7 +2755,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		}
 		else if(skill == S_Alchemy_s19)
 		{
-			
+			//remove old, add new
 			if ( CanUseSkill(S_Alchemy_s19) )
 			{
 				MutagensSyngergyBonusProcess(false, prevLevel);
@@ -2424,7 +2778,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 				thePlayer.ChangeAlchemyItemsAbilities(false);
 		}
 		
-		
+		//some hack for sword skills
 		if(GetSkillPathType(skill) == ESP_Sword)
 		{
 			if ( (currLevel - prevLevel) > 0)
@@ -2433,7 +2787,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 				owner.RemoveAbilityMultiple('sword_adrenalinegain', currLevel - prevLevel );
 		}
 		
-		
+		//some hack for magic skills
 		if(GetSkillPathType(skill) == ESP_Signs)
 		{
 			if ( (currLevel - prevLevel) > 0)
@@ -2442,7 +2796,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 				owner.RemoveAbilityMultiple('magic_staminaregen', currLevel - prevLevel );
 		}
 		
-		
+		//some hack for alchemy skills
 		if(GetSkillPathType(skill) == ESP_Alchemy)
 		{
 			if ( (currLevel - prevLevel) > 0)
@@ -2478,23 +2832,23 @@ class W3PlayerAbilityManager extends W3AbilityManager
 	{
 		var i, idx : int;
 				
-		
+		//core skills always equipped
 		if(IsCoreSkill(skill))
 			return true;
 		
-		
+		//skill slots
 		for(i=0; i<skillSlots.Size(); i+=1)
 			if(skillSlots[i].socketedSkill == skill)
 				return true;
 		
-		
+		//temp skills always equipped
 		if(tempSkills.Contains(skill))
 			return true;
 		
 		return false;
 	}
 	
-	
+	//sets skill on given skill slot. Returns false if skillslot is locked
 	public final function GetSkillOnSlot(slotID : int, out skill : ESkill) : bool
 	{
 		var idx : int;
@@ -2531,7 +2885,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		return false;
 	}
 	
-	
+	//resets character dev
 	public final function ResetCharacterDev()
 	{
 		var i : int;
@@ -2560,109 +2914,115 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		owner.RemoveAbilityAll('alchemy_potionduration');
 	}
 	
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////  @TUTORIAL  ///////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
-	
-	
+	/*
+		Stores (as returned value) skills equipped in three skill slots connected with first mutagen slot.
+		Then it unequips those skills, 
+	*/
 	public final function TutorialMutagensUnequipPlayerSkills() : array<STutorialSavedSkill>
 	{
-		var savedSkills : array<STutorialSavedSkill>;		
+		var savedSkills : array<STutorialSavedSkill>;		//array of skills that were initially in the slots, needed to restore them after tutorial is done		
 		var i : int;
-		var slots : array<int>;								
+		var slots : array<int>;								//slot IDs of slots that are in the group connected to equipped mutagen slot
 		var equippedSkill : ESkill;
 		var savedSkill : STutorialSavedSkill;
 		
-		
+		//get three skill slots' indexes of group in which we have the mutagen
 		slots = TutorialGetConnectedSkillsSlotsIDs();
 		
-		
+		//save equipped skills and clear slots
 		for(i=0; i<slots.Size(); i+=1)
 		{			
 			if(GetSkillOnSlot(slots[i], equippedSkill) && equippedSkill != S_SUndefined)
 			{
-				
+				//save skill
 				savedSkill.skillType = equippedSkill;
 				savedSkill.skillSlotID = slots[i];
 				savedSkills.PushBack(savedSkill);
 				
-				
+				//clear slot
 				UnequipSkill(slots[i]);
 			}
 		}
 		
-		
+		//update UI
 		TutorialUpdateUI();
 		
 		return savedSkills;
 	}
 	
-	
+	/*
+		'learns' temporary skill if not known and equips it in first skill slot.
+		Such temporary skill has the same color as the color of equipped mutagen.
+	*/
 	public final function TutorialMutagensEquipOneGoodSkill()
 	{		
 		var slots : array<int>;
 				
-		
+		//get three skill slots' indexes of group in which we have the mutagen
 		slots = TutorialGetConnectedSkillsSlotsIDs();
 		
-		
+		//select temp skill
 		TutorialSelectAndAddTempSkill();
 				
-		
+		//equip temp skill to first slot
 		EquipSkill(temporaryTutorialSkills[0].skillType, ArrayFindMinInt(slots));
 		
-		
+		//update UI
 		TutorialUpdateUI();
 	}
 	
-	
+	//Adds one improper temp skill to second slot
 	public final function TutorialMutagensEquipOneGoodOneBadSkill()
 	{
 		var slots : array<int>;
 		
-		
+		//add temp skill
 		TutorialSelectAndAddTempSkill(true);
 		
-		
+		//equip to second slot
 		slots = TutorialGetConnectedSkillsSlotsIDs();
 		ArraySortInts(slots);
 		EquipSkill(temporaryTutorialSkills[1].skillType, slots[1] );
 		
-		
+		//refresh UI
 		TutorialUpdateUI();		
 	}
 	
-	
+	//Removes improper skill from second slot and adds two proper ones to slot 2 & 3
 	public final function TutorialMutagensEquipThreeGoodSkills()
 	{
 		var slots : array<int>;		
 		
-		
+		//we no longer need the temp wrong color skill - remove it
 		TutorialGetRidOfTempSkill(1);
 				
-		
+		//add two proper color temp skills
 		TutorialSelectAndAddTempSkill(false, 1);
 		TutorialSelectAndAddTempSkill(false, 2);
 		
-		
+		//equip to second & third slots
 		slots = TutorialGetConnectedSkillsSlotsIDs();
 		ArraySortInts(slots);
 		EquipSkill(temporaryTutorialSkills[1].skillType, slots[1]);
 		EquipSkill(temporaryTutorialSkills[2].skillType, slots[2]);
 		
-		
+		//refresh UI
 		TutorialUpdateUI();	
 	}
 	
-	
+	//removes all temp skills of tutorial and restores previous skills
 	public final function TutorialMutagensCleanupTempSkills(savedEquippedSkills : array<STutorialSavedSkill>)
 	{
-		
+		//remove 3 temp skills
 		TutorialGetRidOfTempSkill(2);
 		TutorialGetRidOfTempSkill(1);
 		TutorialGetRidOfTempSkill(0);
 		
-		
+		//restore skills you had previously equipped
 		EquipSkill(savedEquippedSkills[0].skillType, savedEquippedSkills[0].skillSlotID);
 		EquipSkill(savedEquippedSkills[1].skillType, savedEquippedSkills[1].skillSlotID);
 		EquipSkill(savedEquippedSkills[2].skillType, savedEquippedSkills[2].skillSlotID);
@@ -2692,18 +3052,18 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		tempSkills.Remove(tempSkill);
 	}
 	
-	
-	
-	
+	//Selects and 'learns' temp skill matching for mutagen on EES_SkillMutange1 slot.
+	//If 'of wrong' color is set, temp skill will have different color than the mutagen.
+	//If 'index' is set then it picks next in line skill. Eg. we have 3 skills prepared for chosing so index =1 will select the second in line.
 	private final function TutorialSelectAndAddTempSkill(optional ofWrongColor : bool, optional index : int)
 	{
 		var witcher : W3PlayerWitcher;
-		var mutagenColor : ESkillColor;				
+		var mutagenColor : ESkillColor;				//color of equipped mutagen
 		var tempSkill : ESkill;
 		var tutSkill : STutorialTemporarySkill;
 		var mutagenItemId : SItemUniqueId;
 		
-		
+		//get mutagen color
 		witcher = GetWitcherPlayer();
 		witcher.GetItemEquippedOnSlot(EES_SkillMutagen1, mutagenItemId);
 		mutagenColor = witcher.inv.GetSkillMutagenColor(mutagenItemId);
@@ -2737,7 +3097,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 				tempSkill = S_Alchemy_s01;
 		}
 					
-		
+		//add temp skill if not known
 		if(GetSkillLevel(tempSkill) <= 0)
 		{
 			tempSkills.PushBack(tempSkill);
@@ -2753,7 +3113,7 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		temporaryTutorialSkills.PushBack(tutSkill);
 	}
 	
-	
+	//returns array of Slot IDs of those three slots that are connected to EES_SkillMutagen1 mutagen slot
 	private final function TutorialGetConnectedSkillsSlotsIDs() : array<int>
 	{
 		var i, connectedSkillsGroupID, processedSlots : int;
@@ -2781,17 +3141,17 @@ class W3PlayerAbilityManager extends W3AbilityManager
 		( (CR4CharacterMenu) ((CR4MenuBase)theGame.GetGuiManager().GetRootMenu()).GetLastChild() ).UpdateData(false);
 	}
 	
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////  @HAXXX  //////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
-	
-	
-	final function Debug_UnlockSkillSlot(slotIndex : int) : bool
+	//returns true if slot was unlocked in the process
+	final function Debug_HAX_UnlockSkillSlot(slotIndex : int) : bool
 	{
 		if(!IsSkillSlotUnlocked(slotIndex))
 		{
 			skillSlots[slotIndex].unlocked = true;
-			LogSkills("W3PlayerAbilityManager.Debug_UnlockSkillSlot: unlocking skill slot " + slotIndex + " for debug purposes");
+			LogSkills("W3PlayerAbilityManager.Debug_HAX_UnlockSkillSlot: unlocking skill slot " + slotIndex + " for debug purposes");
 			return true;
 		}
 		

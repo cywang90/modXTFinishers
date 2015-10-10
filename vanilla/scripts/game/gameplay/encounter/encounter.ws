@@ -1,15 +1,14 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Encounter System
+/** Copyright © 2010-2013
+/***********************************************************************/
 
 
-
-
-
-
-
-
-
+/////////////////////////////////////////////
+// Encounter class
+/////////////////////////////////////////////
 
 import class CEncounter extends CGameplayEntity
 {
@@ -32,11 +31,11 @@ import class CEncounter extends CGameplayEntity
 	private saved var isUpdating 							: bool; default isUpdating = false;
 	
 	
-	
+	//////////////////////////////////////////////////////////////////////////////////////////
 
 	event OnAreaEnter( area : CTriggerAreaComponent, activator : CComponent )
 	{
-		
+		// Only player can activate area
 		if ( enabled && activator.GetEntity() == thePlayer )
 		{
 			EnterArea();
@@ -397,9 +396,9 @@ import class CEncounter extends CGameplayEntity
 	
 }
 
-
-
-
+/////////////////////////////////////////////
+// Encounter Activation class
+/////////////////////////////////////////////
 class CEncounterActivator extends CGameplayEntity
 {
 
@@ -414,7 +413,7 @@ class CEncounterActivator extends CGameplayEntity
 	
 	event OnAreaEnter( area : CTriggerAreaComponent, activator : CComponent )
 	{
-		
+		// Only player can activate area
 		if ( !((CPlayer)(activator.GetEntity())) )
 			return false;
 		
@@ -424,7 +423,7 @@ class CEncounterActivator extends CGameplayEntity
 
 	event OnAreaExit( area : CTriggerAreaComponent, activator : CComponent )
 	{
-		
+		// Only player can activate area
 		if ( !((CPlayer)(activator.GetEntity())) )
 			return false;
 		
@@ -486,7 +485,7 @@ class CEncounterActivator extends CGameplayEntity
 
 }
 
-
+///////////////////////////////////////////////////////////////////
 
 class CEncounterStateRequest extends CScriptedEntityStateChangeRequest
 {

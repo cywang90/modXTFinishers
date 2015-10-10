@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-statemachine class CHeartMiniboss extends CNewNPC
+﻿statemachine class CHeartMiniboss extends CNewNPC
 {
 	var phasesCount : int;
 	var currentPhase : int;
@@ -24,8 +20,8 @@ statemachine class CHeartMiniboss extends CNewNPC
 	{
 		super.OnSpawned( spawnData );
 		
-		
-		
+		// disable gravity and other physical features like falling, sliding, terrain influence
+		// because we don't want to move our mighty boss
 		((CMovingPhysicalAgentComponent)GetMovingAgentComponent()).SetAnimatedMovement( true );
 		EnableCollisions(false);
 		EnablePhysicalMovement( false );
@@ -41,7 +37,7 @@ statemachine class CHeartMiniboss extends CNewNPC
 	
 	event OnTakeDamage( action : W3DamageAction )
 	{	
-		
+		// im not doing this in OnSpawned, because difficulty modifiers are applied after OnSpawned, so essenceChunkValue stores wrong value
 		if( !valuesInitialised )
 		{
 			essenceChunkValue = this.GetStat( BCS_Essence ) / essenceChunks;
@@ -122,7 +118,7 @@ state Idle in CHeartMiniboss
 	event OnEnterState( prevStateName : name )
 	{
 		super.OnEnterState( prevStateName );
-		
+		//SleepIdle();
 	}
 	
 	entry function SleepIdle()

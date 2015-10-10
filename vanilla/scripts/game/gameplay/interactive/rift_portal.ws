@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿/////////////////// Ł.SZ RiftPortal class ////////////////
 
 
 class W3OnSpawnPortal extends CEntity

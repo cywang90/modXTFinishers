@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿//////////////////////////////////////////////////////////////////////////////////////////
 class CBTTaskDelay extends IBehTreeTask
 {
 	var delay : float;
@@ -41,7 +37,7 @@ class CBTTaskDelayDef extends IBehTreeTaskDefinition
 	default delay = 10.0;
 }
 
-
+//////////////////////////////////////////////////////////////////////////////////////////
 class CBTTaskActivateOnlyOnce extends IBehTreeTask
 {
 	private var successOnly					: bool;	

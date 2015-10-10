@@ -1,15 +1,11 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CBTTaskCrabAttack extends IBehTreeTask
+﻿class CBTTaskCrabAttack extends IBehTreeTask
 {
 
-	
+	//TODO caching Damage action would be beneficial to performance
 	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo ) : bool
 	{
 		var crab : CNewNPC = GetNPC();
-		
+		//FIXME should be an attack action
 		var action : W3DamageAction = new W3DamageAction in theGame.damageMgr;
 		
 		if ( animEventName == 'AttackLight' && animEventType == AET_DurationStart)

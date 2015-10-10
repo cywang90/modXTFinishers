@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** CBTTaskSpawnFXEntity
+/***********************************************************************/
+/** Copyright © 2014
+/** Author : Wojciech Żerek, Andrzej Kwiatkowski
+/***********************************************************************/
 
 class CBTTaskSpawnFXEntity extends IBehTreeTask
 {
@@ -198,7 +197,18 @@ class CBTTaskSpawnFXEntity extends IBehTreeTask
 			entMat = MatrixBuiltTRS( spawnPos, spawnRot );
 			spawnPos = VecTransform( entMat, offsetVector );
 		}
-		
+		/*
+		if( useOffsetRelativeToHeading )
+		{
+			spawnPos += offsetVector.X * ( VecFromHeading( spawnRot.Yaw + 90.0 ));
+			spawnPos += offsetVector.Y * ( VecFromHeading( spawnRot.Yaw ));
+			spawnPos.Z += offsetVector.Z;
+		}
+		else
+		{
+			spawnPos += offsetVector;
+		}
+		*/
 		spawnRot.Pitch += additionalRotation.Pitch;
 		spawnRot.Yaw += additionalRotation.Yaw;
 		spawnRot.Roll += additionalRotation.Roll;
@@ -273,8 +283,9 @@ class CBTTaskSpawnFXEntityDef extends IBehTreeTaskDefinition
 };
 
 
-
-
+/***********************************************************************/
+/** CBTTaskManageSpawnFXEntity
+/***********************************************************************/
 
 class CBTTaskManageSpawnFXEntity extends CBTTaskSpawnFXEntity
 {

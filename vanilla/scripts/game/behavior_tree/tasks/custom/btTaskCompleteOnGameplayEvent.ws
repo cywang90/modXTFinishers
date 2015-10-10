@@ -1,10 +1,6 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿//>--------------------------------------------------------------------------
+// Complete the branch when gameplay event is received
+//---------------------------------------------------------------------------
 class BTTaskCompleteOnGameplayEvent extends IBehTreeTask
 {
 	editable var gameplayEvent		: name;

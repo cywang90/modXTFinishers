@@ -1,14 +1,10 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CR4PosterMenu extends CR4MenuBase
+﻿class CR4PosterMenu extends CR4MenuBase
 {
 	private var	m_posterEntity : W3Poster;
 
 	private var m_fxSetDescriptionSFF			: CScriptedFlashFunction;
 
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{	
 		var flashModule : CScriptedFlashSprite;
 		var description : string;
@@ -33,7 +29,7 @@ class CR4PosterMenu extends CR4MenuBase
 		theInput.StoreContext( 'EMPTY_CONTEXT' );
 	}
 	
-	event  OnClosingMenu()
+	event /*C++*/ OnClosingMenu()
 	{
 		super.OnClosingMenu();
 		theInput.RestoreContext( 'EMPTY_CONTEXT', true );
@@ -43,7 +39,7 @@ class CR4PosterMenu extends CR4MenuBase
 		OnPlaySoundEvent( "gui_noticeboard_close" );
 	}
 
-	event  OnCloseMenu()
+	event /*flash*/ OnCloseMenu()
 	{
 		CloseMenu();
 	}

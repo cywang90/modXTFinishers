@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** 
+/***********************************************************************/
+/** Copyright © 2012
+/** Author : Tomasz Kozera
+/***********************************************************************/
 
 class W3VirtualSwitch_Combination extends W3VirtualSwitch
 {	
@@ -41,7 +40,7 @@ class W3VirtualSwitch_Combination extends W3VirtualSwitch
 		{
 			return;
 		}
-		
+		// all good
 		Toggle( NULL, false, false );
 	}	
 }

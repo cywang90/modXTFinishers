@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CHorseCorrectionTrigger extends CGameplayEntity
+﻿class CHorseCorrectionTrigger extends CGameplayEntity
 {
 	editable var valueOnEnter : bool;
 	editable var valueOnExit : bool;

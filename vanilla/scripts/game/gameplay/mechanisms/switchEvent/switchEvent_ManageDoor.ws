@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3SE_ManageDoor extends W3SwitchEvent
+﻿class W3SE_ManageDoor extends W3SwitchEvent
 {
 	editable var doorTag	: name;
 	editable var operations	: array< EDoorOperation >;

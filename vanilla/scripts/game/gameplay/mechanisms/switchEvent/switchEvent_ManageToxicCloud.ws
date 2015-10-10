@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3SE_ManageToxicCloud extends W3SwitchEvent
+﻿class W3SE_ManageToxicCloud extends W3SwitchEvent
 {
 	editable var entityTag	: name;
 	editable var operations	: array< EToxicCloudOperation >;

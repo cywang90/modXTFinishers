@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 class CBTTaskHasVoiceSet extends IBehTreeTask
 {
 	public var voiceSet 					: string;

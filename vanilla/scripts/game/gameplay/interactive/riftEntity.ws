@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-statemachine class CRiftEntity extends CInteractiveEntity
+﻿statemachine class CRiftEntity extends CInteractiveEntity
 {
 	editable var linkingMode : bool;
 	editable var controlledEncounter : EntityHandle;
@@ -69,7 +65,7 @@ statemachine class CRiftEntity extends CInteractiveEntity
 		}
 	}
 	
-	
+	///////////////////////////////////////// RIFT MANAGEMENT FUNCTIONS /////////////////////////////////////////
 	
 	public function ActivateRift( optional dontActivateEncounter : bool)
 	{
@@ -121,7 +117,7 @@ statemachine class CRiftEntity extends CInteractiveEntity
 		DeactivateRiftIfPossible();
 	}
 	
-	
+	///////////////////////////////////////// ENCOUNTER MANAGEMENT FUNCTIONS /////////////////////////////////////////
 	
 	public function EnableEncounter( flag : bool )
 	{
@@ -154,7 +150,7 @@ statemachine class CRiftEntity extends CInteractiveEntity
 		}
 	}
 	
-	
+	///////////////////////////////////////// COLD AREA MANAGEMENT FUNCTIONS /////////////////////////////////////////
 	
 	public function EnableColdArea( flag : bool )
 	{
@@ -217,7 +213,7 @@ statemachine class CRiftEntity extends CInteractiveEntity
 		}
 	}
 	
-	
+	///////////////////////////////////////// COLLISION ENTITY MANAGEMENT FUNCTIONS /////////////////////////////////////////
 	
 	public function PrepareCollisionEntity()
 	{
@@ -237,7 +233,7 @@ statemachine class CRiftEntity extends CInteractiveEntity
 		collisionEntity.Destroy();
 	}
 	
-	
+	///////////////////////////////////////// MISC FUNCTIONS /////////////////////////////////////////
 	
 	function OnDiscovered( discovered : bool )
 	{

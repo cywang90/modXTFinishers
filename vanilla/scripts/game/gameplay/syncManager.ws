@@ -1,10 +1,13 @@
-﻿/*
-Copyright © CD Projekt RED 2015
+﻿
+
+/*
+enum EAnimationManualSyncType
+{
+	AMST_SyncBeginning,
+	AMST_SyncEnd,
+	AMST_SyncMatchEvents
+};
 */
-
-
-
-
 
 import struct SAnimationSequencePartDefinition
 {
@@ -98,7 +101,7 @@ statemachine class W3SyncAnimationManager
 		
 		var actorMaster, actorSlave : CActor;
 		
-		var temp : name; 
+		var temp : name; // MS: Used by fistfight finishers
 		var rot : EulerAngles;
 		
 		var finisherAnim : bool;
@@ -106,12 +109,12 @@ statemachine class W3SyncAnimationManager
 		
 		var syncAnimName	: name;
 		
-		var node, node1 : CNode; 
+		var node, node1 : CNode; // for eredin synced anims
 		var rot0, rot1 : EulerAngles;
 		
 		syncInstance = CreateNewSyncInstance( instanceIndex );
 		
-		
+		// blocking interaction with other objects and fast travel
 		thePlayer.BlockAction(EIAB_Interactions, 'SyncManager' );
 		thePlayer.BlockAction(EIAB_FastTravel, 'SyncManager' );
 		
@@ -119,7 +122,7 @@ statemachine class W3SyncAnimationManager
 		{
 			case 'AgonyCrawl':
 			{
-				
+				// MASTER SETUP
 				masterSequencePart.animation		= 'man_ger_crawl_finish';
 				masterSequencePart.syncType			= AMST_SyncMatchEvents;
 				masterSequencePart.syncEventName	= 'SyncEvent';
@@ -133,13 +136,13 @@ statemachine class W3SyncAnimationManager
 				
 				masterDef.parts.PushBack( masterSequencePart );
 				masterDef.entity					= master;
-				
+				//masterDef.manualSlotName			= 'GAMEPLAY_SLOT';
 				masterDef.manualSlotName			= 'FinisherSlot';
 				masterDef.startForceEvent			= 'PerformFinisher';
 				masterDef.raiseEventOnEnd			= 'DoneFinisher';
 				masterDef.freezeAtEnd				= true;
 				
-				
+				// SLAVE SETUP
 				slaveSequencePart.animation			= 'man_npc_sword_1hand_wounded_crawl_killed';
 				slaveSequencePart.syncType			= AMST_SyncMatchEvents;
 				slaveSequencePart.syncEventName		= 'SyncEvent';
@@ -157,7 +160,7 @@ statemachine class W3SyncAnimationManager
 			}
 			case 'DeathFinisher':
 			{
-				
+				// MASTER SETUP
 				syncAnimName = GetFinisherSynAnimName();
 				
 				if ( thePlayer.forceFinisher && thePlayer.forceFinisherAnimName != '' )
@@ -170,7 +173,10 @@ statemachine class W3SyncAnimationManager
 				masterSequencePart.useRefBone			= 'Reference';
 				masterSequencePart.rotationTypeUsingRefBone = SRT_TowardsOtherEntity;
 				
-				
+				/*if ( syncAnimName == 'man_finisher_dlc_arm_lp' 
+				|| syncAnimName == 'man_finisher_dlc_arm_rp' )
+					masterSequencePart.shouldSlide			= false;
+				else*/
 					masterSequencePart.shouldSlide			= true;
 					
 				masterSequencePart.shouldRotate			= true;
@@ -186,7 +192,7 @@ statemachine class W3SyncAnimationManager
 				masterDef.raiseEventOnEnd				= 'DoneFinisher';
 				masterDef.freezeAtEnd					= true;
 				
-				
+				// SLAVE SETUP
 				slave.SetKinematic( true );
 				slaveSequencePart.animation				= syncAnimName;
 				slaveSequencePart.syncType				= AMST_SyncBeginning;
@@ -194,7 +200,10 @@ statemachine class W3SyncAnimationManager
 				slaveSequencePart.rotationTypeUsingRefBone = SRT_TowardsOtherEntity;	
 				slaveSequencePart.shouldRotate			= true;
 				
-					
+				/*if ( syncAnimName == 'man_finisher_dlc_arm_lp' 
+				|| syncAnimName == 'man_finisher_dlc_arm_rp' )
+					slaveSequencePart.shouldSlide			= true;
+				else*/	
 					slaveSequencePart.shouldSlide			= false;
 				
 				slaveSequencePart.blendInTime			= 0.2f;
@@ -202,26 +211,26 @@ statemachine class W3SyncAnimationManager
 				slaveSequencePart.sequenceIndex			= 0;
 				slaveSequencePart.disableProxyCollisions = true;
 				
-				
-		
-				
-				
+				//slaveSequencePart.allowBreakAtStart	= 0.4;
+		//		slaveSequencePart.allowBreakAtStartBeforeEventsEnd	= 'SyncEvent';
+				//slaveSequencePart.allowBreakBeforeEnd				= ;
+				//slaveSequencePart.allowBreakBeforeAtAfterEventsStart	= ;
 				
 				slaveDef.parts.PushBack( slaveSequencePart );
 				slaveDef.entity							= slave;
-		
+		//		slaveDef.startForceEvent				= 'FrozenKinematicRagdoll';
 				slaveDef.manualSlotName					= 'FinisherSlot';
 				slaveDef.freezeAtEnd					= false;
 
 				cameraAnimName = ProcessFinisherCameraAnimName( syncAnimName );
-				
+				//PlayFinisherCameraAnimation( syncAnimName );
 				finisherAnim 							= true;
 				
 				break;				
 			}
 			case 'EredinPhaseChangePartOne':
 			{
-				
+				// MASTER SETUP
 				syncAnimName = 'eredinbossfight_phasechange_01';
 				
 				masterSequencePart.animation			= syncAnimName;
@@ -238,7 +247,7 @@ statemachine class W3SyncAnimationManager
 				masterDef.raiseEventOnEnd				= 'DoneFinisher';
 				masterDef.freezeAtEnd					= true;
 				
-				
+				// SLAVE SETUP
 				slave.SetKinematic( true );
 				slaveSequencePart.animation				= syncAnimName;
 				slaveSequencePart.syncType				= AMST_SyncBeginning;	
@@ -262,7 +271,7 @@ statemachine class W3SyncAnimationManager
 			}
 			case 'EredinPhaseChangePartTwo':
 			{
-				
+				// MASTER SETUP
 				syncAnimName = 'eredinbossfight_phasechange_02';
 				
 				masterSequencePart.animation			= syncAnimName;
@@ -285,7 +294,7 @@ statemachine class W3SyncAnimationManager
 				masterDef.raiseEventOnEnd				= 'DoneFinisher';
 				masterDef.freezeAtEnd					= true;
 				
-				
+				// SLAVE SETUP
 				slave.SetKinematic( true );
 				slaveSequencePart.animation				= syncAnimName;
 				slaveSequencePart.syncType				= AMST_SyncBeginning;	
@@ -313,7 +322,7 @@ statemachine class W3SyncAnimationManager
 			}
 			case 'NPCDismountRight':
 			{
-				
+				// MASTER SETUP
 				masterSequencePart.animation		= 'horse_dismount_RF_01';
 				masterSequencePart.syncType			= AMST_SyncBeginning;
 				masterSequencePart.syncEventName	= 'SyncEvent';
@@ -327,7 +336,7 @@ statemachine class W3SyncAnimationManager
 				masterDef.manualSlotName			= 'MANUAL_DIALOG_SLOT';
 				masterDef.freezeAtEnd				= false;
 				
-				
+				// SLAVE SETUP
 				slaveSequencePart.animation			= 'horse_dismount_RF_01';
 				slaveSequencePart.syncType			= AMST_SyncBeginning;
 				slaveSequencePart.syncEventName		= 'SyncEvent';
@@ -345,7 +354,7 @@ statemachine class W3SyncAnimationManager
 			}
 			case 'NPCDismountLeft':
 			{
-				
+				// MASTER SETUP
 				masterSequencePart.animation		= 'horse_dismount_LF_01';
 				masterSequencePart.syncType			= AMST_SyncBeginning;
 				masterSequencePart.syncEventName	= 'SyncEvent';
@@ -359,7 +368,7 @@ statemachine class W3SyncAnimationManager
 				masterDef.manualSlotName			= 'MANUAL_DIALOG_SLOT';
 				masterDef.freezeAtEnd				= false;
 				
-				
+				// SLAVE SETUP
 				slaveSequencePart.animation			= 'horse_dismount_LF_01';
 				slaveSequencePart.syncType			= AMST_SyncBeginning;
 				slaveSequencePart.syncEventName		= 'SyncEvent';
@@ -377,7 +386,7 @@ statemachine class W3SyncAnimationManager
 			}
 			case 'HorseRearing':
 			{
-				
+				// MASTER SETUP
 				masterSequencePart.animation		= 'horse_rearing01';
 				masterSequencePart.syncType			= AMST_SyncBeginning;
 				masterSequencePart.syncEventName	= 'SyncEvent';
@@ -391,7 +400,7 @@ statemachine class W3SyncAnimationManager
 				masterDef.manualSlotName			= 'MANUAL_DIALOG_SLOT';
 				masterDef.freezeAtEnd				= false;
 				
-				
+				// SLAVE SETUP
 				slaveSequencePart.animation			= 'horse_rearing01';
 				slaveSequencePart.syncType			= AMST_SyncBeginning;
 				slaveSequencePart.syncEventName		= 'SyncEvent';
@@ -409,7 +418,7 @@ statemachine class W3SyncAnimationManager
 			}
 			case 'LeshyHeadGrab':
 			{
-				
+				// MASTER SETUP
 				masterSequencePart.animation		= 'monster_lessun_attack_grab_neck_quicker';
 				masterSequencePart.syncType			= AMST_SyncBeginning;
 				masterSequencePart.syncEventName	= 'SyncEvent';
@@ -426,7 +435,7 @@ statemachine class W3SyncAnimationManager
 				masterDef.manualSlotName			= 'GAMEPLAY_SLOT';
 				masterDef.freezeAtEnd				= false;
 				
-				
+				// SLAVE SETUP
 				slaveSequencePart.animation			= 'man_ger_sword_heavyhit_front_lp';
 				slaveSequencePart.syncType			= AMST_SyncBeginning;
 				slaveSequencePart.syncEventName		= 'SyncEvent';
@@ -444,7 +453,7 @@ statemachine class W3SyncAnimationManager
 			}
 			case 'SirenCrawlFinisher':
 			{
-				
+				// MASTER SETUP
 				masterSequencePart.animation		= 'man_ger_crawl_finish';
 				masterSequencePart.syncType			= AMST_SyncMatchEvents;
 				masterSequencePart.syncEventName	= 'SyncEvent';
@@ -458,13 +467,13 @@ statemachine class W3SyncAnimationManager
 				
 				masterDef.parts.PushBack( masterSequencePart );
 				masterDef.entity					= master;
-				
+				//masterDef.manualSlotName			= 'GAMEPLAY_SLOT';
 				masterDef.manualSlotName			= 'FinisherSlot';
 				masterDef.startForceEvent			= 'PerformFinisher';
 				masterDef.raiseEventOnEnd			= 'DoneFinisher';
 				masterDef.freezeAtEnd				= true;				
 				
-				
+				// SLAVE SETUP
 				slaveSequencePart.animation			= 'monster_siren_crawl_death';
 				slaveSequencePart.syncType			= AMST_SyncMatchEvents;
 				slaveSequencePart.syncEventName		= 'SyncEvent';
@@ -484,7 +493,7 @@ statemachine class W3SyncAnimationManager
 			}
 			case 'NekkerKnockDownFinisher':
 			{
-				
+				// MASTER SETUP
 				masterSequencePart.animation		= 'man_ger_crawl_finish';
 				masterSequencePart.syncType			= AMST_SyncMatchEvents;
 				masterSequencePart.syncEventName	= 'SyncEvent';
@@ -501,13 +510,13 @@ statemachine class W3SyncAnimationManager
 				
 				masterDef.parts.PushBack( masterSequencePart );
 				masterDef.entity					= master;
-				
+				//masterDef.manualSlotName			= 'GAMEPLAY_SLOT';
 				masterDef.manualSlotName			= 'FinisherSlot';
 				masterDef.startForceEvent			= 'PerformFinisher';
 				masterDef.raiseEventOnEnd			= 'DoneFinisher';
 				masterDef.freezeAtEnd				= true;
 				
-				
+				// SLAVE SETUP
 				slaveSequencePart.animation			= 'c_knockdown_death';
 				slaveSequencePart.syncType			= AMST_SyncMatchEvents;
 				slaveSequencePart.syncEventName		= 'SyncEvent';
@@ -523,12 +532,12 @@ statemachine class W3SyncAnimationManager
 				slaveDef.freezeAtEnd				= true;
 				
 				finisherAnim						 = true;
-				
+				//slave.RaiseForceEvent('FinisherDeath');
 				break;
 			}
 			case 'DrownerKnockDownFinisher':
 			{
-				
+				// MASTER SETUP
 				masterSequencePart.animation		= 'man_ger_crawl_finish';
 				masterSequencePart.syncType			= AMST_SyncMatchEvents;
 				masterSequencePart.syncEventName	= 'SyncEvent';
@@ -545,13 +554,13 @@ statemachine class W3SyncAnimationManager
 				
 				masterDef.parts.PushBack( masterSequencePart );
 				masterDef.entity					= master;
-				
+				//masterDef.manualSlotName			= 'GAMEPLAY_SLOT';
 				masterDef.manualSlotName			= 'FinisherSlot';
 				masterDef.startForceEvent			= 'PerformFinisher';
 				masterDef.raiseEventOnEnd			= 'DoneFinisher';
 				masterDef.freezeAtEnd				= true;
 				
-				
+				// SLAVE SETUP
 				slaveSequencePart.animation			= 'monster_drowner_knockdown_death';
 				slaveSequencePart.syncType			= AMST_SyncMatchEvents;
 				slaveSequencePart.syncEventName		= 'SyncEvent';
@@ -570,7 +579,7 @@ statemachine class W3SyncAnimationManager
 			}
 			case 'GhoulKnockDownFinisher':
 			{
-				
+				// MASTER SETUP
 				masterSequencePart.animation		= 'man_ger_crawl_finish';
 				masterSequencePart.syncType			= AMST_SyncMatchEvents;
 				masterSequencePart.syncEventName	= 'SyncEvent';
@@ -587,13 +596,13 @@ statemachine class W3SyncAnimationManager
 				
 				masterDef.parts.PushBack( masterSequencePart );
 				masterDef.entity					= master;
-				
+				//masterDef.manualSlotName			= 'GAMEPLAY_SLOT';
 				masterDef.manualSlotName			= 'FinisherSlot';
 				masterDef.startForceEvent			= 'PerformFinisher';
 				masterDef.raiseEventOnEnd			= 'DoneFinisher';
 				masterDef.freezeAtEnd				= true;
 				
-				
+				// SLAVE SETUP
 				slaveSequencePart.animation			= 'effect_knockdown_death';
 				slaveSequencePart.syncType			= AMST_SyncMatchEvents;
 				slaveSequencePart.syncEventName		= 'SyncEvent';
@@ -612,7 +621,7 @@ statemachine class W3SyncAnimationManager
 			}
 			case 'GravehagKnockDownFinisher':
 			{
-				
+				// MASTER SETUP
 				masterSequencePart.animation		= 'man_ger_crawl_finish';
 				masterSequencePart.syncType			= AMST_SyncMatchEvents;
 				masterSequencePart.syncEventName	= 'SyncEvent';
@@ -629,13 +638,13 @@ statemachine class W3SyncAnimationManager
 				
 				masterDef.parts.PushBack( masterSequencePart );
 				masterDef.entity					= master;
-				
+				//masterDef.manualSlotName			= 'GAMEPLAY_SLOT';
 				masterDef.manualSlotName			= 'FinisherSlot';
 				masterDef.startForceEvent			= 'PerformFinisher';
 				masterDef.raiseEventOnEnd			= 'DoneFinisher';
 				masterDef.freezeAtEnd				= true;
 				
-				
+				// SLAVE SETUP
 				slaveSequencePart.animation			= 'death_knockdown';
 				slaveSequencePart.syncType			= AMST_SyncMatchEvents;
 				slaveSequencePart.syncEventName		= 'SyncEvent';
@@ -656,7 +665,7 @@ statemachine class W3SyncAnimationManager
 			}
 			case 'HarpyKnockDownFinisher':
 			{
-				
+				// MASTER SETUP
 				masterSequencePart.animation		= 'man_ger_crawl_finish';
 				masterSequencePart.syncType			= AMST_SyncMatchEvents;
 				masterSequencePart.syncEventName	= 'SyncEvent';
@@ -673,13 +682,13 @@ statemachine class W3SyncAnimationManager
 				
 				masterDef.parts.PushBack( masterSequencePart );
 				masterDef.entity					= master;
-				
+				//masterDef.manualSlotName			= 'GAMEPLAY_SLOT';
 				masterDef.manualSlotName			= 'FinisherSlot';
 				masterDef.startForceEvent			= 'PerformFinisher';
 				masterDef.raiseEventOnEnd			= 'DoneFinisher';
 				masterDef.freezeAtEnd				= true;
 				
-				
+				// SLAVE SETUP
 				slaveSequencePart.animation			= 'monster_harpy_effect_knockdown_death';
 				slaveSequencePart.syncType			= AMST_SyncMatchEvents;
 				slaveSequencePart.syncEventName		= 'SyncEvent';
@@ -689,7 +698,7 @@ statemachine class W3SyncAnimationManager
 				slaveSequencePart.sequenceIndex		= 0;
 				slaveSequencePart.allowBreakAtStartBeforeEventsEnd	= 'SyncEvent';
 				
-				
+				//slaveSequencePart.allowBreakAtStartBeforeEventsEnd	= 'SyncEvent';
 				
 				slaveDef.parts.PushBack( slaveSequencePart );
 				slaveDef.entity						= slave;
@@ -697,12 +706,12 @@ statemachine class W3SyncAnimationManager
 				slaveDef.freezeAtEnd				= false;
 				
 				finisherAnim 						= true;
-				
+				// slave.RaiseForceEvent('FinisherDeath');				
 				break;
 			}
 			case 'WolfKnockDownFinisher':
 			{
-				
+				// MASTER SETUP
 				masterSequencePart.animation		= 'man_ger_crawl_finish';
 				masterSequencePart.syncType			= AMST_SyncMatchEvents;
 				masterSequencePart.syncEventName	= 'SyncEvent';
@@ -719,21 +728,21 @@ statemachine class W3SyncAnimationManager
 				
 				masterDef.parts.PushBack( masterSequencePart );
 				masterDef.entity					= master;
-				
+				//masterDef.manualSlotName			= 'GAMEPLAY_SLOT';
 				masterDef.manualSlotName			= 'FinisherSlot';
 				masterDef.startForceEvent			= 'PerformFinisher';
 				masterDef.raiseEventOnEnd			= 'DoneFinisher';
 				masterDef.freezeAtEnd				= true;
 				
-				
-				slaveSequencePart.animation			= 'wolf_knockdown_death';
+				// SLAVE SETUP
+				slaveSequencePart.animation			= 'wolf_knockdown_death2';
 				slaveSequencePart.syncType			= AMST_SyncMatchEvents;
 				slaveSequencePart.syncEventName		= 'SyncEvent';
 				slaveSequencePart.shouldSlide		= false;
 				slaveSequencePart.blendInTime		= 0.2f;
 				slaveSequencePart.blendOutTime		= 0.0f;
 				slaveSequencePart.sequenceIndex		= 0;
-				
+				//slaveSequencePart.allowBreakBeforeAtAfterEventsStart	= 'SetRagdoll';
 				
 				slaveDef.parts.PushBack( slaveSequencePart );
 				slaveDef.entity						= slave;
@@ -741,12 +750,67 @@ statemachine class W3SyncAnimationManager
 				slaveDef.freezeAtEnd				= true;
 				
 				finisherAnim 						= true;
+				//slave.RaiseForceEvent( 'FinisherDeath' );
+				break;
+			}
+						case 'BoarKnockDownFinisher':
+			{
+				// MASTER SETUP
+				masterSequencePart.animation		= 'man_ger_crawl_finish';
+				masterSequencePart.syncType			= AMST_SyncMatchEvents;
+				masterSequencePart.syncEventName	= 'SyncEvent';
+				masterSequencePart.shouldSlide		= true;
+				masterSequencePart.shouldRotate		= true;
 				
+				pos = GetActorPosition( slave );				
+				masterSequencePart.finalPosition	= 1.15 * VecNormalize( master.GetWorldPosition() - pos ) + pos;
+				masterSequencePart.finalHeading		= VecHeading( pos - master.GetWorldPosition() );
+				
+				masterSequencePart.blendInTime		= 0.f;
+				masterSequencePart.blendOutTime		= 0.f;
+				masterSequencePart.sequenceIndex	= 0;
+				
+				masterDef.parts.PushBack( masterSequencePart );
+				masterDef.entity					= master;
+				//masterDef.manualSlotName			= 'GAMEPLAY_SLOT';
+				masterDef.manualSlotName			= 'FinisherSlot';
+				masterDef.startForceEvent			= 'PerformFinisher';
+				masterDef.raiseEventOnEnd			= 'DoneFinisher';
+				masterDef.freezeAtEnd				= true;
+				
+				// SLAVE SETUP
+				if ( slave.GetBehaviorVariable('HitReactionSide') == (int)EHRS_Right )
+				{
+					slaveSequencePart.animation	 = 'boar_knockdown1_death3';
+				}
+				else if ( slave.GetBehaviorVariable('HitReactionSide') == (int)EHRS_Left)
+				{
+					slaveSequencePart.animation	 = 'boar_knockdown_death3';
+				}
+				else
+				{
+					slaveSequencePart.animation	 = 'boar_knockdown1_death3';
+				}
+				slaveSequencePart.syncType			= AMST_SyncMatchEvents;
+				slaveSequencePart.syncEventName		= 'SyncEvent';
+				slaveSequencePart.shouldSlide		= false;
+				slaveSequencePart.blendInTime		= 0.2f;
+				slaveSequencePart.blendOutTime		= 0.0f;
+				slaveSequencePart.sequenceIndex		= 0;
+				//slaveSequencePart.allowBreakBeforeAtAfterEventsStart	= 'SetRagdoll';
+				
+				slaveDef.parts.PushBack( slaveSequencePart );
+				slaveDef.entity						= slave;
+				slaveDef.manualSlotName				= 'GAMEPLAY_SLOT';
+				slaveDef.freezeAtEnd				= true;
+				
+				finisherAnim 						= true;
+				//slave.RaiseForceEvent( 'FinisherDeath' );
 				break;
 			}
 			case 'WerewolfKnockDownFinisher':
 			{
-				
+				// MASTER SETUP
 				masterSequencePart.animation		= 'man_ger_crawl_finish';
 				masterSequencePart.syncType			= AMST_SyncMatchEvents;
 				masterSequencePart.syncEventName	= 'SyncEvent';
@@ -757,21 +821,21 @@ statemachine class W3SyncAnimationManager
 				masterSequencePart.finalPosition	= 1.15 * VecNormalize( master.GetWorldPosition() - pos ) + pos;
 				masterSequencePart.finalHeading		= VecHeading( pos - master.GetWorldPosition() );
 								
-				
-				
+				//slaveSequencePart.finalPosition	= 0.8 * VecNormalize( master.GetWorldPosition() - slave.GetWorldPosition() ) + ((CActor)slave).GetNearestPointInPersonalSpace( master.GetWorldPosition() );
+				//slaveSequencePart.finalHeading	= VecHeading( slave.GetWorldPosition() - master.GetWorldPosition() );
 				masterSequencePart.blendInTime		= 0.f;
 				masterSequencePart.blendOutTime		= 0.f;
 				masterSequencePart.sequenceIndex	= 0;
 				
 				masterDef.parts.PushBack( masterSequencePart );
 				masterDef.entity					= master;
-				
+				//masterDef.manualSlotName			= 'GAMEPLAY_SLOT';
 				masterDef.manualSlotName			= 'FinisherSlot';
 				masterDef.startForceEvent			= 'PerformFinisher';
 				masterDef.raiseEventOnEnd			= 'DoneFinisher';
 				masterDef.freezeAtEnd				= true;
 				
-				
+				// SLAVE SETUP
 				slaveSequencePart.animation			= 'monstwer_werewolf_knockdown_die';
 				slaveSequencePart.syncType			= AMST_SyncMatchEvents;
 				slaveSequencePart.syncEventName		= 'SyncEvent';
@@ -791,7 +855,7 @@ statemachine class W3SyncAnimationManager
 			}
 			case 'HumanKnockDownFinisher':
 			{
-				
+				// MASTER SETUP
 				masterSequencePart.animation		= 'man_ger_crawl_finish';
 				masterSequencePart.syncType			= AMST_SyncMatchEvents;
 				masterSequencePart.syncEventName	= 'SyncEvent';
@@ -808,14 +872,14 @@ statemachine class W3SyncAnimationManager
 				
 				masterDef.parts.PushBack( masterSequencePart );
 				masterDef.entity					= master;
-				
+				//masterDef.manualSlotName			= 'GAMEPLAY_SLOT';
 				masterDef.manualSlotName			= 'FinisherSlot';
 				masterDef.startForceEvent			= 'PerformFinisher';
 				masterDef.raiseEventOnEnd			= 'DoneFinisher';
 				masterDef.freezeAtEnd				= true;
 				
-				
-				
+				// SLAVE SETUP
+				//slave.SetKinematic( true );
 				if ( ( (CActor)slave ).GetLyingDownFacingDirection() >= 0 )
 					slaveSequencePart.animation		= 'man_npc_sword_1hand_hit_knockdown_death';
 				else
@@ -826,14 +890,13 @@ statemachine class W3SyncAnimationManager
 				slaveSequencePart.blendInTime		= 0.0f;
 				slaveSequencePart.blendOutTime		= 0.0f;
 				slaveSequencePart.sequenceIndex		= 0;
-				
+				//slaveSequencePart.allowBreakAtStart	= 0.4;
 				slaveSequencePart.allowBreakAtStartBeforeEventsEnd	= 'SyncEvent';
-				
-				
+				//slaveSequencePart.allowBreakBeforeEnd				= ;
+				//slaveSequencePart.allowBreakBeforeAtAfterEventsStart	= ;
 				
 				slaveDef.parts.PushBack( slaveSequencePart );
 				slaveDef.entity						= slave;
-				slaveDef.startForceEvent			= 'FrozenKinematicRagdoll';
 				slaveDef.manualSlotName				= 'GAMEPLAY_SLOT';
 				slaveDef.freezeAtEnd				= true;
 				
@@ -843,7 +906,7 @@ statemachine class W3SyncAnimationManager
 			}
 			case 'HumanComboFinisher':
 			{
-				
+				// MASTER SETUP
 				if ( thePlayer.GetCombatIdleStance() <= 0.f )
 				{
 					syncAnimName = 'man_finisher_02_lp';
@@ -871,7 +934,7 @@ statemachine class W3SyncAnimationManager
 				masterDef.raiseEventOnEnd				= 'DoneFinisher';
 				masterDef.freezeAtEnd					= true;
 				
-				
+				// SLAVE SETUP
 				slave.SetKinematic( true );
 				slaveSequencePart.animation				= syncAnimName;
 				slaveSequencePart.syncType				= AMST_SyncBeginning;
@@ -885,14 +948,14 @@ statemachine class W3SyncAnimationManager
 				slaveSequencePart.sequenceIndex			= 0;
 				slaveSequencePart.disableProxyCollisions = true;
 				
-				
-		
-				
-				
+				//slaveSequencePart.allowBreakAtStart	= 0.4;
+		//		slaveSequencePart.allowBreakAtStartBeforeEventsEnd	= 'SyncEvent';
+				//slaveSequencePart.allowBreakBeforeEnd				= ;
+				//slaveSequencePart.allowBreakBeforeAtAfterEventsStart	= ;
 				
 				slaveDef.parts.PushBack( slaveSequencePart );
 				slaveDef.entity							= slave;
-		
+		//		slaveDef.startForceEvent				= 'FrozenKinematicRagdoll';
 				slaveDef.manualSlotName					= 'GAMEPLAY_SLOT';
 				slaveDef.freezeAtEnd					= true;
 				
@@ -902,7 +965,7 @@ statemachine class W3SyncAnimationManager
 			}				
 			case 'FistFightFinisher':
 			{
-				
+				// MASTER SETUP
 				( (CR4Player)master ).GetFistFightFinisher( slaveSequencePart.animation, temp );
 				masterSequencePart.syncType				= AMST_SyncBeginning;
 				masterSequencePart.syncEventName		= 'SyncEvent';
@@ -916,13 +979,13 @@ statemachine class W3SyncAnimationManager
 				
 				masterDef.parts.PushBack( masterSequencePart );
 				masterDef.entity						= master;
-				
+				//masterDef.manualSlotName				= 'GAMEPLAY_SLOT';
 				masterDef.manualSlotName				= 'FinisherSlot';
 				masterDef.startForceEvent				= 'PerformFinisher';
 				masterDef.raiseEventOnEnd				= 'DoneFinisher';
 				masterDef.freezeAtEnd					= true;
 				
-				
+				// SLAVE SETUP
 				slaveSequencePart.animation				= temp;
 				slaveSequencePart.syncType				= AMST_SyncBeginning;
 				slaveSequencePart.syncEventName			= 'SyncEvent';
@@ -945,7 +1008,7 @@ statemachine class W3SyncAnimationManager
 				rot = slave.GetWorldRotation();
 				pos = GetActorPosition( slave );
 				
-				
+				// MASTER SETUP
 				masterSequencePart.animation			= 'lever_up_to_down_light';
 				masterSequencePart.syncType				= AMST_SyncBeginning;
 				masterSequencePart.syncEventName		= 'SyncEvent';
@@ -963,7 +1026,7 @@ statemachine class W3SyncAnimationManager
 				masterDef.freezeAtEnd					= false;
 				masterDef.raiseForceEventOnEnd			= 'ForceIdle';
 				
-				
+				// SLAVE SETUP
 				slaveSequencePart.animation				= 'lever_up_to_down_light';
 				slaveSequencePart.syncType				= AMST_SyncBeginning;
 				slaveSequencePart.syncEventName			= 'SyncEvent';
@@ -988,7 +1051,7 @@ statemachine class W3SyncAnimationManager
 				rot = slave.GetWorldRotation();
 				pos = GetActorPosition( slave );
 				
-				
+				// MASTER SETUP
 				masterSequencePart.animation			= 'lever_down_to_up_light';
 				masterSequencePart.syncType				= AMST_SyncBeginning;
 				masterSequencePart.syncEventName		= 'SyncEvent';
@@ -1006,7 +1069,7 @@ statemachine class W3SyncAnimationManager
 				masterDef.freezeAtEnd					= false;
 				masterDef.raiseForceEventOnEnd			= 'ForceIdle';
 				
-				
+				// SLAVE SETUP
 				slaveSequencePart.animation				= 'lever_down_to_up_light';
 				slaveSequencePart.syncType				= AMST_SyncBeginning;
 				slaveSequencePart.syncEventName			= 'SyncEvent';
@@ -1030,7 +1093,7 @@ statemachine class W3SyncAnimationManager
 			{
 				rot = slave.GetWorldRotation();
 				
-				
+				// MASTER SETUP
 				masterSequencePart.animation		= 'push_button_01';
 				
 				masterSequencePart.syncType				= AMST_SyncBeginning;
@@ -1048,7 +1111,7 @@ statemachine class W3SyncAnimationManager
 				masterDef.manualSlotName				= 'GAMEPLAY_SLOT';
 				masterDef.freezeAtEnd					= false;
 				
-				
+				// SLAVE SETUP
 				
 				slaveSequencePart.animation			= 'btn_up_to_down';
 				
@@ -1073,7 +1136,7 @@ statemachine class W3SyncAnimationManager
 			{
 				rot = slave.GetWorldRotation();
 				
-				
+				// MASTER SETUP
 				masterSequencePart.animation			= 'push_button_01';
 				
 				masterSequencePart.syncType				= AMST_SyncBeginning;
@@ -1091,7 +1154,7 @@ statemachine class W3SyncAnimationManager
 				masterDef.manualSlotName				= 'GAMEPLAY_SLOT';
 				masterDef.freezeAtEnd					= false;
 				
-				
+				// SLAVE SETUP
 				
 				slaveSequencePart.animation				= 'btn_down_to_up';
 				
@@ -1116,7 +1179,7 @@ statemachine class W3SyncAnimationManager
 				syncInstances.Remove( syncInstance );
 				return false;
 			}
-			
+			//TODO: default!!! couse now it crahses when the name is ''
 		}
 		
 		sequenceIndex = syncInstance.RegisterMaster( masterDef );
@@ -1126,7 +1189,7 @@ statemachine class W3SyncAnimationManager
 			return false;
 		}
 		
-		
+		// Not so nice but makes things easier :)
 		actorMaster = (CActor)master;
 		actorSlave = (CActor)slave;
 		
@@ -1148,7 +1211,7 @@ statemachine class W3SyncAnimationManager
 			return false;
 		}
 		
-		
+		// Not so nice but makes things easier :)
 		if(actorSlave)
 		{
 			if( syncAction == 'Throat' )
@@ -1162,7 +1225,7 @@ statemachine class W3SyncAnimationManager
 				actorSlave.SignalGameplayEvent( 'PlaySyncedAnim' );
 		}
 		
-		
+		// TODO: Make sure the npc is able to play the animation
 		
 		return true;
 	}
@@ -1504,7 +1567,7 @@ state Active in W3SyncAnimationManager
 		parent.masterEntity.OnSyncAnimEnd();
 		parent.slaveEntity.OnSyncAnimEnd();
 		
-		
+		// unblocking actions
 		thePlayer.UnblockAction(EIAB_Interactions, 'SyncManager' );
 		thePlayer.UnblockAction(EIAB_FastTravel, 'SyncManager' );
 	}
@@ -1541,7 +1604,7 @@ exec function PlayCamAnim( optional i : int )
 	var cameraAnimName : name;
 	var animation : SCameraAnimationDefinition;
 	
-	
+	//theGame.GetSyncAnimManager().SetupSimpleSyncAnim( 'DeathFinisher', thePlayer, thePlayer.target );
 	if ( i >= 3 )
 		cameraAnimName = 'man_finisher_01_rp_camera_right';	
 	else if  ( i >= 2 )

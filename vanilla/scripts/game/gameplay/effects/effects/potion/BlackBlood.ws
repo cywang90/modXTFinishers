@@ -1,11 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Copyright © 2013-2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
-
-
-
-
+// Potion that returns damage to attacker
 class W3Potion_BlackBlood extends W3Effect_Aura
 {
 	default effectType = EET_BlackBlood;

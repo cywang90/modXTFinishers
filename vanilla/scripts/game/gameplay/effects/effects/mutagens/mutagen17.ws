@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
 class W3Mutagen17_Effect extends W3Mutagen_Effect
 {
@@ -44,7 +42,7 @@ class W3Mutagen17_Effect extends W3Mutagen_Effect
 	public function OnLoad(t : CActor, eff : W3EffectManager)
 	{
 		super.OnLoad(t, eff);
-		target.RemoveAbility(abilityName);	
+		target.RemoveAbility(abilityName);	//just to be sure, should not happen ever
 	}
 	
 	public function ClearBoost()

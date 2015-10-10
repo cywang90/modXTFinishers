@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file - Meditation Menu
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author : Bartosz Bigaj
+/***********************************************************************/
 
 class CR4MeditationClockMenu extends CR4MenuBase
 {
@@ -15,7 +14,7 @@ class CR4MeditationClockMenu extends CR4MenuBase
 	private var m_fxSet24HRFormat			 	: CScriptedFlashFunction;
 	private var isGameTimePaused			 	: bool;
 
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{	
 		var commonMenu : CR4CommonMenu;
 		var locCode : string;
@@ -28,10 +27,10 @@ class CR4MeditationClockMenu extends CR4MenuBase
 		m_fxSet24HRFormat = m_flashModule.GetMemberFlashFunction( "Set24HRFormat" );
 		m_fxSetGeraltBackgroundVisible = m_flashModule.GetMemberFlashFunction( "setGeraltBackgroundVisible" );
 		
-		
-		
+		//we need to unpause menus because CanMeditateWait() returns false if game time is paused (if time does not flow we cannot speed it up
+		//by waiting)
 		theGame.Unpause("menus");		
-				
+		
 		if(GetWitcherPlayer().CanMeditate() && GetWitcherPlayer().CanMeditateWait(true))
 		{
 			canMeditateWait = true;
@@ -43,7 +42,7 @@ class CR4MeditationClockMenu extends CR4MenuBase
 			isGameTimePaused = true;
 		}
 		
-		if (canMeditateWait) 
+		if (canMeditateWait) // Comment out when enabling rendering in meditation
 		{
 			commonMenu = (CR4CommonMenu)m_parentMenu;
 			if (commonMenu)
@@ -51,29 +50,29 @@ class CR4MeditationClockMenu extends CR4MenuBase
 				commonMenu.SetMeditationMode(true);
 			}
 			
-			
+			m_fxSetGeraltBackgroundVisible.InvokeSelfOneArg(FlashArgBool(false)); // Uncomment to enable rendering in meditation
 		}
 		
-		m_fxSetBlockMeditation.InvokeSelfOneArg(FlashArgBool(!canMeditateWait));
+		 m_fxSetBlockMeditation.InvokeSelfOneArg(FlashArgBool(!canMeditateWait));
 		
-		
+		//24-hr time format
 		
 		locCode = GetCurrentTextLocCode();
 		m_fxSet24HRFormat.InvokeSelfOneArg(FlashArgBool(locCode != "EN"));
 		
-		
+		//meditation restoring		
 		if(GameplayFactsQuerySum("GamePausedNotByUI") > 0 && !thePlayer.IsInCombat())
 		{
 			GetWitcherPlayer().MeditationRestoring(0);				
 		}	
 		
-		if (!canMeditateWait)
-		{
+		//if (!canMeditateWait)
+		//{
 			theGame.Pause("menus");
-		}
+		//}
 	}
 	
-	event  OnClosingMenu()
+	event /* C++ */ OnClosingMenu()
 	{
 		var commonMenu : CR4CommonMenu;
 		
@@ -86,7 +85,7 @@ class CR4MeditationClockMenu extends CR4MenuBase
 		}
 	}
 	
-	event  OnCloseMenu()
+	event /*flash*/ OnCloseMenu()
 	{
 		if(thePlayer.GetCurrentStateName() == 'MeditationWaiting')
 		{
@@ -129,7 +128,7 @@ class CR4MeditationClockMenu extends CR4MenuBase
 		m_flashValueStorage.SetFlashInt( "meditation.clock.minutes", timeMinutes );
 	}
 	
-	event  OnMeditate( dayTime : float )
+	event /*flash*/ OnMeditate( dayTime : float )
 	{
 		var medd : W3PlayerWitcherStateMeditation;
 		
@@ -154,18 +153,18 @@ class CR4MeditationClockMenu extends CR4MenuBase
 			
 			medd = (W3PlayerWitcherStateMeditation)thePlayer.GetCurrentState();
 			medd.MeditationWait(CeilF(dayTime));
-			
+			//m_flashValueStorage.SetFlashBool( "meditation.clock.blocked", false );
 			
 			StartWaiting();
 		}
 	} 
 	
-	event  OnMeditateBlocked()
+	event /*flash*/ OnMeditateBlocked()
 	{
 		ShowDisallowedNotification();
 	}
 	
-	event  OnStopMeditate()
+	event /*flash*/ OnStopMeditate()
 	{
 		var waitt : W3PlayerWitcherStateMeditationWaiting;
 	
@@ -179,7 +178,7 @@ class CR4MeditationClockMenu extends CR4MenuBase
 		MeditatingEnd();
 	}
 	
-	function GetCurrentDayTime( type : string ) : int 
+	function GetCurrentDayTime( type : string ) : int //@FIXME BIDON -> move it to better place
 	{
 		var gameTime : GameTime = theGame.GetGameTime();
 		var currentDays : int;
@@ -198,7 +197,7 @@ class CR4MeditationClockMenu extends CR4MenuBase
 			{
 				currentDays = GameTimeDays( gameTime );
 				currentHours = GameTimeHours( gameTime );
-				currentTime = currentHours ;
+				currentTime = currentHours /*- currentDays*24*/;
 				break;
 			}
 			case "minutes" :
@@ -206,7 +205,7 @@ class CR4MeditationClockMenu extends CR4MenuBase
 				currentDays = GameTimeDays( gameTime );
 				currentHours = GameTimeHours( gameTime );
 				currentMinutes = GameTimeMinutes( gameTime );
-				currentTime = currentMinutes;
+				currentTime = currentMinutes/* - (currentHours - currentDays*24)*60*/;
 				break;
 			}	
 		}
@@ -214,7 +213,7 @@ class CR4MeditationClockMenu extends CR4MenuBase
 	}
 	
 	
-	
+	// TODO: Implement input blocking:
 	
 	public function StartWaiting():void
 	{
@@ -239,8 +238,8 @@ class CR4MeditationClockMenu extends CR4MenuBase
 	
 	function PlayOpenSoundEvent()
 	{
-		
-		
+		// Common Menu takes care of this for us
+		//OnPlaySoundEvent("gui_global_panel_open");	
 	}
 	
 	private final function ShowDisallowedNotification()

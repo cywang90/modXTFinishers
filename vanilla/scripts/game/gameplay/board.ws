@@ -1,18 +1,18 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Info board with potential quests
+/** Copyright © 2012
+/***********************************************************************/
 
 struct ErrandDetailsList
 {
-	editable saved var errandStringKey	: string;	
+	editable saved var errandStringKey	: string;	// 01_troll_contract
 	editable saved var newQuestFact		: string;
 	editable saved var requiredFact		: string;
 	editable saved var forbiddenFact	: string;
 	editable saved var addedItemName	: name;
+	editable saved var displayAsFluff	: bool;
 	var posX	: int;
 	var posY	: int;
 		
@@ -37,6 +37,7 @@ statemachine class W3NoticeBoard extends CR4MapPinEntity
 	editable var InteractionSpawnDelayTime		: float;		default InteractionSpawnDelayTime = 1.0f;	
 	editable var backgroundOverride : string;
 	editable var factAddedOnDiscovery : name;
+	saved var noticeboardDisabled : bool;
 	
 	var activeErrands 			: array< ErrandDetailsList >;
 	var updatingInteraction		: bool;							default updatingInteraction		= false;
@@ -46,23 +47,41 @@ statemachine class W3NoticeBoard extends CR4MapPinEntity
 	
 	protected optional autobind 	interactionComponent 	: CInteractionComponent = "LookAtBoard";
 	
+	// nasty hacks, please don't read
+	// problem with empty notice boards when starting the game close to notice board or teleporting from far away (streaming issue)
+	// TTP 124382
+	var hack_updateTriesLeft : int; 				default hack_updateTriesLeft = 0;
+	var hack_isTryingUpdate : bool;					default hack_isTryingUpdate = false;
+	var hack_started : bool;						default hack_started = false;
+	var hack_fromAreaEnter : bool;					default hack_fromAreaEnter = false;
+	// eof nasty hacks, now you can read :)
+	
 	event OnSpawned( spawnData : SEntitySpawnData )
 	{
 		updatingInteraction = false;
 		
-		FixNamesAndTags();
-		
+		///////////////////
+		//
+		// !!! HACKS AHEAD !!!
+		//
+		HACK_FixNamesAndTags();
+		//
+		//
+		///////////////////
+
 		FixErrands();
 		
 		UpdateBoard();
 		
 		SetCardsVisible(true);
 		
+		//Only notes should highlighted, board itself has a no glow tag added
 		SetFocusModeVisibility( FMV_Interactive );
 	}
 	
-	function FixNamesAndTags()
+	function HACK_FixNamesAndTags()
 	{
+		// TTP 115598
 		if ( HasTag( 'harbor_district_noticeboard' ) )
 		{
 			if ( HasTag( 'market_noticeboard' ) )
@@ -71,6 +90,7 @@ statemachine class W3NoticeBoard extends CR4MapPinEntity
 			}
 		}
 		
+		// TTP 114238
 		if ( HasTag( 'poppystone_notice_board' ) )
 		{
 			if ( HasTag( 'inn_crossroads_notice_board' ) )
@@ -97,7 +117,7 @@ statemachine class W3NoticeBoard extends CR4MapPinEntity
 		}
 	}
 	
-	
+	// Called when entity gets within interaction range
 	event OnInteractionActivated( interactionComponentName : string, activator : CEntity )
 	{
 		if(activator == thePlayer && ShouldProcessTutorial('TutorialQuestBoard'))
@@ -116,6 +136,16 @@ statemachine class W3NoticeBoard extends CR4MapPinEntity
 	
 	event OnInteractionActivationTest( interactionComponentName : string, activator : CEntity )
 	{
+		if( !thePlayer.IsActionAllowed( EIAB_Noticeboards ) )
+		{
+			return false;
+		}
+		
+		if( noticeboardDisabled )
+		{
+			return false;
+		}
+		
 		if ( interactionComponentName == "LookAtBoard" )
 		{
 			if( IsEmpty(true) )
@@ -136,6 +166,7 @@ statemachine class W3NoticeBoard extends CR4MapPinEntity
 		var vect : Vector;
 		var tags : array< name >;
 		
+		hack_fromAreaEnter = true;
 		if ( activator.GetEntity() == thePlayer )
 		{
 			if( area == (CTriggerAreaComponent)this.GetComponent( "FirstDiscoveryTrigger" ) )
@@ -149,8 +180,15 @@ statemachine class W3NoticeBoard extends CR4MapPinEntity
 			}
 			UpdateInteraction( true );
 		}
+		hack_fromAreaEnter = false;
 	}	
-
+/*	
+	event OnStreamIn()
+	{
+		UpdateBoard(true);
+		UpdateInteraction( true );
+	}
+*/
 	function UpdateInteraction( optional waitForComponent : bool )
 	{
 		if ( interactionComponent )
@@ -161,7 +199,7 @@ statemachine class W3NoticeBoard extends CR4MapPinEntity
 				RemoveTimer( 'EnableInteractionComponentDelayed' );
 				
 			}
-			if ( IsEmpty(true))
+			if ( IsEmpty(false) || noticeboardDisabled )
 			{
 				interactionComponent.SetEnabled( false );
 			}
@@ -194,7 +232,7 @@ statemachine class W3NoticeBoard extends CR4MapPinEntity
 			{
 				if( fluffNotices.Size() == 0 && Have24HoursPassed(currentGameTime, lastTimeInteracted) )
 				{
-					ResetFlawErrands(); 
+					ResetFlawErrands(); // #B if flaw errands table is empty, add those already taken to pool
 				}
 				UpdateBoard();
 			}
@@ -205,16 +243,14 @@ statemachine class W3NoticeBoard extends CR4MapPinEntity
 	{
 		if( activator == (CEntity)thePlayer )
 		{
-			if ( !visited )
+			if( !noticeboardDisabled )
 			{
-				visited = true;
-				theGame.GetCommonMapManager().InvalidateStaticMapPin( entityName );
+				OpenNoticeboardPanel();
 			}
-			AddDiscoveredFact();
-			SetEntitiesKnown();
-			UpdateBoard(true);
-			theGame.RequestMenu( 'NoticeBoardMenu', this );
-			lastTimeInteracted = theGame.GetGameTime();
+			else
+			{
+				UpdateInteraction( false );
+			}
 		}
 	}
 	
@@ -259,7 +295,7 @@ statemachine class W3NoticeBoard extends CR4MapPinEntity
 		{
 			if( candidateToAdd.errandStringKey == addedNotes[i].errandStringKey )
 			{
-				
+				// #B already added
 				return false;
 			}		
 		}
@@ -290,12 +326,17 @@ statemachine class W3NoticeBoard extends CR4MapPinEntity
 		var card : CDrawableComponent;
 		var tempErrand : ErrandDetailsList;
 		var bOverrideFlaw : bool;
-			
+		var noCardExisted : bool;
+		var anyCardShouldExist : bool;
+		
 		length = 0;
 		
 		activeErrands.Clear();
 		activeErrands.Grow( MAX_DISPLAYED_ERRANDS );
 		HideAllCards();
+		
+		anyCardShouldExist = false;
+		noCardExisted = true;
 		
 		for( i = 0; i < addedNotes.Size(); i += 1 )
 		{
@@ -330,14 +371,31 @@ statemachine class W3NoticeBoard extends CR4MapPinEntity
 						length += 1;
 						activeErrands[addedNotes[i].errandPosition - 1] = addedNotes[i];
 						card = (CDrawableComponent)this.GetComponent( errandPositionName + activeErrands[addedNotes[i].errandPosition - 1].errandPosition );
-						card.SetVisible( true );
+						anyCardShouldExist = true;
+						if( card )
+						{
+							card.SetVisible( true );
+							noCardExisted = false;
+							HackStopTryUpdateBoard();
+						}
+						
 						break;
 				}
 			}
 			if( length >= MAX_DISPLAYED_ERRANDS )
 			{
+				if( anyCardShouldExist && noCardExisted )
+				{
+					HackStartTryUpdateBoard();
+				}
+				
 				return;
 			}
+		}
+
+		if( anyCardShouldExist && noCardExisted )
+		{
+			HackStartTryUpdateBoard();
 		}
 		
 		for( i = length; i < MAX_DISPLAYED_ERRANDS; i += 1 )
@@ -387,7 +445,7 @@ statemachine class W3NoticeBoard extends CR4MapPinEntity
 						break;
 					}
 				}
-				if( j == addedNotes.Size() ) 
+				if( j == addedNotes.Size() ) // #B means that it didn't find note on that slot and it could be used
 				{
 					return i + 1;
 				}
@@ -422,7 +480,7 @@ statemachine class W3NoticeBoard extends CR4MapPinEntity
 		var randIDX : int;
 		var retString : string;
 		
-		if( fluffNotices.Size() == 0 ) 
+		if( fluffNotices.Size() == 0 ) // #B there is no flaw notices
 		{
 			return "";
 		}
@@ -487,13 +545,48 @@ statemachine class W3NoticeBoard extends CR4MapPinEntity
 		SetCardsVisible(bSilent);
 		CheckIfEmpty();
 	}
+
+	timer function HackTryUpdateBoard( dt : float, id : int )
+	{
+		hack_updateTriesLeft -= 1;
+		if( hack_updateTriesLeft <= 0 )
+		{
+			HackStopTryUpdateBoard();
+			return;
+		}
+		
+		hack_isTryingUpdate = true;
+		UpdateBoard( true );
+		hack_isTryingUpdate = false;
+	}
+	
+	final function HackStartTryUpdateBoard()
+	{
+		if( !hack_started && hack_fromAreaEnter )
+		{
+			hack_started = true;
+			hack_updateTriesLeft = 10;
+			AddTimer( 'HackTryUpdateBoard', 0.5f, true );
+		}
+	}
+	
+	final function HackStopTryUpdateBoard()
+	{
+		if( hack_started )
+		{
+			RemoveTimer( 'HackTryUpdateBoard' );
+			hack_updateTriesLeft = 0;
+			hack_isTryingUpdate = false;
+			hack_started = false;
+		}
+	}
 	
 	function CheckIfEmpty()
 	{
 		var val : int;
 		var exp : int;
 		var tags : array<name>;
-		
+		//prologue_village_noticeboard
 		if( HasAnyNote() )
 		{
 			val = 1;
@@ -653,8 +746,38 @@ statemachine class W3NoticeBoard extends CR4MapPinEntity
 		return false;
 	}
 	
+	public function OpenNoticeboardPanel( optional dontConsiderAsVisiting : bool, optional dontAddDiscoveryFact : bool, optional dontSetEntitiesKnown : bool )
+	{
+		if ( !visited && !dontConsiderAsVisiting )
+		{
+			visited = true;
+			theGame.GetCommonMapManager().InvalidateStaticMapPin( entityName );
+		}
+		
+		if( !dontAddDiscoveryFact )
+		{
+			AddDiscoveredFact();
+		}
+		
+		if( !dontSetEntitiesKnown )
+		{
+			SetEntitiesKnown();
+		}
+		
+		UpdateBoard(true);
+		theGame.RequestMenu( 'NoticeBoardMenu', this );
+		lastTimeInteracted = theGame.GetGameTime();	
+		
+	}
 	
-	function  GetStaticMapPinType( out type : name )
+	public function DisableNoticeboard( disable : bool )
+	{
+		noticeboardDisabled = disable;
+		UpdateInteraction( true );
+	}
+	
+	// DO NOT DELETE, CALLED FROM C++
+	function /* C++ */ GetStaticMapPinType( out type : name )
 	{
 		if ( !visited || HasAnyQuest() )
 		{

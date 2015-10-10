@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-statemachine class W3AardObstacle extends CInteractiveEntity
+﻿statemachine class W3AardObstacle extends CInteractiveEntity
 {		
 	default autoState = 'NewWall';
 

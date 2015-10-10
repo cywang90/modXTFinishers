@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿// it only works for stamina, vitality and essence. you need to add more if you need them
 class BTTaskDrainStat extends IBehTreeTask
 {
 	var stat : EBaseCharacterStats;

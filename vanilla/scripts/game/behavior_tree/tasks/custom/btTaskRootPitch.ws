@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 class CBTTaskRootPitch extends IBehTreeTask
 {
 	private var mac : CMovingPhysicalAgentComponent;
@@ -24,7 +20,11 @@ class CBTTaskRootPitch extends IBehTreeTask
 		}
 		return BTNS_Active;
 	}
-	
+	/*
+	function OnDeactivate()
+	{
+	}
+	*/
 }
 
 class CBTTaskRootPitchDef extends IBehTreeTaskDefinition

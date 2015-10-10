@@ -1,8 +1,6 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿/** Copyright © 2014
+/** Author : Lukasz Szczepankowski
+/***********************************************************************/
 
 
 class W3SE_ManagePchysicalDamageMechanism extends W3SwitchEvent
@@ -26,7 +24,7 @@ class W3SE_ManagePchysicalDamageMechanism extends W3SwitchEvent
 		
 		activator  = ( CActor )node;
 		
-		
+		// If we get entities by handle, fire them.
 		if (mechanismHandle.Size() > 0)
 		{
 			for( i = 0; i < mechanismHandle.Size(); i += 1 )
@@ -52,7 +50,7 @@ class W3SE_ManagePchysicalDamageMechanism extends W3SwitchEvent
 			}
 		}
 		
-		
+		// If we get entities by tag, fire them.
 		if (mechanismTag)
 		{
 			theGame.GetEntitiesByTag( mechanismTag, entities );
@@ -64,7 +62,7 @@ class W3SE_ManagePchysicalDamageMechanism extends W3SwitchEvent
 			}
 			for ( i = 0; i < entities.Size(); i += 1 )
 			{
-				mechanismEntity = (W3PhysicalDamageMechanism)entities[ i ]; 
+				mechanismEntity = (W3PhysicalDamageMechanism)entities[ i ]; //= (W3Trap) EntityHandleGet( trapHandle[i] );
 				if ( !mechanismEntity )
 				{
 					LogAssert( false, "Entity with tag <" + mechanismTag + "> is not a W3PhysicalDamageMechanism" );

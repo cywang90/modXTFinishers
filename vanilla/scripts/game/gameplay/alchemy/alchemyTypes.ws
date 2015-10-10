@@ -1,11 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Copyright © 2012
+/** Author : Tomasz Kozera
+/***********************************************************************/
 
-
-
-
-
+// Exceptions that may occur during cooking process
 enum EAlchemyExceptions
 {
 	EAE_NoException,	
@@ -18,32 +16,38 @@ enum EAlchemyExceptions
 	EAE_Mounted
 }
 
-
+// Struct representing alchemy recipe
 struct SAlchemyRecipe
 {
-	var cookedItemName : name;							
-	var cookedItemType : EAlchemyCookedItemType;		
+	var cookedItemName : name;							//name of the item that will be cooked
+	var cookedItemType : EAlchemyCookedItemType;		//type of cooked item
 	var cookedItemIconPath : string;
-	var cookedItemQuantity : int;						
-	var recipeName : name;								
+	var cookedItemQuantity : int;						//how many items are cooked at once
+	var recipeName : name;								//name of the recipe
 	var recipeIconPath : string;
-	var typeName : name;								
-	var level : int;									
-	var requiredIngredients : array<SItemParts>;		
+	var typeName : name;								//type of recipe, needed for levels
+	var level : int;									//recipe level
+	var requiredIngredients : array<SItemParts>;		//(fixed) ingredients required or empty if nothing required
 };
 
-enum EAlchemyCookedItemType 
+enum EAlchemyCookedItemType // #B remove substance add mutagen
 {
 	EACIT_Undefined,
 	EACIT_Potion,
 	EACIT_Bomb,
 	EACIT_Oil,
-EACIT_Substance,		
+EACIT_Substance,		//not used anymore
 	EACIT_Bolt,
 	EACIT_MutagenPotion,
 	EACIT_Alcohol,
 	EACIT_Quest
 }
+
+struct SCookable
+{
+	var type : EAlchemyCookedItemType;
+	var cnt : int;
+};
 
 function AlchemyCookedItemTypeStringToEnum(nam : string) : EAlchemyCookedItemType
 {
@@ -73,7 +77,7 @@ function AlchemyCookedItemTypeEnumToName( type : EAlchemyCookedItemType) : name
 		case EACIT_MutagenPotion 	: return 'mutagen_potion';
 		case EACIT_Alcohol 			: return 'alcohol';
 		case EACIT_Quest			: return 'quest';
-		default	     				: return '___'; 
+		default	     				: return '___'; // #B they are needed ?
 	}
 }
 

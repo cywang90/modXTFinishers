@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class CAIChatsInAPTree extends CAISubTree
+﻿class CAIChatsInAPTree extends CAISubTree
 {
 	default aiTreeName = "resdef:ai\reactions\chats_in_aps";
 };

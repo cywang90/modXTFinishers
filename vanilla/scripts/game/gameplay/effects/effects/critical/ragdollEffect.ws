@@ -1,9 +1,7 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
+﻿/***********************************************************************/
+/** Copyright © 2013-2014
+/** Author : Wojciech Żerek, Tomek Kozera
+/***********************************************************************/
 
 class W3Effect_Ragdoll extends W3CriticalEffect
 {
@@ -45,7 +43,7 @@ class W3Effect_Ragdoll extends W3CriticalEffect
 		blockedActions.PushBack(EIAB_QuickSlots);
 	}
 	
-	
+	//@Override ragdoll hack
 	public function OnTimeUpdated(deltaTime : float)
 	{
 		var mac : CMovingPhysicalAgentComponent;
@@ -69,7 +67,7 @@ class W3Effect_Ragdoll extends W3CriticalEffect
 			{
 				timeEndedHandled = true;				
 				
-				
+				//if this effect is currently animated
 				if(isActive && this == target.GetCurrentlyAnimatedCS())
 				{				
 					target.RequestCriticalAnimStop(target.IsInAir());

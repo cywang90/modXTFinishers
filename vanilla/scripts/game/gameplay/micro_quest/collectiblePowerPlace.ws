@@ -1,8 +1,4 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-class W3CollectiblePlaces extends CGameplayEntity
+﻿class W3CollectiblePlaces extends CGameplayEntity
 {
 	editable var xpPoints 	: int;
 	saved var wasDiscovered : bool;

@@ -1,8 +1,16 @@
 ﻿/*
-Copyright © CD Projekt RED 2015
+enum ESwitchOperation
+{
+	SO_TurnOn,
+	SO_TurnOff,
+	SO_Toggle,
+	SO_Reset,
+	SO_Enable,
+	SO_Disable,
+	SO_Lock,
+	SO_Unlock,
+};
 */
-
-
 
 class W3SE_ManageSwitch extends W3SwitchEvent
 {

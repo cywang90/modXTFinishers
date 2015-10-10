@@ -1,21 +1,17 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
+﻿
 import struct SExplorationQueryContext
 {
 	import var inputDirectionInWorldSpace : Vector;
 	import var maxAngleToCheck : float;
 	import var forJumping : bool;
-	
+	//import var forDynamic : bool;
 	import var dontDoZAndDistChecks : bool;
 	import var laddersOnly : bool;
 	import var forAutoTraverseSmall : bool;
 	import var forAutoTraverseBig : bool;
 }
 
-import struct SExplorationQueryToken 
+import struct SExplorationQueryToken // previously known as SExplorationScriptToken
 {
 	import var valid : bool;
 	import var type : EExplorationType;
@@ -23,7 +19,25 @@ import struct SExplorationQueryToken
 	import var normal : Vector;
 	import var usesHands : bool;
 }
-
+/* from cpp
+enum EExplorationType
+{
+	ET_Jump,
+	ET_Ladder,
+	ET_Horse_LF,
+	ET_Horse_LB,
+	ET_Horse_L,
+	ET_Horse_R,
+	ET_Horse_RF,
+	ET_Horse_RB,
+	ET_Horse_B,
+	ET_Boat_B,
+	ET_Boat_P,
+	ET_Boat_Enter_From_Beach,
+	ET_Fence,
+	ET_Fence_OneSided,
+	ET_Ledge,
+} */
 
 function IsExplorationOneSided( exploration : SExplorationQueryToken ) : bool
 {

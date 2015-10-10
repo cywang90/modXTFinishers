@@ -1,11 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Copyright © 2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
-
-
-
-
+//Increased oxygen & enhanced vision underwater
 class W3Potion_KillerWhale extends W3ChangeMaxStatEffect
 {
 	private var visionStrength : float;

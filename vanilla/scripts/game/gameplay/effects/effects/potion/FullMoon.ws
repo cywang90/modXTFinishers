@@ -1,11 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Copyright © 2012-2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
-
-
-
-
+// increases max vitality
 class W3Potion_FullMoon extends W3ChangeMaxStatEffect
 {
 	default effectType = EET_FullMoon;

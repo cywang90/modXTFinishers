@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file - gwint deck builder
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author : Jason Slama
+/***********************************************************************/
 
 class W3ChooseGwintTurnPopup extends ConfirmationPopupData
 {
@@ -44,7 +43,7 @@ class CR4GwintGameMenu extends CR4GwintBaseMenu
 	function EnableJournalTutorialEnries()
 	{
 		var tutSystem : CR4TutorialSystem;
-		
+		// Journal - Enable Gwent tutorial entries
 		tutSystem = theGame.GetTutorialSystem();
 		tutSystem.ActivateJournalEntry('gwentintroduction');
 		tutSystem.ActivateJournalEntry('gwentstartinghand');
@@ -63,7 +62,7 @@ class CR4GwintGameMenu extends CR4GwintBaseMenu
 		tutSystem.ActivateJournalEntry('findingcards');
 	}	
 	
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{	
 		super.OnConfigUI();
 		
@@ -101,7 +100,7 @@ class CR4GwintGameMenu extends CR4GwintBaseMenu
 		theSound.EnterGameState( ESGS_Gwent );
 	}
 	
-	event  OnClosingMenu()
+	event /* C++ */ OnClosingMenu()
 	{
 		super.OnClosingMenu();
 		
@@ -128,8 +127,8 @@ class CR4GwintGameMenu extends CR4GwintBaseMenu
 		
 		theSound.LeaveGameState( ESGS_Gwent );
 		
-		
-		
+		// We fire a system_resume event, in order to make sure we'll end up with a correct
+		// mixing state
 		theSound.SoundEvent( "system_resume" );
 		
 		if (!gwintManager.testMatch && theGame.isUserSignedIn())
@@ -152,14 +151,14 @@ class CR4GwintGameMenu extends CR4GwintBaseMenu
 		
 		l_flashObject = flashConstructor.CreateFlashObject("red.game.witcher3.menus.gwint.GwintCardValues");
 		
-		l_flashObject.SetMemberFlashNumber( "weatherCardValue", 5.0f ); 
-		l_flashObject.SetMemberFlashNumber( "hornCardValue", 5.0f );   
-		l_flashObject.SetMemberFlashNumber( "drawCardValue", 1.0f ); 	
-		l_flashObject.SetMemberFlashNumber( "scorchCardValue", 8.0f );   
-		l_flashObject.SetMemberFlashNumber( "summonClonesCardValue", 0.5f );  
-		l_flashObject.SetMemberFlashNumber( "unsummonCardValue", 2.0f );   
-		l_flashObject.SetMemberFlashNumber( "improveNeighboursCardValue", 4.0f ); 	
-		l_flashObject.SetMemberFlashNumber( "nurseCardValue", 3.0f ); 	
+		l_flashObject.SetMemberFlashNumber( "weatherCardValue", 5.0f ); // any weather type card gets those extra value 
+		l_flashObject.SetMemberFlashNumber( "hornCardValue", 5.0f );   // any horn type effect gets this extra value
+		l_flashObject.SetMemberFlashNumber( "drawCardValue", 1.0f ); 	// any card having this extra effect gains this bonus. Note that casting this card should be strategically cheap as it increases player power by draw
+		l_flashObject.SetMemberFlashNumber( "scorchCardValue", 8.0f );   // best strategically card. Expensive cast make it good choice only when other are simply worse or this one gives really huge advantage
+		l_flashObject.SetMemberFlashNumber( "summonClonesCardValue", 0.5f );  // any card having this extra effect gains this extra value
+		l_flashObject.SetMemberFlashNumber( "unsummonCardValue", 2.0f );   // any card with this extra effect gains this bonus
+		l_flashObject.SetMemberFlashNumber( "improveNeighboursCardValue", 4.0f ); 	//  any card with this extra effect gains this bonus
+		l_flashObject.SetMemberFlashNumber( "nurseCardValue", 3.0f ); 	//  Nurse resurects random creatures from grave
 		
 		m_flashValueStorage.SetFlashObject( "gwint.game.cardValues", l_flashObject );
 	}
@@ -192,7 +191,7 @@ class CR4GwintGameMenu extends CR4GwintBaseMenu
 	{
 		if (theGame.GameplayFactsQuerySum("q602_geralt_possessed") == 1)
 		{
-			m_flashValueStorage.SetFlashString("gwint.player.name.one", GetLocStringByKeyExt("Witold"));
+			m_flashValueStorage.SetFlashString("gwint.player.name.one", GetLocStringByKeyExt("gwint_witold"));
 		}
 		else
 		{
@@ -201,7 +200,7 @@ class CR4GwintGameMenu extends CR4GwintBaseMenu
 		m_flashValueStorage.SetFlashString("gwint.player.name.two", GetLocStringByKeyExt("gwint_opponent"));
 	}
 	
-	event  OnChooseCoinFlip():void
+	event /*flash*/ OnChooseCoinFlip():void
 	{
 		chooseTurnPopup = new W3ChooseGwintTurnPopup in this;
 	
@@ -213,19 +212,29 @@ class CR4GwintGameMenu extends CR4GwintBaseMenu
 		RequestSubMenu('PopupMenu', chooseTurnPopup);
 	}
 	
-	event  OnMatchResult(pWon : bool):void
+	event /*flash*/ OnMatchResult(pWon : bool):void
 	{
 		playerWon = pWon;
 	}
 	
-	event  OnNeutralRoundVictoryAchievement():void
+	event /*flash*/ OnNeutralRoundVictoryAchievement():void
 	{
 		theGame.GetGamerProfile().AddAchievement(EA_GeraltandFriends);
 	}
 	
-	event  OnHeroRoundVictoryAchievement():void
+	event /*flash*/ OnHeroRoundVictoryAchievement():void
 	{
 		theGame.GetGamerProfile().AddAchievement(EA_Allin);
+	}
+	
+	event /*flash*/ OnKilledItAchievement():void
+	{
+		theGame.GetGamerProfile().AddAchievement(EA_KilledIt);
+	}
+	
+	event /*flash*/ OnAtLeastOneCowDied():void
+	{
+		OnPlaySoundEvent("gui_gwint_cow_death");
 	}
 	
 	public function SetPlayerStarts(playerFirst:bool):void

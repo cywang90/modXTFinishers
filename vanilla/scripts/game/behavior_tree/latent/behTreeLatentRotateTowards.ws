@@ -1,10 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
-
-
-
-
+﻿/***********************************************************************/
+/** Witcher Script file
+/***********************************************************************/
+/** Rotate towards actor latent action
+/** Copyright © 2012
+/***********************************************************************/
 
 class W3ActorLatentActionRotateTo extends IPresetActorLatentAction
 {

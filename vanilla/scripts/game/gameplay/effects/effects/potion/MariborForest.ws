@@ -1,11 +1,9 @@
-﻿/*
-Copyright © CD Projekt RED 2015
-*/
+﻿/***********************************************************************/
+/** Copyright © 2012-2014
+/** Author : Tomek Kozera
+/***********************************************************************/
 
-
-
-
-
+// increases focus generation
 class W3Potion_MariborForest extends CBaseGameplayEffect
 {
 	default effectType = EET_MariborForest;
@@ -19,7 +17,7 @@ class W3Potion_MariborForest extends CBaseGameplayEffect
 		
 		if(GetBuffLevel() == 3)
 		{
-			theGame.GetDefinitionsManager().GetAbilityAttributeValue(abilityName, StatEnumToName(BCS_Focus), min, max);
+			theGame.GetDefinitionsManager().GetAbilityAttributeValue(abilityName, 'focus_on_drink', min, max);
 			adrenalineBonus = CalculateAttributeValue(GetAttributeRandomizedValue(min, max));
 			target.GainStat(BCS_Focus, adrenalineBonus);
 		}
