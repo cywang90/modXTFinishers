@@ -13302,10 +13302,14 @@
 				IncreaseUninterruptedHitsCount();
 				
 				//camera shake
+				// modXTFinishers BEGIN
+				/*
 				if( IsLightAttack( attackAction.GetAttackName() ) )
 				{
 					GCameraShake(0.1, false, GetWorldPosition(), 10);
 				}
+				*/
+				// modXTFinishers END
 				
 				//Caretaker Shovel life steal
 				if(npc && inv.GetItemName(attackAction.GetWeaponId()) == 'PC Caretaker Shovel')
