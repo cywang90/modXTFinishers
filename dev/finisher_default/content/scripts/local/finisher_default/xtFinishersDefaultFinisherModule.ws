@@ -57,6 +57,8 @@ class XTFinishersDefaultFinisherHandler extends XTFinishersAbstractReactionStart
 			return;
 		}
 		
+		context.finisher.type = XTF_FINISHER_TYPE_REGULAR;
+		
 		playerPos = thePlayer.GetWorldPosition();
 		moveTargets = thePlayer.GetMoveTargets();	
 		size = moveTargets.Size();
@@ -74,8 +76,10 @@ class XTFinishersDefaultFinisherHandler extends XTFinishersAbstractReactionStart
 		victimToPlayerVector = actorVictim.GetWorldPosition() - playerPos;
 		
 		if (actorVictim.IsAlive()) {
-			context.finisher.instantKill = CanPerformInstantKillFinisher(context);
-			if (!context.finisher.instantKill) {
+			if (CanPerformInstantKillFinisher(context)) {
+				context.finisher.type = XTF_FINISHER_TYPE_INSTANTKILL;
+				finisherChance = 100;
+			} else {
 				return;
 			}
 		} else {
@@ -83,10 +87,11 @@ class XTFinishersDefaultFinisherHandler extends XTFinishersAbstractReactionStart
 				
 			if (!context.finisher.forced) {
 				if (actorVictim.IsHuman()) {
-					context.finisher.auto = CanPerformAutoFinisher(context);
-					
-					npc = (CNewNPC)actorVictim;
-					if (!context.finisher.auto) {
+					if (CanPerformAutoFinisher(context)) {
+						context.finisher.type = XTF_FINISHER_TYPE_AUTO;
+						finisherChance = 100;
+					} else {
+						npc = (CNewNPC)actorVictim;
 						if (( size <= 1 && theGame.params.FINISHER_ON_DEATH_CHANCE > 0) || (actorVictim.HasAbility('ForceFinisher'))) {
 							finisherChance = 100;
 						} else if (theGame.xtFinishersMgr.finisherModule.params.FINISHER_CHANCE_OVERRIDE) {
@@ -114,23 +119,20 @@ class XTFinishersDefaultFinisherHandler extends XTFinishersAbstractReactionStart
 		
 		if (thePlayer.forceFinisher && actorVictim.IsHuman()) {
 			context.finisher.active = true;
-			context.finisher.debug = true;
+			context.finisher.type = XTF_FINISHER_TYPE_DEBUG;
 			return;
 		}
 		
-		if (context.finisher.auto) {
-			finisherChance = 100;
-		} else if (context.finisher.instantKill) {
-			finisherChance = 100;
-		}
-		
-		if (context.finisher.auto) {
+		switch (context.finisher.type) {
+		case XTF_FINISHER_TYPE_AUTO :
 			areEnemiesAttackingModifier = !theGame.xtFinishersMgr.finisherModule.params.FINISHER_AUTO_REQUIRE_NO_AGGRO;
 			navCheckModifier = !theGame.xtFinishersMgr.finisherModule.params.FINISHER_AUTO_REQUIRE_NAV_CHECK;
-		} else if (context.finisher.instantKill) {
+			break;
+		case XTF_FINISHER_TYPE_INSTANTKILL :
 			areEnemiesAttackingModifier = !theGame.xtFinishersMgr.finisherModule.params.FINISHER_INSTANTKILL_REQUIRE_NO_AGGRO;
 			navCheckModifier = !theGame.xtFinishersMgr.finisherModule.params.FINISHER_INSTANTKILL_REQUIRE_NAV_CHECK;
-		} else {
+			break;
+		default :
 			areEnemiesAttackingModifier = !theGame.xtFinishersMgr.finisherModule.params.FINISHER_REQUIRE_NO_AGGRO;
 			navCheckModifier = !theGame.xtFinishersMgr.finisherModule.params.FINISHER_REQUIRE_NAV_CHECK;
 		}
@@ -142,7 +144,7 @@ class XTFinishersDefaultFinisherHandler extends XTFinishersAbstractReactionStart
 		result = result && (actorVictim.IsHuman() && !actorVictim.IsWoman());
 		result = result && RandRangeF(100) < finisherChance;
 		result = result && (areEnemiesAttackingModifier || !areEnemiesAttacking);
-		result = result && (context.finisher.debug || AbsF(victimToPlayerVector.Z) < 0.4f);
+		result = result && (context.finisher.type == XTF_FINISHER_TYPE_DEBUG || AbsF(victimToPlayerVector.Z) < 0.4f);
 		result = result && !thePlayer.IsInAir();
 		result = result && (thePlayer.IsWeaponHeld('steelsword') || thePlayer.IsWeaponHeld('silversword'));
 		result = result && !thePlayer.IsSecondaryWeaponHeld();
@@ -151,8 +153,8 @@ class XTFinishersDefaultFinisherHandler extends XTFinishersAbstractReactionStart
 		result = result && !context.effectsSnapshot.HasEffect(EET_Knockdown);
 		result = result && !context.effectsSnapshot.HasEffect(EET_Ragdoll);
 		result = result && !context.effectsSnapshot.HasEffect(EET_Frozen);
-		result = result && (context.finisher.debug || !actorVictim.HasAbility('DisableFinishers'));
-		result = result && (context.finisher.debug || actorVictim.GetAttitude(thePlayer) == AIA_Hostile);
+		result = result && (context.finisher.type == XTF_FINISHER_TYPE_DEBUG || !actorVictim.HasAbility('DisableFinishers'));
+		result = result && (context.finisher.type == XTF_FINISHER_TYPE_DEBUG || actorVictim.GetAttitude(thePlayer) == AIA_Hostile);
 		result = result && !thePlayer.IsUsingVehicle();
 		result = result && thePlayer.IsAlive();
 		result = result && !thePlayer.IsCurrentSignChanneled();
