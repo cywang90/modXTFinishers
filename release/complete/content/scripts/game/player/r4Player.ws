@@ -11920,6 +11920,13 @@
 		
 		this.RemoveAnimEventCallback('SyncEvent');
 		
+		// modXTFinishers BEGIN
+		if (actionContext) {
+			delete actionContext;
+			actionContext = NULL;
+		}
+		// modXTFinishers END
+		
 		//SetIsPerformingPhaseChangeAnimation( false ); // for eredin fight
 		SetImmortalityMode( AIM_None, AIC_SyncedAnim );
 		theGame.RemoveTimeScale( 'AnimEventSlomoMo' );

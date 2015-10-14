@@ -19,6 +19,26 @@ class XTFinishersEffectsSnapshot {
 	public function HasEffect(type : EEffectType) : bool {
 		return effectsTable[type];
 	}
+	
+	public function HasEffects(types : array<EEffectType>, optional requireAll : bool) : bool {
+		var i : int;
+		
+		if (requireAll) {
+			for (i = 0; i < types.Size(); i += 1) {
+				if (!HasEffect(types[i])) {
+					return false;
+				}
+			}
+			return true;
+		} else {
+			for (i = 0; i < types.Size(); i += 1) {
+				if (HasEffect(types[i])) {
+					return true;
+				}
+			}
+			return false;
+		}
+	}
 }
 
 class XTFinishersActionContext extends XTFinishersObject {
@@ -33,19 +53,16 @@ class XTFinishersActionContext extends XTFinishersObject {
 
 struct XTFinishersFinisherContext {
 	var active : bool;										// will finisher be performed
-	var auto : bool;										// is AUTOMATIC finisher
-	var instantKill : bool;									// is INSTANT-KILL finisher
+	var type : XTFinishersFinisherType;						// type of finisher
 	var forced : bool;										// is FORCED finisher
-	var debug : bool;										// is DEBUG finisher (i.e. forced thru dev console)
 	var animName : name;
 };
 
 struct XTFinishersDismemberContext {
 	var active : bool;										// will dismember be performed
+	var type : XTFinishersDismemberType;					// type of dismember
 	var explosion : bool;									// is dismember explosion
-	var auto : bool;										// is AUTOMATIC finisher
 	var forced : bool;										// is FORCED dismember
-	var debug : bool;										// is DEBUG dismember (i.e. forced thru dev console)
 };
 
 struct XTFinishersFinisherCamContext {
@@ -53,12 +70,13 @@ struct XTFinishersFinisherCamContext {
 };
 
 struct XTFinishersSlowdownContext {
-	var type : int;
 	var active : bool;										// will slowdown be performed
+	var type : XTFinishersSlowdownType;						// type of finisher
 };
 
 struct XTFinishersCamShakeContext {
 	var active : bool;
+	var type : XTFinishersCamshakeType;
 	var forceOff, forceOn : bool;
 	var strength : float;
 	var useExtraOpts : bool;
