@@ -93,8 +93,8 @@ class XTFinishersTailoredFinishersSlowdownManager extends XTFinishersDefaultSlow
 		
 		// 7: FINISHER_DLC_STANCE_LEFT_ARM/FINISHER_DLC_STANCE_RIGHT_ARM
 		seqDef = new XTFinishersSlowdownSequenceDef in this;
-		seqDef.AddSegment(CreateXTFinishersSlowdownDelay(this, 0.95));
-		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.2, 0.1));
+		seqDef.AddSegment(CreateXTFinishersSlowdownDelay(this, 1.05));
+		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.1, 0.1));
 		customSequenceDefs.PushBack(seqDef);
 		
 		// 8: FINISHER_DLC_STANCE_LEFT_LEGS/FINISHER_DLC_STANCE_RIGHT_LEGS
@@ -108,8 +108,8 @@ class XTFinishersTailoredFinishersSlowdownManager extends XTFinishersDefaultSlow
 		// 9: FINISHER_DLC_STANCE_LEFT_TORSO/FINISHER_DLC_STANCE_RIGHT_TORSO
 		seqDef = new XTFinishersSlowdownSequenceDef in this;
 		seqDef.AddSegment(CreateXTFinishersSlowdownDelay(this, 0.55));
-		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.15, 0.1));
-		seqDef.AddSegment(CreateXTFinishersSlowdownDelay(this, 0.2));
+		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.07, 0.1));
+		seqDef.AddSegment(CreateXTFinishersSlowdownDelay(this, 0.28));
 		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.1, 0.1));
 		customSequenceDefs.PushBack(seqDef);
 		
