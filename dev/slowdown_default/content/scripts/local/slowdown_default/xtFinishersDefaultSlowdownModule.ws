@@ -115,6 +115,9 @@ class XTFinishersDefaultSlowdownFinisherHandler extends XTFinishersAbstractFinis
 			case XTF_FINISHER_TYPE_INSTANTKILL:
 				chance = theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_FINISHER_INSTANTKILL_CHANCE_LAST_ENEMY;
 				break;
+			case XTF_FINISHER_TYPE_KNOCKDOWN:
+				chance = theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_FINISHER_KNOCKDOWN_CHANCE_LAST_ENEMY;
+				break;
 			default:
 				chance = theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_FINISHER_CHANCE_LAST_ENEMY;
 			}
@@ -125,6 +128,9 @@ class XTFinishersDefaultSlowdownFinisherHandler extends XTFinishersAbstractFinis
 				break;
 			case XTF_FINISHER_TYPE_INSTANTKILL:
 				chance = theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_FINISHER_INSTANTKILL_CHANCE;
+				break;
+			case XTF_FINISHER_TYPE_KNOCKDOWN:
+				chance = theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_FINISHER_KNOCKDOWN_CHANCE;
 				break;
 			default:
 				chance = theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_FINISHER_CHANCE;
@@ -164,6 +170,21 @@ class XTFinishersDefaultSlowdownDismemberHandler extends XTFinishersAbstractDism
 		
 		if (thePlayer.IsLastEnemyKilled()) {
 			switch (context.dismember.type) {
+			case XTF_DISMEMBER_TYPE_FROZEN:
+				chance = theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_DISMEMBER_FROZEN_CHANCE_LAST_ENEMY;
+				break;
+			case XTF_DISMEMBER_TYPE_BOMB:
+				chance = theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_DISMEMBER_BOMB_CHANCE_LAST_ENEMY;
+				break;
+			case XTF_DISMEMBER_TYPE_BOLT:
+				chance = theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_DISMEMBER_BOLT_CHANCE_LAST_ENEMY;
+				break;
+			case XTF_DISMEMBER_TYPE_YRDEN:
+				chance = theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_DISMEMBER_YRDEN_CHANCE_LAST_ENEMY;
+				break;
+			case XTF_DISMEMBER_TYPE_TOXICCLOUD:
+				chance = theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_DISMEMBER_TOXICCLOUD_CHANCE_LAST_ENEMY;
+				break;
 			case XTF_DISMEMBER_TYPE_AUTO:
 				chance = theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_DISMEMBER_AUTO_CHANCE_LAST_ENEMY;
 				break;
@@ -172,6 +193,21 @@ class XTFinishersDefaultSlowdownDismemberHandler extends XTFinishersAbstractDism
 			}
 		} else {
 			switch (context.dismember.type) {
+			case XTF_DISMEMBER_TYPE_FROZEN:
+				chance = theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_DISMEMBER_FROZEN_CHANCE;
+				break;
+			case XTF_DISMEMBER_TYPE_BOMB:
+				chance = theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_DISMEMBER_BOMB_CHANCE;
+				break;
+			case XTF_DISMEMBER_TYPE_BOLT:
+				chance = theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_DISMEMBER_BOLT_CHANCE;
+				break;
+			case XTF_DISMEMBER_TYPE_YRDEN:
+				chance = theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_DISMEMBER_YRDEN_CHANCE;
+				break;
+			case XTF_DISMEMBER_TYPE_TOXICCLOUD:
+				chance = theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_DISMEMBER_TOXICCLOUD_CHANCE;
+				break;
 			case XTF_DISMEMBER_TYPE_AUTO:
 				chance = theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_DISMEMBER_AUTO_CHANCE;
 				break;
@@ -190,7 +226,7 @@ class XTFinishersDefaultSlowdownDismemberHandler extends XTFinishersAbstractDism
 // slowdown
 
 class XTFinishersDefaultSlowdownManager extends XTFinishersAbstractSlowdownManager {
-	private var critSeqDef, finisherSeqDef, dismemberSeqDef : XTFinishersSlowdownSequenceDef;
+	private var critSeqDef, finisherSeqDef, kdFinisherSeqDef, dismemberSeqDef : XTFinishersSlowdownSequenceDef;
 	
 	public function Init() {
 		var temp : XTFinishersSlowdownSegment;
@@ -219,6 +255,15 @@ class XTFinishersDefaultSlowdownManager extends XTFinishersAbstractSlowdownManag
 		}
 		if (theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_FINISHER_B_DURATION > 0) {
 			finisherSeqDef.AddSegment(CreateXTFinishersSlowdownSession(this, theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_FINISHER_B_DURATION, theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_FINISHER_B_FACTOR));
+		}
+		
+		// define knockdown finisher slowdown sequence
+		kdFinisherSeqDef = new XTFinishersSlowdownSequenceDef in this;
+		if (theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_FINISHER_KNOCKDOWN_DELAY > 0) {
+			dismemberSeqDef.AddSegment(CreateXTFinishersSlowdownDelay(this, theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_FINISHER_KNOCKDOWN_DELAY));
+		}
+		if (theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_FINISHER_KNOCKDOWN_DURATION > 0) {
+			dismemberSeqDef.AddSegment(CreateXTFinishersSlowdownSession(this, theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_FINISHER_KNOCKDOWN_DURATION, theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_FINISHER_KNOCKDOWN_FACTOR));
 		}
 		
 		// define dismember slowdown sequence
@@ -257,7 +302,12 @@ class XTFinishersDefaultSlowdownManager extends XTFinishersAbstractSlowdownManag
 	}
 	
 	protected function GetFinisherSequence(context : XTFinishersActionContext) : XTFinishersSlowdownSequenceDef {
-		return finisherSeqDef;
+		switch (context.finisher.type) {
+		case XTF_FINISHER_TYPE_KNOCKDOWN:
+			return kdFinisherSeqDef;
+		default:
+			return finisherSeqDef;
+		}
 	}
 	
 	protected function GetDismemberSequence(context : XTFinishersActionContext) : XTFinishersSlowdownSequenceDef {
