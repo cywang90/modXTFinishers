@@ -33,18 +33,21 @@ class XTFinishersDefaultCamShakeHandler extends XTFinishersAbstractActionEndEven
 		if (playerAttacker && attackAction && attackAction.IsActionMelee()) {
 			if (playerAttacker.IsLightAttack(attackAction.GetAttackName())) {
 				context.camShake.active = true;
+				context.camShake.type = XTF_CAMSHAKE_TYPE_FAST;
 				context.camShake.strength = 0.1;
 				context.camShake.useExtraOpts = true;
 				context.camShake.epicenter = playerAttacker.GetWorldPosition();
 				context.camShake.maxDistance = 10;
 			} else if (SkillNameToEnum(attackAction.GetAttackTypeName()) == S_Sword_s02 && theGame.xtFinishersMgr.camshakeModule.params.CAMERA_SHAKE_ON_REND) {
 				context.camShake.active = true;
+				context.camShake.type = XTF_CAMSHAKE_TYPE_REND;
 				context.camShake.strength = thePlayer.GetSpecialAttackTimeRatio() / 3.333 + 0.2;
 				context.camShake.useExtraOpts = true;
 				context.camShake.epicenter = playerAttacker.GetWorldPosition();
 				context.camShake.maxDistance = 10;
 			} else if (playerAttacker.IsHeavyAttack(attackAction.GetAttackName())) {
 				context.camShake.active = true;
+				context.camShake.type = XTF_CAMSHAKE_TYPE_STRONG;
 				if (attackAction.IsParried()) {
 					context.camShake.strength = 0.2;
 				} else {
@@ -67,10 +70,12 @@ class XTFinishersDefaultCamShakeHandler extends XTFinishersAbstractActionEndEven
 		if((CR4Player)context.action.attacker && attackAction && actorVictim && attackAction.IsCriticalHit() && context.action.DealtDamage()) {
 			if (actorVictim.IsAlive() && theGame.xtFinishersMgr.camshakeModule.params.CAMERA_SHAKE_ON_CRIT_NONFATAL) {
 				context.camShake.active = true;
+				context.camShake.type = XTF_CAMSHAKE_TYPE_CRIT;
 				context.camShake.strength = theGame.xtFinishersMgr.camshakeModule.params.CAMERA_SHAKE_CRIT_NONFATAL_STRENGTH;
 				context.camShake.useExtraOpts = false;
 			} else if (!actorVictim.IsAlive() && theGame.xtFinishersMgr.camshakeModule.params.CAMERA_SHAKE_ON_CRIT_FATAL) {
 				context.camShake.active = true;
+				context.camShake.type = XTF_CAMSHAKE_TYPE_CRIT;
 				context.camShake.strength = theGame.xtFinishersMgr.camshakeModule.params.CAMERA_SHAKE_CRIT_FATAL_STRENGTH;
 				context.camShake.useExtraOpts = false;
 			}
@@ -84,6 +89,7 @@ class XTFinishersDefaultCamShakeHandler extends XTFinishersAbstractActionEndEven
 		
 		if (context.dismember.active && (W3Action_Attack)context.action && actorAttacker && theGame.xtFinishersMgr.camshakeModule.params.CAMERA_SHAKE_ON_DISMEMBER) {
 			context.camShake.active = true;
+			context.camShake.type = XTF_CAMSHAKE_TYPE_DISMEMBER;
 			context.camShake.strength = theGame.xtFinishersMgr.camshakeModule.params.CAMERA_SHAKE_DISMEMBER_STRENGTH;
 			context.camShake.useExtraOpts = true;
 			context.camShake.epicenter = actorAttacker.GetWorldPosition();

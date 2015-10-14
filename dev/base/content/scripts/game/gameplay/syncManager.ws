@@ -114,6 +114,7 @@ statemachine class W3SyncAnimationManager
 		
 		// modXTFinishers BEGIN
 		var actionContext : XTFinishersActionContext;
+		var isDeathFinisher : bool;
 		// modXTFinishers END
 		
 		syncInstance = CreateNewSyncInstance( instanceIndex );
@@ -166,6 +167,7 @@ statemachine class W3SyncAnimationManager
 			{
 				// MASTER SETUP
 				// modXTFinishers BEGIN
+				isDeathFinisher = true;
 				syncAnimName = thePlayer.actionContext.finisher.animName;
 				// modXTFinishers END
 				
@@ -1235,6 +1237,10 @@ statemachine class W3SyncAnimationManager
 		if ((CR4Player)master && finisherAnim && !thePlayer.actionContext) {
 			actionContext = CreateXTFinishersActionContext(theGame.xtFinishersMgr, NULL);
 			actionContext.finisher.animName = masterSequencePart.animation;
+			if (!isDeathFinisher) {
+				actionContext.finisher.type = XTF_FINISHER_TYPE_KNOCKDOWN;
+			}
+			
 			thePlayer.LoadActionContext(actionContext);
 		}
 		// modXTFinishers END

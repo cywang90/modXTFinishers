@@ -59,6 +59,8 @@ class XTFinishersVanillaFinisherHandler extends XTFinishersAbstractReactionStart
 			return;
 		}
 		
+		context.finisher.type = XTF_FINISHER_TYPE_REGULAR;
+		
 		playerPos = thePlayer.GetWorldPosition();
 		moveTargets = thePlayer.GetMoveTargets();	
 		size = moveTargets.Size();
@@ -77,6 +79,7 @@ class XTFinishersVanillaFinisherHandler extends XTFinishersAbstractReactionStart
 		
 		if (actorVictim.IsAlive()) {
 			if (CanPerformInstantKillFinisher(context)) {
+				context.finisher.type = XTF_FINISHER_TYPE_INSTANTKILL;
 				finisherChance = 75 - (npc.currentLevel - thePlayer.GetLevel());
 			} else {
 				return;
@@ -105,7 +108,7 @@ class XTFinishersVanillaFinisherHandler extends XTFinishersAbstractReactionStart
 		}
 		
 		if (thePlayer.forceFinisher && actorVictim.IsHuman()) {
-			context.finisher.debug = true;
+			context.finisher.type = XTF_FINISHER_TYPE_DEBUG;
 			context.finisher.active = true;
 			return;
 		}
@@ -120,7 +123,7 @@ class XTFinishersVanillaFinisherHandler extends XTFinishersAbstractReactionStart
 		result = result && (actorVictim.IsHuman() && !actorVictim.IsWoman());
 		result = result && RandRangeF(100) < finisherChance;
 		result = result && (context.finisher.forced || !areEnemiesAttacking);
-		result = result && (context.finisher.debug || AbsF(victimToPlayerVector.Z) < 0.4f);
+		result = result && (context.finisher.type == XTF_FINISHER_TYPE_DEBUG || AbsF(victimToPlayerVector.Z) < 0.4f);
 		result = result && !thePlayer.IsInAir();
 		result = result && (thePlayer.IsWeaponHeld('steelsword') || thePlayer.IsWeaponHeld('silversword'));
 		result = result && !thePlayer.IsSecondaryWeaponHeld();
@@ -129,8 +132,8 @@ class XTFinishersVanillaFinisherHandler extends XTFinishersAbstractReactionStart
 		result = result && !context.effectsSnapshot.HasEffect(EET_Knockdown);
 		result = result && !context.effectsSnapshot.HasEffect(EET_Ragdoll);
 		result = result && !context.effectsSnapshot.HasEffect(EET_Frozen);
-		result = result && (context.finisher.debug || !actorVictim.HasAbility('DisableFinishers'));
-		result = result && (context.finisher.debug || actorVictim.GetAttitude(thePlayer) == AIA_Hostile);
+		result = result && (context.finisher.type == XTF_FINISHER_TYPE_DEBUG || !actorVictim.HasAbility('DisableFinishers'));
+		result = result && (context.finisher.type == XTF_FINISHER_TYPE_DEBUG || actorVictim.GetAttitude(thePlayer) == AIA_Hostile);
 		result = result && !thePlayer.IsUsingVehicle();
 		result = result && thePlayer.IsAlive();
 		result = result && !thePlayer.IsCurrentSignChanneled();
@@ -139,11 +142,8 @@ class XTFinishersVanillaFinisherHandler extends XTFinishersAbstractReactionStart
 		if (result) {
 			if (!actorVictim.IsAlive()) {
 				actorVictim.AddAbility('DisableFinishers', false);
-			} else {
-				context.finisher.instantKill = true;
 			}
 			context.finisher.active = true;
-			
 			context.finisher.animName = SelectFinisherAnimName(context);
 		}
 	}
@@ -226,6 +226,8 @@ class XTFinishersVanillaDismemberHandler extends XTFinishersAbstractReactionStar
 			return;
 		}
 		
+		context.dismember.type = XTF_DISMEMBER_TYPE_REGULAR;
+		
 		playerAttacker = (CR4Player)context.action.attacker;
 		actorAttacker = (CActor)context.action.attacker;
 		actorVictim = (CActor)context.action.victim;
@@ -258,13 +260,20 @@ class XTFinishersVanillaDismemberHandler extends XTFinishersAbstractReactionStar
 			context.dismember.forced = true;
 			result = true;
 		} else if (context.effectsSnapshot.HasEffect(EET_Frozen)) {
+			context.dismember.type = XTF_DISMEMBER_TYPE_FROZEN;
 			result = true;
-		} else if ((petard && petard.DismembersOnKill()) || (bolt && bolt.DismembersOnKill())) {
+		} else if (petard && petard.DismembersOnKill()) {
+			context.dismember.type = XTF_DISMEMBER_TYPE_BOMB;
+			result = true;
+		} else if (bolt && bolt.DismembersOnKill()) {
+			context.dismember.type = XTF_DISMEMBER_TYPE_BOLT;
 			result = true;
 		} else if ((W3Effect_YrdenHealthDrain)context.action.causer) {
+			context.dismember.type = XTF_DISMEMBER_TYPE_YRDEN;
 			context.dismember.explosion = true;
 			result = true;
 		} else if (toxicCloud && toxicCloud.HasExplodingTargetDamages()) {
+			context.dismember.type = XTF_DISMEMBER_TYPE_TOXICCLOUD;
 			context.dismember.explosion = true;
 			result = true;
 		} else {
@@ -285,7 +294,7 @@ class XTFinishersVanillaDismemberHandler extends XTFinishersAbstractReactionStar
 				if (playerAttacker && playerAttacker.forceDismember) {
 					dismemberChance = thePlayer.forceDismemberChance;
 					context.dismember.explosion = thePlayer.forceDismemberExplosion;
-					context.dismember.debug = true;
+					context.dismember.type = XTF_DISMEMBER_TYPE_DEBUG;
 				}
 				
 				if (attackAction) {
@@ -347,18 +356,21 @@ class XTFinishersVanillaCamShakeHandler extends XTFinishersAbstractActionEndEven
 		if (playerAttacker && attackAction && attackAction.IsActionMelee()) {
 			if (playerAttacker.IsLightAttack(attackAction.GetAttackName())) {
 				context.camShake.active = true;
+				context.camShake.type = XTF_CAMSHAKE_TYPE_FAST;
 				context.camShake.strength = 0.1;
 				context.camShake.useExtraOpts = true;
 				context.camShake.epicenter = playerAttacker.GetWorldPosition();
 				context.camShake.maxDistance = 10;
 			} else if (SkillNameToEnum(attackAction.GetAttackTypeName()) == S_Sword_s02) {
 				context.camShake.active = true;
+				context.camShake.type = XTF_CAMSHAKE_TYPE_REND;
 				context.camShake.strength = thePlayer.GetSpecialAttackTimeRatio() / 3.333 + 0.2;
 				context.camShake.useExtraOpts = true;
 				context.camShake.epicenter = playerAttacker.GetWorldPosition();
 				context.camShake.maxDistance = 10;
 			} else if (playerAttacker.IsHeavyAttack(attackAction.GetAttackName())) {
 				context.camShake.active = true;
+				context.camShake.type = XTF_CAMSHAKE_TYPE_STRONG;
 				if (attackAction.IsParried()) {
 					context.camShake.strength = 0.2;
 				} else {
@@ -380,6 +392,7 @@ class XTFinishersVanillaCamShakeHandler extends XTFinishersAbstractActionEndEven
 		
 		if((CR4Player)context.action.attacker && attackAction && actorVictim && attackAction.IsCriticalHit() && context.action.DealtDamage() && !actorVictim.IsAlive()) {
 			context.camShake.active = true;
+			context.camShake.type = XTF_CAMSHAKE_TYPE_CRIT;
 			context.camShake.strength = 0.5;
 			context.camShake.useExtraOpts = false;
 		}
@@ -392,6 +405,7 @@ class XTFinishersVanillaCamShakeHandler extends XTFinishersAbstractActionEndEven
 		
 		if (context.dismember.active) {
 			context.camShake.active = true;
+			context.camShake.type = XTF_CAMSHAKE_TYPE_DISMEMBER;
 			context.camShake.strength = 0.5;
 			context.camShake.useExtraOpts = true;
 			context.camShake.epicenter = actorAttacker.GetWorldPosition();
