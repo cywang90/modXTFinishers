@@ -45,7 +45,7 @@ class XTFinishersDefaultSlowdownParams {
 	public const var SLOWDOWN_FINISHER_KNOCKDOWN_FACTOR, SLOWDOWN_FINISHER_KNOCKDOWN_DURATION, SLOWDOWN_FINISHER_KNOCKDOWN_DELAY : float;
 		default SLOWDOWN_FINISHER_KNOCKDOWN_FACTOR = 0.3;				// Time factor for slow motion during a KNOCKDOWN finisher (smaller number = more slowdown).
 		default SLOWDOWN_FINISHER_KNOCKDOWN_DURATION = 0.3;				// Duration of slow motion during a KNOCKDOWN finisher (seconds in game time).
-		default SLOWDOWN_FINISHER_KNOCKDOWN_DELAY = 0.3;				// Delay after KNOCKDOWN finisher is triggered before slow motion activates (seconds in game time).
+		default SLOWDOWN_FINISHER_KNOCKDOWN_DELAY = 1.3;				// Delay after KNOCKDOWN finisher is triggered before slow motion activates (seconds in game time).
 	
 	//===============================
 	// SLOWDOWN ON DISMEMBER SETTINGS
