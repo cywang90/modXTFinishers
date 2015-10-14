@@ -19,6 +19,26 @@ class XTFinishersEffectsSnapshot {
 	public function HasEffect(type : EEffectType) : bool {
 		return effectsTable[type];
 	}
+	
+	public function HasEffects(types : array<EEffectType>, optional requireAll : bool) : bool {
+		var i : int;
+		
+		if (requireAll) {
+			for (i = 0; i < types.Size(); i += 1) {
+				if (!HasEffect(types[i])) {
+					return false;
+				}
+			}
+			return true;
+		} else {
+			for (i = 0; i < types.Size(); i += 1) {
+				if (HasEffect(types[i])) {
+					return true;
+				}
+			}
+			return false;
+		}
+	}
 }
 
 class XTFinishersActionContext extends XTFinishersObject {

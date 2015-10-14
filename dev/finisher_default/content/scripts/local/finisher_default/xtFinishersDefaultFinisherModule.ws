@@ -172,9 +172,6 @@ class XTFinishersDefaultFinisherHandler extends XTFinishersAbstractReactionStart
 	protected function CanPerformAutoFinisher(context : XTFinishersActionContext) : bool {
 		var attackAction : W3Action_Attack;
 		var result : bool;
-		var hasEffect : bool;
-		var autoFinisherEffectTypes : array<EEffectType>;
-		var i : int;
 		
 		result = false;
 		attackAction = (W3Action_Attack)context.action;
@@ -186,16 +183,8 @@ class XTFinishersDefaultFinisherHandler extends XTFinishersAbstractReactionStart
 				result = true;
 			} else if (thePlayer.IsLastEnemyKilled() && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_AUTO_CHANCE_LAST_ENEMY) {
 				result = true;
-			} else {
-				hasEffect = false;
-				autoFinisherEffectTypes = theGame.xtFinishersMgr.finisherModule.params.autoFinisherEffectTypes;
-				for (i = 0; i < autoFinisherEffectTypes.Size(); i += 1) {
-					hasEffect = context.effectsSnapshot.HasEffect(autoFinisherEffectTypes[i]);
-					if (hasEffect) {
-						break;
-					}
-				}
-				result = hasEffect && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_AUTO_CHANCE_EFFECTS;
+			} else if (context.effectsSnapshot.HasEffects(theGame.xtFinishersMgr.finisherModule.params.autoFinisherEffectTypes) && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_AUTO_CHANCE_EFFECTS) {
+				result = true;
 			}
 		}
 		
@@ -220,16 +209,8 @@ class XTFinishersDefaultFinisherHandler extends XTFinishersAbstractReactionStart
 					result = true;
 				} else if (thePlayer.IsLastEnemyKilled() && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_INSTANTKILL_CHANCE_LAST_ENEMY) {
 					result = true;
-				} else {
-					hasEffect = false;
-					instantKillFinisherEffectTypes = theGame.xtFinishersMgr.finisherModule.params.instantKillFinisherEffectTypes;
-					for (i = 0; i < instantKillFinisherEffectTypes.Size(); i += 1) {
-						hasEffect = context.effectsSnapshot.HasEffect(instantKillFinisherEffectTypes[i]);
-						if (hasEffect) {
-							break;
-						}
-					}
-					result = hasEffect && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_INSTANTKILL_CHANCE_EFFECTS;
+				} else if (context.effectsSnapshot.HasEffects(theGame.xtFinishersMgr.finisherModule.params.instantKillFinisherEffectTypes) && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_INSTANTKILL_CHANCE_EFFECTS) {
+					result = true;
 				}
 			}
 		}

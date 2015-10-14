@@ -151,9 +151,6 @@ class XTFinishersDefaultDismemberHandler extends XTFinishersAbstractReactionStar
 		var attackAction : W3Action_Attack;
 		var result : bool;
 		var isRend, isWhirl : bool;
-		var autoDismemberEffectTypes : array<EEffectType>;
-		var hasEffect : bool;
-		var i : int;
 		
 		playerAttacker = (CR4Player)context.action.attacker;
 		attackAction = (W3Action_Attack)context.action;
@@ -186,21 +183,10 @@ class XTFinishersDefaultDismemberHandler extends XTFinishersAbstractReactionStar
 				context.dismember.explosion = RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_EXPLOSION_CHANCE_LAST_ENEMY;
 				context.dismember.type = XTF_DISMEMBER_TYPE_AUTO;
 				result = true;
-			} else {
-				hasEffect = false;
-				autoDismemberEffectTypes = theGame.xtFinishersMgr.dismemberModule.params.autoDismemberEffectTypes;
-				for (i = 0; i < autoDismemberEffectTypes.Size(); i += 1) {
-					hasEffect = context.effectsSnapshot.HasEffect(autoDismemberEffectTypes[i]);
-					if (hasEffect) {
-						break;
-					}
-				}
-				result = hasEffect && RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_CHANCE_EFFECTS;
-				
-				if (result) {
-					context.dismember.explosion = RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_EXPLOSION_CHANCE_EFFECTS;
-					context.dismember.type = XTF_DISMEMBER_TYPE_AUTO;
-				}
+			} else if (context.effectsSnapshot.HasEffects(theGame.xtFinishersMgr.dismemberModule.params.autoDismemberEffectTypes) && RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_CHANCE_EFFECTS) {
+				context.dismember.explosion = RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_EXPLOSION_CHANCE_EFFECTS;
+				context.dismember.type = XTF_DISMEMBER_TYPE_AUTO;
+				result = true;
 			}
 		}
 		
