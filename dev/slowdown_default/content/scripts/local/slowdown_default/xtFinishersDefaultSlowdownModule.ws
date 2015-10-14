@@ -260,10 +260,10 @@ class XTFinishersDefaultSlowdownManager extends XTFinishersAbstractSlowdownManag
 		// define knockdown finisher slowdown sequence
 		kdFinisherSeqDef = new XTFinishersSlowdownSequenceDef in this;
 		if (theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_FINISHER_KNOCKDOWN_DELAY > 0) {
-			dismemberSeqDef.AddSegment(CreateXTFinishersSlowdownDelay(this, theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_FINISHER_KNOCKDOWN_DELAY));
+			kdFinisherSeqDef.AddSegment(CreateXTFinishersSlowdownDelay(this, theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_FINISHER_KNOCKDOWN_DELAY));
 		}
 		if (theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_FINISHER_KNOCKDOWN_DURATION > 0) {
-			dismemberSeqDef.AddSegment(CreateXTFinishersSlowdownSession(this, theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_FINISHER_KNOCKDOWN_DURATION, theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_FINISHER_KNOCKDOWN_FACTOR));
+			kdFinisherSeqDef.AddSegment(CreateXTFinishersSlowdownSession(this, theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_FINISHER_KNOCKDOWN_DURATION, theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_FINISHER_KNOCKDOWN_FACTOR));
 		}
 		
 		// define dismember slowdown sequence
