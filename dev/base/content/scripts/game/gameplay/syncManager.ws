@@ -112,6 +112,10 @@ statemachine class W3SyncAnimationManager
 		var node, node1 : CNode; // for eredin synced anims
 		var rot0, rot1 : EulerAngles;
 		
+		// modXTFinishers BEGIN
+		var actionContext : XTFinishersActionContext;
+		// modXTFinishers END
+		
 		syncInstance = CreateNewSyncInstance( instanceIndex );
 		
 		// blocking interaction with other objects and fast travel
@@ -1226,6 +1230,14 @@ statemachine class W3SyncAnimationManager
 			else
 				actorSlave.SignalGameplayEvent( 'PlaySyncedAnim' );
 		}
+		
+		// modXTFinishers BEGIN
+		if ((CR4Player)master && finisherAnim && !thePlayer.actionContext) {
+			actionContext = CreateXTFinishersActionContext(theGame.xtFinishersMgr, NULL);
+			actionContext.finisher.animName = masterSequencePart.animation;
+			thePlayer.LoadActionContext(actionContext);
+		}
+		// modXTFinishers END
 		
 		// TODO: Make sure the npc is able to play the animation
 		
