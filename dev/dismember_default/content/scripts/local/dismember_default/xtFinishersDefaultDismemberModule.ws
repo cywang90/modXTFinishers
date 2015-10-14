@@ -7,6 +7,7 @@ class XTFinishersDefaultDismemberModule extends XTFinishersObject {
 	
 	public function Init() {
 		params = new XTFinishersDefaultDismemberParams in this;
+		params.Init();
 		
 		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.REACTION_START_EVENT_ID, GetNewDismemberHandlerInstance());
 	}
@@ -110,36 +111,7 @@ class XTFinishersDefaultDismemberHandler extends XTFinishersAbstractReactionStar
 					&& weaponName != 'fists_fire') {
 				result = false;
 			} else {
-				if (attackAction && attackAction.IsActionMelee()) {
-					isRend = SkillNameToEnum(attackAction.GetAttackTypeName()) == S_Sword_s02;
-					isWhirl = (W3PlayerWitcher)playerAttacker && playerAttacker.GetBehaviorVariable('combatActionType') == (int)CAT_SpecialAttack && playerAttacker.GetBehaviorVariable('playerAttackType') == 0;
-					
-					if (attackAction.IsCriticalHit() && RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_CHANCE_CRIT) {
-						context.dismember.explosion = RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_EXPLOSION_CHANCE_CRIT;
-						context.dismember.type = XTF_DISMEMBER_TYPE_AUTO;
-						result = true;
-					} else if (isRend && RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_CHANCE_REND) {
-						context.dismember.explosion = RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_EXPLOSION_CHANCE_REND;
-						context.dismember.type = XTF_DISMEMBER_TYPE_AUTO;
-						result = true;
-					} else if (isWhirl && RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_CHANCE_WHIRL) {
-						context.dismember.explosion = RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_EXPLOSION_CHANCE_WHIRL;
-						context.dismember.type = XTF_DISMEMBER_TYPE_AUTO;
-						result = true;
-					} else if (!isRend && playerAttacker.IsHeavyAttack(attackAction.GetAttackName()) && RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_CHANCE_STRONG) {
-						context.dismember.explosion = RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_EXPLOSION_CHANCE_STRONG;
-						context.dismember.type = XTF_DISMEMBER_TYPE_AUTO;
-						result = true;
-					} else if (!isWhirl && playerAttacker.IsLightAttack(attackAction.GetAttackName()) && RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_CHANCE_FAST) {
-						context.dismember.explosion = RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_EXPLOSION_CHANCE_FAST;
-						context.dismember.type = XTF_DISMEMBER_TYPE_AUTO;
-						result = true;
-					} else if (thePlayer.IsLastEnemyKilled() && RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_CHANCE_LAST_ENEMY) {
-						context.dismember.explosion = RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_EXPLOSION_CHANCE_LAST_ENEMY;
-						context.dismember.type = XTF_DISMEMBER_TYPE_AUTO;
-						result = true;
-					}
-				}
+				result = PreprocessAutoDismember(context);
 				
 				if (!result) {
 					dismemberChance = theGame.params.DISMEMBERMENT_ON_DEATH_CHANCE;
@@ -172,5 +144,66 @@ class XTFinishersDefaultDismemberHandler extends XTFinishersAbstractReactionStar
 		}
 		
 		context.dismember.active = result;
+	}
+	
+	protected function PreprocessAutoDismember(context : XTFinishersActionContext) : bool {
+		var playerAttacker : CR4Player;
+		var attackAction : W3Action_Attack;
+		var result : bool;
+		var isRend, isWhirl : bool;
+		var autoDismemberEffectTypes : array<EEffectType>;
+		var hasEffect : bool;
+		var i : int;
+		
+		playerAttacker = (CR4Player)context.action.attacker;
+		attackAction = (W3Action_Attack)context.action;
+		
+		if (attackAction && attackAction.IsActionMelee()) {
+			isRend = SkillNameToEnum(attackAction.GetAttackTypeName()) == S_Sword_s02;
+			isWhirl = (W3PlayerWitcher)playerAttacker && playerAttacker.GetBehaviorVariable('combatActionType') == (int)CAT_SpecialAttack && playerAttacker.GetBehaviorVariable('playerAttackType') == 0;
+			
+			if (attackAction.IsCriticalHit() && RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_CHANCE_CRIT) {
+				context.dismember.explosion = RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_EXPLOSION_CHANCE_CRIT;
+				context.dismember.type = XTF_DISMEMBER_TYPE_AUTO;
+				result = true;
+			} else if (isRend && RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_CHANCE_REND) {
+				context.dismember.explosion = RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_EXPLOSION_CHANCE_REND;
+				context.dismember.type = XTF_DISMEMBER_TYPE_AUTO;
+				result = true;
+			} else if (isWhirl && RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_CHANCE_WHIRL) {
+				context.dismember.explosion = RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_EXPLOSION_CHANCE_WHIRL;
+				context.dismember.type = XTF_DISMEMBER_TYPE_AUTO;
+				result = true;
+			} else if (!isRend && playerAttacker.IsHeavyAttack(attackAction.GetAttackName()) && RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_CHANCE_STRONG) {
+				context.dismember.explosion = RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_EXPLOSION_CHANCE_STRONG;
+				context.dismember.type = XTF_DISMEMBER_TYPE_AUTO;
+				result = true;
+			} else if (!isWhirl && playerAttacker.IsLightAttack(attackAction.GetAttackName()) && RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_CHANCE_FAST) {
+				context.dismember.explosion = RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_EXPLOSION_CHANCE_FAST;
+				context.dismember.type = XTF_DISMEMBER_TYPE_AUTO;
+				result = true;
+			} else if (thePlayer.IsLastEnemyKilled() && RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_CHANCE_LAST_ENEMY) {
+				context.dismember.explosion = RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_EXPLOSION_CHANCE_LAST_ENEMY;
+				context.dismember.type = XTF_DISMEMBER_TYPE_AUTO;
+				result = true;
+			} else {
+				hasEffect = false;
+				autoDismemberEffectTypes = theGame.xtFinishersMgr.dismemberModule.params.autoDismemberEffectTypes;
+				for (i = 0; i < autoDismemberEffectTypes.Size(); i += 1) {
+					hasEffect = context.effectsSnapshot.HasEffect(autoDismemberEffectTypes[i]);
+					if (hasEffect) {
+						break;
+					}
+				}
+				result = hasEffect && RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_CHANCE_EFFECTS;
+				
+				if (result) {
+					context.dismember.explosion = RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_EXPLOSION_CHANCE_EFFECTS;
+					context.dismember.type = XTF_DISMEMBER_TYPE_AUTO;
+				}
+			}
+		}
+		
+		return result;
 	}
 }
