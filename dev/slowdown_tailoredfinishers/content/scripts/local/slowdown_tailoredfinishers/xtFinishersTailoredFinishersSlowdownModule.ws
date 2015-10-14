@@ -101,7 +101,7 @@ class XTFinishersTailoredFinishersSlowdownManager extends XTFinishersDefaultSlow
 		seqDef = new XTFinishersSlowdownSequenceDef in this;
 		seqDef.AddSegment(CreateXTFinishersSlowdownDelay(this, 0.4));
 		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.05, 0.1));
-		seqDef.AddSegment(CreateXTFinishersSlowdownDelay(this, 0.5));
+		seqDef.AddSegment(CreateXTFinishersSlowdownDelay(this, 0.45));
 		seqDef.AddSegment(CreateXTFinishersSlowdownSession(this, 0.1, 0.1));
 		customSequenceDefs.PushBack(seqDef);
 		
