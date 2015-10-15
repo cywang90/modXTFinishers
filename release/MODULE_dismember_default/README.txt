@@ -21,9 +21,7 @@ REQUIREMENTS
 INSTALLATION
 ------------
 
-This module requires the base eXTensible Finishers mod (BASE eXTensible Finishers v2.03 or later).
-
-1. Copy the "content" folder in the modXTFinishers\dismember_default directory located in the download package into your <The Witcher 3 Path>\mods\modXTFinishers directory. Accept any folder merge requests from your OS/file system.
+1. Copy the "content" folder in the modXTFinishers\MODULE_dismember_default directory located in the download package into your <The Witcher 3 Path>\mods\modXTFinishers directory. Accept any folder merge requests from your OS/file system.
 2. Open modXTFinishers\content\scripts\local\base\xtFinishersManager.ws ...
 	a. Copy the following line into the file beneath where it says DEFINE MODULE VARS HERE:
 		
