@@ -1,0 +1,69 @@
+==================================
+MODULE dismember_default Changelog
+==================================
+
+-----------------
+v2.1.0 (15/10/14)
+-----------------
+
+General
+---------
+- Updated for compatibility with BASE eXTensible Finishers v4.0.0.
+
+Features
+--------
+- Added new configuration options for triggering dismembers on enemies with specific effects.
+- Now recognizes the following types of dismembers (previously were treated as REGULAR dismembers):
+	- FROZEN
+	- BOMB
+	- BOLT
+	- YRDEN
+	- TOXICCLOUD
+
+-----------------
+v2.0.0 (15/10/09)
+-----------------
+
+General
+-------
+- ***IMPORTANT*** This version brings this module up to date with Patch 1.10. It is not compatible with Patch 1.08 or any earlier game patches. It requires BASE eXTensible Finishers v3.0.0.
+
+----------------
+v1.03 (15/10/06)
+----------------
+
+General
+-------
+- Simplified the installation/uninstallation process.
+
+API
+---
+- All module-specific const vars have been moved from XTFinishersConsts into XTFinishersDefaultDismemberModule.
+- No longer uses the XTFinishersQueryManager API.
+
+----------------
+v1.02 (15/10/01)
+----------------
+
+General
+-------
+- Moved script files to content\scripts\local\dismember_default\
+
+API
+---
+- XTFinishersDefaultDismemberModule.Init() now uses protected functions to initialize individual module components.
+
+----------------
+v1.01 (15/09/27)
+----------------
+
+Bug Fixes
+---------
+- DISMEMBER_AUTO_STRONG is now a mutually exclusive condition with DISMEMBER_AUTO_REND (Rend attacks used to be eligible for both conditions).
+- DISMEMBER_AUTO_FAST is now a mutually exclusive condition with DISMEMBER_AUTO_WHIRL (Whirl attacks used to be eligible for both conditions).
+
+----------------
+v1.00 (15/09/26)
+----------------
+
+Initial Release.

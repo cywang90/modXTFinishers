@@ -1,0 +1,27 @@
+===========================================
+MODULE slowdown_tailoredfinishers Changelog
+===========================================
+
+-----------------
+v2.0.1 (15/10/14)
+-----------------
+
+- Tweaked slowdown sequences for the following finishers:
+	- FINISHER_DLC_STANCE_LEFT_ARM
+	- FINISHER_DLC_STANCE_LEFT_LEGS
+	- FINISHER_DLC_STANCE_LEFT_TORSO
+	- FINISHER_DLC_STANCE_RIGHT_ARM
+	- FINISHER_DLC_STANCE_RIGHT_LEGS
+	- FINISHER_DLC_STANCE_RIGHT_TORSO
+
+-----------------
+v2.0.0 (15/10/09)
+-----------------
+
+- No changes were made for this version. (Version bump only.)
+
+----------------
+v1.00 (15/10/06)
+----------------
+
+Initial Release.

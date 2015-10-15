@@ -1,0 +1,55 @@
+=================================
+MODULE camshake_default Changelog
+=================================
+
+-----------------
+v3.0.0 (15/10/14)
+-----------------
+
+General
+---------
+- Updated for compatibility with BASE eXTensible Finishers v4.0.0.
+
+Features
+--------
+- Changed all existing camera shake trigger checks from booleans to probabilities.
+- Added new configuration options:
+	- Now supports configuration of camera shake on regular fast and strong attacks.
+	- Separate configuration options for camera shake on fatal crits and dismembers against the last enemy in combat.
+
+-----------------
+v2.0.0 (15/10/09)
+-----------------
+
+- No changes were made for this version. (Version bump only.)
+
+----------------
+v1.02 (15/10/06)
+----------------
+
+General
+-------
+- Simplified the installation/uninstallation process.
+
+API
+---
+- All module-specific const vars have been moved from XTFinishersConsts into XTFinishersDefaultCamShakeModule.
+- No longer uses the XTFinishersQueryManager API.
+
+----------------
+v1.01 (15/10/01)
+----------------
+
+General
+-------
+- Moved script files to content\scripts\local\camshake_default\
+
+API
+---
+- XTFinishersDefaultCamShakeModule.Init() now uses protected functions to initialize individual module components.
+
+----------------
+v1.00 (15/09/26)
+----------------
+
+Initial Release.
