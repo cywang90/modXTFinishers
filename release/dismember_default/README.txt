@@ -8,14 +8,14 @@ Author: aznricepuff
 VERSION
 -------
 
-This README is for v2.0.0.
+This README is for v2.1.0.
 
 ------------
 REQUIREMENTS
 ------------
 
 - The Witcher 3: Wild Hunt Patch 1.10
-- BASE eXTensible Finishers v3.0.0 or later
+- BASE eXTensible Finishers v4.0.0 or later
 
 ------------
 INSTALLATION
@@ -58,16 +58,23 @@ DOCUMENTATION
 -------------
 
 This module changes the way dismemberments are triggered. There are two types of dismemberments defined by the module:
-	- REGULAR dismemberments: These are dismemberments that are triggered by conditions defined by vanilla game code. In other words, these are the finishers that would have been triggered even if the mod had not been installed.
-	- AUTOMATIC dismemberments: These are dismemberments triggered specifically by the mod.
+	- REGULAR dismembers: These are dismemberments that are triggered by conditions defined by vanilla game code. In other words, these are the finishers that would have been triggered even if the mod had not been installed.
+	- FROZEN dismembers: These are dismemberments that are triggered specifically on frozen enemies. They never cause dismember explosions.
+	- BOMB dismembers: These are dismemberments caused by certain bombs. They never cause dismember explosions.
+	- BOLT dismembers: These are dismemberments caused by certain crossbow bolts. They never cause dismember explosions.
+	- YRDEN dismembers: These are dismemberments caused by Yrden upgraded with Supercharged Glyphs. They always cause dismember explosions.
+	- TOXIC CLOUD dismembers: These are dismemberments caused by explosions triggered by lighting gas clouds on fire. They always cause dismember explosions.
+	- AUTOMATIC dismembers: These are dismemberments triggered specifically by the mod. They can only be triggered on melee attacks.
+	- DEBUG dismembers: These are dismemberments that are triggered by the debug console command ForceDismember().
 
-Dismemberments can trigger on any human or non-human enemy that supports the dismemberment animation - this means most (all?) human enemies and a small subset of monsters such as nekkers and drowners. REGULAR finishers can trigger when playing as Geralt or as Ciri. AUTOMATIC finishers can only trigger when playing as Geralt.
+Dismemberments can trigger on any human or non-human enemy that supports the dismemberment animation - this means most (all?) human enemies and a subset of monsters such as nekkers and drowners. REGULAR and AUTOMATIC dismemberments can trigger when playing as Geralt or as Ciri. The other types of dismemberments generally can only be triggered when playing as Geralt (due to the specific nature of their triggers).
 
 In a situation where both a finisher AND a dismemberment is triggered on the same enemy, the finisher always takes precedent, and the dismemberment will not be activated.
 
 Configuration options provided by this module include:
 
 	- Options to define chance to trigger AUTOMATIC dismemberments under the following conditions:
+		- Target has certain effects/debuffs.
 		- Target killed by a critical hit.
 		- Target killed by a strong attack.
 		- Target killed by a fast attack.

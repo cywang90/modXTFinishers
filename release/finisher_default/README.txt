@@ -8,14 +8,14 @@ Author: aznricepuff
 VERSION
 -------
 
-This README is for v2.0.0.
+This README is for v2.1.0.
 
 ------------
 REQUIREMENTS
 ------------
 
 - The Witcher 3: Wild Hunt Patch 1.10
-- BASE eXTensible Finishers v3.0.0 or later
+- BASE eXTensible Finishers v4.0.0 or later
 
 ------------
 INSTALLATION
@@ -59,13 +59,14 @@ DOCUMENTATION
 
 This module changes the way finishers and cinematic finishers are triggered.
 
-There are four types of finishers defined by the module:
+There are five types of finishers defined by the module:
 	- REGULAR finishers: These are finishers that are triggered on fatal blows and by conditions defined by vanilla game code. In other words, these are the finishers that would have been triggered even if the mod had not been installed.
 	- AUTOMATIC finishers: These are finishers that are triggered on fatal blows and by conditions specifically defined by the mod.
-	- INSTANT-KILL finishers: These are finishers that are triggered on non-fatal blows but that lead to an instant-kill.
-	- FORCED finishers: This is a special type of finisher that only happens when the target has a specific 'ForceFinisher' tag applied to them.
+	- INSTANT-KILL finishers: These are finishers that are triggered on non-fatal blows but that lead to an instant-kill. Note that this does not include instant kills against knocked-down enemies, which have their own category (see below).
+	- KNOCKDOWN finishers: These are finishers that are triggered specifically on enemies that are knocked down.
+	- DEBUG finishers: These are finishers that are triggered by the debug console command ForceFinisher().
 
-Finishers ONLY trigger on human enemies (this is a condition imposed by the base game, as none of the finisher animations support non-human targets) and ONLY trigger when playing as Geralt (again, a condition imposed by the base game, as Ciri does not have finisher animations).
+Finishers ONLY trigger on melee attacks against human enemies (none of the finisher animations support non-human targets). The ONE exception to this rule is the case of KNOCKDOWN finishers, which can be triggered on knocked-down humans as well as the following monster types: Nekkers, Drowners, Ghouls, Grave Hags, Wolves, Harpies, Sirens, and Boars. Additionally, finishers ONLY trigger when playing as Geralt (Ciri does not have finisher animations).
 
 In a situation where both a finisher AND a dismemberment is triggered on the same enemy, the finisher always takes precedent, and the dismemberment will not be activated.
 

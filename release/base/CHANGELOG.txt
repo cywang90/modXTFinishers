@@ -3,6 +3,28 @@ BASE eXTensible Finishers Changelog
 ===================================
 
 -----------------
+v4.0.0 (15/10/14)
+-----------------
+
+General
+-------
+- ***IMPORTANT*** This version breaks backwards compatibility with the following versions of the default modules:
+	- MODULE finisher_default v2.0.0 and older
+	- MODULE dismember_default v2.0.0 and older
+	- MODULE slowdown_default v2.0.0 and older
+	- MODULE camshake_default v2.0.0 and older
+
+API
+---
+- Added enums for finisher, dismember, slowdown, and camshake types.
+- XTFinishersFinisherContext, XTFinishersDismemberContext, XTFinishersSlowdownContext, and XTFinishersCamShakeContext now use the new type enums.
+- Added HasEffects() function for XTFinishersEffectsSnapshot.
+
+Bug Fixes
+---------
+- Now correctly handles KNOCKDOWN finishers.
+
+-----------------
 v3.0.0 (15/10/09)
 -----------------
 

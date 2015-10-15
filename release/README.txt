@@ -8,7 +8,14 @@ Author: aznricepuff
 VERSION
 -------
 
-This README is for Release 07.
+This README is for Release 08, which includes the following components:
+
+BASE		eXTensible Finishers 		v4.0.0
+MODULE		finisher_default 			v2.1.0
+MODULE		dismember_default 			v2.1.0
+MODULE		slowdown_default 			v2.1.0
+MODULE		camshake_default			v3.0.0
+MODULE		slowdown_tailoredfinishers	v2.0.1
 
 ------------
 REQUIREMENTS
@@ -45,33 +52,35 @@ eXTensible Finishers is organized into two main parts:
 	
 INSTALLING JUST THE BASE MOD
 ----------------------------
-	1. Download the "modXTFinishers_BASE_ONLY" file from Nexus Mods.
-	2. Copy the "content" folder in the modXTFinishers\base directory located in the download package into your <The Witcher 3 Path>\mods\modXTFinishers directory.
+	1. Copy the "content" folder in the modXTFinishers\base directory located in the download package into your <The Witcher 3 Path>\mods\modXTFinishers directory.
 	
-INSTALLING THE DEFAULT MODULES
-------------------------------
-eXTensible Finishers is released with four pre-built modules:
+INSTALLING THE INCLUDED MODULES
+-------------------------------
+eXTensible Finishers is released with five pre-built modules:
 	
-	finisher_default
-	dismember_default
-	slowdown_default
-	camshake_default
+	MODULE finisher_default
+	MODULE dismember_default
+	MODULE slowdown_default
+	MODULE camshake_default
+	MODULE slowdown_tailoredfinishers
 	
 There are two ways you can install these modules:
 
 QUICK AND EASY METHOD:
-	1. Download the "modXTFinishers_COMPLETE" file from Nexus Mods.
-	2. Copy the "content" folder in the "modXTFinishers\complete" directory into your "<The Witcher 3 Path>\mods\" directory.
+	A. If you wish to install only the default modules:
+		1. Copy the "content" folder in the modXTFinishers\PREINSTALL_DEFAULT directory into your <The Witcher 3 Path>\mods\modXTFinishers directory.
+	
+	B. If you wish to install the default modules + MODULE slowdown_tailoredfinishers:
+		2. Copy the "content" folder in the modXTFinishers\PREINSTALL_DEFAULT+TAILOREDFINISHERS directory into your <The Witcher 3 Path>\mods\modXTFinishers directory.
 	
 ADVANCED METHOD:
-	1. Download the "modXTFinishers_BASE_ONLY" file and any module files (named "modXTFinishers_XX", where XX is the name of the module) you wish to install from Nexus Mods.
-	2. Install the BASE mod (see above).
-	3. Follow the instructions in the README.txt files found in the module files (located at "modXTFinishers_xx\README.txt").
+	1. Install the BASE mod (see above).
+	2. For each module you wish to install, follow the instructions in the README.txt files found in the module folders.
 	
 You can install as few or as many of the default modules as you wish based on which functionalities you want. 
 
-CONFIGURING THE DEFAULT MODULES
--------------------------------
+CONFIGURING THE INCLUDED MODULES
+--------------------------------
 All user-modifiable config options for the modules included in the mod are located in files:
 	
 	modXTFinishers\content\scripts\local\finisher_default\xtFinishersDefaultFinisherParams.ws
@@ -83,7 +92,7 @@ Descriptions of what the individual settings do can be found in the comments in 
 
 ADDING CUSTOM MODULES
 ---------------------
-Users can create or add modules that are not pre-packaged with the mod. The provided default modules can be used as examples of how to write modules for use with eXTensible Finishers. 
+Users can create or add modules that are not pre-packaged with the mod. The packaged modules can be used as examples of how to write modules for use with eXTensible Finishers. 
 
 The process of installing custom modules will depend on how the module is written, but all modules must be loaded by the mod at run-time before they can take any effect. The recommended method to load a custom module is in the Init() function of XTFinishersManager (located in content\scripts\local\base\xtFinishersManager.ws).
 
@@ -99,13 +108,14 @@ MODULE finisher_default
 -----------------------
 This module changes the way finishers and cinematic finishers are triggered.
 
-There are four types of finishers defined by the module:
+There are five types of finishers defined by the module:
 	- REGULAR finishers: These are finishers that are triggered on fatal blows and by conditions defined by vanilla game code. In other words, these are the finishers that would have been triggered even if the mod had not been installed.
 	- AUTOMATIC finishers: These are finishers that are triggered on fatal blows and by conditions specifically defined by the mod.
-	- INSTANT-KILL finishers: These are finishers that are triggered on non-fatal blows but that lead to an instant-kill.
-	- FORCED finishers: This is a special type of finisher that only happens when the target has a specific 'ForceFinisher' tag applied to them.
+	- INSTANT-KILL finishers: These are finishers that are triggered on non-fatal blows but that lead to an instant-kill. Note that this does not include instant kills against knocked-down enemies, which have their own category (see below).
+	- KNOCKDOWN finishers: These are finishers that are triggered specifically on enemies that are knocked down.
+	- DEBUG finishers: These are finishers that are triggered by the debug console command ForceFinisher().
 
-Finishers ONLY trigger on human enemies (this is a condition imposed by the base game, as none of the finisher animations support non-human targets) and ONLY trigger when playing as Geralt (again, a condition imposed by the base game, as Ciri does not have finisher animations).
+Finishers ONLY trigger on melee attacks against human enemies (none of the finisher animations support non-human targets). The ONE exception to this rule is the case of KNOCKDOWN finishers, which can be triggered on knocked-down humans as well as the following monster types: Nekkers, Drowners, Ghouls, Grave Hags, Wolves, Harpies, Sirens, and Boars. Additionally, finishers ONLY trigger when playing as Geralt (Ciri does not have finisher animations).
 
 In a situation where both a finisher AND a dismemberment is triggered on the same enemy, the finisher always takes precedent, and the dismemberment will not be activated.
 
@@ -134,16 +144,23 @@ Configuration options provided by this module include:
 MODULE dismember_default
 ------------------------
 This module changes the way dismemberments are triggered. There are two types of dismemberments defined by the module:
-	- REGULAR dismemberments: These are dismemberments that are triggered by conditions defined by vanilla game code. In other words, these are the finishers that would have been triggered even if the mod had not been installed.
-	- AUTOMATIC dismemberments: These are dismemberments triggered specifically by the mod.
+	- REGULAR dismembers: These are dismemberments that are triggered by conditions defined by vanilla game code. In other words, these are the finishers that would have been triggered even if the mod had not been installed.
+	- FROZEN dismembers: These are dismemberments that are triggered specifically on frozen enemies. They never cause dismember explosions.
+	- BOMB dismembers: These are dismemberments caused by certain bombs. They never cause dismember explosions.
+	- BOLT dismembers: These are dismemberments caused by certain crossbow bolts. They never cause dismember explosions.
+	- YRDEN dismembers: These are dismemberments caused by Yrden upgraded with Supercharged Glyphs. They always cause dismember explosions.
+	- TOXIC CLOUD dismembers: These are dismemberments caused by explosions triggered by lighting gas clouds on fire. They always cause dismember explosions.
+	- AUTOMATIC dismembers: These are dismemberments triggered specifically by the mod. They can only be triggered on melee attacks.
+	- DEBUG dismembers: These are dismemberments that are triggered by the debug console command ForceDismember().
 
-Dismemberments can trigger on any human or non-human enemy that supports the dismemberment animation - this means most (all?) human enemies and a small subset of monsters such as nekkers and drowners. REGULAR finishers can trigger when playing as Geralt or as Ciri. AUTOMATIC finishers can only trigger when playing as Geralt.
+Dismemberments can trigger on any human or non-human enemy that supports the dismemberment animation - this means most (all?) human enemies and a subset of monsters such as nekkers and drowners. REGULAR and AUTOMATIC dismemberments can trigger when playing as Geralt or as Ciri. The other types of dismemberments generally can only be triggered when playing as Geralt (due to the specific nature of their triggers).
 
 In a situation where both a finisher AND a dismemberment is triggered on the same enemy, the finisher always takes precedent, and the dismemberment will not be activated.
 
 Configuration options provided by this module include:
 
 	- Options to define chance to trigger AUTOMATIC dismemberments under the following conditions:
+		- Target has certain effects/debuffs.
 		- Target killed by a critical hit.
 		- Target killed by a strong attack.
 		- Target killed by a fast attack.
@@ -158,6 +175,8 @@ This module adds the ability to control how slow-motion sequences are triggered.
 
 The following terms are used by the module's documentation and related material when discussing slow-motion:
 	- Slow-motion SESSION: A single instance of a period of slow-motion with a fixed time-factor and duration.
+		- Time factor is defined the ratio: delta(game time) : delta(real time). In other words, it is how many seconds of game (simulation) time will pass in one second of real time.
+		- Duration is always expressed in game (simulation) time. To convert to real time, simply divide by the time factor. For example, a session of time-factor 0.5 and duration 0.1 will last 0.1/0.5 = 0.2 seconds in real time.
 	- Slow-motion SEQUENCE: A structured, linked group of one or more slow-motion SESSIONS. The SESSIONS contained in a SEQUENCE may or may not be continuous (i.e. there may be delays between one SESSION and the next). Once a SEQUENCE is triggered, it will always play through all of its SESSIONS unless interrupted.
 
 Only one slow-motion sequence can be active at a time. If a new sequence attempts to activate while an earlier one is still active, the new sequence will fail to activate, and the earlier one will continue playing.
@@ -174,8 +193,19 @@ Configuration options provided by this module include:
 
 	- Options to define chance to trigger slow-motion sequences under the following conditions:
 		- Target hit by a critical hit.
-		- Target killed by a dismemberment.
-		- Target killed by a finisher.
+		- Target killed by a dismemberment of type:
+			- REGULAR
+			- FROZEN
+			- BOMB
+			- BOLT
+			- YRDEN
+			- TOXIC CLOUD
+			- AUTO
+		- Target killed by a finisher of type:
+			- REGULAR
+			- AUTO
+			- INSTANT KILL
+			- KNOCKDOWN
 	- Options to define duration, slowdown factor, and delay of slow-motion sequences for each of the above conditions.
 	- Option to disable camera shake when a slow-motion sequence is triggered.
 
@@ -188,14 +218,32 @@ If camera shake can be triggered under more than one condition (e.g. on an attac
 	1. On dismemberments.
 	2. On Rend attacks.
 	3. On critical hits.
+	4. On regular fast/strong attacks.
 
 Configuration options provided by this module include:
 	
-	- Options to define whether to trigger camera shake under the following conditions:
+	- Options to define the chance to trigger camera shake under the following conditions:
+		- Target hit by a fast attack.
+		- Target hit by a strong attack.
 		- Target hit by a Rend attack.
 		- Target hit by a critical hit.
 		- Target killed by a dismemberment.
 	- Options to define strength of the camera shake for each of the above conditions.
+	
+MODULE slowdown_tailoredfinishers
+---------------------------------
+This module defines slowdown sequences specially tailored for and timed to specific finisher animations. These sequences are based on the timings of the cinematic finisher sequences present in the vanilla game.
+
+This module also overrides the behavior of MODULE slowdown_default so that when a slowdown is triggered on a finisher, the appropriate tailored slowdown sequence will be played instead of the generic sequence defined by MODULE slowdown_default's params file. All other behavior defined by MODULE slowdown_default remains intact.
+
+Use the configuration options provided by MODULE slowdown_default to customize behavior not specifically overridden by this module (see above paragraph). The following configuration options (and only these options) in MODULE slowdown_default are ignored when this module is installed:
+
+	SLOWDOWN_FINISHER_A_FACTOR
+	SLOWDOWN_FINISHER_A_DURATION
+	SLOWDOWN_FINISHER_A_DELAY
+	SLOWDOWN_FINISHER_B_FACTOR
+	SLOWDOWN_FINISHER_B_DURATION
+	SLOWDOWN_FINISHER_B_DELAY
 	
 Misc Notes
 ----------

@@ -3,6 +3,29 @@ MODULE slowdown_default Changelog
 =================================
 
 -----------------
+v2.1.0 (15/10/14)
+-----------------
+
+General
+---------
+- Updated for compatibility with BASE eXTensible Finishers v4.0.0.
+
+Features
+--------
+- Added new configuration options:
+	- Separate configuration options for KNOCKDOWN finishers.
+	- Separate configuration options for different types of dismembers:
+		- FROZEN
+		- BOMB
+		- BOLT
+		- YRDEN
+		- TOXIC CLOUD
+
+Bug Fixes
+---------
+- Now correctly handles KNOCKDOWN finishers. They now have their own configuration options (see above).
+
+-----------------
 v2.0.0 (15/10/09)
 -----------------
 

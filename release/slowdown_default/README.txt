@@ -8,14 +8,14 @@ Author: aznricepuff
 VERSION
 -------
 
-This README is for v2.0.0.
+This README is for v2.1.0.
 
 ------------
 REQUIREMENTS
 ------------
 
-- The Witcher 3: Wild Hunt Patch 1.08 or later
-- BASE eXTensible Finishers v2.03 or later
+- The Witcher 3: Wild Hunt Patch 1.10 or later
+- BASE eXTensible Finishers v4.0.0 or later
 
 ------------
 INSTALLATION
@@ -53,6 +53,8 @@ This module adds the ability to control how slow-motion sequences are triggered.
 
 The following terms are used by the module's documentation and related material when discussing slow-motion:
 	- Slow-motion SESSION: A single instance of a period of slow-motion with a fixed time-factor and duration.
+		- Time factor is defined the ratio: delta(game time) : delta(real time). In other words, it is how many seconds of game (simulation) time will pass in one second of real time.
+		- Duration is always expressed in game (simulation) time. To convert to real time, simply divide by the time factor. For example, a session of time-factor 0.5 and duration 0.1 will last 0.1/0.5 = 0.2 seconds in real time.
 	- Slow-motion SEQUENCE: A structured, linked group of one or more slow-motion SESSIONS. The SESSIONS contained in a SEQUENCE may or may not be continuous (i.e. there may be delays between one SESSION and the next). Once a SEQUENCE is triggered, it will always play through all of its SESSIONS unless interrupted.
 
 Only one slow-motion sequence can be active at a time. If a new sequence attempts to activate while an earlier one is still active, the new sequence will fail to activate, and the earlier one will continue playing.
@@ -69,8 +71,19 @@ Configuration options provided by this module include:
 
 	- Options to define chance to trigger slow-motion sequences under the following conditions:
 		- Target hit by a critical hit.
-		- Target killed by a dismemberment.
-		- Target killed by a finisher.
+		- Target killed by a dismemberment of type:
+			- REGULAR
+			- FROZEN
+			- BOMB
+			- BOLT
+			- YRDEN
+			- TOXIC CLOUD
+			- AUTO
+		- Target killed by a finisher of type:
+			- REGULAR
+			- AUTO
+			- INSTANT KILL
+			- KNOCKDOWN
 	- Options to define duration, slowdown factor, and delay of slow-motion sequences for each of the above conditions.
 	- Option to disable camera shake when a slow-motion sequence is triggered.
 	

@@ -8,14 +8,14 @@ Author: aznricepuff
 VERSION
 -------
 
-This README is for v2.0.0.
+This README is for v3.0.0.
 
 ------------
 REQUIREMENTS
 ------------
 
-- The Witcher 3: Wild Hunt Patch 1.08 or later
-- BASE eXTensible Finishers v2.03 or later
+- The Witcher 3: Wild Hunt Patch 1.10 or later
+- BASE eXTensible Finishers v4.0.0 or later
 
 ------------
 INSTALLATION
@@ -64,10 +64,13 @@ If camera shake can be triggered under more than one condition (e.g. on an attac
 	1. On dismemberments.
 	2. On Rend attacks.
 	3. On critical hits.
+	4. On regular fast/strong attacks.
 
 Configuration options provided by this module include:
 	
-	- Options to define whether to trigger camera shake under the following conditions:
+	- Options to define the chance to trigger camera shake under the following conditions:
+		- Target hit by a fast attack.
+		- Target hit by a strong attack.
 		- Target hit by a Rend attack.
 		- Target hit by a critical hit.
 		- Target killed by a dismemberment.

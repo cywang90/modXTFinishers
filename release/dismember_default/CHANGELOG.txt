@@ -3,6 +3,24 @@ MODULE dismember_default Changelog
 ==================================
 
 -----------------
+v2.1.0 (15/10/14)
+-----------------
+
+General
+---------
+- Updated for compatibility with BASE eXTensible Finishers v4.0.0.
+
+Features
+--------
+- Added new configuration options for triggering dismembers on enemies with specific effects.
+- Now recognizes the following types of dismembers (previously were treated as REGULAR dismembers):
+	- FROZEN
+	- BOMB
+	- BOLT
+	- YRDEN
+	- TOXICCLOUD
+
+-----------------
 v2.0.0 (15/10/09)
 -----------------
 

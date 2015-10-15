@@ -3,6 +3,21 @@ MODULE camshake_default Changelog
 =================================
 
 -----------------
+v3.0.0 (15/10/14)
+-----------------
+
+General
+---------
+- Updated for compatibility with BASE eXTensible Finishers v4.0.0.
+
+Features
+--------
+- Changed all existing camera shake trigger checks from booleans to probabilities.
+- Added new configuration options:
+	- Now supports configuration of camera shake on regular fast and strong attacks.
+	- Separate configuration options for camera shake on fatal crits and dismembers against the last enemy in combat.
+
+-----------------
 v2.0.0 (15/10/09)
 -----------------
 
