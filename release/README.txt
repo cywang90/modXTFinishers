@@ -68,10 +68,10 @@ There are two ways you can install these modules:
 
 QUICK AND EASY METHOD:
 	A. If you wish to install only the default modules:
-		1. Copy the "content" folder in the modXTFinishers\PREINSTALL_DEFAULT directory into your <The Witcher 3 Path>\mods\modXTFinishers directory.
+		1. Copy the "content" folder in the modXTFinishers\PREINSTALL_default directory into your <The Witcher 3 Path>\mods\modXTFinishers directory.
 	
 	B. If you wish to install the default modules + MODULE slowdown_tailoredfinishers:
-		2. Copy the "content" folder in the modXTFinishers\PREINSTALL_DEFAULT+TAILOREDFINISHERS directory into your <The Witcher 3 Path>\mods\modXTFinishers directory.
+		2. Copy the "content" folder in the modXTFinishers\PREINSTALL_default+tailoredfinishers directory into your <The Witcher 3 Path>\mods\modXTFinishers directory.
 	
 ADVANCED METHOD:
 	1. Install the BASE mod (see above).

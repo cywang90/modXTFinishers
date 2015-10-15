@@ -24,6 +24,9 @@ General
 			- MODULE dismember_default v2.0.0 and older
 			- MODULE slowdown_default v2.0.0 and older
 			- MODULE camshake_default v2.0.0 and older
+	- Renamed BASE and MODULE folders.
+	- Renamed "complete" folder to "PREINSTALL_default".
+	- Added PREINSTALL_default+tailoredfinishers folder.
 
 API
 ---

@@ -42,7 +42,7 @@ INSTALLATION
 	-OR-
 	Enabled=0	-> mod disabled
 	
-5. Copy the "content" folder in the modXTFinishers\PREINSTALL_DEFAULT+TAILOREDFINISHERS directory into your <The Witcher 3 Path>\mods\modXTFinishers directory.
+5. Copy the "content" folder in the modXTFinishers\PREINSTALL_default+tailoredfinishers directory into your <The Witcher 3 Path>\mods\modXTFinishers directory.
 
 CONFIGURING THE INCLUDED MODULES
 --------------------------------
