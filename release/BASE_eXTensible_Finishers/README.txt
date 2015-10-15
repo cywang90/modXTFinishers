@@ -22,7 +22,7 @@ INSTALLATION
 
 1. Create a folder named "mods" in your <The Witcher 3 Path>\ directory. Skip this step if such a folder already exists.
 2. Create a new folder named "modXTFinishers" in your <The Witcher 3 Path>\mods\ directory.
-3. Copy the "content" folder in the modXTFinishers\base directory located in the download package into your <The Witcher 3 Path>\mods\modXTFinishers directory.
+3. Copy the "content" folder in the modXTFinishers\BASE_eXTensible_Finishers directory located in the download package into your <The Witcher 3 Path>\mods\modXTFinishers directory.
 4. Create a text file in your "My Documents\The Witcher 3\" directory and name it "mods.settings". Skip this step if you already have a mods.settings file.
 5. Add the following lines in your mods.settings file:
 
