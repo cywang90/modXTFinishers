@@ -23,7 +23,7 @@ class XTFinishersDefaultCamShakeHandler extends XTFinishersAbstractActionEndEven
 		return theGame.xtFinishersMgr.camshakeModule.DEFAULT_CAMSHAKE_HANDLER_PRIORITY;
 	}
 	
-	protected function PreprocessNormalStrike(out context : XTFinishersActionContext) {
+	protected function PreprocessNormalStrike(context : XTFinishersActionContext) {
 		var playerAttacker : CR4Player;
 		var attackAction : W3Action_Attack;
 		
@@ -90,7 +90,7 @@ class XTFinishersDefaultCamShakeHandler extends XTFinishersAbstractActionEndEven
 		}
 	}
 	
-	protected function PreprocessCriticalHit(out context : XTFinishersActionContext) {
+	protected function PreprocessCriticalHit(context : XTFinishersActionContext) {
 		var attackAction : W3Action_Attack;
 		var actorVictim : CActor;
 		
@@ -142,7 +142,7 @@ class XTFinishersDefaultCamShakeHandler extends XTFinishersAbstractActionEndEven
 		}
 	}
 	
-	protected function PreprocessDismember(out context : XTFinishersActionContext) {
+	protected function PreprocessDismember(context : XTFinishersActionContext) {
 		var actorAttacker : CActor;
 		
 		actorAttacker = (CActor)context.action.attacker;
@@ -170,7 +170,7 @@ class XTFinishersDefaultCamShakeHandler extends XTFinishersAbstractActionEndEven
 		}
 	}
 	
-	public function OnActionEndTriggered(out context : XTFinishersActionContext) {
+	public function OnActionEndTriggered(context : XTFinishersActionContext) {
 		PreprocessNormalStrike(context);
 		PreprocessFatalHit(context);
 		PreprocessCriticalHit(context);
