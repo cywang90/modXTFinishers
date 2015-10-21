@@ -35,9 +35,13 @@ There are two ways to install this mod...
 
 OPTION 1: NEXUS MOD MANAGER
 ---------------------------
+Download the mod from Nexus Mods using the "Download with Manager" option. Use NMM to install the mod, and choose one of the installation types when prompted.
+
+If you wish to switch between installation types, you must uninstall and re-install the mod in NMM. Simply disabling and re-enabling the mod will not work.
 
 OPTION 2: MANUAL INSTALLATION
 -----------------------------
+Download the 7-zip mod package manually from Nexus Mods. Then...
 
 1. Create a folder named "mods" in your <The Witcher 3 Path>\ directory. Skip this step if such a folder already exists.
 2. Create a new folder named "modXTFinishers" in your <The Witcher 3 Path>\mods\ directory.
@@ -267,6 +271,12 @@ This mod is not compatible with any other mod that changes the behavior of and/o
 UNINSTALLATION
 --------------
 
+OPTION 1: NEXUS MOD MANAGER
+---------------------------
+Right-click on the mod in NMM, and select the "Uninstall" option.
+
+OPTION 2: MANUAL UNINSTALLATION
+-------------------------------
 1. Remove the relevant lines in your mods.settings file.
 2. Delete the modXTFinishers folder in your "<The Witcher 3 Path>\mods\" directory.
 
