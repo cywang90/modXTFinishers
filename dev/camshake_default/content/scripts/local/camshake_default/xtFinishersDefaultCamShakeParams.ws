@@ -27,7 +27,7 @@ class XTFinishersDefaultCamShakeParams {
 	public const var CAMERA_SHAKE_FATAL_CHANCE : float;
 		default CAMERA_SHAKE_FATAL_CHANCE = 0.0;					// Chance to trigger camera shake on fatal hits.
 	public const var CAMERA_SHAKE_FATAL_STRENGTH : float;
-		default CAMERA_SHAKE_FATAL_STRENGTH = 0.2;					// Strength of camera shake on fatal hits.
+		default CAMERA_SHAKE_FATAL_STRENGTH = 0.5;					// Strength of camera shake on fatal hits.
 		
 	//======================================
 	// CAMERA SHAKE ON CRITICAL HIT SETTINGS
