@@ -58,7 +58,7 @@
 					<flagDependency flag="default_only" value="Y"/>
 				</dependencies>
 				<files>
-					<folder source="PREINSTALL_default/content" destination="modXTFinishers/content" priority="1"/>
+					<folder source="PREPACKAGE_default/content" destination="modXTFinishers/content" priority="1"/>
 				</files>
 			</pattern>
 			<pattern>
@@ -66,7 +66,7 @@
 					<flagDependency flag="default_and_tailoredfinishers" value="Y"/>
 				</dependencies>
 				<files>
-					<folder source="PREINSTALL_default+tailoredfinishers/content" destination="modXTFinishers/content" priority="1"/>
+					<folder source="PREPACKAGE_default+tailoredfinishers/content" destination="modXTFinishers/content" priority="1"/>
 				</files>
 			</pattern>
 		</patterns>
