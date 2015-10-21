@@ -66,7 +66,7 @@ class XTFinishersDefaultSlowdownFatalHandler extends XTFinishersAbstractActionEn
 		if ((CR4Player)context.action.attacker && attackAction && attackAction.IsActionMelee() && actorVictim && !actorVictim.IsAlive()) {
 			PreprocessSlowdownFatal(context);
 			
-			if (context.slowdown.active) {
+			if (context.slowdown.active && context.slowdown.type == XTF_SLOWDOWN_TYPE_FATAL) {
 				if (context.slowdown.active && theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_DISABLE_CAMERA_SHAKE) {
 					context.camShake.forceOff = true;
 				}
@@ -100,7 +100,7 @@ class XTFinishersDefaultSlowdownCritHandler extends XTFinishersAbstractActionEnd
 		if ((CR4Player)context.action.attacker && attackAction && attackAction.IsActionMelee() && attackAction.IsCriticalHit()) {
 			PreprocessSlowdownCrit(context);
 			
-			if (context.slowdown.active) {
+			if (context.slowdown.active && context.slowdown.type == XTF_SLOWDOWN_TYPE_CRIT) {
 				if (context.slowdown.active && theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_DISABLE_CAMERA_SHAKE) {
 					context.camShake.forceOff = true;
 				}
@@ -142,7 +142,7 @@ class XTFinishersDefaultSlowdownFinisherHandler extends XTFinishersAbstractFinis
 	public function OnFinisherTriggered(context : XTFinishersActionContext) {
 		PreprocessSlowdownFinisher(context);
 		
-		if (context.slowdown.active) {
+		if (context.slowdown.active && context.slowdown.type == XTF_SLOWDOWN_TYPE_FINISHER) {
 			theGame.xtFinishersMgr.slowdownMgr.TriggerSlowdown(context);
 		}
 	}
@@ -199,7 +199,7 @@ class XTFinishersDefaultSlowdownDismemberHandler extends XTFinishersAbstractDism
 	public function OnDismemberTriggered(context : XTFinishersActionContext) {
 		PreprocessSlowdownDismember(context);
 		
-		if (context.slowdown.active) {
+		if (context.slowdown.active && context.slowdown.type == XTF_SLOWDOWN_TYPE_DISMEMBER) {
 			if (context.slowdown.active && theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_DISABLE_CAMERA_SHAKE) {
 				context.camShake.forceOff = true;
 			}
