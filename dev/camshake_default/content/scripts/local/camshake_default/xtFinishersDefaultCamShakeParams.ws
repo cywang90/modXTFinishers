@@ -46,7 +46,7 @@ class XTFinishersDefaultCamShakeParams {
 	// CAMERA SHAKE ON REND SETTINGS
 	//==============================
 	
-	public const var CAMERA_SHAKE_REND_CHANCE : int;
+	public const var CAMERA_SHAKE_REND_CHANCE : float;
 		default CAMERA_SHAKE_REND_CHANCE = 100.0;					// Chance to trigger camera shake on Rend attacks.
 	
 	//===================================
