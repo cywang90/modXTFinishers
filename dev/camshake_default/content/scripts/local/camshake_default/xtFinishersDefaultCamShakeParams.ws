@@ -21,6 +21,14 @@ class XTFinishersDefaultCamShakeParams {
 		default CAMERA_SHAKE_STRONG_STRENGTH = 0.1;					// Strength of camera shake on strong attacks.
 		default CAMERA_SHAKE_STRONG_PARRIED_STRENGTH = 0.2;			// Strength of camera shake on strong attacks that were parried by the enemy.
 	
+	//===================================
+	// CAMERA SHAKE ON FATAL HIT SETTINGS
+	//===================================
+	public const var CAMERA_SHAKE_FATAL_CHANCE : float;
+		default CAMERA_SHAKE_FATAL_CHANCE = 0.0;					// Chance to trigger camera shake on fatal hits.
+	public const var CAMERA_SHAKE_FATAL_STRENGTH : float;
+		default CAMERA_SHAKE_FATAL_STRENGTH = 0.2;					// Strength of camera shake on fatal hits.
+	
 	//==============================
 	// CAMERA SHAKE ON REND SETTINGS
 	//==============================

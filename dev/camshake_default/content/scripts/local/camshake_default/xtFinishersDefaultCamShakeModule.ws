@@ -80,6 +80,23 @@ class XTFinishersDefaultCamShakeHandler extends XTFinishersAbstractActionEndEven
 		}
 	}
 	
+	protected function PreprocessFatalHit(context : XTFinishersActionContext) {
+		var attackAction : W3Action_Attack;
+		var actorVictim : CActor;
+		
+		attackAction = (W3Action_Attack)context.action;
+		actorVictim = (CActor)context.action.victim;
+		
+		if ((CR4Player)context.action.attacker && attackAction && attackAction.IsActionMelee() && actorVictim && !actorVictim.IsAlive()) {
+			if (RandRangeF(100) < theGame.xtFinishersMgr.camshakeModule.params.CAMERA_SHAKE_FATAL_CHANCE) {
+				context.camShake.active = true;
+				context.camShake.type = XTF_CAMSHAKE_TYPE_FATAL;
+				context.camShake.strength = theGame.xtFinishersMgr.camshakeModule.params.CAMERA_SHAKE_FATAL_STRENGTH;
+				context.camShake.useExtraOpts = false;
+			}
+		}
+	}
+	
 	protected function PreprocessCriticalHit(out context : XTFinishersActionContext) {
 		var attackAction : W3Action_Attack;
 		var actorVictim : CActor;
@@ -145,6 +162,7 @@ class XTFinishersDefaultCamShakeHandler extends XTFinishersAbstractActionEndEven
 	
 	public function OnActionEndTriggered(out context : XTFinishersActionContext) {
 		PreprocessNormalStrike(context);
+		PreprocessFatalHit(context);
 		PreprocessCriticalHit(context);
 		PreprocessDismember(context);
 	}
