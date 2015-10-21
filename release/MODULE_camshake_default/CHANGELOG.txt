@@ -3,6 +3,19 @@ MODULE camshake_default Changelog
 =================================
 
 -----------------
+v3.1.0 (15/10/21)
+-----------------
+
+Features
+--------
+- Added new configuration options:
+	- Now supports configuration of camera shake on fatal hits.
+
+Bug Fixes
+---------
+- Camera shake on Rend now has the correct intended priority.
+
+-----------------
 v3.0.0 (15/10/14)
 -----------------
 

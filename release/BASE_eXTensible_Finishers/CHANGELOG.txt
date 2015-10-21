@@ -3,6 +3,16 @@ BASE eXTensible Finishers Changelog
 ===================================
 
 -----------------
+v4.1.0 (15/10/21)
+-----------------
+
+API
+---
+- Added new enum types:
+	- XTF_SLOWDOWN_TYPE_FATAL
+	- XTF_CAMSHAKE_TYPE_FATAL
+
+-----------------
 v4.0.0 (15/10/14)
 -----------------
 

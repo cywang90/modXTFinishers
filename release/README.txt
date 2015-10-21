@@ -8,13 +8,13 @@ Author: aznricepuff
 VERSION
 -------
 
-This README is for Release 08, which includes the following components:
+This README is for Release 09, which includes the following components:
 
-BASE		eXTensible Finishers 		v4.0.0
+BASE		eXTensible Finishers 		v4.1.0
 MODULE		finisher_default 			v2.1.0
 MODULE		dismember_default 			v2.1.0
-MODULE		slowdown_default 			v2.1.0
-MODULE		camshake_default			v3.0.0
+MODULE		slowdown_default 			v2.2.0
+MODULE		camshake_default			v3.1.0
 MODULE		slowdown_tailoredfinishers	v2.0.1
 
 ------------
@@ -27,57 +27,43 @@ REQUIREMENTS
 INSTALLATION
 ------------
 
+eXTensible Finishers is organized into two main parts: 
+	1. The BASE mod. This part of the mod contains the changes to existing script files that set up the framework for the mod to function as well as new script files that expose the API upon which all additional parts of the mod are based.
+	2. Multiple optional modules. These modules require the BASE mod to function, but otherwise are completely self-sufficient. They define the behavior and functionality of the mod.
+	
+There are two ways to install this mod...
+
+OPTION 1: NEXUS MOD MANAGER
+---------------------------
+
+OPTION 2: MANUAL INSTALLATION
+-----------------------------
+
 1. Create a folder named "mods" in your <The Witcher 3 Path>\ directory. Skip this step if such a folder already exists.
 2. Create a new folder named "modXTFinishers" in your <The Witcher 3 Path>\mods\ directory.
 3. Create a text file in your My Documents\The Witcher 3\ directory and name it "mods.settings". Skip this step if you already have a mods.settings file.
 4. Add the following lines in your mods.settings file:
 
-[modXTFinishers]
-Enabled=1
-Priority=1
+	[modXTFinishers]
+	Enabled=1
+	Priority=1
 
-You can activate and deactivate this mod without doing a complete uninstallation by changing the following line in your mods.settings file under the "[modXTFinishers]" heading:
+   NOTE: You can activate and deactivate this mod without doing a complete uninstallation by changing the following line in your mods.settings file under the "[modXTFinishers]" heading:
 
-Enabled=1	-> mod enabled
--OR-
-Enabled=0	-> mod disabled
+	Enabled=1	-> mod enabled
+	-OR-
+	Enabled=0	-> mod disabled
+	
+5. Choose either A, B, or C:
+	A. TO INSTALL ONLY THE BASE MOD: Copy the "content" folder in the BASE_eXTensible_Finishers directory into your <The Witcher 3 Path>\mods\modXTFinishers directory.
+	
+	B. TO INSTALL ONE OF THE PREPACKAGED INSTALLATIONS: Copy the "content" folder in the PREPACKAGE_default or PREPACKAGE_default+tailoredfinishers directory into your <The Witcher 3 Path>\mods\modXTFinishers directory.
+	
+	C. TO INSTALL MODULES INDIVIDUALLY: Do step 5A. Then for each module you wish to install, follow the instructions in the README.txt file found in the module directory (named MODULE_[module name]).
 
 -----
 USAGE
 -----
-
-eXTensible Finishers is organized into two main parts: 
-	1. The BASE mod. This part of the mod contains the changes to existing script files that set up the framework for the mod to function as well as new script files that expose the API upon which all additional parts of the mod are based.
-	2. Multiple optional modules. These modules require the BASE mod to function, but otherwise are completely self-sufficient. They define the behavior and functionality of the mod.
-	
-INSTALLING JUST THE BASE MOD
-----------------------------
-	1. Copy the "content" folder in the modXTFinishers\base directory located in the download package into your <The Witcher 3 Path>\mods\modXTFinishers directory.
-	
-INSTALLING THE INCLUDED MODULES
--------------------------------
-eXTensible Finishers is released with five pre-built modules:
-	
-	MODULE finisher_default
-	MODULE dismember_default
-	MODULE slowdown_default
-	MODULE camshake_default
-	MODULE slowdown_tailoredfinishers
-	
-There are two ways you can install these modules:
-
-QUICK AND EASY METHOD:
-	A. If you wish to install only the default modules:
-		1. Copy the "content" folder in the modXTFinishers\PREINSTALL_default directory into your <The Witcher 3 Path>\mods\modXTFinishers directory.
-	
-	B. If you wish to install the default modules + MODULE slowdown_tailoredfinishers:
-		2. Copy the "content" folder in the modXTFinishers\PREINSTALL_default+tailoredfinishers directory into your <The Witcher 3 Path>\mods\modXTFinishers directory.
-	
-ADVANCED METHOD:
-	1. Install the BASE mod (see above).
-	2. For each module you wish to install, follow the instructions in the README.txt files found in the module folders.
-	
-You can install as few or as many of the default modules as you wish based on which functionalities you want. 
 
 CONFIGURING THE INCLUDED MODULES
 --------------------------------
@@ -186,6 +172,7 @@ If slow-motion can be triggered under more than one condition (e.g. on an attack
 	1. On finishers.
 	2. On dismemberments.
 	3. On critical hits.
+	4. On fatal hits.
 
 In a situation where both a slow-motion sequence AND a cinematic finisher is triggered, the cinematic finisher always takes precedent, and the slow-motion sequence will not be activated.
 
@@ -193,6 +180,7 @@ Configuration options provided by this module include:
 
 	- Options to define chance to trigger slow-motion sequences under the following conditions:
 		- Target hit by a critical hit.
+		- Target killed.
 		- Target killed by a dismemberment of type:
 			- REGULAR
 			- FROZEN
@@ -218,7 +206,8 @@ If camera shake can be triggered under more than one condition (e.g. on an attac
 	1. On dismemberments.
 	2. On Rend attacks.
 	3. On critical hits.
-	4. On regular fast/strong attacks.
+	4. On fatal hits.
+	5. On regular fast/strong attacks.
 
 Configuration options provided by this module include:
 	
@@ -227,6 +216,7 @@ Configuration options provided by this module include:
 		- Target hit by a strong attack.
 		- Target hit by a Rend attack.
 		- Target hit by a critical hit.
+		- Target killed.
 		- Target killed by a dismemberment.
 	- Options to define strength of the camera shake for each of the above conditions.
 	

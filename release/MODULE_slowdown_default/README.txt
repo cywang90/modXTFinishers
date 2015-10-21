@@ -8,21 +8,21 @@ Author: aznricepuff
 VERSION
 -------
 
-This README is for v2.1.0.
+This README is for v2.2.0.
 
 ------------
 REQUIREMENTS
 ------------
 
 - The Witcher 3: Wild Hunt Patch 1.10 or later
-- BASE eXTensible Finishers v4.0.0 or later
+- BASE eXTensible Finishers v4.1.0 or later
 
 ------------
 INSTALLATION
 ------------
 
-1. Copy the "content" folder in the modXTFinishers\MODULE_slowdown_default directory located in the download package into your <The Witcher 3 Path>\mods\modXTFinishers directory. Accept any folder merge requests from your OS/file system.
-2. Open modXTFinishers\content\scripts\local\base\xtFinishersManager.ws ...
+1. Copy the "content" folder in the MODULE_slowdown_default directory into your <The Witcher 3 Path>\mods\modXTFinishers directory. Accept any folder merge requests from your OS/file system.
+2. Open <The Witcher 3 Path>\mods\modXTFinishers\content\scripts\local\base\xtFinishersManager.ws ...
 	a. Copy the following line into the file beneath where it says DEFINE MODULE VARS HERE:
 		
 		public var slowdownModule : XTFinishersDefaultSlowdownModule;
@@ -62,6 +62,7 @@ If slow-motion can be triggered under more than one condition (e.g. on an attack
 	1. On finishers.
 	2. On dismemberments.
 	3. On critical hits.
+	4. On fatal hits.
 
 In a situation where both a slow-motion sequence AND a cinematic finisher is triggered, the cinematic finisher always takes precedent, and the slow-motion sequence will not be activated.
 
@@ -69,6 +70,7 @@ Configuration options provided by this module include:
 
 	- Options to define chance to trigger slow-motion sequences under the following conditions:
 		- Target hit by a critical hit.
+		- Target killed.
 		- Target killed by a dismemberment of type:
 			- REGULAR
 			- FROZEN
@@ -93,7 +95,7 @@ UNINSTALLATION
 
 		modXTFinishers\content\scripts\local\slowdown_default\
 		
-2. Open modXTFinishers\content\scripts\local\base\xtFinishersManager.ws ...
+2. Open <The Witcher 3 Path>\mods\modXTFinishers\content\scripts\local\base\xtFinishersManager.ws ...
 	a. In the section marked "DEFINE MODULE VARS HERE", remove the following line:
 	
 		public var slowdownModule : XTFinishersDefaultSlowdownModule;
