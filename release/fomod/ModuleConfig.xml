@@ -5,17 +5,6 @@
 			<optionalFileGroups order="Explicit">
 				<group name="Choose Installation Type" type="SelectExactlyOne">
 					<plugins order="Explicit">
-						<plugin name="Base Mod Only">
-							<description>
-								<![CDATA[Only the base mod will be installed. Not recommended unless you plan to manually install modules.]]>
-							</description>
-							<conditionFlags>
-								<flag name="base_only">Y</flag>
-							</conditionFlags>
-							<typeDescriptor>
-								<type name="Optional"/>
-							</typeDescriptor>
-						</plugin>
 						<plugin name="Base Mod + All Default Modules">
 							<description>
 								<![CDATA[The mod will be installed with all four default modules.]]>
@@ -27,12 +16,23 @@
 								<type name="Optional"/>
 							</typeDescriptor>
 						</plugin>
-						<plugin name="Base Mod + All Default Modules + Tailored Finishers Slowdown Module">
+						<plugin name="Base Mod + All Default Modules + MODULE slowdown_tailoredfinishers">
 							<description>
-								<![CDATA[The mod will be installed with all four default modules plus the Tailored Finishers Slowdown Module.]]>
+								<![CDATA[The mod will be installed with all four default modules plus MODULE slowdown_tailoredfinishers.]]>
 							</description>
 							<conditionFlags>
 								<flag name="default_and_tailoredfinishers">Y</flag>
+							</conditionFlags>
+							<typeDescriptor>
+								<type name="Optional"/>
+							</typeDescriptor>
+						</plugin>
+						<plugin name="Base Mod Only">
+							<description>
+								<![CDATA[Only the base mod will be installed. Not recommended unless you plan to manually install modules.]]>
+							</description>
+							<conditionFlags>
+								<flag name="base_only">Y</flag>
 							</conditionFlags>
 							<typeDescriptor>
 								<type name="Optional"/>
