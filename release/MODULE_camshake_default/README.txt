@@ -8,21 +8,21 @@ Author: aznricepuff
 VERSION
 -------
 
-This README is for v3.0.0.
+This README is for v3.1.0.
 
 ------------
 REQUIREMENTS
 ------------
 
 - The Witcher 3: Wild Hunt Patch 1.10 or later
-- BASE eXTensible Finishers v4.0.0 or later
+- BASE eXTensible Finishers v4.1.0 or later
 
 ------------
 INSTALLATION
 ------------
 
-1. Copy the "content" folder in the modXTFinishers\MODULE_camshake_default directory located in the download package into your <The Witcher 3 Path>\mods\modXTFinishers directory. Accept any folder merge requests from your OS/file system.
-2. Open modXTFinishers\content\scripts\local\base\xtFinishersManager.ws ...
+1. Copy the "content" folder in the MODULE_camshake_default directory into your <The Witcher 3 Path>\mods\modXTFinishers directory. Accept any folder merge requests from your OS/file system.
+2. Open <The Witcher 3 Path>\mods\modXTFinishers\content\scripts\local\base\xtFinishersManager.ws ...
 	a. Copy the following line into the file beneath where it says DEFINE MODULE VARS HERE:
 		
 		public var camshakeModule : XTFinishersDefaultCamShakeModule;
@@ -62,7 +62,8 @@ If camera shake can be triggered under more than one condition (e.g. on an attac
 	1. On dismemberments.
 	2. On Rend attacks.
 	3. On critical hits.
-	4. On regular fast/strong attacks.
+	4. On fatal hits.
+	5. On regular fast/strong attacks.
 
 Configuration options provided by this module include:
 	
@@ -71,6 +72,7 @@ Configuration options provided by this module include:
 		- Target hit by a strong attack.
 		- Target hit by a Rend attack.
 		- Target hit by a critical hit.
+		- Target killed.
 		- Target killed by a dismemberment.
 	- Options to define strength of the camera shake for each of the above conditions.
 	
@@ -82,7 +84,7 @@ UNINSTALLATION
 
 		modXTFinishers\content\scripts\local\camshake_default\
 		
-2. Open modXTFinishers\content\scripts\local\base\xtFinishersManager.ws ...
+2. Open <The Witcher 3 Path>\mods\modXTFinishers\content\scripts\local\base\xtFinishersManager.ws ...
 	a. In the section marked "DEFINE MODULE VARS HERE", remove the following line:
 	
 		public var camshakeModule : XTFinishersDefaultCamShakeModule;

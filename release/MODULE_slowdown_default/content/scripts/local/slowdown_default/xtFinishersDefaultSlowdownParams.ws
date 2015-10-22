@@ -5,6 +5,17 @@ class XTFinishersDefaultSlowdownParams {
 	public const var SLOWDOWN_DISABLE_CAMERA_SHAKE : bool;
 		default SLOWDOWN_DISABLE_CAMERA_SHAKE = true;					// If TRUE -> prevents camera shake when a slowdown is activated.
 	
+	//===============================
+	// SLOWDOWN ON FATAL HIT SETTINGS
+	//===============================
+	
+	public const var SLOWDOWN_FATAL_CHANCE : float;
+		default SLOWDOWN_FATAL_CHANCE = 0.0;							// Chance to activate slow motion on a fatal hit.
+	public const var SLOWDOWN_FATAL_DELAY, SLOWDOWN_FATAL_FACTOR, SLOWDOWN_FATAL_DURATION : float;
+		default SLOWDOWN_FATAL_DELAY = 0.1;								// Delay after fatal hit is performed before slow motion activates (seconds in game time).
+		default SLOWDOWN_FATAL_FACTOR = 0.3;							// Time factor for slow motion during a fatal hit (smaller number = more slowdown).
+		default SLOWDOWN_FATAL_DURATION = 0.3;							// Duration of slow motion during a fatal hit (seconds in game time).
+	
 	//==================================
 	// SLOWDOWN ON CRITICAL HIT SETTINGS
 	//==================================

@@ -23,7 +23,7 @@ class XTFinishersDefaultCamShakeHandler extends XTFinishersAbstractActionEndEven
 		return theGame.xtFinishersMgr.camshakeModule.DEFAULT_CAMSHAKE_HANDLER_PRIORITY;
 	}
 	
-	protected function PreprocessNormalStrike(out context : XTFinishersActionContext) {
+	protected function PreprocessNormalStrike(context : XTFinishersActionContext) {
 		var playerAttacker : CR4Player;
 		var attackAction : W3Action_Attack;
 		
@@ -50,14 +50,7 @@ class XTFinishersDefaultCamShakeHandler extends XTFinishersAbstractActionEndEven
 					context.camShake.epicenter = playerAttacker.GetWorldPosition();
 					context.camShake.maxDistance = 10;
 				}
-			} else if (SkillNameToEnum(attackAction.GetAttackTypeName()) == S_Sword_s02 && RandRangeF(100) < theGame.xtFinishersMgr.camshakeModule.params.CAMERA_SHAKE_REND_CHANCE) {
-				context.camShake.active = true;
-				context.camShake.type = XTF_CAMSHAKE_TYPE_REND;
-				context.camShake.strength = thePlayer.GetSpecialAttackTimeRatio() / 3.333 + 0.2;
-				context.camShake.useExtraOpts = true;
-				context.camShake.epicenter = playerAttacker.GetWorldPosition();
-				context.camShake.maxDistance = 10;
-			} else if (playerAttacker.IsHeavyAttack(attackAction.GetAttackName())) {
+			} else if (playerAttacker.IsHeavyAttack(attackAction.GetAttackName()) && SkillNameToEnum(attackAction.GetAttackTypeName()) == S_Sword_s02) {
 				context.camShake.type = XTF_CAMSHAKE_TYPE_STRONG;
 				if (attackAction.IsParried()) {
 					if (RandRangeF(100) < theGame.xtFinishersMgr.camshakeModule.params.CAMERA_SHAKE_STRONG_PARRIED_CHANCE) {
@@ -80,7 +73,24 @@ class XTFinishersDefaultCamShakeHandler extends XTFinishersAbstractActionEndEven
 		}
 	}
 	
-	protected function PreprocessCriticalHit(out context : XTFinishersActionContext) {
+	protected function PreprocessFatalHit(context : XTFinishersActionContext) {
+		var attackAction : W3Action_Attack;
+		var actorVictim : CActor;
+		
+		attackAction = (W3Action_Attack)context.action;
+		actorVictim = (CActor)context.action.victim;
+		
+		if ((CR4Player)context.action.attacker && attackAction && attackAction.IsActionMelee() && actorVictim && !actorVictim.IsAlive()) {
+			if (RandRangeF(100) < theGame.xtFinishersMgr.camshakeModule.params.CAMERA_SHAKE_FATAL_CHANCE) {
+				context.camShake.active = true;
+				context.camShake.type = XTF_CAMSHAKE_TYPE_FATAL;
+				context.camShake.strength = theGame.xtFinishersMgr.camshakeModule.params.CAMERA_SHAKE_FATAL_STRENGTH;
+				context.camShake.useExtraOpts = false;
+			}
+		}
+	}
+	
+	protected function PreprocessCriticalHit(context : XTFinishersActionContext) {
 		var attackAction : W3Action_Attack;
 		var actorVictim : CActor;
 		
@@ -115,7 +125,24 @@ class XTFinishersDefaultCamShakeHandler extends XTFinishersAbstractActionEndEven
 		}
 	}
 	
-	protected function PreprocessDismember(out context : XTFinishersActionContext) {
+	protected function PreprocessRend(context : XTFinishersActionContext) {
+		var playerAttacker : CR4Player;
+		var attackAction : W3Action_Attack;
+		
+		playerAttacker = (CR4Player)context.action.attacker;
+		attackAction = (W3Action_Attack)context.action;
+		
+		if (SkillNameToEnum(attackAction.GetAttackTypeName()) == S_Sword_s02 && RandRangeF(100) < theGame.xtFinishersMgr.camshakeModule.params.CAMERA_SHAKE_REND_CHANCE) {
+			context.camShake.active = true;
+			context.camShake.type = XTF_CAMSHAKE_TYPE_REND;
+			context.camShake.strength = thePlayer.GetSpecialAttackTimeRatio() / 3.333 + 0.2;
+			context.camShake.useExtraOpts = true;
+			context.camShake.epicenter = playerAttacker.GetWorldPosition();
+			context.camShake.maxDistance = 10;
+		}
+	}
+	
+	protected function PreprocessDismember(context : XTFinishersActionContext) {
 		var actorAttacker : CActor;
 		
 		actorAttacker = (CActor)context.action.attacker;
@@ -143,9 +170,11 @@ class XTFinishersDefaultCamShakeHandler extends XTFinishersAbstractActionEndEven
 		}
 	}
 	
-	public function OnActionEndTriggered(out context : XTFinishersActionContext) {
+	public function OnActionEndTriggered(context : XTFinishersActionContext) {
 		PreprocessNormalStrike(context);
+		PreprocessFatalHit(context);
 		PreprocessCriticalHit(context);
+		PreprocessRend(context);
 		PreprocessDismember(context);
 	}
 }
