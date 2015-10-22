@@ -3,6 +3,49 @@ eXTensible Finishers Changelog
 ==============================
 
 ---------------------
+Release 09 (15/10/21)
+---------------------
+
+Includes
+--------
+BASE		eXTensible Finishers		v4.1.0
+MODULE		finisher_default			v2.1.0
+MODULE		dismember_default			v2.1.0
+MODULE		slowdown_default			v2.2.0
+MODULE		camshake_default			v3.1.0
+MODULE		slowdown_tailoredfinishers	v2.0.1
+
+General
+-------
+- Now compatible with Nexus Mod Manager. Using NMM, you can choose between one of three installations:
+	- base mod only
+	- base mod + all default modules
+	- base mod + all default modules + MODULE slowdown_tailoredfinishers
+
+API
+---
+- BASE eXTensible Finishers
+	- Added new enum types:
+		- XTF_SLOWDOWN_TYPE_FATAL
+		- XTF_CAMSHAKE_TYPE_FATAL
+		
+Features
+--------
+- MODULE slowdown_default
+	- Added new configuration options:
+		- Now supports configuration of slowdowns on fatal hits.
+- MODULE camshake_default
+	- Added new configuration options:
+		- Now supports configuration of camera shake on fatal hits.
+
+Bug Fixes
+---------
+- MODULE slowdown_default
+	- Slowdowns now no longer sometimes override slowdowns of higher priority.
+- MODULE camshake_default
+	- Camera shake on Rend now has the correct intended priority.
+
+---------------------
 Release 08 (15/10/14)
 ---------------------
 

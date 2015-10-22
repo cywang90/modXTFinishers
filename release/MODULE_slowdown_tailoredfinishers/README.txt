@@ -23,8 +23,8 @@ INSTALLATION
 ------------
 
 1. Make sure MODULE slowdown_default is already installed.
-2. Copy the "content" folder in the modXTFinishers\MODULE_slowdown_tailoredfinishers directory located in the download package into your <The Witcher 3 Path>\mods\modXTFinishers directory. Accept any folder merge requests from your OS/file system.
-3. Open modXTFinishers\content\scripts\local\base\xtFinishersManager.ws ...
+2. Copy the "content" folder in the MODULE_slowdown_tailoredfinishers directory into your <The Witcher 3 Path>\mods\modXTFinishers directory. Accept any folder merge requests from your OS/file system.
+3. Open <The Witcher 3 Path>\mods\modXTFinishers\content\scripts\local\base\xtFinishersManager.ws ...
 	a. Find the following lines in the section labeled LOAD MODULES HERE:
 	
 		// load slowdown module
@@ -68,7 +68,7 @@ UNINSTALLATION
 
 		modXTFinishers\content\scripts\local\slowdown_tailoredfinishers\
 		
-2. Open modXTFinishers\content\scripts\local\base\xtFinishersManager.ws ...
+2. Open <The Witcher 3 Path>\mods\modXTFinishers\content\scripts\local\base\xtFinishersManager.ws ...
 	a. Find the following lines in the section labeled LOAD MODULES HERE:
 	
 		// load slowdown module

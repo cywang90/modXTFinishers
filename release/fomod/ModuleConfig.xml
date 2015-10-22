@@ -1,0 +1,74 @@
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://qconsulting.ca/fo3/ModConfig5.0.xsd">
+	<moduleName>eXTensible Finishers</moduleName>
+	<installSteps order="Explicit">
+		<installStep name="Modules">
+			<optionalFileGroups order="Explicit">
+				<group name="Choose Installation Type" type="SelectExactlyOne">
+					<plugins order="Explicit">
+						<plugin name="Base Mod + All Default Modules">
+							<description>
+								<![CDATA[The mod will be installed with all four default modules.]]>
+							</description>
+							<conditionFlags>
+								<flag name="default_only">Y</flag>
+							</conditionFlags>
+							<typeDescriptor>
+								<type name="Optional"/>
+							</typeDescriptor>
+						</plugin>
+						<plugin name="Base Mod + All Default Modules + MODULE slowdown_tailoredfinishers">
+							<description>
+								<![CDATA[The mod will be installed with all four default modules plus MODULE slowdown_tailoredfinishers.]]>
+							</description>
+							<conditionFlags>
+								<flag name="default_and_tailoredfinishers">Y</flag>
+							</conditionFlags>
+							<typeDescriptor>
+								<type name="Optional"/>
+							</typeDescriptor>
+						</plugin>
+						<plugin name="Base Mod Only">
+							<description>
+								<![CDATA[Only the base mod will be installed. Not recommended unless you plan to manually install modules.]]>
+							</description>
+							<conditionFlags>
+								<flag name="base_only">Y</flag>
+							</conditionFlags>
+							<typeDescriptor>
+								<type name="Optional"/>
+							</typeDescriptor>
+						</plugin>
+					</plugins>
+				</group>
+			</optionalFileGroups>
+		</installStep>
+	</installSteps>
+	<conditionalFileInstalls>
+		<patterns>
+			<pattern>
+				<dependencies>
+					<flagDependency flag="base_only" value="Y"/>
+				</dependencies>
+				<files>
+					<folder source="BASE_eXTensible_Finishers/content" destination="modXTFinishers/content" priority="1"/>
+				</files>
+			</pattern>
+			<pattern>
+				<dependencies>
+					<flagDependency flag="default_only" value="Y"/>
+				</dependencies>
+				<files>
+					<folder source="PREPACKAGE_default/content" destination="modXTFinishers/content" priority="1"/>
+				</files>
+			</pattern>
+			<pattern>
+				<dependencies>
+					<flagDependency flag="default_and_tailoredfinishers" value="Y"/>
+				</dependencies>
+				<files>
+					<folder source="PREPACKAGE_default+tailoredfinishers/content" destination="modXTFinishers/content" priority="1"/>
+				</files>
+			</pattern>
+		</patterns>
+	</conditionalFileInstalls>
+</config>

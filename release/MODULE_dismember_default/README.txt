@@ -21,8 +21,8 @@ REQUIREMENTS
 INSTALLATION
 ------------
 
-1. Copy the "content" folder in the modXTFinishers\MODULE_dismember_default directory located in the download package into your <The Witcher 3 Path>\mods\modXTFinishers directory. Accept any folder merge requests from your OS/file system.
-2. Open modXTFinishers\content\scripts\local\base\xtFinishersManager.ws ...
+1. Copy the "content" folder in the MODULE_dismember_default directory into your <The Witcher 3 Path>\mods\modXTFinishers directory. Accept any folder merge requests from your OS/file system.
+2. Open <The Witcher 3 Path>\mods\modXTFinishers\content\scripts\local\base\xtFinishersManager.ws ...
 	a. Copy the following line into the file beneath where it says DEFINE MODULE VARS HERE:
 		
 		public var dismemberModule : XTFinishersDefaultDismemberModule;
@@ -89,7 +89,7 @@ UNINSTALLATION
 
 		modXTFinishers\content\scripts\local\dismember_default\
 		
-2. Open modXTFinishers\content\scripts\local\base\xtFinishersManager.ws ...
+2. Open <The Witcher 3 Path>\mods\modXTFinishers\content\scripts\local\base\xtFinishersManager.ws ...
 	a. In the section marked "DEFINE MODULE VARS HERE", remove the following line:
 	
 		public var dismemberModule : XTFinishersDefaultDismemberModule;

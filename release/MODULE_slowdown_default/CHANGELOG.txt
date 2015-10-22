@@ -3,6 +3,19 @@ MODULE slowdown_default Changelog
 =================================
 
 -----------------
+v2.2.0 (15/10/21)
+-----------------
+
+Features
+--------
+- Added new configuration options:
+	- Now supports configuration of slowdowns on fatal hits.
+
+Bug Fixes
+---------
+- Slowdowns now no longer sometimes override slowdowns of higher priority.
+
+-----------------
 v2.1.0 (15/10/14)
 -----------------
 
