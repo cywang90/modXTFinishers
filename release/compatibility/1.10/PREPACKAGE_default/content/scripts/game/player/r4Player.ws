@@ -463,9 +463,6 @@
 				AddAbility('GeraltSkills_Testing');				
 				AddTimer('Debug_GiveTestingItems',0.0001,true);			
 			}
-			
-			//disable retro-stash-tutorial on fresh playthroughs
-			FactsAdd("tut_stash_fresh_playthrough");
 		}
 		
 		InitTargeting();
