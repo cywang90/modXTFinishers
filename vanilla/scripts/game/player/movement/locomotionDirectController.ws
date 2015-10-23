@@ -297,7 +297,7 @@ class CR4LocomotionPlayerControllerScript extends CR4LocomotionDirectControllerS
 		{
 			moveSpeed = MinF( speedSlowWalkingMax, moveSpeed );
 		} 
-		
+
 		if ( !player.CanUpdateMovement() )
 		{
 			movingAgentComponent.SetGameplayRelativeMoveSpeed( 0.f );
@@ -305,8 +305,8 @@ class CR4LocomotionPlayerControllerScript extends CR4LocomotionDirectControllerS
 			
 			if ( !player.IsInputHeadingReady() )
 				moveSpeed = 0;
-				
-			if( VecLengthSquared( movingAgentComponent.GetVelocity() ) < 0.25f )
+			
+			if( VecLengthSquared( movingAgentComponent.GetVelocity() ) < 0.25f && player.GetCurrentStateName() != 'AimThrow' )
 			{
 				player.SetBehaviorVariable( 'playerSpeedForOverlay', 0.0f, true );
 			}

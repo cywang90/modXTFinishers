@@ -5247,8 +5247,15 @@ import abstract class CActor extends CGameplayEntity
 		
 		//process hits
 		for(i=0; i<phantomWeaponHitTargets.Size(); i+=1)
-		{				
+		{	
+			// dismemberment and finishers must be disabled for second attack - it might have already happened
+			phantomWeaponHitTargets[i].AddAbility( 'DisableFinishers', true );
+			phantomWeaponHitTargets[i].AddAbility( 'DisableDismemberment', true );
+			
 			Attack(phantomWeaponHitTargets[i], phantomWeaponAnimData, phantomWeaponWeaponId, phantomWeaponParried, phantomWeaponCountered, phantomWeaponParriedBy, phantomWeaponAttackAnimationName, phantomWeaponHitTime, weaponEntity);
+			
+			phantomWeaponHitTargets[i].RemoveAbility( 'DisableFinishers' );
+			phantomWeaponHitTargets[i].RemoveAbility( 'DisableDismemberment' );
 		}
 		
 		if( !phantomWeaponCountered && phantomWeaponHitTargets.Size() && phantomWeaponParried )

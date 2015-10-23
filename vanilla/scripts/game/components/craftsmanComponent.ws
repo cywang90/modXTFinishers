@@ -15,7 +15,6 @@ struct SCraftsman
 class W3CraftsmanComponent extends W3MerchantComponent
 {
 	editable var craftsmanData : array<SCraftsman>;
-	var owner : W3MerchantNPC;
 
 	public function GetCraftsmanLevel( type : ECraftsmanType ) : ECraftsmanLevel
 	{
@@ -58,9 +57,12 @@ class W3CraftsmanComponent extends W3MerchantComponent
 		return false;
 	}
 
-	public function CalculateCostOfCrafting(basePrice : int) : int
+	public function CalculateCostOfCrafting( craftedItemName : name ) : int
 	{
-		var i, size : int;		
+		var i, size, craftingCost : int;		
+		var invItem : SInventoryItem;
+		var owner : W3MerchantNPC;
+		var items : array<SItemUniqueId>;
 
 		if ( craftsmanData.Size() > 0 )
 		{
@@ -70,12 +72,27 @@ class W3CraftsmanComponent extends W3MerchantComponent
 			}
 		}
 
-		return (int)(basePrice * 0.3f);
+		owner = (W3MerchantNPC) this.GetEntity();
+		if ( owner )
+		{
+			if ( owner.invComp )
+			{
+				items = owner.invComp.AddAnItem( craftedItemName, 1 );
+				if ( items.Size() > 0 )
+				{
+					craftingCost = owner.invComp.GetItemPriceCrafting( owner.invComp.GetItem( items[ 0 ] ) );
+					owner.invComp.RemoveItem( items[ 0 ], 1 );
+					return craftingCost;
+				}
+			}
+		}
+
+		return -1;
 	}
 
 	event OnComponentAttachFinished()
 	{
-		
+		var owner : W3MerchantNPC;
 		var crafterType : ECraftsmanType;
 		var crafterLevel : ECraftsmanLevel;
 		
@@ -116,7 +133,9 @@ class W3CraftsmanComponent extends W3MerchantComponent
 	function SetCrafterLevelTag( type : ECraftsmanType )
 	{
 		var level :  ECraftsmanLevel;
+		var owner : W3MerchantNPC;
 		
+		owner = (W3MerchantNPC) this.GetEntity();
 		level = GetCraftsmanLevel( type );
 		
 		switch( level )

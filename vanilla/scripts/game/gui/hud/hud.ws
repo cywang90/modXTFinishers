@@ -5,6 +5,12 @@
 	import final function HideOneliner( entity : CEntity );
 }
 
+enum EHudVisibilitySource
+{
+	HVS_System,
+	HVS_User,
+};
+	
 class CR4ScriptedHud extends CR4Hud
 {
 	private var m_hudSize					: int;		default m_hudSize = 0;
@@ -42,6 +48,9 @@ class CR4ScriptedHud extends CR4Hud
 	private var m_scaleformOffsetX				: int;	default m_scaleformOffsetX = 0;
 	private var m_scaleformOffsetY				: int;	default m_scaleformOffsetY = 0;
 	
+	private var m_visibleHudBySystem : bool;	default m_visibleHudBySystem = true;
+	private var m_visibleHudByUser   : bool;	default m_visibleHudByUser = true;
+
 	event OnTick( timeDelta : float )
 	{
 /////////////////////////////////////////////////////////////////////////////
@@ -333,9 +342,46 @@ class CR4ScriptedHud extends CR4Hud
 		CheckDLCMessagePending();
 	}
 	
-	public function ForceShow( show : bool )
+	public function IsHudVisibilityAllowedByUser() : bool
 	{
-		m_HudFlashSFS.SetVisible( show );
+		return m_visibleHudByUser;
+	}
+	
+	public function ForceShow( show : bool, source : EHudVisibilitySource )
+	{
+		var previouslyVisibleHud : bool;
+		var currentlyVisibleHud : bool;
+
+		if ( !show && source == HVS_User )
+		{
+			if ( IsRadialMenuOpened() )
+			{
+				// restriction - don't allow to hide hud by user when radial is opened
+				return;
+			}
+		}
+		
+		previouslyVisibleHud = ( m_visibleHudBySystem && m_visibleHudByUser );
+		
+		if ( source == HVS_System )
+		{
+			m_visibleHudBySystem = show;
+		}
+		else if ( source == HVS_User )
+		{
+			m_visibleHudByUser = show;
+		}
+		
+		currentlyVisibleHud = ( m_visibleHudBySystem && m_visibleHudByUser );
+		if ( previouslyVisibleHud != currentlyVisibleHud )
+		{
+			m_HudFlashSFS.SetVisible( currentlyVisibleHud );
+		}
+	}
+	
+	public function ToggleHudByUser()
+	{
+		ForceShow( !m_visibleHudByUser, HVS_User );
 	}
 	
 	public function UpdateAcceptCancelSwaping():void
@@ -392,6 +438,7 @@ class CR4ScriptedHud extends CR4Hud
 		
 		// Note: When game is intializing, all modules need to update on these values themselves properly.
 		
+		UpdateHudConfig('HudVisibility', false);
 		UpdateHudConfig('HudSize', false);
 		UpdateHudConfig('TimeLapseModule', false);
 		UpdateHudConfig('BoatHealthModule', false);
@@ -435,6 +482,10 @@ class CR4ScriptedHud extends CR4Hud
 		
 		switch (configName)
 		{
+		case 'HudVisibility':
+			configValue = inGameConfigWrapper.GetVarValue('Hud', configName);
+			ForceShow( configValue == "true", HVS_User );
+			break;
 		case 'HudSize':
 			configValue = inGameConfigWrapper.GetVarValue('Hud', configName);
 			SetHudSize( StringToInt( configValue ), true );

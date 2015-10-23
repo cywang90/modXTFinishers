@@ -209,6 +209,8 @@
 	
 	event OnRadialMenu( action : SInputAction )
 	{
+		var hud : CR4ScriptedHud;
+		
 		if( IsPressed(action) )
 		{
 			if( m_shown )
@@ -225,6 +227,12 @@
 		
 			if ( theGame.IsDialogOrCutscenePlaying() || theGame.IsBlackscreenOrFading() || (!thePlayer.GetBIsInputAllowed() && !GetWitcherPlayer().IsUITakeInput()) )
 				return false;
+				
+			hud = (CR4ScriptedHud)theGame.GetHud();
+			if ( hud && !hud.IsHudVisibilityAllowedByUser() )
+			{
+				return false;
+			}
 		
 			ShowRadialMenu();
 			//theGame.Pause( "RadialMenu" );

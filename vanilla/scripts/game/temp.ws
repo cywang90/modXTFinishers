@@ -6598,7 +6598,7 @@ exec function testunpause()
 
 exec function testlosscontroller()
 {
-	//theGame.GetGuiManager().ignoreControllerDisconnectionEvents = false;
+	theGame.GetGuiManager().SetIgnoreControllerDisconnectionEvents( false );
 	theGame.GetGuiManager().OnControllerDisconnected();
 }
 
@@ -6607,6 +6607,11 @@ exec function testregainedcontroller()
 	theGame.GetGuiManager().OnControllerReconnected();
 }
 
+exec function testdlcinstalled()
+{
+	theGame.GetGuiManager().DisplayNewDlcInstalled( "Hoho! New DLC installed" );
+}
+	
 exec function dodge()
 {
 	var target : CActor;

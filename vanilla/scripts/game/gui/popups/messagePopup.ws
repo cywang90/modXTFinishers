@@ -262,35 +262,15 @@ class CR4MessagePopup extends CR4PopupBase
 	
 	public function HideMessage(messageId : int):void
 	{
-		var iterator:int;
-		var messageListSize:int;
-		var curMessage:W3MessagePopupData;
-		
-		// remove from queue
-		messageListSize = m_messagesQueue.Size();
-		for (iterator = 0; iterator < messageListSize; iterator += 1)
-		{
-			curMessage = m_messagesQueue[iterator];
-			if (curMessage.messageId == messageId)
-			{
-				m_messagesQueue.Erase(iterator);
-				break;
-			}
-		}
+		ProcessAndEraseMessage( messageId );
 		
 		// try hide current
 		m_fxHideMessage.InvokeSelfOneArg( FlashArgInt(messageId) );
 	}
 	
-	event /*flash*/ OnMessageHidden():void
+	event /*flash*/ OnMessageHidden( messageId : int ):void
 	{
-		var hiddingMessage : W3MessagePopupData;
-		
-		hiddingMessage = GetCurrentMessageData();
-		
-		theGame.GetGuiManager().OnMessageHiding(hiddingMessage.messageId);
-		
-		m_messagesQueue.Erase(0);
+		ProcessAndEraseMessage( messageId );
 		
 		if (m_messagesQueue.Size() > 0)
 		{
@@ -299,6 +279,24 @@ class CR4MessagePopup extends CR4PopupBase
 		else
 		{
 			ClosePopup();
+		}
+	}
+	
+	private function ProcessAndEraseMessage( messageId : int )
+	{
+		var i, size : int;
+		var curMessage : W3MessagePopupData;
+		
+		// remove from queue
+		size = m_messagesQueue.Size();
+		for ( i = 0; i < size; i += 1)
+		{
+			if ( m_messagesQueue[ i ].messageId == messageId )
+			{
+				theGame.GetGuiManager().OnMessageHiding( messageId );
+				m_messagesQueue.Erase( i );
+				break;
+			}
 		}
 	}
 	

@@ -238,6 +238,7 @@ import class CJournalManager extends IGameSystem
 {
 	import final function ActivateEntry			(	journalEntry : CJournalBase, optional status : EJournalStatus, optional showInfoOnScreen : bool, optional activateParents : bool );
 	import final function GetEntryStatus		(	journalEntry : CJournalBase ) : EJournalStatus;
+	import final function GetEntryIndex			(	journalEntry : CJournalBase ) : int;
 	
 	import final function IsEntryUnread			(	journalEntry : CJournalBase ) : bool;
 	import final function SetEntryUnread		(	journalEntry : CJournalBase, isUnread : bool );

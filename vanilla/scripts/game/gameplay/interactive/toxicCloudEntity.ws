@@ -39,6 +39,7 @@ import statemachine class W3ToxicCloud extends CGameplayEntity
 	private var buffParams : SCustomEffectParams;							//cached params for poison buff
 	private var buffSpecParams : W3BuffDoTParams;							//cached special params for poison buff
 	private var isFromClusterBomb : bool;									//set to true if gas is created as a result of cluster bomb explosion
+	private var bombOwner : CActor;											//who threw bomb - used to avoid hitting friendlies & neutrals
 	
 		default isFromBomb = false;
 		
@@ -86,8 +87,9 @@ import statemachine class W3ToxicCloud extends CGameplayEntity
 		return isFromClusterBomb;
 	}
 	
-	public function SetFromBomb()
+	public function SetFromBomb(owner : CActor)
 	{
+		bombOwner = owner;
 		isFromBomb = true;
 	}
 	
@@ -212,7 +214,7 @@ import statemachine class W3ToxicCloud extends CGameplayEntity
 		if(area == GetPoisonAreaUnsafe())
 		{
 			actor = (CActor)ent;
-			if(actor && !entitiesInPoisonRange.Contains(actor))
+			if(actor && !entitiesInPoisonRange.Contains(actor) && IsRequiredAttitudeBetween(bombOwner, actor, true))
 			{
 				entitiesInPoisonRange.PushBack(actor);
 				
@@ -252,7 +254,7 @@ import statemachine class W3ToxicCloud extends CGameplayEntity
 		else if(area == GetGasAreaUnsafe())
 		{
 			gameplayEnt = (CGameplayEntity)ent;
-			if(gameplayEnt)
+			if(gameplayEnt && IsRequiredAttitudeBetween(bombOwner, gameplayEnt, true))
 			{
 				entitiesInExplosionRange.PushBack(gameplayEnt);
 				

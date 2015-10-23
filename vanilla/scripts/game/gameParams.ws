@@ -989,7 +989,7 @@ import class W3GameParams extends CObject
 			if ( stat.valueMultiplicative > 1.9 ) level = 32;
 		} 
 		level = level - 1;
-		if ( level < 1 ) level = 1;	if ( level > 80 ) level = 80;
+		if ( level < 1 ) level = 1;	if ( level > 70 ) level = 70;
 		
 		return level;
 	}

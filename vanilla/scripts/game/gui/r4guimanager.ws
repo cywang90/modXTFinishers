@@ -1531,6 +1531,11 @@ import class CR4GuiManager extends CGuiManager
 	{
 		ShowUserDialog( 0, "", message, UDB_Ok );
 	}
+	
+	public function SetIgnoreControllerDisconnectionEvents( set : bool )
+	{
+		ignoreControllerDisconnectionEvents = set;
+	}
 }
 
 exec function exePopup() : bool

@@ -223,8 +223,7 @@ class CR4IngameMenu extends CR4MenuBase
 			}
 			else
 			{
-				//ep1StatusText = GetLocStringByKeyExt("expansion_status_available");
-				ep1StatusText = GetLocStringByKeyExt("expansion_status_coming_soon");
+				ep1StatusText = GetLocStringByKeyExt("expansion_status_available");
 			}
 			
 			if (theGame.GetDLCManager().IsEP2Available())
@@ -375,7 +374,10 @@ class CR4IngameMenu extends CR4MenuBase
 			{
 				overlayPopupRef.UpdateButtons();
 			}
-			
+		}
+		
+		// this needs to be called also when ep1 is installed in main menu
+		{
 			if (theGame.GetDLCManager().IsEP1Available())
 			{
 				ep1StatusText = GetLocStringByKeyExt("expansion_status_installed");

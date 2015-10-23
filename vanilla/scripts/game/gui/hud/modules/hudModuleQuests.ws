@@ -252,7 +252,7 @@ class CR4HudModuleQuests extends CR4HudModuleBase
 			SendQuestName();
 			SendObjectives();
 			
-			ShowQuestTracker( true );
+			ShowQuestTracker( m_systemObjectives.Size() > 0 );
 		}
 		else
 		{

@@ -29,7 +29,6 @@ class W3HorseManager extends CPeristentEntity
 	private saved var horseAbilities : array<name>;				//since horse may not be spawned we need to cache it's abilities to show it's stats when horse is not present
 	private saved var itemSlots : array<SItemUniqueId>;			//horse's paperdoll
 	private saved var wasSpawned : bool;						//flag for marking if horse was spawned at least once
-	private saved var horseAppearance : name;					//used to save normal horse appearance when devil saddle is used (EP1)
 	
 	default wasSpawned = false;
 	
@@ -45,16 +44,15 @@ class W3HorseManager extends CPeristentEntity
 		return inv;
 	}
 	
-	public function SetHorseAppearance( appearance : name )
+	public function GetDefaultHorseAppearance() : name
 	{
-		horseAppearance = appearance;
+		if( FactsQuerySum( "q110_geralt_refused_pay" ) > 0 ) // change horse appearance if player received new horse through storyline
+		{
+			return 'player_horse_after_q110';
+		}	
+		return 'player_horse';
 	}
-	
-	public function GetHorseAppearance() : name
-	{
-		return horseAppearance;
-	}
-	
+		
 	//called when horse spawns to update it's inventory with what was set in the manager and new abilities added to horse
 	public function ApplyHorseUpdateOnSpawn() : bool
 	{
@@ -116,9 +114,13 @@ class W3HorseManager extends CPeristentEntity
 		eqId = GetItemInSlot(EES_HorseSaddle);
 		if ( GetInventoryComponent().GetItemName(eqId) == 'Devil Saddle' )
 		{
-			thePlayer.GetHorseWithInventory().PlayEffect('demon_horse');
+			horse.PlayEffectSingle('demon_horse');
+			horse.ApplyAppearance('player_horse_with_devil_saddle');
 		}
-		
+		else
+		{
+			horse.ApplyAppearance( GetDefaultHorseAppearance() );
+		}
 
 		Debug_TraceInventories( "ApplyHorseUpdateOnSpawn ] AFTER" );
 				
@@ -263,10 +265,10 @@ class W3HorseManager extends CPeristentEntity
 					horseAbilities.PushBack(abls[i]);
 			}
 			
-			if ( itemNameUnequip == 'Devil Saddle' ) 
+			if ( itemNameUnequip == 'Devil Saddle' )
 			{
 				horse.RemoveBuff(EET_WeakeningAura, true);
-				horse.ApplyAppearance(horseAppearance);
+				horse.ApplyAppearance( GetDefaultHorseAppearance() );
 				//horse.RemoveAbility('DisableHorsePanic');
 				horse.StopEffect('demon_horse');
 			}
@@ -274,10 +276,9 @@ class W3HorseManager extends CPeristentEntity
 			if ( itemName == 'Devil Saddle' ) 
 			{
 				horse.AddEffectDefault(EET_WeakeningAura, horse, 'horse saddle', false);
-				horseAppearance = horse.GetAppearance();
 				horse.ApplyAppearance('player_horse_with_devil_saddle');
 				//horse.AddAbility('DisableHorsePanic');
-				horse.PlayEffect('demon_horse');
+				horse.PlayEffectSingle('demon_horse');
 			}
 		}
 		else
@@ -372,7 +373,7 @@ class W3HorseManager extends CPeristentEntity
 		if ( itemName == 'Devil Saddle' ) 
 		{
 			horse.RemoveBuff(EET_WeakeningAura, true);
-			horse.ApplyAppearance(horseAppearance);
+			horse.ApplyAppearance( GetDefaultHorseAppearance() );
 			//horse.RemoveAbility('DisableHorsePanic');
 			horse.StopEffect('demon_horse');
 		}

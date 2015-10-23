@@ -19,7 +19,7 @@ class W3DragonsDream extends W3Petard
 			gasEntity.explosionDamage.valueAdditive = loopParams.damages[0].dmgVal;
 			gasEntity.SetBurningChance(CalculateAttributeValue(GetOwner().GetInventory().GetItemAttributeValue(itemId, 'burning_chance')));
 			gasEntity.SetExplodingTargetDamages(GetExplodingTargetDamages());
-			gasEntity.SetFromBomb();
+			gasEntity.SetFromBomb(GetOwner());
 			gasEntity.SetIsFromClusterBomb(isCluster);
 		}
 	}

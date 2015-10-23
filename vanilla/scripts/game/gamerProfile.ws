@@ -296,7 +296,7 @@ class W3GamerProfile
 		statistics.PushBack(stat);
 	}
 	
-	public final function ClearAllAchievements()
+	public final function ClearAllAchievementsForEP1()
 	{
 		var unlockedAchievments : array<name>;
 		var i : int;
@@ -306,6 +306,18 @@ class W3GamerProfile
 		{
 			theGame.LockAchievement(unlockedAchievments[i]);
 		}
+		
+		//clear progress
+		SetStat(ES_CharmedNPCKills, 0);
+		SetStat(ES_AardFallKills, 0);
+		SetStat(ES_EnvironmentKills, 0);
+		SetStat(ES_CounterattackChain, 0);
+		SetStat(ES_DragonsDreamTriggers, 0);
+		SetStat(ES_BleedingBurnedPoisoned, 0);
+		SetStat(ES_HeadShotKills, 0);
+		SetStat(ES_FundamentalsFirstKills, 0);
+		SetStat(ES_ReadBooks, 0);
+		SetStat(ES_DestroyedNests, 0);
 	}
 	
 	public final function Debug_PrintAchievements()

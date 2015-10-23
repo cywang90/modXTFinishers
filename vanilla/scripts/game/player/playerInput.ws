@@ -164,6 +164,8 @@ class CPlayerInput
 		
 		theInput.RegisterListener( this, 'OnFastMenu', 'FastMenu' );		
 		theInput.RegisterListener( this, 'OnIngameMenu', 'IngameMenu' );		
+		
+		theInput.RegisterListener( this, 'OnToggleHud', 'ToggleHud' );
 	}
 	 
 	// curently unused
@@ -2442,7 +2444,7 @@ class CPlayerInput
 		{
 			return OnThrowBomb(action);
 		}
-		else if(isUsableItem && !thePlayer.IsSwimming() && !thePlayer.IsFistFighting() )
+		else if(isUsableItem && !thePlayer.IsSwimming() )
 		{
 			if( IsActionAllowed(EIAB_UsableItem) )
 			{
@@ -2985,6 +2987,19 @@ class CPlayerInput
 			}
 			theGame.SetMenuToOpen( '' );
 			theGame.RequestMenu('CommonIngameMenu' );
+		}
+	}
+	
+	event OnToggleHud( action : SInputAction )
+	{
+		var hud : CR4ScriptedHud;
+		if ( IsReleased(action) )
+		{
+			hud = (CR4ScriptedHud)theGame.GetHud();
+			if ( hud )
+			{
+				hud.ToggleHudByUser();
+			}
 		}
 	}
 	

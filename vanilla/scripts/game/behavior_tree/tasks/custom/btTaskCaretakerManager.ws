@@ -26,8 +26,9 @@ class BTTaskCaretakerManager extends IBehTreeTask
 	//-----------------------------------------------------------------------
 	function Initialize()
 	{
-		m_Npc = GetNPC();		
+		m_Npc = GetNPC();
 	}
+		
 	//>----------------------------------------------------------------------
 	//-----------------------------------------------------------------------
 	latent function Main() : EBTNodeStatus
@@ -95,6 +96,8 @@ class BTTaskCaretakerManager extends IBehTreeTask
 		
 		if( eventName == 'CausesDamage' )
 		{
+			CalculateHealingValues();
+			
 			l_damage = GetEventParamFloat( 0 );
 			
 			if( m_SummonerComponent.GetNumberOfSummonedEntities() > 0 )			
@@ -129,6 +132,13 @@ class BTTaskCaretakerManager extends IBehTreeTask
 		m_Npc.PlayEffectOnHeldWeapon('absorb_life');
 		//PlayDrainEnergy();
 		
+	}
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
+	private function CalculateHealingValues()
+	{
+		recoverPercPerHit = CalculateAttributeValue( m_Npc.GetAttributeValue( 'healing_per_hit_perc' ));
+		shadesModifier = CalculateAttributeValue( m_Npc.GetAttributeValue( 'number_of_shades' ));
 	}
 	//>----------------------------------------------------------------------
 	//-----------------------------------------------------------------------
@@ -229,11 +239,11 @@ class BTTaskCaretakerManagerDef extends IBehTreeTaskDefinition
 	default instanceClass = 'BTTaskCaretakerManager';
 	
 	private editable var drainTemplate		: CEntityTemplate;
-	private editable var recoverPercPerHit	: float;
-	private editable var shadesModifier		: float;
+	private var recoverPercPerHit			: float;
+	private var shadesModifier				: float;
 	
-	default recoverPercPerHit  	= 0.1f;
-	default shadesModifier		= 0.1f;
+	//default recoverPercPerHit  	= 0.1f;
+	//default shadesModifier		= 0.1f;
 	
 	// Meant to make it harder for the caretaker to go full health after summoning the shades
 	hint shadesModifier = "the recover per hit value is multiplied by this modifier while shades are around";
