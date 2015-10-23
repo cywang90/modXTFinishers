@@ -14,7 +14,7 @@ This README is for v2.1.0.
 REQUIREMENTS
 ------------
 
-- The Witcher 3: Wild Hunt Patch 1.10
+- The Witcher 3: Wild Hunt Patch 1.10 or later
 - BASE eXTensible Finishers v4.0.0 or later
 
 ------------
