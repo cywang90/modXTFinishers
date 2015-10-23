@@ -8,13 +8,13 @@ Author: aznricepuff
 VERSION
 -------
 
-This README is for v4.1.0.
+This README is for v4.1.1.
 
 ------------
 REQUIREMENTS
 ------------
 
-- The Witcher 3: Wild Hunt Patch 1.10
+- The Witcher 3: Wild Hunt Patch 1.11
 
 ------------
 INSTALLATION
