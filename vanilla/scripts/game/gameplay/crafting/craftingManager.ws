@@ -156,12 +156,14 @@ class W3CraftingManager
 	{
 		var schem : SCraftingSchematic;
 	
-		if(GetSchematic(schematic, schem))
-			return craftMasterComp.CalculateCostOfCrafting(schem.baseCraftingPrice);
-		
+		if ( GetSchematic(schematic, schem) )
+		{
+			return craftMasterComp.CalculateCostOfCrafting( schem.craftedItemName );
+		}
+
 		return -1;
 	}
-		
+
 	//Crafts given schematic
 	public function Craft(schemName : name, out item : SItemUniqueId) : ECraftingException
 	{

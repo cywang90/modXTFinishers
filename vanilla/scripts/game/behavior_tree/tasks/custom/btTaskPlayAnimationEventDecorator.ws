@@ -16,6 +16,7 @@ class CBTTaskPlayAnimationEventDecorator extends IBehTreeTask
 	var xmlMoraleCheckName					: name;
 	var xmlStaminaCostName					: name;
 	var drainStaminaOnUse					: bool;
+	var completeTaskOnRotateEnd				: bool;
 			
 	private var staminaCost					: float;
 	private var moraleThreshold				: float;
@@ -275,6 +276,10 @@ class CBTTaskPlayAnimationEventDecorator extends IBehTreeTask
 		{
 			Complete( true );
 		}
+		else if ( animEventName == 'RotateEnd' && completeTaskOnRotateEnd )
+		{
+			Complete( true );
+		}
 		/*else if ( animEventName == 'SlowMo' )
 		{
 			if( animEventType != AET_DurationEnd && !slowMo )
@@ -334,6 +339,7 @@ class CBTTaskPlayAnimationEventDecoratorDef extends IBehTreeTaskDefinition
 	editable var xmlMoraleCheckName			: name;
 	editable var xmlStaminaCostName			: name;
 	editable var drainStaminaOnUse			: bool;
+	editable var completeTaskOnRotateEnd	: bool;
 	
 	default rotateOnRotateEvent = true;
 	default finishTaskOnAllowBlend = true;

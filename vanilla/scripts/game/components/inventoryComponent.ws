@@ -5050,6 +5050,12 @@ import class CInventoryComponent extends CComponent
 		
 		if (FactsQuerySum("StandAloneEP1") > 0)
 			lvl = GetWitcherPlayer().GetLevel() - 1;
+			
+		if ( FactsQuerySum("NewGamePlus") > 0 && !ItemHasTag( item, 'AutogenUseLevelRange') )
+		{	
+			if ( quality == 5 ) lvl += 2; 
+			if ( quality == 4 ) lvl += 1;
+		}
 		
 		if ( lvl < 1 ) lvl = 1; 
 		if ( lvl > 70 ) lvl = 70;
@@ -5072,7 +5078,7 @@ import class CInventoryComponent extends CComponent
 					continue;
 				}
 				
-				if ( ItemHasTag( item, 'AutogenForceLevel') || ItemHasTag(item, 'AutogenUseLevelRange') ) 
+				if ( ItemHasTag( item, 'AutogenForceLevel') || ItemHasTag(item, 'AutogenUseLevelRange') || FactsQuerySum("NewGamePlus") > 0 ) 
 					AddItemCraftedAbility(item, 'autogen_fixed_steel_dmg', true );
 				else
 					AddItemCraftedAbility(item, 'autogen_steel_dmg', true ); 
@@ -5096,7 +5102,7 @@ import class CInventoryComponent extends CComponent
 					continue;
 				}
 			
-				if ( ItemHasTag( item, 'AutogenForceLevel') || ItemHasTag(item, 'AutogenUseLevelRange') ) 
+				if ( ItemHasTag( item, 'AutogenForceLevel') || ItemHasTag(item, 'AutogenUseLevelRange') || FactsQuerySum("NewGamePlus") > 0 ) 
 					AddItemCraftedAbility(item, 'autogen_fixed_silver_dmg', true ); 
 				else
 					AddItemCraftedAbility(item, 'autogen_silver_dmg', true ); 
@@ -5120,7 +5126,7 @@ import class CInventoryComponent extends CComponent
 					continue;
 				}
 			
-				if ( ItemHasTag( item, 'AutogenForceLevel') || ItemHasTag( item, 'AutogenUseLevelRange') ) 
+				if ( ItemHasTag( item, 'AutogenForceLevel') || ItemHasTag( item, 'AutogenUseLevelRange') || FactsQuerySum("NewGamePlus") > 0 ) 
 					AddItemCraftedAbility(item, 'autogen_fixed_armor_armor', true ); 
 				else
 					AddItemCraftedAbility(item, 'autogen_armor_armor', true );		
@@ -5144,7 +5150,7 @@ import class CInventoryComponent extends CComponent
 					continue;
 				}
 			
-				if ( ItemHasTag( item, 'AutogenForceLevel') || ItemHasTag( item, 'AutogenUseLevelRange') ) 
+				if ( ItemHasTag( item, 'AutogenForceLevel') || ItemHasTag( item, 'AutogenUseLevelRange') || FactsQuerySum("NewGamePlus") > 0 ) 
 					AddItemCraftedAbility(item, 'autogen_fixed_pants_armor', true ); 
 				else
 					AddItemCraftedAbility(item, 'autogen_pants_armor', true ); 
@@ -5168,7 +5174,7 @@ import class CInventoryComponent extends CComponent
 					continue;
 				}
 			
-				if ( ItemHasTag( item, 'AutogenForceLevel') || ItemHasTag(item, 'AutogenUseLevelRange') ) 
+				if ( ItemHasTag( item, 'AutogenForceLevel') || ItemHasTag(item, 'AutogenUseLevelRange') || FactsQuerySum("NewGamePlus") > 0 ) 
 					AddItemCraftedAbility(item, 'autogen_fixed_gloves_armor', true ); 
 				else
 					AddItemCraftedAbility(item, 'autogen_gloves_armor', true );

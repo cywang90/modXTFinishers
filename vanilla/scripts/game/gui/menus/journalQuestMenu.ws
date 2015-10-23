@@ -498,7 +498,7 @@ class CR4JournalQuestMenu extends CR4ListBaseMenu
 		
 		if (l_GroupTag != '')
 		{
-			l_areaTag = "<font color='#7A7A7A'>" + GetLocStringByKeyExt(l_GroupTag) + " | </font>";
+			l_areaTag = "<font color='#7A7A7A'>" + GetLocStringByKeyExt(l_GroupTag) + "</font>";
 		}
 		else
 		{
@@ -506,9 +506,7 @@ class CR4JournalQuestMenu extends CR4ListBaseMenu
 		}
 		
 		if ( questName != "" && questLevel > 1 ) // && ( thePlayer.GetLevel() <  questLevel - theGame.params.LEVEL_DIFF_HIGH || thePlayer.GetLevel() >  questLevel + theGame.params.LEVEL_DIFF_HIGH  ) )
-			l_areaTag 			= l_areaTag + difficultyColor + GetLocStringByKeyExt('panel_item_required_level') + " " + questLevel + "</font>";// + " " + GetLocStringByKeyExt(lvlStr);
-		else // level / difficulty
-			l_areaTag 			= l_areaTag + GetLocStringByKeyExt(l_GroupTag); 
+			l_areaTag 			= l_areaTag + "<font color='#7A7A7A'> | </font>" + difficultyColor + GetLocStringByKeyExt('panel_item_required_level') + " " + questLevel + "</font>";// + " " + GetLocStringByKeyExt(lvlStr);
 		
 		l_questWorld = targetQuest.GetWorld();
 		
@@ -638,7 +636,6 @@ class CR4JournalQuestMenu extends CR4ListBaseMenu
 		var i, j							: int;
 		var locID							: int;
 		var l_objectiveOrder				: int;
-		var l_phaseOrder					: int;
 		var highlightedObjective			: CJournalQuestObjective;
 		
 		if (m_initialSelectionsToIgnore == 0)
@@ -662,8 +659,6 @@ class CR4JournalQuestMenu extends CR4ListBaseMenu
 			l_questPhase = (CJournalQuestPhase) questEntry.GetChild(i);
 			if(l_questPhase)
 			{				
-				l_phaseOrder = l_questPhase.GetOrder();
-				
 				for( j = 0; j < l_questPhase.GetNumChildren(); j += 1 )
 				{
 					l_objective =( CJournalQuestObjective ) l_questPhase.GetChild(j);
@@ -680,7 +675,7 @@ class CR4JournalQuestMenu extends CR4ListBaseMenu
 						l_objectiveTitle = GetLocStringById( l_objective.GetTitleStringId()  );
 						l_objectiveIsNew = m_journalManager.IsEntryUnread( l_objective );
 						l_objectiveIsTracked = ( highlightedObjective == l_objective );
-						l_objectiveOrder = l_objective.GetOrder();
+						l_objectiveOrder = m_journalManager.GetEntryIndex( l_objective );
 						
 						//l_questObjectiveDataFlashObject.SetMemberFlashInt(  "id", j ); //#B change to cguid		
 						l_objectiveTag = l_objective.GetUniqueScriptTag();
@@ -690,8 +685,8 @@ class CR4JournalQuestMenu extends CR4ListBaseMenu
 						l_questObjectiveDataFlashObject.SetMemberFlashBool( "isLegend", false );
 						l_questObjectiveDataFlashObject.SetMemberFlashInt( "status", l_objectiveStatus );
 						
-						l_questObjectiveDataFlashObject.SetMemberFlashString(  "label", l_objectiveTitle + l_objectiveProgress);
-						l_questObjectiveDataFlashObject.SetMemberFlashInt( "phaseIndex", l_phaseOrder );
+						l_questObjectiveDataFlashObject.SetMemberFlashString(  "label", l_objectiveTitle + l_objectiveProgress /*+ " [ " + l_objectiveOrder + " ]"*/);
+						l_questObjectiveDataFlashObject.SetMemberFlashInt( "phaseIndex", 1 );
 						l_questObjectiveDataFlashObject.SetMemberFlashInt( "objectiveIndex", l_objectiveOrder );
 						
 						l_questObjectivesFlashArray.PushBackFlashObject(l_questObjectiveDataFlashObject);

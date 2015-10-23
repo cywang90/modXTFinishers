@@ -1833,6 +1833,7 @@ statemachine import class CNewNPC extends CActor
 	{
 		var manager : CWitcherJournalManager;
 		manager = theGame.GetJournalManager();
+		if ( HasAbility( 'NoJournalEntry' )) return; else
 		if ( GetSfxTag() == 'sfx_arachas' && HasAbility('mon_arachas_armored') )	activateBaseBestiaryEntryWithAlias("BestiaryArmoredArachas", manager); else
 		if ( GetSfxTag() == 'sfx_arachas' && HasAbility('mon_poison_arachas')  )	activateBaseBestiaryEntryWithAlias("BestiaryPoisonousArachas", manager); else
 		if ( GetSfxTag() == 'sfx_bear' )											activateBaseBestiaryEntryWithAlias("BestiaryBear", manager); else

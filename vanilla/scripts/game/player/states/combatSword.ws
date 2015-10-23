@@ -1062,7 +1062,6 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 				if(enableAttack)
 				{
 					parent.SetSlideTarget( NULL );
-					parent.AddTimer('SpecialAttackLightSustainCost', 0.001, true);
 				}
 				else
 				{
@@ -1118,6 +1117,7 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 	entry function PerformSpecialAttackLight( enableAttack : bool )
 	{	
 		var temp : float;
+
 		if ( parent.GetBehaviorVariable( 'isPerformingSpecialAttack' ) == 0.f )
 		{
 			if ( enableAttack )
@@ -1128,7 +1128,10 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 				//if ( parent.IsInCombatAction() && ( parent.GetBehaviorVariable( 'combatActionType' ) == (int)CAT_Attack || parent.GetBehaviorVariable( 'combatActionType' ) == (int)CAT_PreAttack ) )
 				//{
 					if ( parent.RaiseForceEvent( 'CombatAction' ) )
+					{
+						parent.AddTimer('SpecialAttackLightSustainCost', 0.001, true);
 						virtual_parent.OnCombatActionStart();
+					}
 				//}
 				
 				parent.SetBehaviorVariable( 'combatActionType', (int)CAT_SpecialAttack );
@@ -1144,7 +1147,7 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 		else
 		{
 			if ( !enableAttack
-				&& parent.IsInCombatAction() 
+				//&& parent.IsInCombatAction()
 				&& parent.GetBehaviorVariable( 'combatActionType' ) == (int)CAT_SpecialAttack
 				&& parent.GetBehaviorVariable( 'playerAttackType' ) == 0 )
 			{

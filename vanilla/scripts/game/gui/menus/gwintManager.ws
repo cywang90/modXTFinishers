@@ -1245,7 +1245,7 @@ import class CR4GwintManager extends IGameSystem
 			GremistaDeck.dynamicCardRequirements.PushBack(diff14);
 			GremistaDeck.dynamicCards.PushBack(7); // [ 15 ] Geralt of Rivia
 			GremistaDeck.dynamicCardRequirements.PushBack(diff14);
-			GremistaDeck.dynamicCards.PushBack(11);
+			GremistaDeck.dynamicCards.PushBack(16);
 
 
 			GremistaDeck.specialCard = 11; // [7] Triss [HERO]

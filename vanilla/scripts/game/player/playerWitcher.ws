@@ -577,6 +577,12 @@ statemachine class W3PlayerWitcher extends CR4Player
 		{
 			AddAbilityMultiple(transmutationAbility, mutagenCount - transmutationCount);
 		}
+		
+		//enchanting glossary tutorial
+		if(theGame.GetDLCManager().IsEP1Available())
+		{
+			theGame.GetJournalManager().ActivateEntryByScriptTag('TutorialJournalEnchanting', JS_Active);
+		}
 	}
 	
 	public final function RestoreQuen(quenHealth : float, quenDuration : float) : bool
@@ -608,7 +614,7 @@ statemachine class W3PlayerWitcher extends CR4Player
 		var questItems : array<name>;
 		var horseManager : W3HorseManager;
 		var horseInventory : CInventoryComponent;
-		var i, missingLevels : int;
+		var i, missingLevels, expDiff : int;
 		
 		//get horse inventory - that's where the stash is
 		horseManager = (W3HorseManager)EntityHandleGet(horseManagerHandle);
@@ -618,14 +624,18 @@ statemachine class W3PlayerWitcher extends CR4Player
 		//set NG+ level to player level + few
 		theGame.params.SetNewGamePlusLevel(GetLevel());
 		
-		//increase player level if below 30
-		missingLevels = theGame.params.NEW_GAME_PLUS_MIN_LEVEL - GetLevel();
+		//increase player level if below 30		
 		if (theGame.GetDLCManager().IsDLCAvailable('ep1'))
 			missingLevels = theGame.params.NEW_GAME_PLUS_EP1_MIN_LEVEL - GetLevel();
+		else
+			missingLevels = theGame.params.NEW_GAME_PLUS_MIN_LEVEL - GetLevel();
+			
 		for(i=0; i<missingLevels; i+=1)
 		{
 			//M.J. Divide XP by 2 since AddPoints() will multiply it by 2 as we are in NG+ mode.
-			AddPoints(EExperiencePoint, (levelManager.GetTotalExpForNextLevel() - levelManager.GetPointsTotal(EExperiencePoint)) / 2, false);
+			expDiff = levelManager.GetTotalExpForNextLevel() - levelManager.GetPointsTotal(EExperiencePoint);
+			expDiff = CeilF( ((float)expDiff) / 2 );
+			AddPoints(EExperiencePoint, expDiff, false);
 		}
 		
 		//-- remove all quest items 1) and 2)
@@ -735,10 +745,12 @@ statemachine class W3PlayerWitcher extends CR4Player
 		
 	private final function NewGamePlusReplaceItem( item : name, new_item : name, out inv : CInventoryComponent)
 	{
-		var i, j : int;
-		var ids, new_ids, enh_ids : array<SItemUniqueId>;
-		var enh : array<name>;
-		var wasEquipped : bool;
+		var i, j 					: int;
+		var ids, new_ids, enh_ids 	: array<SItemUniqueId>;
+		var enh					 	: array<name>;
+		var wasEquipped 			: bool;
+		var wasEnchanted 			: bool;
+		var enchantName				: name;
 		
 		if ( inv.HasItem( item ) )
 		{
@@ -746,12 +758,19 @@ statemachine class W3PlayerWitcher extends CR4Player
 			for (i = 0; i < ids.Size(); i += 1)
 			{
 				inv.GetItemEnhancementItems(ids[i], enh);
+				wasEnchanted = inv.IsItemEnchanted(ids[i]);
+				if ( wasEnchanted ) 
+					enchantName = inv.GetEnchantment(ids[i]);
 				wasEquipped = IsItemEquipped( ids[i] );
 				inv.RemoveItem(ids[i], 1);
 				new_ids = inv.AddAnItem(new_item, 1, true, true, false);
 				if ( wasEquipped )
 				{
 					EquipItem( new_ids[0] );
+				}
+				if ( wasEnchanted )
+				{
+					inv.EnchantItem(new_ids[0], enchantName, getEnchamtmentStatName(enchantName));
 				}
 				for (j = 0; j < enh.Size(); j += 1)
 				{
@@ -773,7 +792,10 @@ statemachine class W3PlayerWitcher extends CR4Player
 			for (i = 0; i < ids.Size(); i += 1)
 			{
 				if ( inv.GetItemModifierInt(ids[i], 'DoNotAdjustNGPDLC') <= 0 )
+				{
 					inv.AddItemBaseAbility(ids[i], mod);
+					inv.SetItemModifierInt(ids[i], 'DoNotAdjustNGPDLC', 1);	
+				}
 			}
 		}
 		
@@ -1785,7 +1807,7 @@ statemachine class W3PlayerWitcher extends CR4Player
 					
 					OnSpecialAttackHeavyActionProcess();
 				}
-				else
+				else if(actorVictim && IsRequiredAttitudeBetween(this, actorVictim, true))
 				{
 					//focus gain on hit - rend gives none	
 					// M.J Each attack gives the same number of adrenaline
@@ -7200,7 +7222,7 @@ statemachine class W3PlayerWitcher extends CR4Player
 		inv.AddAnItem('q103_safe_conduct', 1, true, true, false);
 		
 		//remove all achievements
-		theGame.GetGamerProfile().ClearAllAchievements();
+		theGame.GetGamerProfile().ClearAllAchievementsForEP1();
 		
 		//set level
 		STARTING_LEVEL = 32;

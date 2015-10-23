@@ -39,6 +39,8 @@
 	private const var TYPE_GLYPHWORD:int;
 			  default TYPE_RUNEWORD = 1;
 	
+	private var tutorialTriggered:bool;
+	
 	event /*flash*/ OnConfigUI()
 	{
 		var initData		   : IScriptable;
@@ -251,7 +253,7 @@
 			
 			enchantmentData.SetMemberFlashUInt("name", NameToFlashUInt(schematic.schemName));
 			enchantmentData.SetMemberFlashBool("canApply", canApply);		
-			enchantmentData.SetMemberFlashBool("notEnoughMoney", playerMoney < schematic.baseCraftingPrice);
+			//enchantmentData.SetMemberFlashBool("notEnoughMoney", playerMoney < schematic.baseCraftingPrice);
 			enchantmentData.SetMemberFlashBool("notEnoughSlots", m_notEnoughSlots);
 			enchantmentData.SetMemberFlashString("localizedName", schematicLocName);
 			enchantmentData.SetMemberFlashString("description", schematicLocDescription);
@@ -491,8 +493,9 @@
 		
 		m_fxEnableRemovingEnchantment.InvokeSelfThreeArgs( FlashArgBool(false), FlashArgNumber(0), FlashArgBool(false) );
 		
-		if(ShouldProcessTutorial('TutorialRunewords2'))
+		if(ShouldProcessTutorial('TutorialRunewords2') && !tutorialTriggered)
 		{
+			tutorialTriggered = true;
 			m_fxSelectFirstEnchantment.InvokeSelf( );
 		}
 	}
@@ -573,6 +576,11 @@
 		{
 			m_parentMenu.ChildRequestCloseMenu();
 		}
+	}
+	event /*flash*/ OnEmptyCheckListCloseFailed()
+	{
+		showNotification(GetLocStringByKeyExt("gui_missing_filter_error"));
+		OnPlaySoundEvent("gui_global_denied");
 	}
 	
 	event /*flash*/ OnEntryRead() {	/* dummy */ }

@@ -7139,7 +7139,7 @@ quest function ShowHud( show : bool )
 	hud = (CR4ScriptedHud)theGame.GetHud();
 	if ( hud )
 	{
-		hud.ForceShow( show );
+		hud.ForceShow( show, HVS_System );
 	}
 }
 
