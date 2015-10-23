@@ -8,9 +8,9 @@ Author: aznricepuff
 VERSION
 -------
 
-This README is for Release 09, which includes the following components:
+This README is for Release 09.1, which includes the following components:
 
-BASE		eXTensible Finishers 		v4.1.0
+BASE		eXTensible Finishers 		v4.1.1
 MODULE		finisher_default 			v2.1.0
 MODULE		dismember_default 			v2.1.0
 MODULE		slowdown_default 			v2.2.0
@@ -21,7 +21,8 @@ MODULE		slowdown_tailoredfinishers	v2.0.1
 REQUIREMENTS
 ------------
 
-- The Witcher 3: Wild Hunt Patch 1.10
+- The Witcher 3: Wild Hunt Patch 1.11
+	- (Patch 1.10 users can choose to install using the compatibility files, which may not contain the latest features and bug fixes.)
 
 ------------
 INSTALLATION
@@ -35,9 +36,14 @@ There are two ways to install this mod...
 
 OPTION 1: NEXUS MOD MANAGER
 ---------------------------
-Download the mod from Nexus Mods using the "Download with Manager" option. Use NMM to install the mod, and choose one of the installation types when prompted.
+Download the mod from Nexus Mods using the "Download with Manager" option. Then...
 
-If you wish to switch between installation types, you must uninstall and re-install the mod in NMM. Simply disabling and re-enabling the mod will not work.
+1. Use NMM to install the mod by selecting the mod in the Mods panel and clicking the "Install" button (green check mark on the left).
+2. A pop-up will appear 
+3. Under the section "Choose Installation Type" select your preferred installation type. Select the option text to see a description in the window on the right.
+4. If and only if you are running an older patch that is not supported by the latest version of the mod, check the appropriate box under "Compatibility Options" to install a version of the mod that is compatible with your patch. Note that by choosing to install a compatibility version, you may not receive the latest features and bug fixes for the mod.
+
+If you wish to switch between installation types or choose a different compatibility setting after installation is complete, you must uninstall and re-install the mod in NMM. Simply disabling and re-enabling the mod will not work.
 
 OPTION 2: MANUAL INSTALLATION
 -----------------------------

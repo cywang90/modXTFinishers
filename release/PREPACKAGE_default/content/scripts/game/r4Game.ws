@@ -1464,22 +1464,14 @@ import class CR4Game extends CCommonGame
 		var horseManager	: W3HorseManager;
 		var horse			: CActor;
 		
-		if( FactsQuerySum( "q110_geralt_refused_pay" ) > 0 ) // change horse appearance if player received new horse through storyline
-		{
-			((CActor)horseEntity).ApplyAppearance( 'player_horse_after_q110' );
-		}
-		
 		//Demonic Saddle
 		horseManager = GetWitcherPlayer().GetHorseManager();
 		saddle = horseManager.GetItemInSlot(EES_HorseSaddle);
 		if ( horseManager.GetInventoryComponent().GetItemName(saddle) == 'Devil Saddle' )
 		{
+			// proper appearance for 'Devil Saddle' is set inside ApplyHorseUpdateOnSpawn called below
 			horse = (CActor)horseEntity;
 			horse.AddEffectDefault(EET_WeakeningAura, horse, 'horse saddle', false);
-			horseManager.SetHorseAppearance(horse.GetAppearance());
-			horse.ApplyAppearance('player_horse_with_devil_saddle');
-			//horse.AddAbility('DisableHorsePanic');
-			horse.PlayEffect('demon_horse');
 		}
 		
 		thePlayer.GetHorseWithInventory().SignalGameplayEventParamObject( 'HorseSummon', thePlayer );

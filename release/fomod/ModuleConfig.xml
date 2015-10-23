@@ -10,7 +10,7 @@
 								<![CDATA[The mod will be installed with all four default modules.]]>
 							</description>
 							<conditionFlags>
-								<flag name="default_only">Y</flag>
+								<flag name="install_type">DEFAULT</flag>
 							</conditionFlags>
 							<typeDescriptor>
 								<type name="Optional"/>
@@ -21,7 +21,7 @@
 								<![CDATA[The mod will be installed with all four default modules plus MODULE slowdown_tailoredfinishers.]]>
 							</description>
 							<conditionFlags>
-								<flag name="default_and_tailoredfinishers">Y</flag>
+								<flag name="install_type">DEFAULT_TAILOREDFINISHERS</flag>
 							</conditionFlags>
 							<typeDescriptor>
 								<type name="Optional"/>
@@ -32,7 +32,22 @@
 								<![CDATA[Only the base mod will be installed. Not recommended unless you plan to manually install modules.]]>
 							</description>
 							<conditionFlags>
-								<flag name="base_only">Y</flag>
+								<flag name="install_type">BASE</flag>
+							</conditionFlags>
+							<typeDescriptor>
+								<type name="Optional"/>
+							</typeDescriptor>
+						</plugin>
+					</plugins>
+				</group>
+				<group name="Compatibility Options" type="SelectAtMostOne">
+					<plugins order="Explicit">
+						<plugin name="Patch 1.10">
+							<description>
+								<![CDATA[Will install Patch 1.10-compatible files. These files may not have the most up-to-date features and bug fixes. Only select this option if you are running Patch 1.10!]]>
+							</description>
+							<conditionFlags>
+								<flag name="compatibility">1.10</flag>
 							</conditionFlags>
 							<typeDescriptor>
 								<type name="Optional"/>
@@ -46,27 +61,58 @@
 	<conditionalFileInstalls>
 		<patterns>
 			<pattern>
-				<dependencies>
-					<flagDependency flag="base_only" value="Y"/>
+				<dependencies operator="And">
+					<flagDependency flag="install_type" value="BASE"/>
+					<flagDependency flag="compatibility" value=""/>
 				</dependencies>
 				<files>
 					<folder source="BASE_eXTensible_Finishers/content" destination="modXTFinishers/content" priority="1"/>
 				</files>
 			</pattern>
 			<pattern>
-				<dependencies>
-					<flagDependency flag="default_only" value="Y"/>
+				<dependencies operator="And">
+					<flagDependency flag="install_type" value="DEFAULT"/>
+					<flagDependency flag="compatibility" value=""/>
 				</dependencies>
 				<files>
 					<folder source="PREPACKAGE_default/content" destination="modXTFinishers/content" priority="1"/>
 				</files>
 			</pattern>
 			<pattern>
-				<dependencies>
-					<flagDependency flag="default_and_tailoredfinishers" value="Y"/>
+				<dependencies operator="And">
+					<flagDependency flag="install_type" value="DEFAULT_TAILOREDFINISHERS"/>
+					<flagDependency flag="compatibility" value=""/>
 				</dependencies>
 				<files>
 					<folder source="PREPACKAGE_default+tailoredfinishers/content" destination="modXTFinishers/content" priority="1"/>
+				</files>
+			</pattern>
+			<!--Compatibility Files-->
+			<pattern>
+				<dependencies operator="And">
+					<flagDependency flag="install_type" value="DEFAULT_TAILOREDFINISHERS"/>
+					<flagDependency flag="compatibility" value="1.10"/>
+				</dependencies>
+				<files>
+					<folder source="compatibility/1.10/PREPACKAGE_default+tailoredfinishers/content" destination="modXTFinishers/content" priority="1"/>
+				</files>
+			</pattern>
+			<pattern>
+				<dependencies operator="And">
+					<flagDependency flag="install_type" value="DEFAULT"/>
+					<flagDependency flag="compatibility" value="1.10"/>
+				</dependencies>
+				<files>
+					<folder source="compatibility/1.10/PREPACKAGE_default/content" destination="modXTFinishers/content" priority="1"/>
+				</files>
+			</pattern>
+			<pattern>
+				<dependencies operator="And">
+					<flagDependency flag="install_type" value="DEFAULT_TAILOREDFINISHERS"/>
+					<flagDependency flag="compatibility" value="1.10"/>
+				</dependencies>
+				<files>
+					<folder source="compatibility/1.10/PREPACKAGE_default+tailoredfinishers/content" destination="modXTFinishers/content" priority="1"/>
 				</files>
 			</pattern>
 		</patterns>
