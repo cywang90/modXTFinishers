@@ -1,7 +1,6 @@
 class XTFinishersDefaultFinisherModule extends XTFinishersObject {
-	public const var DEFAULT_FINISHER_QUERY_DISPATCHER_PRIORITY, DEFAULT_FINISHER_CAM_QUERY_DISPATCHER_PRIORITY : int;
-		default DEFAULT_FINISHER_QUERY_DISPATCHER_PRIORITY = 0;
-		default DEFAULT_FINISHER_CAM_QUERY_DISPATCHER_PRIORITY = 0;
+	public const var DEFAULT_FINISHER_HANDLER_PRIORITY : int;
+		default DEFAULT_FINISHER_HANDLER_PRIORITY = 0;
 	
 	public var params : XTFinishersDefaultFinisherParams;
 	
@@ -10,15 +9,10 @@ class XTFinishersDefaultFinisherModule extends XTFinishersObject {
 		params.Init();
 		
 		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.REACTION_START_EVENT_ID, GetNewFinisherHandlerInstance());
-		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.FINISHER_EVENT_ID, GetNewFinisherCamHandlerInstance());
 	}
 	
 	protected function GetNewFinisherHandlerInstance() : XTFinishersAbstractReactionStartEventListener {
 		return new XTFinishersDefaultFinisherHandler in this;
-	}
-	
-	protected function GetNewFinisherCamHandlerInstance() : XTFinishersAbstractFinisherEventListener {
-		return new XTFinishersDefaultFinisherCamHandler in this;
 	}
 }
 
@@ -26,11 +20,14 @@ class XTFinishersDefaultFinisherModule extends XTFinishersObject {
 
 class XTFinishersDefaultFinisherHandler extends XTFinishersAbstractReactionStartEventListener {
 	public function GetPriority() : int {
-		return theGame.xtFinishersMgr.finisherModule.DEFAULT_FINISHER_QUERY_DISPATCHER_PRIORITY;
+		return theGame.xtFinishersMgr.finisherModule.DEFAULT_FINISHER_HANDLER_PRIORITY;
 	}
 	
 	public function OnReactionStartTriggered(context : XTFinishersActionContext) {
 		PreprocessFinisher(context);
+		if (context.finisher.active) {
+			PreprocessFinisherCam(context);
+		}
 	}
 	
 	protected function PreprocessFinisher(context : XTFinishersActionContext) {
@@ -232,16 +229,6 @@ class XTFinishersDefaultFinisherHandler extends XTFinishersAbstractReactionStart
 		}
 		
 		return animNames[RandRange(animNames.Size(), 0)];
-	}
-}
-
-class XTFinishersDefaultFinisherCamHandler extends XTFinishersAbstractFinisherEventListener {
-	public function GetPriority() : int {
-		return theGame.xtFinishersMgr.finisherModule.DEFAULT_FINISHER_CAM_QUERY_DISPATCHER_PRIORITY;
-	}
-	
-	public function OnFinisherTriggered(context : XTFinishersActionContext) {
-		PreprocessFinisherCam(context);
 	}
 	
 	protected function PreprocessFinisherCam(context : XTFinishersActionContext) {
