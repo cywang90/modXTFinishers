@@ -1,10 +1,13 @@
 class XTFinishersDefaultSlowdownModule extends XTFinishersObject {
-	public const var DEFAULT_SLOWDOWN_HANDLER_PRIORITY, DEFAULT_SLOWDOWN_FINISHER_HANDLER_PRIORITY : int;
+	public const var DEFAULT_SLOWDOWN_HANDLER_PRIORITY, DEFAULT_SLOWDOWN_FINISHER_HANDLER_PRIORITY, DEFAULT_CAMSHAKE_HANDLER_PRIORITY : int;
 		// action end
 		default DEFAULT_SLOWDOWN_HANDLER_PRIORITY = 0;
 		
 		// finisher
 		default DEFAULT_SLOWDOWN_FINISHER_HANDLER_PRIORITY = 10;
+		
+		// camshake
+		default DEFAULT_CAMSHAKE_HANDLER_PRIORITY = 0;
 		
 	public var params : XTFinishersDefaultSlowdownParams;
 	
@@ -15,6 +18,7 @@ class XTFinishersDefaultSlowdownModule extends XTFinishersObject {
 		
 		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.ACTION_END_EVENT_ID, GetNewSlowdownHandlerInstance());
 		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.FINISHER_EVENT_ID, GetNewSlowdownFinisherHandlerInstance());
+		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.CAMSHAKE_PRE_EVENT_ID, GetNewCamshakeHandlerInstance());
 	}
 	
 	protected function GetNewSlowdownManagerInstance() : XTFinishersSlowdownManager {
@@ -32,6 +36,10 @@ class XTFinishersDefaultSlowdownModule extends XTFinishersObject {
 	
 	protected function GetNewSlowdownFinisherHandlerInstance() : XTFinishersAbstractFinisherEventListener {
 		return new XTFinishersDefaultSlowdownFinisherHandler in this;
+	}
+	
+	protected function GetNewCamshakeHandlerInstance() : XTFinishersAbstractCamshakePretriggerEventListener {
+		return new XTFinishersDefaultCamshakeHandler in this;
 	}
 }
 
@@ -62,10 +70,6 @@ class XTFinishersDefaultSlowdownHandler extends XTFinishersAbstractActionEndEven
 		}
 		
 		if (context.slowdown.active) {
-			if (theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_DISABLE_CAMERA_SHAKE) {
-				context.camShake.forceOff = true;
-			}
-			
 			if (context.slowdown.type != XTF_SLOWDOWN_TYPE_FINISHER) {
 				theGame.xtFinishersMgr.slowdownMgr.TriggerSlowdown(context);
 			}
@@ -233,6 +237,16 @@ class XTFinishersDefaultSlowdownFinisherHandler extends XTFinishersAbstractFinis
 			context.slowdown.active = true;
 			context.slowdown.type = XTF_SLOWDOWN_TYPE_FINISHER;
 		}
+	}
+}
+
+class XTFinishersDefaultCamshakeHandler extends XTFinishersAbstractCamshakePretriggerEventListener {
+	public function GetPriority() : int {
+		return theGame.xtFinishersMgr.slowdownModule.DEFAULT_CAMSHAKE_HANDLER_PRIORITY;
+	}
+	
+	public function OnCamshakePretrigger(context : XTFinishersActionContext) {
+		context.camShake.active = !context.slowdown.active || !theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_DISABLE_CAMERA_SHAKE;
 	}
 }
 

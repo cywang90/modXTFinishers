@@ -1,7 +1,7 @@
 class XTFinishersDefaultCamShakeModule extends XTFinishersObject {
 	// action end
 	public const var DEFAULT_CAMSHAKE_HANDLER_PRIORITY : int;
-		default DEFAULT_CAMSHAKE_HANDLER_PRIORITY = 10;
+		default DEFAULT_CAMSHAKE_HANDLER_PRIORITY = 0;
 		
 	public var params : XTFinishersDefaultCamShakeParams;
 	

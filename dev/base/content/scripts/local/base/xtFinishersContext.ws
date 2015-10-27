@@ -77,7 +77,7 @@ struct XTFinishersSlowdownContext {
 struct XTFinishersCamShakeContext {
 	var active : bool;
 	var type : XTFinishersCamshakeType;
-	var forceOff, forceOn : bool;
+	var forceOff, forceOn : bool;							// deprecated
 	var strength : float;
 	var useExtraOpts : bool;
 	var epicenter : Vector;

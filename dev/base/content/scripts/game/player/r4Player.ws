@@ -11873,24 +11873,25 @@
 		
 		// modXTFinishers BEGIN
 		if  (actionContext.finisherCam.active) {
-		// modXTFinishers END
-			camera.StopAnimation('camera_shake_hit_lvl3_1' );
-			
-			animation.animation = cameraAnimName;
-			animation.priority = CAP_Highest;
-			animation.blendIn = 0.15f;
-			animation.blendOut = 1.0f;
-			animation.weight = 1.f;
-			animation.speed	= 1.0f;
-			animation.reset = true;
-			
-			camera.PlayAnimation( animation );
-			//thePlayer.AddTimer( 'RemoveFinisherCameraAnimationCheck', 0.01, true );
-			
-			thePlayer.EnableManualCameraControl( false, 'Finisher' );
-			
-		// modXTFinishers BEGIN
-			theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.FINISHER_CAM_EVENT_ID, CreateXTFinishersActionContextData(theGame.xtFinishersMgr.eventMgr, actionContext));
+			theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.FINISHER_CAM_PRE_EVENT_ID, CreateXTFinishersActionContextData(theGame.xtFinishersMgr.eventMgr, actionContext));
+			if (actionContext.finisherCam.active) {
+				camera.StopAnimation('camera_shake_hit_lvl3_1' );
+				
+				animation.animation = cameraAnimName;
+				animation.priority = CAP_Highest;
+				animation.blendIn = 0.15f;
+				animation.blendOut = 1.0f;
+				animation.weight = 1.f;
+				animation.speed	= 1.0f;
+				animation.reset = true;
+				
+				camera.PlayAnimation( animation );
+				//thePlayer.AddTimer( 'RemoveFinisherCameraAnimationCheck', 0.01, true );
+				
+				thePlayer.EnableManualCameraControl( false, 'Finisher' );
+				
+				theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.FINISHER_CAM_EVENT_ID, CreateXTFinishersActionContextData(theGame.xtFinishersMgr.eventMgr, actionContext));
+			}
 		}
 		// modXTFinishers END
 	}	
