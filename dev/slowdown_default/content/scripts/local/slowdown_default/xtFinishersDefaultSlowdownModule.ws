@@ -246,7 +246,7 @@ class XTFinishersDefaultCamshakeHandler extends XTFinishersAbstractCamshakePretr
 	}
 	
 	public function OnCamshakePretrigger(context : XTFinishersActionContext) {
-		context.camShake.active = !context.slowdown.active || !theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_DISABLE_CAMERA_SHAKE;
+		context.camShake.active = context.camShake.active && (!context.slowdown.active || !theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_DISABLE_CAMERA_SHAKE);
 	}
 }
 
