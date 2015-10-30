@@ -124,7 +124,7 @@ class XTFinishersDefaultCamShakeHandler extends XTFinishersAbstractActionEndEven
 			return;
 		}
 		
-		if (actorVictim.IsAlive()) {
+		if (((CActor)context.action.victim).IsAlive()) {
 			if (RandRangeF(100) < theGame.xtFinishersMgr.camshakeModule.params.CAMERA_SHAKE_CRIT_NONFATAL_CHANCE) {
 				context.camShake.active = true;
 				context.camShake.type = XTF_CAMSHAKE_TYPE_CRIT;
