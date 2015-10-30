@@ -1,6 +1,7 @@
 class XTFinishersDefaultFinisherModule extends XTFinishersObject {
-	public const var DEFAULT_FINISHER_HANDLER_PRIORITY : int;
+	public const var DEFAULT_FINISHER_HANDLER_PRIORITY, DEFAULT_FINISHER_CAMSHAKE_DISABLE_HANDLER_PRIORITY : int;
 		default DEFAULT_FINISHER_HANDLER_PRIORITY = 0;
+		default DEFAULT_FINISHER_CAMSHAKE_DISABLE_HANDLER_PRIORITY = 0;
 	
 	public var params : XTFinishersDefaultFinisherParams;
 	
@@ -9,10 +10,15 @@ class XTFinishersDefaultFinisherModule extends XTFinishersObject {
 		params.Init();
 		
 		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.REACTION_START_EVENT_ID, GetNewFinisherHandlerInstance());
+		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.CAMSHAKE_PRE_EVENT_ID, GetNewFinisherCamshakeDisableHandlerInstance());
 	}
 	
 	protected function GetNewFinisherHandlerInstance() : XTFinishersAbstractReactionStartEventListener {
 		return new XTFinishersDefaultFinisherHandler in this;
+	}
+	
+	protected function GetNewFinisherCamshakeDisableHandlerInstance() : XTFinishersAbstractCamshakePretriggerEventListener {
+		return new XTFinishersDefaultFinisherCamshakeDisableHandler in this;
 	}
 }
 
@@ -242,5 +248,15 @@ class XTFinishersDefaultFinisherHandler extends XTFinishersAbstractReactionStart
 	
 		context.finisherCam.active = RandRangeF(100) < chance
 				&& (!theGame.xtFinishersMgr.finisherModule.params.FINISHER_CAM_REQUIRE_NAV_CHECK || theGame.GetWorld().NavigationCircleTest(thePlayer.GetWorldPosition(), 3.f));
+	}
+}
+
+class XTFinishersDefaultFinisherCamshakeDisableHandler extends XTFinishersAbstractCamshakePretriggerEventListener {
+	public function GetPriority() : int {
+		return theGame.xtFinishersMgr.finisherModule.DEFAULT_FINISHER_CAMSHAKE_DISABLE_HANDLER_PRIORITY;
+	}
+	
+	public function OnCamshakePretrigger(context : XTFinishersActionContext) {
+		context.camShake.active = context.camShake.active && (!context.finisherCam.active || !theGame.xtFinishersMgr.finisherModule.params.FINISHER_CAM_DISABLE_CAMERA_SHAKE);
 	}
 }
