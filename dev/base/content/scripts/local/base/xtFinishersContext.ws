@@ -49,6 +49,18 @@ class XTFinishersActionContext extends XTFinishersObject {
 	public var finisherCam : XTFinishersFinisherCamContext;
 	public var slowdown : XTFinishersSlowdownContext;
 	public var camShake : XTFinishersCamShakeContext;
+	
+	public function CountEnemiesNearPlayer() : int {
+		var tempMoveTargets : array<CActor>;
+		
+		thePlayer.FindMoveTarget();
+		tempMoveTargets = thePlayer.GetMoveTargets();
+		if (!thePlayer.IsThreat(tempMoveTargets[0])) {
+			return 0;
+		} else {
+			return tempMoveTargets.Size();
+		}
+	}
 }
 
 struct XTFinishersFinisherContext {

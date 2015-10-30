@@ -93,7 +93,7 @@ class XTFinishersDefaultSlowdownHandler extends XTFinishersAbstractActionEndEven
 		if (context.action.victim.IsAlive()) {
 			chance = theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_CRIT_CHANCE_NONFATAL;
 		} else {
-			if (thePlayer.IsLastEnemyKilled()) {
+			if (context.CountEnemiesNearPlayer() <= 1) {
 				chance = theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_CRIT_CHANCE_FATAL_LAST_ENEMY;
 			} else {
 				chance = theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_CRIT_CHANCE_FATAL;
@@ -113,7 +113,7 @@ class XTFinishersDefaultSlowdownHandler extends XTFinishersAbstractActionEndEven
 			return;
 		}
 		
-		if (thePlayer.IsLastEnemyKilled()) {
+		if (context.CountEnemiesNearPlayer() <= 1) {
 			switch (context.dismember.type) {
 			case XTF_DISMEMBER_TYPE_FROZEN:
 				chance = theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_DISMEMBER_FROZEN_CHANCE_LAST_ENEMY;
@@ -174,7 +174,7 @@ class XTFinishersDefaultSlowdownHandler extends XTFinishersAbstractActionEndEven
 			return;
 		}
 		
-		if (thePlayer.IsLastEnemyKilled()) {
+		if (context.CountEnemiesNearPlayer() <= 1) {
 			switch (context.finisher.type) {
 			case XTF_FINISHER_TYPE_AUTO:
 				chance = theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_FINISHER_AUTO_CHANCE_LAST_ENEMY;
@@ -227,7 +227,7 @@ class XTFinishersDefaultSlowdownFinisherHandler extends XTFinishersAbstractFinis
 			return;
 		}
 		
-		if (thePlayer.IsLastEnemyKilled()) {
+		if (context.CountEnemiesNearPlayer() <= 1) {
 			chance = theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_FINISHER_KNOCKDOWN_CHANCE_LAST_ENEMY;
 		} else {
 			chance = theGame.xtFinishersMgr.slowdownModule.params.SLOWDOWN_FINISHER_KNOCKDOWN_CHANCE;

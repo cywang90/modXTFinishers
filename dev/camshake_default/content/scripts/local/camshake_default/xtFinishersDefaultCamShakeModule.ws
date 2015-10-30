@@ -132,7 +132,7 @@ class XTFinishersDefaultCamShakeHandler extends XTFinishersAbstractActionEndEven
 				context.camShake.useExtraOpts = false;
 			}
 		} else {
-			if (thePlayer.IsLastEnemyKilled()) {
+			if (context.CountEnemiesNearPlayer() <= 1) {
 				if (RandRangeF(100) < theGame.xtFinishersMgr.camshakeModule.params.CAMERA_SHAKE_CRIT_FATAL_CHANCE_LAST_ENEMY) {
 					context.camShake.active = true;
 					context.camShake.type = XTF_CAMSHAKE_TYPE_CRIT;
@@ -162,7 +162,7 @@ class XTFinishersDefaultCamShakeHandler extends XTFinishersAbstractActionEndEven
 	}
 	
 	protected function PreprocessDismember(context : XTFinishersActionContext) {
-		if (thePlayer.IsLastEnemyKilled()) {
+		if (context.CountEnemiesNearPlayer() <= 1) {
 			if (RandRangeF(100) < theGame.xtFinishersMgr.camshakeModule.params.CAMERA_SHAKE_DISMEMBER_CHANCE_LAST_ENEMY) {
 				context.camShake.active = true;
 				context.camShake.type = XTF_CAMSHAKE_TYPE_DISMEMBER;
