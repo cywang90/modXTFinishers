@@ -3,6 +3,14 @@ MODULE camshake_default Changelog
 =================================
 
 -----------------
+v3.2.0 (15/11/04)
+-----------------
+
+Bug Fixes
+---------
+- Better detection of when the last enemy in combat has or has not been killed.
+
+-----------------
 v3.1.0 (15/10/21)
 -----------------
 

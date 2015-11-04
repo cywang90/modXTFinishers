@@ -8,13 +8,13 @@ Author: aznricepuff
 VERSION
 -------
 
-This README is for Release 09.1, which includes the following components:
+This README is for Release 10, which includes the following components:
 
-BASE		eXTensible Finishers 		v4.1.1
-MODULE		finisher_default 			v2.1.0
-MODULE		dismember_default 			v2.1.0
-MODULE		slowdown_default 			v2.2.0
-MODULE		camshake_default			v3.1.0
+BASE		eXTensible Finishers 		v4.2.0
+MODULE		finisher_default 			v2.2.0
+MODULE		dismember_default 			v2.2.0
+MODULE		slowdown_default 			v2.3.0
+MODULE		camshake_default			v3.2.0
 MODULE		slowdown_tailoredfinishers	v2.0.1
 
 ------------
@@ -136,6 +136,7 @@ Configuration options provided by this module include:
 	- Options to disable certain checks that often block cinematic finishers from triggering in the vanilla game:
 		- Target must be the last enemy in combat.
 		- Geralt must be clear of terrain/object obstacles within a certain distance.
+	- Option to disable camera shake when a cinematic finisher is triggered.
 	
 MODULE dismember_default
 ------------------------

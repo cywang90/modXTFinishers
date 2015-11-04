@@ -3,6 +3,14 @@ MODULE slowdown_default Changelog
 =================================
 
 -----------------
+v2.3.0 (15/11/04)
+-----------------
+
+Bug Fixes
+---------
+- Better detection of when the last enemy in combat has or has not been killed.
+
+-----------------
 v2.2.0 (15/10/21)
 -----------------
 
