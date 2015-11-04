@@ -289,46 +289,76 @@ abstract class XTFinishersAbstractReactionEndEventListener extends XTFinishersPr
 	public function OnReactionEndTriggered(context : XTFinishersActionContext);
 }
 
+abstract class XTFinishersAbstractFinisherPretriggerEventListener extends XTFinishersPriorityListener {
+	public final function OnEventTriggered(id : string, data : XTFinishersEventData) {
+		OnFinisherPretrigger(((XTFinishersActionContextData)data).context);
+	}
+	
+	public function OnFinisherPretrigger(context : XTFinishersActionContext);
+}
+
 abstract class XTFinishersAbstractFinisherEventListener extends XTFinishersPriorityListener {
 	public final function OnEventTriggered(id : string, data : XTFinishersEventData) {
-		var actionContextData : XTFinishersActionContextData;
-		var context : XTFinishersActionContext;
-		
-		actionContextData = (XTFinishersActionContextData)data;
-		context = actionContextData.context;
-		OnFinisherTriggered(context);
-		actionContextData.SetData(context);
+		OnFinisherTriggered(((XTFinishersActionContextData)data).context);
 	}
 	
 	public function OnFinisherTriggered(context : XTFinishersActionContext);
 }
 
+abstract class XTFinishersAbstractFinisherEndEventListener extends XTFinishersPriorityListener {
+	public final function OnEventTriggered(id : string, data : XTFinishersEventData) {
+		OnFinisherEnd(((XTFinishersActionContextData)data).context);
+	}
+	
+	public function OnFinisherEnd(context : XTFinishersActionContext);
+}
+
+abstract class XTFinishersAbstractDismemberPretriggerEventListener extends XTFinishersPriorityListener {
+	public final function OnEventTriggered(id : string, data : XTFinishersEventData) {
+		OnDismemberPretrigger(((XTFinishersActionContextData)data).context);
+	}
+	
+	public function OnDismemberPretrigger(context : XTFinishersActionContext);
+}
+
 abstract class XTFinishersAbstractDismemberEventListener extends XTFinishersPriorityListener {
 	public final function OnEventTriggered(id : string, data : XTFinishersEventData) {
-		var actionContextData : XTFinishersActionContextData;
-		var context : XTFinishersActionContext;
-		
-		actionContextData = (XTFinishersActionContextData)data;
-		context = actionContextData.context;
-		OnDismemberTriggered(context);
-		actionContextData.SetData(context);
+		OnDismemberTriggered(((XTFinishersActionContextData)data).context);
 	}
 	
 	public function OnDismemberTriggered(context : XTFinishersActionContext);
 }
 
+abstract class XTFinishersAbstractFinisherCamPretriggerEventListener extends XTFinishersPriorityListener {
+	public final function OnEventTriggered(id : string, data : XTFinishersEventData) {
+		OnFinisherCamPretrigger(((XTFinishersActionContextData)data).context);
+	}
+	
+	public function OnFinisherCamPretrigger(context : XTFinishersActionContext);
+}
+
 abstract class XTFinishersAbstractFinisherCamEventListener extends XTFinishersPriorityListener {
 	public final function OnEventTriggered(id : string, data : XTFinishersEventData) {
-		var actionContextData : XTFinishersActionContextData;
-		var context : XTFinishersActionContext;
-		
-		actionContextData = (XTFinishersActionContextData)data;
-		context = actionContextData.context;
-		OnFinisherCamTriggered(context);
-		actionContextData.SetData(context);
+		OnFinisherCamTriggered(((XTFinishersActionContextData)data).context);
 	}
 	
 	public function OnFinisherCamTriggered(context : XTFinishersActionContext);
+}
+
+abstract class XTFinishersAbstractCamshakePretriggerEventListener extends XTFinishersPriorityListener {
+	public final function OnEventTriggered(id : string, data : XTFinishersEventData) {
+		OnCamshakePretrigger(((XTFinishersActionContextData)data).context);
+	}
+	
+	public function OnCamshakePretrigger(context : XTFinishersActionContext);
+}
+
+abstract class XTFinishersAbstractCamshakeEventListener extends XTFinishersPriorityListener {
+	public final function OnEventTriggered(id : string, data : XTFinishersEventData) {
+		OnCamshakeTriggered(((XTFinishersActionContextData)data).context);
+	}
+	
+	public function OnCamshakeTriggered(context : XTFinishersActionContext);
 }
 
 class XTFinishersSlowdownSegmentData extends XTFinishersEventData {

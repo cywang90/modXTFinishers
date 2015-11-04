@@ -37,6 +37,9 @@ class XTFinishersDefaultFinisherParams {
 	// FINISHER CAM SETTINGS
 	//======================
 	
+	public const var FINISHER_CAM_DISABLE_CAMERA_SHAKE : bool;
+		default FINISHER_CAM_DISABLE_CAMERA_SHAKE = true;			// If TRUE -> prevents camera shake when cinematic finisher camera is activated.
+	
 	public const var FINISHER_CAM_CHANCE : float;
 		default FINISHER_CAM_CHANCE = 0.0;							// Chance to activate cinematic finisher camera when a finisher is triggered.
 	public const var FINISHER_CAM_CHANCE_LAST_ENEMY : float;

@@ -210,11 +210,15 @@ class W3DamageManagerProcessor extends CObject /* CObject extension is required 
 		// modXTFinishers BEGIN
 		theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.ACTION_END_EVENT_ID, CreateXTFinishersActionContextData(theGame.xtFinishersMgr.eventMgr, actionContext));
 		
+		// handle camera shake
 		if (!actionContext.camShake.forceOff && (actionContext.camShake.forceOn || actionContext.camShake.active)) {
-			if (actionContext.camShake.useExtraOpts) {
-				GCameraShake(actionContext.camShake.strength, false, actionContext.camShake.epicenter, actionContext.camShake.maxDistance);
-			} else {
-				GCameraShake(actionContext.camShake.strength);
+			theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.CAMSHAKE_PRE_EVENT_ID, CreateXTFinishersActionContextData(theGame.xtFinishersMgr.eventMgr, actionContext));
+			if (!actionContext.camShake.forceOff && (actionContext.camShake.forceOn || actionContext.camShake.active)) {
+				if (actionContext.camShake.useExtraOpts) {
+					GCameraShake(actionContext.camShake.strength, false, actionContext.camShake.epicenter, actionContext.camShake.maxDistance);
+				} else {
+					GCameraShake(actionContext.camShake.strength);
+				}
 			}
 		}
 		// modXTFinishers END
@@ -1666,7 +1670,10 @@ class W3DamageManagerProcessor extends CObject /* CObject extension is required 
 			// modXTFinishers BEGIN
 			if( !actionContext.finisher.active && actionContext.dismember.active )
 			{
-				ProcessDismemberment();
+				theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.DISMEMBER_PRE_EVENT_ID, CreateXTFinishersActionContextData(theGame.xtFinishersMgr.eventMgr, actionContext));
+				if (actionContext.dismember.active) {
+					ProcessDismemberment();
+				}
 				// modXTFinishers END
 				toxicCloud = (W3ToxicCloud)action.causer;
 				
@@ -1687,37 +1694,38 @@ class W3DamageManagerProcessor extends CObject /* CObject extension is required 
 			//Finisher
 			// modXTFinishers BEGIN
 			else if ( actionContext.finisher.active )
-			// modXTFinishers END
 			{
-				if ( actorVictim.IsAlive() )
-					actorVictim.Kill(false,thePlayer);
+				theGame.xtFinishersMgr.eventMgr.FireEvent(theGame.xtFinishersMgr.consts.FINISHER_PRE_EVENT_ID, CreateXTFinishersActionContextData(theGame.xtFinishersMgr.eventMgr, actionContext));
+				if (actionContext.finisher.active) {
+					if ( actorVictim.IsAlive() )
+						actorVictim.Kill(false,thePlayer);
+						
+					thePlayer.AddTimer( 'DelayedFinisherInputTimer', 0.1f );
+					thePlayer.SetFinisherVictim( actorVictim );
+					thePlayer.CleanCombatActionBuffer();
+					thePlayer.OnBlockAllCombatTickets( true );
 					
-				thePlayer.AddTimer( 'DelayedFinisherInputTimer', 0.1f );
-				thePlayer.SetFinisherVictim( actorVictim );
-				thePlayer.CleanCombatActionBuffer();
-				thePlayer.OnBlockAllCombatTickets( true );
-				
-				moveTargets = thePlayer.GetMoveTargets();
-				
-				for ( i = 0; i < moveTargets.Size(); i += 1 )
-				{
-					if ( actorVictim != moveTargets[i] )
-						moveTargets[i].SignalGameplayEvent( 'InterruptChargeAttack' );
-				}	
-				
-				if ( theGame.GetInGameConfigWrapper().GetVarValue('Gameplay', 'AutomaticFinishersEnabled' ) == "true" )
-					actorVictim.AddAbility( 'ForceFinisher', false );
-				
-				if ( actorVictim.HasTag( 'ForceFinisher' ) )
-					actorVictim.AddAbility( 'ForceFinisher', false );
-				
-				actorVictim.SignalGameplayEvent( 'ForceFinisher' );
-				//thePlayer.SetFinisherVictim( actorVictim );	
+					moveTargets = thePlayer.GetMoveTargets();
+					
+					for ( i = 0; i < moveTargets.Size(); i += 1 )
+					{
+						if ( actorVictim != moveTargets[i] )
+							moveTargets[i].SignalGameplayEvent( 'InterruptChargeAttack' );
+					}	
+					
+					if ( theGame.GetInGameConfigWrapper().GetVarValue('Gameplay', 'AutomaticFinishersEnabled' ) == "true" )
+						actorVictim.AddAbility( 'ForceFinisher', false );
+					
+					if ( actorVictim.HasTag( 'ForceFinisher' ) )
+						actorVictim.AddAbility( 'ForceFinisher', false );
+					
+					actorVictim.SignalGameplayEvent( 'ForceFinisher' );
+					//thePlayer.SetFinisherVictim( actorVictim );	
 
-				// modXTFinishers BEGIN
-				thePlayer.LoadActionContext(actionContext);
-				// modXTFinishers END
-			} 
+					thePlayer.LoadActionContext(actionContext);
+				}
+			}
+			// modXTFinishers END
 			else if ( weaponName == 'fists' && npcVictim )
 			{
 				npcVictim.DisableAgony();	
