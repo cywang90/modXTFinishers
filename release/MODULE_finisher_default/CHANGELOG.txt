@@ -3,11 +3,23 @@ MODULE finisher_default Changelog
 =================================
 
 -----------------
+v2.2.0 (15/11/04)
+-----------------
+
+Features
+--------
+- Added new configuration option to disable camera shake when a cinematic finisher is activated.
+
+Bug Fixes
+---------
+- Better detection of when the last enemy in combat has or has not been killed.
+
+-----------------
 v2.1.0 (15/10/14)
 -----------------
 
 General
----------
+-------
 - Updated for compatibility with BASE eXTensible Finishers v4.0.0.
 
 -----------------

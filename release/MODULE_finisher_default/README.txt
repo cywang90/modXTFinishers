@@ -8,14 +8,14 @@ Author: aznricepuff
 VERSION
 -------
 
-This README is for v2.1.0.
+This README is for v2.2.0.
 
 ------------
 REQUIREMENTS
 ------------
 
-- The Witcher 3: Wild Hunt Patch 1.10 or later
-- BASE eXTensible Finishers v4.0.0 or later
+- The Witcher 3: Wild Hunt Patch 1.11 or later
+- BASE eXTensible Finishers v4.2.0 or later
 
 ------------
 INSTALLATION
@@ -89,6 +89,7 @@ Configuration options provided by this module include:
 	- Options to disable certain checks that often block cinematic finishers from triggering in the vanilla game:
 		- Target must be the last enemy in combat.
 		- Geralt must be clear of terrain/object obstacles within a certain distance.
+	- Option to disable camera shake when a cinematic finisher is triggered.
 		
 --------------
 UNINSTALLATION

@@ -2,9 +2,44 @@
 eXTensible Finishers Changelog
 ==============================
 
-----------------------
+---------------------
+Release 10 (15/11/04)
+---------------------
+
+Includes
+--------
+BASE		eXTensible Finishers		v4.2.0
+MODULE		finisher_default			v2.2.0
+MODULE		dismember_default			v2.2.0
+MODULE		slowdown_default			v2.3.0
+MODULE		camshake_default			v3.2.0
+MODULE		slowdown_tailoredfinishers	v2.0.1
+
+API
+---
+- BASE eXTensible Finishers
+	- Added new events:
+		- OnCamshake
+		- OnFinisherEnd
+		- OnFinisherPretrigger
+		- OnDismemberPretrigger
+		- OnCamshakePretrigger
+	- Use of XTFinishersCamShakeContext.forceOn and XTFinishersCamShakeContext.forceOff is now considered deprecated.
+	- Added new function XTFinishersActionContext.CountEnemiesNearPlayer().
+	
+Features
+--------
+- MODULE finisher_default
+	- Added new configuration option to disable camera shake when a cinematic finisher is activated.
+
+Bug Fixes
+---------
+- ALL
+	- Better detection of when the last enemy in combat has or has not been killed.
+
+-----------------------
 Release 09.1 (15/10/22)
-----------------------
+-----------------------
 
 Includes
 --------
