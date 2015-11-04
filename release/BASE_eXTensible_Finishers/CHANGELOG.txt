@@ -3,6 +3,21 @@ BASE eXTensible Finishers Changelog
 ===================================
 
 -----------------
+v4.2.0 (15/11/04)
+-----------------
+
+API
+---
+- Added new events:
+	- OnCamshake
+	- OnFinisherEnd
+	- OnFinisherPretrigger
+	- OnDismemberPretrigger
+	- OnCamshakePretrigger
+- Use of XTFinishersCamShakeContext.forceOn and XTFinishersCamShakeContext.forceOff is now considered deprecated.
+- Added new function XTFinishersActionContext.CountEnemiesNearPlayer().
+
+-----------------
 v4.1.1 (15/10/22)
 -----------------
 

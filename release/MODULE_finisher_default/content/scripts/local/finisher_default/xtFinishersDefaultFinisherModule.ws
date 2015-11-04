@@ -1,7 +1,7 @@
 class XTFinishersDefaultFinisherModule extends XTFinishersObject {
-	public const var DEFAULT_FINISHER_QUERY_DISPATCHER_PRIORITY, DEFAULT_FINISHER_CAM_QUERY_DISPATCHER_PRIORITY : int;
-		default DEFAULT_FINISHER_QUERY_DISPATCHER_PRIORITY = 0;
-		default DEFAULT_FINISHER_CAM_QUERY_DISPATCHER_PRIORITY = 0;
+	public const var DEFAULT_FINISHER_HANDLER_PRIORITY, DEFAULT_FINISHER_CAMSHAKE_DISABLE_HANDLER_PRIORITY : int;
+		default DEFAULT_FINISHER_HANDLER_PRIORITY = 0;
+		default DEFAULT_FINISHER_CAMSHAKE_DISABLE_HANDLER_PRIORITY = 0;
 	
 	public var params : XTFinishersDefaultFinisherParams;
 	
@@ -10,15 +10,15 @@ class XTFinishersDefaultFinisherModule extends XTFinishersObject {
 		params.Init();
 		
 		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.REACTION_START_EVENT_ID, GetNewFinisherHandlerInstance());
-		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.FINISHER_EVENT_ID, GetNewFinisherCamHandlerInstance());
+		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.CAMSHAKE_PRE_EVENT_ID, GetNewFinisherCamshakeDisableHandlerInstance());
 	}
 	
 	protected function GetNewFinisherHandlerInstance() : XTFinishersAbstractReactionStartEventListener {
 		return new XTFinishersDefaultFinisherHandler in this;
 	}
 	
-	protected function GetNewFinisherCamHandlerInstance() : XTFinishersAbstractFinisherEventListener {
-		return new XTFinishersDefaultFinisherCamHandler in this;
+	protected function GetNewFinisherCamshakeDisableHandlerInstance() : XTFinishersAbstractCamshakePretriggerEventListener {
+		return new XTFinishersDefaultFinisherCamshakeDisableHandler in this;
 	}
 }
 
@@ -26,11 +26,14 @@ class XTFinishersDefaultFinisherModule extends XTFinishersObject {
 
 class XTFinishersDefaultFinisherHandler extends XTFinishersAbstractReactionStartEventListener {
 	public function GetPriority() : int {
-		return theGame.xtFinishersMgr.finisherModule.DEFAULT_FINISHER_QUERY_DISPATCHER_PRIORITY;
+		return theGame.xtFinishersMgr.finisherModule.DEFAULT_FINISHER_HANDLER_PRIORITY;
 	}
 	
 	public function OnReactionStartTriggered(context : XTFinishersActionContext) {
 		PreprocessFinisher(context);
+		if (context.finisher.active) {
+			PreprocessFinisherCam(context);
+		}
 	}
 	
 	protected function PreprocessFinisher(context : XTFinishersActionContext) {
@@ -181,7 +184,7 @@ class XTFinishersDefaultFinisherHandler extends XTFinishersAbstractReactionStart
 				result = true;
 			} else if (SkillNameToEnum(attackAction.GetAttackTypeName()) == S_Sword_s02 && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_AUTO_CHANCE_REND) {
 				result = true;
-			} else if (thePlayer.IsLastEnemyKilled() && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_AUTO_CHANCE_LAST_ENEMY) {
+			} else if (context.CountEnemiesNearPlayer() <= 1 && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_AUTO_CHANCE_LAST_ENEMY) {
 				result = true;
 			} else if (context.effectsSnapshot.HasEffects(theGame.xtFinishersMgr.finisherModule.params.autoFinisherEffectTypes) && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_AUTO_CHANCE_EFFECTS) {
 				result = true;
@@ -207,7 +210,7 @@ class XTFinishersDefaultFinisherHandler extends XTFinishersAbstractReactionStart
 			if (attackAction) {
 				if (attackAction.IsCriticalHit() && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_INSTANTKILL_CHANCE_CRIT) {
 					result = true;
-				} else if (thePlayer.IsLastEnemyKilled() && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_INSTANTKILL_CHANCE_LAST_ENEMY) {
+				} else if (context.CountEnemiesNearPlayer() <= 1 && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_INSTANTKILL_CHANCE_LAST_ENEMY) {
 					result = true;
 				} else if (context.effectsSnapshot.HasEffects(theGame.xtFinishersMgr.finisherModule.params.instantKillFinisherEffectTypes) && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_INSTANTKILL_CHANCE_EFFECTS) {
 					result = true;
@@ -233,21 +236,11 @@ class XTFinishersDefaultFinisherHandler extends XTFinishersAbstractReactionStart
 		
 		return animNames[RandRange(animNames.Size(), 0)];
 	}
-}
-
-class XTFinishersDefaultFinisherCamHandler extends XTFinishersAbstractFinisherEventListener {
-	public function GetPriority() : int {
-		return theGame.xtFinishersMgr.finisherModule.DEFAULT_FINISHER_CAM_QUERY_DISPATCHER_PRIORITY;
-	}
-	
-	public function OnFinisherTriggered(context : XTFinishersActionContext) {
-		PreprocessFinisherCam(context);
-	}
 	
 	protected function PreprocessFinisherCam(context : XTFinishersActionContext) {
 		var chance : float;
 		
-		if (thePlayer.IsLastEnemyKilled()) {
+		if (context.CountEnemiesNearPlayer() <= 1) {
 			chance = theGame.xtFinishersMgr.finisherModule.params.FINISHER_CAM_CHANCE_LAST_ENEMY;
 		} else {
 			chance = theGame.xtFinishersMgr.finisherModule.params.FINISHER_CAM_CHANCE;
@@ -255,5 +248,15 @@ class XTFinishersDefaultFinisherCamHandler extends XTFinishersAbstractFinisherEv
 	
 		context.finisherCam.active = RandRangeF(100) < chance
 				&& (!theGame.xtFinishersMgr.finisherModule.params.FINISHER_CAM_REQUIRE_NAV_CHECK || theGame.GetWorld().NavigationCircleTest(thePlayer.GetWorldPosition(), 3.f));
+	}
+}
+
+class XTFinishersDefaultFinisherCamshakeDisableHandler extends XTFinishersAbstractCamshakePretriggerEventListener {
+	public function GetPriority() : int {
+		return theGame.xtFinishersMgr.finisherModule.DEFAULT_FINISHER_CAMSHAKE_DISABLE_HANDLER_PRIORITY;
+	}
+	
+	public function OnCamshakePretrigger(context : XTFinishersActionContext) {
+		context.camShake.active = context.camShake.active && (!context.finisherCam.active || !theGame.xtFinishersMgr.finisherModule.params.FINISHER_CAM_DISABLE_CAMERA_SHAKE);
 	}
 }
