@@ -5,10 +5,20 @@ class XTFinishersDefaultFinisherModule extends XTFinishersObject {
 	
 	public var params : XTFinishersDefaultFinisherParams;
 	
+	private var config : XTFinishersDefaultFinisherConfig;
+	
 	public function Init() {
+		// initialize parameters
 		params = new XTFinishersDefaultFinisherParams in this;
 		params.Init();
 		
+		// initialize config file and load settings into params
+		config = new XTFinishersDefaultFinisherConfig in this;
+		config.Init();
+		
+		params.LoadParamsFromList(config.paramsList);
+		
+		// register listeners
 		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.REACTION_START_EVENT_ID, GetNewFinisherHandlerInstance());
 		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.CAMSHAKE_PRE_EVENT_ID, GetNewFinisherCamshakeDisableHandlerInstance());
 	}
