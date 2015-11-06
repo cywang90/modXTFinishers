@@ -6,7 +6,7 @@ class XTFinishersObject {
 
 // wrapper classes
 
-final class XTFinishersInt extends XTFinishersObject {
+class XTFinishersInt extends XTFinishersObject {
 	public var value : int;
 	
 	public function Init(value : int) {
@@ -18,7 +18,7 @@ final class XTFinishersInt extends XTFinishersObject {
 	}
 }
 
-final class XTFinishersFloat extends XTFinishersObject {
+class XTFinishersFloat extends XTFinishersObject {
 	public var value : float;
 	
 	public function Init(value : float) {
@@ -30,7 +30,7 @@ final class XTFinishersFloat extends XTFinishersObject {
 	}
 }
 
-final class XTFinishersBool extends XTFinishersObject {
+class XTFinishersBool extends XTFinishersObject {
 	public var value : bool;
 	
 	public function Init(value : bool) {
@@ -42,7 +42,7 @@ final class XTFinishersBool extends XTFinishersObject {
 	}
 }
 
-final class XTFinishersString extends XTFinishersObject {
+class XTFinishersString extends XTFinishersObject {
 	public var value : string;
 	
 	public function Init(value : string) {
@@ -54,7 +54,7 @@ final class XTFinishersString extends XTFinishersObject {
 	}
 }
 
-final class XTFinishersName extends XTFinishersObject {
+class XTFinishersName extends XTFinishersObject {
 	public var value : name;
 	
 	public function Init(value : name) {

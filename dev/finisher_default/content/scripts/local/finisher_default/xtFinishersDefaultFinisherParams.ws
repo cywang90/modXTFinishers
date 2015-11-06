@@ -103,58 +103,50 @@ class XTFinishersDefaultFinisherParams extends XTFinishersParams {
 		}
 	}
 	
-	public function LoadParam(def : XTFinishersParamDefinition) {
-		switch (def.GetId()) {
-		case "FINISHER_REQUIRE_NO_AGGRO": FINISHER_REQUIRE_NO_AGGRO = ((XTFinishersBool)def.GetData()).value; break;
-		case "FINISHER_REQUIRE_NAV_CHECK": FINISHER_REQUIRE_NAV_CHECK = ((XTFinishersBool)def.GetData()).value; break;
-		case "FINISHER_CHANCE_OVERRIDE": FINISHER_CHANCE_OVERRIDE = ((XTFinishersBool)def.GetData()).value; break;
-		case "FINISHER_CHANCE_BASE": FINISHER_CHANCE_BASE = ((XTFinishersFloat)def.GetData()).value; break;
-		case "FINISHER_CHANCE_LEVEL_BONUS": FINISHER_CHANCE_LEVEL_BONUS = ((XTFinishersFloat)def.GetData()).value; break;
-		case "FINISHER_CHANCE_LEVEL_PENALTY": FINISHER_CHANCE_LEVEL_PENALTY = ((XTFinishersFloat)def.GetData()).value; break;
-		case "FINISHER_AUTO_CHANCE_EFFECTS": FINISHER_AUTO_CHANCE_EFFECTS = ((XTFinishersFloat)def.GetData()).value; break;
-		case "FINISHER_AUTO_CHANCE_CRIT": FINISHER_AUTO_CHANCE_CRIT = ((XTFinishersFloat)def.GetData()).value; break;
-		case "FINISHER_AUTO_CHANCE_REND": FINISHER_AUTO_CHANCE_REND = ((XTFinishersFloat)def.GetData()).value; break;
-		case "FINISHER_AUTO_CHANCE_LAST_ENEMY": FINISHER_AUTO_CHANCE_LAST_ENEMY = ((XTFinishersFloat)def.GetData()).value; break;
-		case "FINISHER_AUTO_REQUIRE_NO_AGGRO": FINISHER_AUTO_REQUIRE_NO_AGGRO = ((XTFinishersBool)def.GetData()).value; break;
-		case "FINISHER_AUTO_REQUIRE_NAV_CHECK": FINISHER_AUTO_REQUIRE_NAV_CHECK = ((XTFinishersBool)def.GetData()).value; break;
-		case "FINISHER_INSTANTKILL_CHANCE_EFFECTS": FINISHER_INSTANTKILL_CHANCE_EFFECTS = ((XTFinishersFloat)def.GetData()).value; break;
-		case "FINISHER_INSTANTKILL_CHANCE_CRIT": FINISHER_INSTANTKILL_CHANCE_CRIT = ((XTFinishersFloat)def.GetData()).value; break;
-		case "FINISHER_INSTANTKILL_CHANCE_LAST_ENEMY": FINISHER_INSTANTKILL_CHANCE_LAST_ENEMY = ((XTFinishersFloat)def.GetData()).value; break;
-		case "FINISHER_INSTANTKILL_REQUIRE_NO_AGGRO": FINISHER_INSTANTKILL_REQUIRE_NO_AGGRO = ((XTFinishersBool)def.GetData()).value; break;
-		case "FINISHER_INSTANTKILL_REQUIRE_NAV_CHECK": FINISHER_INSTANTKILL_REQUIRE_NAV_CHECK = ((XTFinishersBool)def.GetData()).value; break;
-		case "FINISHER_CAM_DISABLE_CAMERA_SHAKE": FINISHER_CAM_DISABLE_CAMERA_SHAKE = ((XTFinishersBool)def.GetData()).value; break;
-		case "FINISHER_CAM_CHANCE": FINISHER_CAM_CHANCE = ((XTFinishersFloat)def.GetData()).value; break;
-		case "FINISHER_CAM_CHANCE_LAST_ENEMY": FINISHER_CAM_CHANCE_LAST_ENEMY = ((XTFinishersFloat)def.GetData()).value; break;
-		case "FINISHER_CAM_REQUIRE_NAV_CHECK": FINISHER_CAM_REQUIRE_NAV_CHECK = ((XTFinishersBool)def.GetData()).value; break;
-		case "autoFinisherEffectTypes": autoFinisherEffectTypes = ((XTFinishersDefaultFinisherEffectTypeArray)def.GetData()).value; break;
-		case "instantKillFinisherEffectTypes": instantKillFinisherEffectTypes = ((XTFinishersDefaultFinisherEffectTypeArray)def.GetData()).value; break;
-		case "allowedLeftSideFinisherAnimNames": allowedLeftSideFinisherAnimNames = ((XTFinishersDefaultFinisherNameArray)def.GetData()).value; break;
-		case "allowedRightSideFinisherAnimNames": allowedRightSideFinisherAnimNames = ((XTFinishersDefaultFinisherNameArray)def.GetData()).value; break;
+	public function LoadParam(paramDef : XTFinishersParamDefinition) {
+		switch (paramDef.GetId()) {
+		case "FINISHER_REQUIRE_NO_AGGRO": FINISHER_REQUIRE_NO_AGGRO = ((XTFinishersBool)paramDef.GetData()).value; break;
+		case "FINISHER_REQUIRE_NAV_CHECK": FINISHER_REQUIRE_NAV_CHECK = ((XTFinishersBool)paramDef.GetData()).value; break;
+		case "FINISHER_CHANCE_OVERRIDE": FINISHER_CHANCE_OVERRIDE = ((XTFinishersBool)paramDef.GetData()).value; break;
+		case "FINISHER_CHANCE_BASE": FINISHER_CHANCE_BASE = ((XTFinishersFloat)paramDef.GetData()).value; break;
+		case "FINISHER_CHANCE_LEVEL_BONUS": FINISHER_CHANCE_LEVEL_BONUS = ((XTFinishersFloat)paramDef.GetData()).value; break;
+		case "FINISHER_CHANCE_LEVEL_PENALTY": FINISHER_CHANCE_LEVEL_PENALTY = ((XTFinishersFloat)paramDef.GetData()).value; break;
+		case "FINISHER_AUTO_CHANCE_EFFECTS": FINISHER_AUTO_CHANCE_EFFECTS = ((XTFinishersFloat)paramDef.GetData()).value; break;
+		case "FINISHER_AUTO_CHANCE_CRIT": FINISHER_AUTO_CHANCE_CRIT = ((XTFinishersFloat)paramDef.GetData()).value; break;
+		case "FINISHER_AUTO_CHANCE_REND": FINISHER_AUTO_CHANCE_REND = ((XTFinishersFloat)paramDef.GetData()).value; break;
+		case "FINISHER_AUTO_CHANCE_LAST_ENEMY": FINISHER_AUTO_CHANCE_LAST_ENEMY = ((XTFinishersFloat)paramDef.GetData()).value; break;
+		case "FINISHER_AUTO_REQUIRE_NO_AGGRO": FINISHER_AUTO_REQUIRE_NO_AGGRO = ((XTFinishersBool)paramDef.GetData()).value; break;
+		case "FINISHER_AUTO_REQUIRE_NAV_CHECK": FINISHER_AUTO_REQUIRE_NAV_CHECK = ((XTFinishersBool)paramDef.GetData()).value; break;
+		case "FINISHER_INSTANTKILL_CHANCE_EFFECTS": FINISHER_INSTANTKILL_CHANCE_EFFECTS = ((XTFinishersFloat)paramDef.GetData()).value; break;
+		case "FINISHER_INSTANTKILL_CHANCE_CRIT": FINISHER_INSTANTKILL_CHANCE_CRIT = ((XTFinishersFloat)paramDef.GetData()).value; break;
+		case "FINISHER_INSTANTKILL_CHANCE_LAST_ENEMY": FINISHER_INSTANTKILL_CHANCE_LAST_ENEMY = ((XTFinishersFloat)paramDef.GetData()).value; break;
+		case "FINISHER_INSTANTKILL_REQUIRE_NO_AGGRO": FINISHER_INSTANTKILL_REQUIRE_NO_AGGRO = ((XTFinishersBool)paramDef.GetData()).value; break;
+		case "FINISHER_INSTANTKILL_REQUIRE_NAV_CHECK": FINISHER_INSTANTKILL_REQUIRE_NAV_CHECK = ((XTFinishersBool)paramDef.GetData()).value; break;
+		case "FINISHER_CAM_DISABLE_CAMERA_SHAKE": FINISHER_CAM_DISABLE_CAMERA_SHAKE = ((XTFinishersBool)paramDef.GetData()).value; break;
+		case "FINISHER_CAM_CHANCE": FINISHER_CAM_CHANCE = ((XTFinishersFloat)paramDef.GetData()).value; break;
+		case "FINISHER_CAM_CHANCE_LAST_ENEMY": FINISHER_CAM_CHANCE_LAST_ENEMY = ((XTFinishersFloat)paramDef.GetData()).value; break;
+		case "FINISHER_CAM_REQUIRE_NAV_CHECK": FINISHER_CAM_REQUIRE_NAV_CHECK = ((XTFinishersBool)paramDef.GetData()).value; break;
+		case "autoFinisherEffectTypes": autoFinisherEffectTypes = ((XTFinishersDefaultFinisherEffectTypeArray)paramDef.GetData()).value; break;
+		case "instantKillFinisherEffectTypes": instantKillFinisherEffectTypes = ((XTFinishersDefaultFinisherEffectTypeArray)paramDef.GetData()).value; break;
+		case "allowedLeftSideFinisherAnimNames": allowedLeftSideFinisherAnimNames = ((XTFinishersDefaultFinisherNameArray)paramDef.GetData()).value; break;
+		case "allowedRightSideFinisherAnimNames": allowedRightSideFinisherAnimNames = ((XTFinishersDefaultFinisherNameArray)paramDef.GetData()).value; break;
 		}
 	}
 }
 
-final class XTFinishersDefaultFinisherEffectTypeArray extends XTFinishersObject {
+class XTFinishersDefaultFinisherEffectTypeArray extends XTFinishersObject {
 	public var value : array<EEffectType>;
 	
 	public function Init(value : array<EEffectType>) {
 		this.value = value;
 	}
-	
-	public function toString() : string {
-		return "" + value;
-	}
 }
 
-final class XTFinishersDefaultFinisherNameArray extends XTFinishersObject {
+class XTFinishersDefaultFinisherNameArray extends XTFinishersObject {
 	public var value : array<name>;
 	
 	public function Init(value : array<name>) {
 		this.value = value;
-	}
-	
-	public function toString() : string {
-		return "" + value;
 	}
 }
 
@@ -176,7 +168,7 @@ function CreateXTFinishersDefaultFinisherNameArray(owner : XTFinishersObject, va
 	return obj;
 }
 
-function CreateXTFinishersParamDefDefaultFinisherEffectTypeArray(owner : XTFinishersObject, id : string, value : array<EEffectType>) {
+function CreateXTFinishersParamDefDefaultFinisherEffectTypeArray(owner : XTFinishersObject, id : string, value : array<EEffectType>) : XTFinishersParamDefinition {
 	var paramDef : XTFinishersConcreteParamDefinition;
 	
 	paramDef = new XTFinishersConcreteParamDefinition in owner;
@@ -184,7 +176,7 @@ function CreateXTFinishersParamDefDefaultFinisherEffectTypeArray(owner : XTFinis
 	return paramDef;
 }
 
-function CreateXTFinishersParamDefDefaultFinisherNameArray(owner : XTFinishersObject, id : string, value : array<name>) {
+function CreateXTFinishersParamDefDefaultFinisherNameArray(owner : XTFinishersObject, id : string, value : array<name>) : XTFinishersParamDefinition {
 	var paramDef : XTFinishersConcreteParamDefinition;
 	
 	paramDef = new XTFinishersConcreteParamDefinition in owner;
