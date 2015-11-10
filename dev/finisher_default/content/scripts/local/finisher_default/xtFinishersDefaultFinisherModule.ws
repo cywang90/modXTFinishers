@@ -5,18 +5,18 @@ class XTFinishersDefaultFinisherModule extends XTFinishersObject {
 	
 	public var params : XTFinishersDefaultFinisherParams;
 	
-	private var config : XTFinishersDefaultFinisherConfig;
+	private var userPreset : XTFinishersDefaultFinisherUserPreset;
 	
 	public function Init() {
 		// initialize parameters
 		params = new XTFinishersDefaultFinisherParams in this;
 		params.Init();
 		
-		// initialize config file and load settings into params
-		config = new XTFinishersDefaultFinisherConfig in this;
-		config.Init();
+		// initialize user preset file and load settings into params
+		userPreset = new XTFinishersDefaultFinisherConfig in this;
+		userPreset.Init();
 		
-		params.LoadParamsFromList(config.paramsList);
+		params.LoadParamsFromList(userPreset.preset);
 		
 		// register listeners
 		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.REACTION_START_EVENT_ID, GetNewFinisherHandlerInstance());

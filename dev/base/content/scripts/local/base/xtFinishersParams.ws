@@ -12,7 +12,7 @@ abstract class XTFinishersParams extends XTFinishersObject {
 	public function LoadParam(paramDef : XTFinishersParamDefinition);
 }
 
-class XTFinishersParamsList extends XTFinishersObject {
+class XTFinishersParamsPreset extends XTFinishersObject {
 	private var paramDefs : array<XTFinishersParamDefinition>;
 	
 	public function AddParam(param : XTFinishersParamDefinition) {
