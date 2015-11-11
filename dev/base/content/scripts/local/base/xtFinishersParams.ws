@@ -1,9 +1,9 @@
 abstract class XTFinishersParams extends XTFinishersObject {
-	public function LoadParamsFromList(list : XTFinishersParamsList) {
+	public function LoadParamsFromPreset(preset : XTFinishersParamsList) {
 		var paramDefs : array<XTFinishersParamDefinition>;
 		var i : int;
 		
-		paramDefs = list.GetParams();
+		paramDefs = preset.GetParams();
 		for (i = 0; i < paramDefs.Size(); i+=1) {
 			LoadParam(paramDefs[i]);
 		}

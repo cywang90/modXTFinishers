@@ -36,7 +36,7 @@ class XTFinishersDefaultFinisherModule extends XTFinishersObject {
 	}
 	
 	public function LoadParamsPreset(preset : XTFinishersDefaultFinisherParamsPreset) {
-		params.LoadParamsFromList(preset);
+		params.LoadParamsFromPreset(preset);
 	}
 }
 
