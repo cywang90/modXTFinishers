@@ -15,12 +15,12 @@ class XTFinishersDefaultFinisherModule extends XTFinishersObject {
 		// initialize default preset file and load settings into params
 		defaultPreset = new XTFinishersDefaultFinisherDefaultPreset in this;
 		defaultPreset.Init();
-		params.LoadParamsFromList(defaultPreset);
+		LoadParamsPreset(defaultPreset);
 		
 		// initialize user preset file and load settings into params
 		userPreset = new XTFinishersDefaultFinisherUserPreset in this;
 		userPreset.Init();
-		params.LoadParamsFromList(userPreset);
+		LoadParamsPreset(userPreset);
 		
 		// register listeners
 		theGame.xtFinishersMgr.eventMgr.RegisterEventListener(theGame.xtFinishersMgr.consts.REACTION_START_EVENT_ID, GetNewFinisherHandlerInstance());
@@ -33,6 +33,10 @@ class XTFinishersDefaultFinisherModule extends XTFinishersObject {
 	
 	protected function GetNewFinisherCamshakeDisableHandlerInstance() : XTFinishersAbstractCamshakePretriggerEventListener {
 		return new XTFinishersDefaultFinisherCamshakeDisableHandler in this;
+	}
+	
+	public function LoadParamsPreset(preset : XTFinishersDefaultFinisherParamsPreset) {
+		params.LoadParamsFromList(preset);
 	}
 }
 
@@ -280,31 +284,20 @@ class XTFinishersDefaultFinisherCamshakeDisableHandler extends XTFinishersAbstra
 //=======
 
 class XTFinishersDefaultFinisherParams extends XTFinishersParams {
-	//==================
-	// FINISHER SETTINGS
-	//==================
 	public var FINISHER_REQUIRE_NO_AGGRO, FINISHER_REQUIRE_NAV_CHECK : bool;
 	public var FINISHER_CHANCE_OVERRIDE : bool;
 	public var FINISHER_CHANCE_BASE, FINISHER_CHANCE_LEVEL_BONUS, FINISHER_CHANCE_LEVEL_PENALTY : float;
-	
 	public var FINISHER_AUTO_CHANCE_EFFECTS, FINISHER_AUTO_CHANCE_CRIT, FINISHER_AUTO_CHANCE_REND, FINISHER_AUTO_CHANCE_LAST_ENEMY : float;
 	public var FINISHER_AUTO_REQUIRE_NO_AGGRO, FINISHER_AUTO_REQUIRE_NAV_CHECK : bool;
-	
 	public var FINISHER_INSTANTKILL_CHANCE_EFFECTS, FINISHER_INSTANTKILL_CHANCE_CRIT, FINISHER_INSTANTKILL_CHANCE_LAST_ENEMY : float;
 	public var FINISHER_INSTANTKILL_REQUIRE_NO_AGGRO, FINISHER_INSTANTKILL_REQUIRE_NAV_CHECK : bool;
 	
-	//======================
-	// FINISHER CAM SETTINGS
-	//======================
-	
 	public var FINISHER_CAM_DISABLE_CAMERA_SHAKE : bool;
-	
 	public var FINISHER_CAM_CHANCE, FINISHER_CAM_CHANCE_LAST_ENEMY : float;
 	public var FINISHER_CAM_REQUIRE_NAV_CHECK : bool;
 	
 	
 	public var autoFinisherEffectTypes, instantKillFinisherEffectTypes : array<EEffectType>;
-	
 	public var allowedLeftSideFinisherAnimNames, allowedRightSideFinisherAnimNames : array<name>;
 	
 	public function LoadParam(paramDef : XTFinishersParamDefinition) {
@@ -449,13 +442,13 @@ class XTFinishersDefaultFinisherDefaultPreset extends XTFinishersParamsPreset {
 		
 		AddParamBool("FINISHER_CAM_REQUIRE_NAV_CHECK", false);
 		
-		autoFinisherEffectTypes.PushBack(EET_Confusion);					// Axii stun
-		autoFinisherEffectTypes.PushBack(EET_AxiiGuardMe);					// Axii mind control
-		autoFinisherEffectTypes.PushBack(EET_Blindness);					// Blindness
-		autoFinisherEffectTypes.PushBack(EET_Burning);						// Burning
+		autoFinisherEffectTypes.PushBack(EET_Confusion);
+		autoFinisherEffectTypes.PushBack(EET_AxiiGuardMe);
+		autoFinisherEffectTypes.PushBack(EET_Blindness);
+		autoFinisherEffectTypes.PushBack(EET_Burning);
 		
-		instantKillFinisherEffectTypes.PushBack(EET_Confusion);				// Axii stun
-		instantKillFinisherEffectTypes.PushBack(EET_AxiiGuardMe);			// Axii mind control
+		instantKillFinisherEffectTypes.PushBack(EET_Confusion);
+		instantKillFinisherEffectTypes.PushBack(EET_AxiiGuardMe);
 		
 		allowedLeftSideFinisherAnimNames.PushBack(theGame.xtFinishersMgr.consts.FINISHER_STANCE_LEFT_HEAD_ONE);
 		allowedLeftSideFinisherAnimNames.PushBack(theGame.xtFinishersMgr.consts.FINISHER_STANCE_LEFT_HEAD_TWO);
