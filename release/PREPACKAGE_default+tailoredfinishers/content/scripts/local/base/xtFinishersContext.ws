@@ -50,16 +50,26 @@ class XTFinishersActionContext extends XTFinishersObject {
 	public var slowdown : XTFinishersSlowdownContext;
 	public var camShake : XTFinishersCamShakeContext;
 	
-	public function CountEnemiesNearPlayer() : int {
-		var tempMoveTargets : array<CActor>;
+	public function CountEnemiesNearPlayer(optional excludeVictim : bool) : int {
+		var enemiesList, hostileEnemies : array<CActor>;
+		var i : int;
+		var count : int;
 		
-		thePlayer.FindMoveTarget();
-		tempMoveTargets = thePlayer.GetMoveTargets();
-		if (!thePlayer.IsThreat(tempMoveTargets[0])) {
-			return 0;
-		} else {
-			return tempMoveTargets.Size();
+		count = 0;
+		thePlayer.GetVisibleEnemies(enemiesList);
+		for (i = 0; i < enemiesList.Size(); i += 1) {
+			if ((!excludeVictim || enemiesList[i] != action.victim) && enemiesList[i].IsAlive() && thePlayer.GetAttitude(enemiesList[i]) == AIA_Hostile) {
+				count += 1;
+			}
 		}
+		
+		for(i = 0; i < hostileEnemies.Size(); i += 1) {
+			if ((!excludeVictim || hostileEnemies[i] != action.victim) && hostileEnemies[i].IsAlive() && !enemiesList.Contains(hostileEnemies[i]) && thePlayer.GetAttitude(hostileEnemies[i]) == AIA_Hostile) {
+				count += 1;
+			}
+		}
+		
+		return count;
 	}
 }
 
