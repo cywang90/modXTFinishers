@@ -179,7 +179,7 @@ class XTFinishersDefaultDismemberHandler extends XTFinishersAbstractReactionStar
 				context.dismember.explosion = RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_EXPLOSION_CHANCE_FAST;
 				context.dismember.type = XTF_DISMEMBER_TYPE_AUTO;
 				result = true;
-			} else if (context.CountEnemiesNearPlayer() <= 1 && RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_CHANCE_LAST_ENEMY) {
+			} else if (context.CountEnemiesNearPlayer(true) == 0 && RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_CHANCE_LAST_ENEMY) {
 				context.dismember.explosion = RandRangeF(100) < theGame.xtFinishersMgr.dismemberModule.params.DISMEMBER_AUTO_EXPLOSION_CHANCE_LAST_ENEMY;
 				context.dismember.type = XTF_DISMEMBER_TYPE_AUTO;
 				result = true;
