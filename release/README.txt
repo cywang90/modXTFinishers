@@ -8,13 +8,13 @@ Author: aznricepuff
 VERSION
 -------
 
-This README is for Release 10, which includes the following components:
+This README is for Release 10.1, which includes the following components:
 
-BASE		eXTensible Finishers 		v4.2.0
-MODULE		finisher_default 			v2.2.0
-MODULE		dismember_default 			v2.2.0
-MODULE		slowdown_default 			v2.3.0
-MODULE		camshake_default			v3.2.0
+BASE		eXTensible Finishers 		v4.2.1
+MODULE		finisher_default 			v2.2.1
+MODULE		dismember_default 			v2.2.1
+MODULE		slowdown_default 			v2.3.1
+MODULE		camshake_default			v3.2.1
 MODULE		slowdown_tailoredfinishers	v2.0.1
 
 ------------
