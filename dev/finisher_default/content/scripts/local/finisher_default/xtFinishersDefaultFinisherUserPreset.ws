@@ -1,4 +1,4 @@
-class XTFinishersDefaultFinisherConfig extends XTFinishersObject {
+class XTFinishersDefaultFinisherUserPreset extends XTFinishersDefaultFinisherParamsPreset {
 	private function DefineUserCustomParams() {
 		//=====================================
 		// USER-MODIFIABLE CONFIG SETTINGS HERE
@@ -106,8 +106,6 @@ class XTFinishersDefaultFinisherConfig extends XTFinishersObject {
 	}
 	
 	// DO NOT CHANGE ---------------------------------------------
-	public var paramsList : XTFinishersParamsList;
-	
 	private var autoFinisherEffectTypes, instantKillFinisherEffectTypes : array<EEffectType>;
 	private var allowedLeftSideFinisherAnimNames, allowedRightSideFinisherAnimNames : array<name>;
 	private var dlcFinishers : array<CR4FinisherDLC>;
@@ -115,26 +113,12 @@ class XTFinishersDefaultFinisherConfig extends XTFinishersObject {
 	
 	public function Init() {
 		// DO NOT CHANGE ---------------------------------------------
-		paramsList = new XTFinishersParamsList in this;
-		
 		DefineUserCustomParams();
 		
-		paramsList.AddParam(CreateXTFinishersParamDefDefaultFinisherEffectTypeArray(this, "autoFinisherEffectTypes", autoFinisherEffectTypes));
-		paramsList.AddParam(CreateXTFinishersParamDefDefaultFinisherEffectTypeArray(this, "instantKillFinisherEffectTypes", instantKillFinisherEffectTypes));
-		paramsList.AddParam(CreateXTFinishersParamDefDefaultFinisherNameArray(this, "allowedLeftSideFinisherAnimNames", allowedLeftSideFinisherAnimNames));
-		paramsList.AddParam(CreateXTFinishersParamDefDefaultFinisherNameArray(this, "allowedRightSideFinisherAnimNames", allowedRightSideFinisherAnimNames));
+		AddParam(CreateXTFinishersParamDefDefaultFinisherEffectTypeArray(this, "autoFinisherEffectTypes", autoFinisherEffectTypes));
+		AddParam(CreateXTFinishersParamDefDefaultFinisherEffectTypeArray(this, "instantKillFinisherEffectTypes", instantKillFinisherEffectTypes));
+		AddParam(CreateXTFinishersParamDefDefaultFinisherNameArray(this, "allowedLeftSideFinisherAnimNames", allowedLeftSideFinisherAnimNames));
+		AddParam(CreateXTFinishersParamDefDefaultFinisherNameArray(this, "allowedRightSideFinisherAnimNames", allowedRightSideFinisherAnimNames));
 		// DO NOT CHANGE ---------------------------------------------
 	}
-	
-	// convenience functions
-	
-	// DO NOT CHANGE ---------------------------------------------
-	public function AddParamFloat(id : string, value : float) {
-		paramsList.AddParam(CreateXTFinishersParamDefFloat(this, id, value));
-	}
-	
-	public function AddParamBool(id : string, value : bool) {
-		paramsList.AddParam(CreateXTFinishersParamDefBool(this, id, value));
-	}
-	// DO NOT CHANGE ---------------------------------------------
 }
