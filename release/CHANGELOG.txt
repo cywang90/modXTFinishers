@@ -2,6 +2,44 @@
 eXTensible Finishers Changelog
 ==============================
 
+-----------------------
+Release 10.1 (16/01/10)
+-----------------------
+
+Includes
+--------
+BASE		eXTensible Finishers		v4.2.1
+MODULE		finisher_default			v2.2.1
+MODULE		dismember_default			v2.2.1
+MODULE		slowdown_default			v2.3.1
+MODULE		camshake_default			v3.2.1
+MODULE		slowdown_tailoredfinishers	v2.0.1
+
+Compatibility
+-------------
+- BASE eXTensible Finishers
+	- May not compatible with modules written using v4.2.0 or earlier of BASE eXTensible Finishers.
+- MODULE finisher_default
+	- Now requires BASE eXTensible Finishers v4.2.1 (or later).
+- MODULE dismember_default
+	- Now requires BASE eXTensible Finishers v4.2.1 (or later).
+- MODULE slowdown_default
+	- Now requires BASE eXTensible Finishers v4.2.1 (or later).
+- MODULE camshake_default
+	- Now requires BASE eXTensible Finishers v4.2.1 (or later).
+
+API
+---
+- BASE eXTensible Finishers
+	- XTFinishersActionContext.CountEnemiesNearPlayer() now has the option to exclude the victim of the current action from the count.
+
+Bug Fixes
+---------
+- BASE eXTensible Finishers
+	- Fixed bug where XTFinishersActionContext.CountEnemiesNearPlayer() would not always return the correct value.
+- ALL
+	- Fixed bug where events that trigger on the last enemy in combat would not always work correctly.
+
 ---------------------
 Release 10 (15/11/04)
 ---------------------

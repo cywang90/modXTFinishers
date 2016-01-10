@@ -3,6 +3,22 @@ BASE eXTensible Finishers Changelog
 ===================================
 
 -----------------
+v4.2.1 (16/01/10)
+-----------------
+
+Compatibility
+-------------
+- May not compatible with modules written using v4.2.0 or earlier of BASE eXTensible Finishers.
+
+API
+---
+- XTFinishersActionContext.CountEnemiesNearPlayer() now has the option to exclude the victim of the current action from the count.
+
+Bug Fixes
+---------
+- Fixed bug where XTFinishersActionContext.CountEnemiesNearPlayer() would not always return the correct value.
+
+-----------------
 v4.2.0 (15/11/04)
 -----------------
 

@@ -184,7 +184,7 @@ class XTFinishersDefaultFinisherHandler extends XTFinishersAbstractReactionStart
 				result = true;
 			} else if (SkillNameToEnum(attackAction.GetAttackTypeName()) == S_Sword_s02 && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_AUTO_CHANCE_REND) {
 				result = true;
-			} else if (context.CountEnemiesNearPlayer() <= 1 && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_AUTO_CHANCE_LAST_ENEMY) {
+			} else if (context.CountEnemiesNearPlayer(true) == 0 && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_AUTO_CHANCE_LAST_ENEMY) {
 				result = true;
 			} else if (context.effectsSnapshot.HasEffects(theGame.xtFinishersMgr.finisherModule.params.autoFinisherEffectTypes) && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_AUTO_CHANCE_EFFECTS) {
 				result = true;
@@ -210,7 +210,7 @@ class XTFinishersDefaultFinisherHandler extends XTFinishersAbstractReactionStart
 			if (attackAction) {
 				if (attackAction.IsCriticalHit() && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_INSTANTKILL_CHANCE_CRIT) {
 					result = true;
-				} else if (context.CountEnemiesNearPlayer() <= 1 && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_INSTANTKILL_CHANCE_LAST_ENEMY) {
+				} else if (context.CountEnemiesNearPlayer(true) == 0 && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_INSTANTKILL_CHANCE_LAST_ENEMY) {
 					result = true;
 				} else if (context.effectsSnapshot.HasEffects(theGame.xtFinishersMgr.finisherModule.params.instantKillFinisherEffectTypes) && RandRangeF(100) < theGame.xtFinishersMgr.finisherModule.params.FINISHER_INSTANTKILL_CHANCE_EFFECTS) {
 					result = true;
@@ -240,7 +240,7 @@ class XTFinishersDefaultFinisherHandler extends XTFinishersAbstractReactionStart
 	protected function PreprocessFinisherCam(context : XTFinishersActionContext) {
 		var chance : float;
 		
-		if (context.CountEnemiesNearPlayer() <= 1) {
+		if (context.CountEnemiesNearPlayer(true) == 0) {
 			chance = theGame.xtFinishersMgr.finisherModule.params.FINISHER_CAM_CHANCE_LAST_ENEMY;
 		} else {
 			chance = theGame.xtFinishersMgr.finisherModule.params.FINISHER_CAM_CHANCE;

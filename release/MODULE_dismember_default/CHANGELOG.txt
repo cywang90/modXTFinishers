@@ -3,6 +3,18 @@ MODULE dismember_default Changelog
 ==================================
 
 -----------------
+v2.2.1 (16/01/10)
+-----------------
+
+Compatibility
+-------------
+- Now requires BASE eXTensible Finishers v4.2.1 (or later).
+
+Bug Fixes
+---------
+- Fixed bug where events that trigger on the last enemy in combat would not always work correctly.
+
+-----------------
 v2.2.0 (15/11/04)
 -----------------
 
