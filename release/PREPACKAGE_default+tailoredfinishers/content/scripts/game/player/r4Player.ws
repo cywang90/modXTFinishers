@@ -5047,6 +5047,11 @@
 	
 	protected var hostileEnemies			: array<CActor>;		//all enemies that are actively engaged in combat with the player (may or may not be visible by Geralt)
 	private var hostileMonsters 		: array<CActor>;		// subgroup from hostileEnemies containing only monsters for sound system
+	
+	function GetHostileEnemies() : array<CActor> {
+		return hostileEnemies;
+	}
+	
 	function AddEnemyToHostileEnemiesList( actor : CActor, add : bool )
 	{
 		if ( add )
