@@ -1,7 +1,10 @@
 ﻿/***********************************************************************/
-/** Copyright © 2014
-/** Author : Tomek Kozera
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
+
+
 
 state IngameMenuBestiary in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
@@ -41,7 +44,7 @@ state IngameMenuBestiary in W3TutorialManagerUIHandler extends TutHandlerBaseSta
 		}
 	}
 	
-	//abort
+	
 	event OnMenuClosing(menuName : name)
 	{		
 		if(menuName == 'GlossaryParent')
@@ -51,7 +54,7 @@ state IngameMenuBestiary in W3TutorialManagerUIHandler extends TutHandlerBaseSta
 		}
 		else if(menuName == 'CommonMenu' && theGame.GameplayFactsQuerySum("closingHubMenu") > 0)
 		{
-			//if closing hub menu
+			
 			QuitState();
 		}
 	}

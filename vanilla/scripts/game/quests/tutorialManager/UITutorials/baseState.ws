@@ -1,7 +1,10 @@
 ﻿/***********************************************************************/
-/** Copyright © 2014-2015
-/** Author : Tomek Kozera
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
+
+
 
 state TutHandlerBaseState in W3TutorialManagerUIHandler
 {
@@ -10,7 +13,7 @@ state TutHandlerBaseState in W3TutorialManagerUIHandler
 	
 	event OnEnterState(prevStateName : name)
 	{	
-		//Set defaults for tutorial message. Child classes can then copy & use easier
+		
 		defaultTutorialMessage.type = ETMT_Hint;
 		defaultTutorialMessage.forceToQueueFront = true;
 		defaultTutorialMessage.canBeShownInMenus = true;
@@ -21,7 +24,7 @@ state TutHandlerBaseState in W3TutorialManagerUIHandler
 	
 	event OnLeaveState( nextStateName : name )
 	{
-		//when leaving state unregister this tutorial
+		
 		theGame.GetTutorialSystem().uiHandler.UnregisterUIHint(GetStateName());
 	}
 	
@@ -29,14 +32,14 @@ state TutHandlerBaseState in W3TutorialManagerUIHandler
 	{
 		var entersNew : bool;
 		
-		//do nothing if this state is not current state
+		
 		if(this != theGame.GetTutorialSystem().uiHandler.GetCurrentState())
 			return;
 		
-		//when leaving state unregister this tutorial
+		
 		entersNew = theGame.GetTutorialSystem().uiHandler.UnregisterUIHint(GetStateName());
 		
-		//go to default state if not entering new state
+		
 		if(!entersNew)
 			virtual_parent.GotoState('Tutorial_Idle');
 	}
@@ -60,7 +63,7 @@ state TutHandlerBaseState in W3TutorialManagerUIHandler
 		tut = defaultTutorialMessage;
 		tut.tutorialScriptTag = tutorialScriptName;		
 		tut.highlightAreas = highlights;
-		tut.forceToQueueFront = true;	//all should force because if there is something in the queue it will take priority but will never fire since OnTick won't work as the game is paused
+		tut.forceToQueueFront = true;	
 		tut.canBeShownInMenus = true;
 		tut.isHUDTutorial = isHudTutorial;
 		tut.disableHorizontalResize = true;
@@ -93,11 +96,11 @@ state TutHandlerBaseState in W3TutorialManagerUIHandler
 		currentlyShownHint = tutorialScriptName;
 	}
 	
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	///////////////////////////////////////  @EVENTS  ///////////////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	//override those in child states
+	
+	
+	
+	
 	event OnMenuClosing(menuName : name) 	{}
 	event OnMenuClosed(menuName : name) 	{}
 	event OnMenuOpening(menuName : name) 	{}

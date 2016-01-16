@@ -1,9 +1,11 @@
 ﻿/***********************************************************************/
-/** 
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
-/** Copyright © 2012
-/** Author : Patryk Fiutowski
-/***********************************************************************/
+
+
+
 
 class CBehTreeTaskCSEffect extends IBehTreeTask
 {
@@ -70,7 +72,7 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		buffType = buff.GetEffectType();
 		CSType = GetBuffCriticalType(buff);
 		
-		//LogCritical("TaskCSEfffect: critical <<" + buffType + ">> anim start request");
+		
 		owner.CSAnimStarted(buff);
 		
 		owner.IncCriticalStateCounter();
@@ -81,7 +83,7 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		
 		combatDataStorage.SetCriticalState( CSType, true, 0 );
 		
-		//((CHumanAICombatStorage)combatDataStorage).DetachAndDestroyProjectile();
+		
 		
 		reactionDataStorage.ChangeAttitudeIfNeeded(owner, (CActor)(buff.GetCreator()) );
 		
@@ -91,7 +93,7 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		
 		finisherDisabled = false;
 		
-		// store interaction priority when actor is alive and set unpushable
+		
 		actor = (CActor)owner;
 		currentPri = actor.GetInteractionPriority();
 		if ( actor.IsAlive() && currentPri != IP_Max_Unpushable )
@@ -158,8 +160,8 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		
 		criticalStateCounter = 0;
 		
-		//AK: looks hacky, but custom condition cannot be parametrized or played from animEvent anyway
-		//solution with fx manager ai node listening for custom animEvent sounds like an overkill
+		
+		
 		if (( CSType == ECST_HeavyKnockdown || CSType == ECST_Knockdown || CSType == ECST_LongStagger || CSType == ECST_Stagger ) && npc.HasAbility( 'MistCharge' ))
 		{
 			npc.PlayEffect( 'appear_fog' );
@@ -243,13 +245,13 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 			DisableFinisher();		
 		}
 			
-		combatDataStorage.SetCriticalState( CSType, false, GetLocalTime() );		//PFTODO: combatDataStorage is NULL, e.g. do a counterstrike
+		combatDataStorage.SetCriticalState( CSType, false, GetLocalTime() );		
 		
 		if ( isInPotentialRagdoll )
 			OnRagdollStop();
 		
-		// We switch to kinematic if we are alive and ragdolled,
-		// unless we are in static simulation or requestedCS is a knockdown type.
+		
+		
 		if ( owner.IsAlive() && owner.IsRagdolled() && ! owner.IsStatic() 
 			&& ( requestedCSType != ECST_HeavyKnockdown && requestedCSType != ECST_Knockdown ) )
 			owner.SetKinematic(true);
@@ -257,9 +259,9 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		forceFinisherActivation = false;
 	}	
 	
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-// functions
-///////////////////////////////////
+
+
+
 	function ShouldEnableFinisher() : bool
 	{
 		var actor : CActor;
@@ -422,23 +424,23 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		
 		if( AbsF(victimToAttackerAngle) <= 90 )
 		{
-			//hit from front
+			
 			npc.SetBehaviorVariable( 'HitReactionDirection',(int)EHRD_Forward);
 		}
 		else if( AbsF(victimToAttackerAngle) > 90 )
 		{
-			//hit from back
+			
 			npc.SetBehaviorVariable( 'HitReactionDirection',(int)EHRD_Back);
 		}
 		
 		if( victimToAttackerAngle > 45 && victimToAttackerAngle < 135 )
 		{
-			//hit from right
+			
 			npc.SetBehaviorVariable( 'HitReactionSide',(int)EHRS_Right);
 		}
 		else if( victimToAttackerAngle < -45 && victimToAttackerAngle > -135 )
 		{
-			//hit from rights
+			
 			npc.SetBehaviorVariable( 'HitReactionSide',(int)EHRS_Left);
 		}
 		else
@@ -447,8 +449,8 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		}
 	}
 	
-//////////////////////////////////////////
-// ragdoll
+
+
 	
 	private var startAirPos : Vector;
 	private var endAirPos : Vector;
@@ -530,7 +532,7 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 			{
 				ApplyRagdoll();
 			}
-			// play scream
+			
 			if ( !screamPlayed && airStartTime > 0.f && ( (GetLocalTime() - airStartTime) > 0.5f ) )
 			{
 				PlayScream();
@@ -663,7 +665,7 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 	function KillNPCIfNeeded( owner : CNewNPC, mac : CMovingPhysicalAgentComponent ) : bool
 	{
 		var newPosition : Vector;
-		// If cannot reach navmesh and is not a swimming monster in water or flying monster outside of water
+		
 		if ( !theGame.GetWorld().NavigationFindSafeSpot(mac.GetAgentPosition(), owner.GetRadius(), ClampF(owner.GetRadius()*pullToNavRadiusMult, 0, 2.5f), newPosition) 
 						&& !CanSwimOrFly( owner, mac ))
 		{
@@ -704,9 +706,9 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		GetActor().AddEffectCustom(params);
 		
 		
-		// Hack: because the ragdoll is unpredictable, we have situations where a monster falls out of navigable space then bounce back in the air and fall back to it
-		// As these monsters do not have an animation to get out of ragdoll, they just stay here, being alive and doing nothing
-		// This line kills monster as soon as they go ragdoll.
+		
+		
+		
 		if( !owner.IsHuman()  )
 		{
 			owner.Kill();
@@ -721,7 +723,7 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 			return GetActor().SoundEvent("grunt_vo_test_falling_scream_AdultMale", 'head');
 	}
 
-//Anim event
+
 	
 	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo ) : bool
 	{
@@ -790,7 +792,7 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		if ( gameEventName == 'CriticalState' )
 		{
 			requestedCSType		= (int) GetNPC().GetBehaviorVariable('CriticalStateType');			
-			//return true;
+			
 		}
 		return IsAvailable();
 	}
@@ -859,7 +861,7 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		}
 		else if ( eventName == 'DisableFinisher' )
 		{
-			// siren is special has she must be finishable all the time when on ground
+			
 			if( !npc.HasAbility('mon_siren_base') )
 			{
 				finisherDisabled = true;

@@ -1,37 +1,37 @@
 ﻿/***********************************************************************/
-/** Witcher Script file - Layer for displaying system messages
-/***********************************************************************/
-/** Copyright © 2014 CDProjektRed
-/** Author : Jason Slama
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
 
-/*
-	Book popup. Used inside Inventory menu
-*/
+
+
+
+
 class CharacterStatsPopupData extends TextPopupData
 {	
 	var m_flashValueStorage : CScriptedFlashValueStorage;
 	
-	protected /* override */ function GetContentRef() : string 
+	protected  function GetContentRef() : string 
 	{
 		return "StatisticsFullRef";
 	}
 	
-	protected /* override */ function DefineDefaultButtons():void
+	protected  function DefineDefaultButtons():void
 	{
 		AddButtonDef("panel_button_common_exit", "escape-gamepad_B", IK_Escape);
 		AddButtonDef("input_feedback_scroll_text", "gamepad_R_Scroll");
 	}
 	
-	public function /* override */ OnUserFeedback( KeyCode:string ) : void
+	public function  OnUserFeedback( KeyCode:string ) : void
 	{
-		if (KeyCode == "escape-gamepad_B") // +"gamepad_R2"?
+		if (KeyCode == "escape-gamepad_B") 
 		{
 			ClosePopup();
 		}
 	}
 	
-	public /* override */ function GetGFxData(parentFlashValueStorage : CScriptedFlashValueStorage) : CScriptedFlashObject 
+	public  function GetGFxData(parentFlashValueStorage : CScriptedFlashValueStorage) : CScriptedFlashObject 
 	{ 
 		var statsArray : CScriptedFlashArray;
 		var gfxData : CScriptedFlashObject;
@@ -43,113 +43,113 @@ class CharacterStatsPopupData extends TextPopupData
 		
 		gfxData.SetMemberFlashString("ContentRef", GetContentRef());
 		
-		// If we don't add a character stat in one of the slots below, it will not be visible.
-		// Note that stats don't readjust position for missing (hidden) attributes
-		// format of function:
-		// Parameter1: stat key, determines which text area the data will be associated with
-		// Parameter2: A helper name for fetching the value of the stat
-		// Parameter3: The localization key for the stat name
-		// Parameter4: The icon item name. Only specific stat slots support these icons. They must match what is in the swf for expected behavior
-		// Parameter5: The flash array to push the object into
 		
-		// #J Redundancy allows flexibility for setting stuff
+		
+		
+		
+		
+		
+		
+		
+		
+		
 		AddCharacterStat("majorStat1", 'vitality', "vitality", "vitality", statsArray, m_flashValueStorage);
 		AddCharacterStat("majorStat2", 'toxicity', "toxicity", "toxicity", statsArray, m_flashValueStorage);
 		AddCharacterStat("majorStat3", 'stamina', "stamina", "stamina", statsArray, m_flashValueStorage);
-		AddCharacterStat("majorStat4", 'focus', "focus", "focus", statsArray, m_flashValueStorage); // Battle Trance :S
-		AddCharacterStat("majorStat5", 'timeplayed', "message_total_play_time", "timeplayed", statsArray, m_flashValueStorage); // TIME PLAYED
+		AddCharacterStat("majorStat4", 'focus', "focus", "focus", statsArray, m_flashValueStorage); 
+		AddCharacterStat("majorStat5", 'timeplayed', "message_total_play_time", "timeplayed", statsArray, m_flashValueStorage); 
 		
 		AddCharacterStat("mainMagicStat", 'spell_power', "stat_signs", "spell_power", statsArray, m_flashValueStorage);
 		AddCharacterStatU("mainSilverStat", 'silverdamage', "panel_common_statistics_tooltip_silver_dps", "attack_silver", statsArray, m_flashValueStorage); 
 		AddCharacterStatU("mainSteelStat", 'steeldamage', "panel_common_statistics_tooltip_steel_dps", "attack_steel", statsArray, m_flashValueStorage); 
-		AddCharacterStat("mainResStat", 'armor', "attribute_name_armor", "armor", statsArray, m_flashValueStorage); // Armor :S
+		AddCharacterStat("mainResStat", 'armor', "attribute_name_armor", "armor", statsArray, m_flashValueStorage); 
 		
 		
-		// magicStats (NOTE) PLEASE keep these are one liners
+		
 		AddCharacterHeader("panel_common_statistics_category_signs", statsArray, m_flashValueStorage);
 		AddCharacterHeader("Aard", statsArray, m_flashValueStorage);
 		AddCharacterStatSigns("aardStat1", 'aard_knockdownchance', "attribute_name_knockdown", "", statsArray, m_flashValueStorage);
 		AddCharacterStatSigns("aardStat2", 'aard_damage', "attribute_name_forcedamage", "", statsArray, m_flashValueStorage);
-		//AddCharacterStatU("aardStat3", '', "", "", statsArray);
+		
 		AddCharacterHeader("Igni", statsArray, m_flashValueStorage);
 		AddCharacterStatSigns("igniStat1", 'igni_damage', "attribute_name_firedamage", "", statsArray, m_flashValueStorage);
 		AddCharacterStatSigns("igniStat2", 'igni_burnchance', "effect_burning", "", statsArray, m_flashValueStorage);
-		//AddCharacterStatU("igniStat3", '', "", "", statsArray);
+		
 		AddCharacterHeader("Quen", statsArray, m_flashValueStorage);
 		AddCharacterStatSigns("quenStat1", 'quen_damageabs', "physical_resistance", "", statsArray, m_flashValueStorage);
-		//AddCharacterStatU("quenStat2", '', "", "", statsArray);
-		//AddCharacterStatU("quenStat3", '', "", "", statsArray);
+		
+		
 		AddCharacterHeader("Yrden", statsArray, m_flashValueStorage);
 		AddCharacterStatSigns("yrdenStat1", 'yrden_slowdown', "SlowdownEffect", "", statsArray, m_flashValueStorage);
 		AddCharacterStatSigns("yrdenStat2", 'yrden_damage', "attribute_name_forcedamage", "", statsArray, m_flashValueStorage);
 		AddCharacterStatSigns("yrdenStat3", 'yrden_duration', "duration", "", statsArray, m_flashValueStorage);
 		AddCharacterHeader("Axii", statsArray, m_flashValueStorage);
 		AddCharacterStatSigns("axiiStat1", 'axii_duration_confusion', "duration", "", statsArray, m_flashValueStorage);
-		//AddCharacterStatU("axiiStat2", '', "", "", statsArray);
-		//AddCharacterStatU("axiiStat3", '', "", "", statsArray);
+		
+		
 		
 		AddCharacterHeader("panel_inventory_tooltip_damage", statsArray, m_flashValueStorage);
 		
-		//AddCharacterStatU("silverStat1", '', "", "", statsArray); 
+		
 		AddCharacterStatU("silverStat2", 'silverFastDPS', "panel_common_statistics_tooltip_silver_fast_dps", "", statsArray, m_flashValueStorage); 
 		AddCharacterStatU("silverStat3", 'silverFastCritChance', "panel_common_statistics_tooltip_silver_fast_crit_chance", "", statsArray, m_flashValueStorage); 
 		AddCharacterStatU("silverStat4", 'silverFastCritDmg', "panel_common_statistics_tooltip_silver_fast_crit_dmg", "", statsArray, m_flashValueStorage); 
 		AddCharacterStatU("silverStat5", 'silverStrongDPS', "panel_common_statistics_tooltip_silver_strong_dps", "", statsArray, m_flashValueStorage); 
 		AddCharacterStatU("silverStat6", 'silverStrongCritChance', "panel_common_statistics_tooltip_silver_strong_crit_chance", "", statsArray, m_flashValueStorage); 
 		AddCharacterStatU("silverStat7", 'silverStrongCritDmg', "panel_common_statistics_tooltip_silver_strong_crit_dmg", "", statsArray, m_flashValueStorage); 
-		//AddCharacterStatU("silverStat8", '', "", "", statsArray); 
+		
 		AddCharacterStatU2("silverStat9", 'silver_desc_poinsonchance_mult', "attribute_name_desc_poinsonchance_mult", "", statsArray, m_flashValueStorage); 
 		AddCharacterStatU2("silverStat10", 'silver_desc_bleedingchance_mult', "attribute_name_desc_bleedingchance_mult", "", statsArray, m_flashValueStorage); 
 		AddCharacterStatU2("silverStat11", 'silver_desc_burningchance_mult', "attribute_name_desc_burningchance_mult", "", statsArray, m_flashValueStorage); 
 		AddCharacterStatU2("silverStat12", 'silver_desc_confusionchance_mult', "attribute_name_desc_confusionchance_mult", "", statsArray, m_flashValueStorage); 
 		AddCharacterStatU2("silverStat13", 'silver_desc_freezingchance_mult', "attribute_name_desc_freezingchance_mult", "", statsArray, m_flashValueStorage); 
 		AddCharacterStatU2("silverStat14", 'silver_desc_staggerchance_mult', "attribute_name_desc_staggerchance_mult", "", statsArray, m_flashValueStorage); 
-		//AddCharacterStatU("silverStat15", '', "", "", statsArray); 
-		//AddCharacterStatU("silverStat16", '', "", "", statsArray); 
-		//AddCharacterStatU("silverStat17", 'area_nml', "area_nml", "", statsArray); 
-		//AddCharacterStatU("silverStat18", 'area_novigrad', "area_novigrad", "", statsArray); 
-		//AddCharacterStatU("silverStat19", 'area_skellige', "area_skellige", "", statsArray);
 		
-		//AddCharacterStatU("steelStat1", '', "", "", statsArray);
+		
+		
+		
+		
+		
+		
 		AddCharacterStatU("steelStat2", 'steelFastDPS', "panel_common_statistics_tooltip_steel_fast_dps", "", statsArray, m_flashValueStorage);
 		AddCharacterStatU("steelStat3", 'steelFastCritChance', "panel_common_statistics_tooltip_steel_fast_crit_chance", "", statsArray, m_flashValueStorage); 
 		AddCharacterStatU("steelStat4", 'steelFastCritDmg', "panel_common_statistics_tooltip_steel_fast_crit_dmg", "", statsArray, m_flashValueStorage); 
 		AddCharacterStatU("steelStat5", 'steelStrongDPS', "panel_common_statistics_tooltip_steel_strong_dps", "", statsArray, m_flashValueStorage); 
 		AddCharacterStatU("steelStat6", 'steelStrongCritChance', "panel_common_statistics_tooltip_steel_strong_crit_chance", "", statsArray, m_flashValueStorage);
 		AddCharacterStatU("steelStat7", 'steelStrongCritDmg', "panel_common_statistics_tooltip_steel_strong_crit_dmg", "", statsArray, m_flashValueStorage);
-		//AddCharacterStatU("steelStat8", '', "", "", statsArray);
+		
 		AddCharacterStatU2("steelStat9", 'steel_desc_poinsonchance_mult', "attribute_name_desc_poinsonchance_mult", "", statsArray, m_flashValueStorage);
 		AddCharacterStatU2("steelStat10", 'steel_desc_bleedingchance_mult', "attribute_name_desc_bleedingchance_mult", "", statsArray, m_flashValueStorage);
 		AddCharacterStatU2("steelStat11", 'steel_desc_burningchance_mult', "attribute_name_desc_burningchance_mult", "", statsArray, m_flashValueStorage);
 		AddCharacterStatU2("steelStat12", 'steel_desc_confusionchance_mult', "attribute_name_desc_confusionchance_mult", "", statsArray, m_flashValueStorage);
 		AddCharacterStatU2("steelStat13", 'steel_desc_freezingchance_mult', "attribute_name_desc_freezingchance_mult", "", statsArray, m_flashValueStorage);
 		AddCharacterStatU2("steelStat14", 'steel_desc_staggerchance_mult', "attribute_name_desc_staggerchance_mult", "", statsArray, m_flashValueStorage);
-		//AddCharacterStatU("steelStat15", '', "", "", statsArray);
+		
 		
 		AddCharacterHeader("item_category_crossbow", statsArray, m_flashValueStorage);
 		AddCharacterStatU("steelStat17", 'crossbowCritChance', "panel_common_statistics_tooltip_crossbow_crit_chance", "", statsArray, m_flashValueStorage);
 		AddCharacterStatU("steelStat18", 'crossbowSteelDmg', "attribute_name_piercingdamage", "", statsArray, m_flashValueStorage);
 		AddCharacterStatU("steelStat19", 'crossbowSilverDmg', "attribute_name_silverdamage", "", statsArray, m_flashValueStorage);
 		
-		// defStat(1-15)
+		
 		AddCharacterHeader("panel_common_statistics_category_resistance", statsArray, m_flashValueStorage);
-		//AddCharacterStatU("defStat1", '', "", "", statsArray);
+		
 		AddCharacterStatF("defStat2", 'slashing_resistance_perc', "slashing_resistance_perc", "", statsArray, m_flashValueStorage);
 		AddCharacterStatF("defStat3", 'piercing_resistance_perc', "attribute_name_piercing_resistance_perc", "", statsArray, m_flashValueStorage);
 		AddCharacterStatF("defStat4", 'bludgeoning_resistance_perc', "bludgeoning_resistance_perc", "", statsArray, m_flashValueStorage);
 		AddCharacterStatF("defStat5", 'rending_resistance_perc', "attribute_name_rending_resistance_perc", "", statsArray, m_flashValueStorage);
 		AddCharacterStatF("defStat6", 'elemental_resistance_perc', "attribute_name_elemental_resistance_perc", "", statsArray, m_flashValueStorage);
-		//AddCharacterStatU("defStat7", '', "", "", statsArray);
+		
 		AddCharacterStatF("defStat8", 'poison_resistance_perc', "attribute_name_poison_resistance_perc", "", statsArray, m_flashValueStorage);
 		AddCharacterStatF("defStat9", 'bleeding_resistance_perc', "attribute_name_bleeding_resistance_perc", "", statsArray, m_flashValueStorage);
 		AddCharacterStatF("defStat10", 'burning_resistance_perc', "attribute_name_burning_resistance_perc", "", statsArray, m_flashValueStorage);
-		//AddCharacterStatU("defStat11", '', "", "", statsArray);
+		
 		AddCharacterStat("defStat12", 'vitalityRegen', "panel_common_statistics_tooltip_outofcombat_regen", "", statsArray, m_flashValueStorage);
 		AddCharacterStat("defStat13", 'vitalityCombatRegen', "panel_common_statistics_tooltip_incombat_regen", "", statsArray, m_flashValueStorage);
 		AddCharacterStat("defStat14", 'staminaOutOfCombatRegen', "attribute_name_staminaregen_out_of_combat", "", statsArray, m_flashValueStorage);
 		AddCharacterStat("defStat15", 'staminaRegen', "attribute_name_staminaregen", "", statsArray, m_flashValueStorage);
 		
-		// extraStat(1-4)
+		
 		AddCharacterHeader("panel_common_statistics_category_additional", statsArray, m_flashValueStorage);
 		AddCharacterStatF("extraStat1", 'bonus_herb_chance', "bonus_herb_chance", "", statsArray, m_flashValueStorage);
 		AddCharacterStatU("extraStat2", 'instant_kill_chance_mult', "instant_kill_chance", "", statsArray, m_flashValueStorage);
@@ -200,12 +200,12 @@ function AddCharacterStat(tag : string, varKey:name, locKey:string, iconTag:stri
 	
 	
 	
-	//GetGenericStatValue(varKey, valueStr);
+	
 	if 		( varKey == 'vitality' )	{ valueStr = (string)RoundMath(thePlayer.GetStat(BCS_Vitality, true)) + " / " + (string)RoundMath(thePlayer.GetStatMax(BCS_Vitality)); }
 	else if ( varKey == 'toxicity' ) 	{ valueStr = (string)RoundMath(thePlayer.GetStat(BCS_Toxicity, false)) + " / " + (string)RoundMath(thePlayer.GetStatMax(BCS_Toxicity)); }
 	else if ( varKey == 'stamina' ) 	{ valueStr = (string)RoundMath(thePlayer.GetStat(BCS_Stamina, true)) + " / " + (string)RoundMath(thePlayer.GetStatMax(BCS_Stamina)); }
 	else if ( varKey == 'focus' ) 		{ valueStr = (string)FloorF(thePlayer.GetStat(BCS_Focus, true)) + " / " + (string)RoundMath(thePlayer.GetStatMax(BCS_Focus)); }
-	else if ( varKey == 'timeplayed' ) 	{ valueStr = GetLocStringByKeyExt("time_days") + " : " + gameTimeDays + " , " + GetLocStringByKeyExt("time_hours") + " : " + gameTimeHours + " , " + GetLocStringByKeyExt("time_minutes") + " : " + gameTimeMinutes + " , " + GetLocStringByKeyExt("time_seconds") + " : " + gameTimeSeconds; }//TIME PLAYED
+	else if ( varKey == 'timeplayed' ) 	{ valueStr = GetLocStringByKeyExt("time_days") + " : " + gameTimeDays + " , " + GetLocStringByKeyExt("time_hours") + " : " + gameTimeHours + " , " + GetLocStringByKeyExt("time_minutes") + " : " + gameTimeMinutes + " , " + GetLocStringByKeyExt("time_seconds") + " : " + gameTimeSeconds; }
 	
 	else if ( varKey == 'spell_power' )
 	{
@@ -267,7 +267,7 @@ function AddCharacterStatSigns(tag : string, varKey:name, locKey:string, iconTag
 	
 	statObject = flashMaster.CreateTempFlashObject();
 	
-	//GetGenericStatValue(varKey, valueStr);
+	
 	if ( varKey == 'aard_knockdownchance' )	
 	{ 
 		sp = GetWitcherPlayer().GetTotalSignSpellPower(S_Magic_1);
@@ -344,12 +344,7 @@ function AddCharacterStatSigns(tag : string, varKey:name, locKey:string, iconTag
 		sp += GetWitcherPlayer().GetSkillAttributeValue(S_Magic_5, 'duration', false, true);
 		valueStr = FloatToStringPrec( CalculateAttributeValue(sp), 2 ) + GetLocStringByKeyExt("per_second");
 	}
-	/*else if ( varKey == 'axii_duration_control' )
-	{
-		sp = GetWitcherPlayer().GetTotalSignSpellPower(S_Magic_s05);
-		sp += GetWitcherPlayer().GetSkillAttributeValue(S_Magic_s05, 'duration', false, true);
-		valueStr = FloatToStringPrec( CalculateAttributeValue(sp), 2 ) + " s";
-	}*/
+	
 	else
 	{	
 		valueAbility =  CalculateAttributeValue( GetWitcherPlayer().GetAttributeValue( varKey ) );
@@ -380,7 +375,7 @@ function AddCharacterStatF(tag : string, varKey:name, locKey:string, iconTag:str
 	
 	statObject = flashMaster.CreateTempFlashObject();
 		
-	//GetGenericStatValue(varKey, valueStr);
+	
 	witcher = GetWitcherPlayer();
 	stat = StatNameToEnum(varKey);
 	if(stat != BCS_Undefined)
@@ -415,7 +410,7 @@ function AddCharacterStatF(tag : string, varKey:name, locKey:string, iconTag:str
 		}
 	}
 	
-	//valueStr = FloatToStringPrec( valueAbility, 2 );
+	
 	valueStr = NoTrailZeros( RoundMath(valueAbility * 100) );
 	
 	final_name = GetLocStringByKeyExt(locKey);
@@ -444,11 +439,11 @@ function AddCharacterStatU(tag : string, varKey:name, locKey:string, iconTag:str
 
 	statObject = flashMaster.CreateTempFlashObject();
 	
-	//GetGenericStatValue(varKey, valueStr);
-	//valueAbility =  CalculateAttributeValue( GetWitcherPlayer().GetAttributeValue( varKey ) );
-	//valueStr = FloatToStringPrec( valueAbility, 2 );
 	
-	//get stats
+	
+	
+	
+	
 	if(varKey != 'instant_kill_chance_mult' && varKey != 'human_exp_bonus_when_fatal' && varKey != 'nonhuman_exp_bonus_when_fatal' && varKey != 'area_nml' && varKey != 'area_novigrad' && varKey != 'area_skellige')
 	{
 		curStats = GetWitcherPlayer().GetOffenseStatsList();
@@ -512,8 +507,8 @@ function AddCharacterStatU(tag : string, varKey:name, locKey:string, iconTag:str
 			locKey = "";
 		else
 		{
-			//valueAbility =  1 - CalculateAttributeValue( GetWitcherPlayer().GetAttributeValue( 'nomansland_price_mult' ) );
-			//valueStr = IntToString( RoundF(  valueAbility * 100 ) ) + " %";
+			
+			
 		}
 	}
 	else if (varKey == 'area_novigrad') 
@@ -522,8 +517,8 @@ function AddCharacterStatU(tag : string, varKey:name, locKey:string, iconTag:str
 			locKey = "";
 		else
 		{
-			//valueAbility =  1 - CalculateAttributeValue( GetWitcherPlayer().GetAttributeValue( 'novigrad_price_mult' ) );
-			//valueStr = IntToString( RoundF(  valueAbility * 100 ) ) + " %";
+			
+			
 		}
 	}
 	else if (varKey == 'area_skellige') 
@@ -532,8 +527,8 @@ function AddCharacterStatU(tag : string, varKey:name, locKey:string, iconTag:str
 			locKey = "";
 		else
 		{
-			//valueAbility =  1 - CalculateAttributeValue( GetWitcherPlayer().GetAttributeValue( 'skellige_price_mult' ) );
-			//valueStr = IntToString( RoundF(  valueAbility * 100 ) ) + " %";
+			
+			
 		}
 	}
 	

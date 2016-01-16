@@ -1,4 +1,9 @@
-﻿
+﻿/***********************************************************************/
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/***********************************************************************/
+
 import class CTicketsDefaultConfiguration extends CObject
 {
 	import function SetupTicketSource( ticketName : name, ticketPoolSize : int, minimalImportance : float );
@@ -21,8 +26,8 @@ import class CTicketsDefaultConfiguration extends CObject
 
 
 
-/////////////////////////////////////////////////////////////////////
-// Base class definitions
+
+
 import abstract class ITicketAlgorithmScriptDefinition extends IBehTreeObjectDefinition
 {
 };
@@ -47,10 +52,10 @@ import abstract class ITicketAlgorithmScript extends IScriptable
 	}
 };
 
-/////////////////////////////////////////////////////////////////////
-// Simple
-//
-/////////////////////////////////////////////////////////////////////
+
+
+
+
 class CTicketAlgorithmSimple extends ITicketAlgorithmScript
 {
 	public function CalculateTicketImportance() : float
@@ -62,10 +67,10 @@ class CTicketAlgorithmSimpleDefinition extends ITicketAlgorithmScriptDefinition
 {
 	default instanceClass = 'CTicketAlgorithmSimple';
 };
-/////////////////////////////////////////////////////////////////////
-// Check HP
-//
-/////////////////////////////////////////////////////////////////////
+
+
+
+
 class CTicketAlgorithmCheckHP extends ITicketAlgorithmScript
 {
 	public function CalculateTicketImportance() : float
@@ -84,9 +89,9 @@ class CTicketAlgorithmCheckHPDefinition extends ITicketAlgorithmScriptDefinition
 	default instanceClass = 'CTicketAlgorithmCheckHP';
 };
 
-/////////////////////////////////////////////////////////////////////
-// CTicketBaseAlgorithm
-/////////////////////////////////////////////////////////////////////
+
+
+
 
 abstract class CTicketBaseAlgorithm extends ITicketAlgorithmScript
 {
@@ -149,7 +154,7 @@ abstract class CTicketBaseAlgorithm extends ITicketAlgorithmScript
 		return true;
 	}
 	
-	// 1 point per 1 meter : closer = more points
+	
 	function GetDistanceImportance() : float
 	{
 		var distance : float;
@@ -162,7 +167,7 @@ abstract class CTicketBaseAlgorithm extends ITicketAlgorithmScript
 		return ClampF(100 * ( 1.0f - ( distance / 100 )), 0, 100);
 	}
 	
-	// 1 point per 1 meter : further = more points
+	
 	function GetInvertedDistanceImportance() : float
 	{
 		var distance : float;
@@ -176,7 +181,7 @@ abstract class CTicketBaseAlgorithm extends ITicketAlgorithmScript
 	function GetThreatLevelImportance() : float
 	{
 		var threatLevel : float;
-		//get threat level ( used also for music )
+		
 		threatLevel = GetNPC().GetThreatLevel();
 		if ( threatLevel < 0 )
 			threatLevel = 0;
@@ -198,7 +203,7 @@ abstract class CTicketBaseAlgorithmDefinition extends ITicketAlgorithmScriptDefi
 {
 };
 
-// CTicketAlgorithmApproach
+
 class CTicketAlgorithmApproach extends CTicketBaseAlgorithm
 {
 	default activationBonus = 5;
@@ -241,7 +246,7 @@ class CTicketAlgorithmApproachDefinition extends CTicketBaseAlgorithmDefinition
 	default instanceClass = 'CTicketAlgorithmApproach';
 };
 
-// CTicketAttackAlgorithm
+
 class CTicketAttackAlgorithm extends CTicketBaseAlgorithm
 {
 	default resetImportanceOnSpecialCombatAction = true;
@@ -308,9 +313,9 @@ class CTicketAttackAlgorithmDefinition extends CTicketBaseAlgorithmDefinition
 };
 
 
-/////////////////////////////////////////////////////////////////////
-// CTicketAlgorithmMelee
-/////////////////////////////////////////////////////////////////////
+
+
+
 
 class CTicketAlgorithmMelee extends ITicketAlgorithmScript
 {
@@ -336,7 +341,7 @@ class CTicketAlgorithmMelee extends ITicketAlgorithmScript
 		var target 				: CActor = GetCombatTarget();
 		var distance 			: float;
 		var proximity 			: float;
-		var importance 			: float = 100.f;	//start form 100, couse values lower than 100 are not getting tickets
+		var importance 			: float = 100.f;	
 		var hp					: float = 0.f;
 		var morale 				: float;
 		var bonusMultiplier 	: float = 0.f;
@@ -359,7 +364,7 @@ class CTicketAlgorithmMelee extends ITicketAlgorithmScript
 			return 0;
 		}
 		
-		//get threat level ( used also fro sounds )
+		
 		threatLevel = GetNPC().GetThreatLevel();
 		
 		if ( actor.GetStatPercents( BCS_Essence ) > 0 )
@@ -379,16 +384,16 @@ class CTicketAlgorithmMelee extends ITicketAlgorithmScript
 			distance = ClampF(2-(distance/desiredDistance),0.f,1.f);
 		}
 		
-		//how many seconds ago npc had ticket
+		
 		time = GetLocalTime() - GetTimeSinceMyAcquisition();
 		
 		time = ClampF(time/desiredTime,0.f,2.f);
 		
-		// Is the NPC under attack
+		
 		isAttacked = 0;
 		if( actor.GetDelaySinceLastAttacked()< isAttackedStateDuration ) isAttacked = 1;
 		
-		// Is the NPC in the close vicinity of target
+		
 		if ( proximity > vicinityMax )
 		{
 			vicinityPercentage = 0;
@@ -434,7 +439,7 @@ class CTicketAlgorithmMelee extends ITicketAlgorithmScript
 			importance += activationBonus;
 		}
 		
-		// if threatLevel is 0 use value form ai tree
+		
 		if ( threatLevel > 0 )
 			importance += threatLevel * threatLevelBonus;
 		else

@@ -1,13 +1,14 @@
 ﻿/***********************************************************************/
-/** Witcher Script file - menu base
-/***********************************************************************/
-/** Copyright © 2014 CDProjektRed
-/** Author : Ryan Pergent
-/**			 Bartosz Bigaj
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
 
 
-// #Y Deprecated
+
+
+
+
 struct SMenuButtonDef
 {
 	var NavigationCode : string;
@@ -33,9 +34,9 @@ enum ENotificationType
 
 class CR4MenuBase extends CR4Menu
 {
-	//>--------------------------------------------------------------------------------
-	// VARIABLES
-	//---------------------------------------------------------------------------------
+	
+	
+	
 	protected var m_flashValueStorage 	 		: CScriptedFlashValueStorage;
 	protected var m_flashModule     	 		: CScriptedFlashSprite;
 	protected var m_parentMenu  		 		: CR4MenuBase;
@@ -71,9 +72,9 @@ class CR4MenuBase extends CR4Menu
 	
 	protected var m_initialSelectionsToIgnore : int; default m_initialSelectionsToIgnore = 1;
 	
-	//>--------------------------------------------------------------------------------
-	//---------------------------------------------------------------------------------
-	event /*flash*/ OnConfigUI() 
+	
+	
+	event  OnConfigUI() 
 	{
 		var menuInitData   : W3MenuInitData;
 		var defaultState   : name;
@@ -118,8 +119,8 @@ class CR4MenuBase extends CR4Menu
 		SetControllerType(theInput.LastUsedGamepad());
 		SetPlatformType(theGame.GetPlatform());
 		UpdateAcceptCancelSwaping();
+		UpdateInputDeviceType();
 		
-		//SetPlatformType(Platform_PS4);
 		
 		PlayOpenSoundEvent();
 		m_defaultInputBindings.Clear();
@@ -130,17 +131,17 @@ class CR4MenuBase extends CR4Menu
 			SetTutorialVisibility(false, m_forceHideTutorial);
 		}
 		
-		// Temp:
+		
 		setColorBlindMode(theGame.getColorBlindMode());	
 		setArabicAligmentMode();
-		//
+		
 		
 		if(theGame.GetTutorialSystem() && theGame.GetTutorialSystem().IsRunning())		
 		{
 			invMenu = (CR4InventoryMenu)this;
 			menuName = GetMenuName();
 			
-			//hack for shop - both Inventory and Shop menus have the same name
+			
 			if(invMenu)
 			{
 				if( (CNewNPC) ((W3InventoryInitData)GetMenuInitData()).containerNPC )
@@ -161,11 +162,11 @@ class CR4MenuBase extends CR4Menu
 		m_configUICalled = true;
 	}
 	
-	event /*C++*/ OnFailedCreateMenu()
+	event  OnFailedCreateMenu()
 	{
 	}
 	
-	event /*flash*/ OnClearSlotNewFlag(item : SItemUniqueId)
+	event  OnClearSlotNewFlag(item : SItemUniqueId)
 	{
 	}
 	
@@ -178,7 +179,7 @@ class CR4MenuBase extends CR4Menu
 	{
 	}
 	
-	event /*flash*/ OnSendNotification(locKey:string)
+	event  OnSendNotification(locKey:string)
 	{
 		showNotification(GetLocStringByKeyExt(locKey));
 		if (locKey == "menu_cannot_perform_action_combat")
@@ -242,6 +243,17 @@ class CR4MenuBase extends CR4Menu
 			m_fxSwapAcceptCancel.InvokeSelfOneArg( FlashArgBool(configValue) );
 		}
 	}
+	
+	protected function UpdateInputDeviceType():void
+	{
+		var deviceType : EInputDeviceType;
+		
+		if (m_fxSetGamepadType)
+		{
+			deviceType = theInput.GetLastUsedGamepadType();
+			m_fxSetGamepadType.InvokeSelfOneArg( FlashArgUInt(deviceType) );
+		}
+	} 
 	
 	protected function UpdateControlSchemeLock():void
 	{
@@ -374,7 +386,7 @@ class CR4MenuBase extends CR4Menu
 		}
 	}
 	
-	event /*flash*/ OnMenuShown()
+	event  OnMenuShown()
 	{
 		HandleMenuLoaded();
 		
@@ -386,15 +398,15 @@ class CR4MenuBase extends CR4Menu
 	
 	public function showNotification(notificationText:string, optional duration:float ):void
 	{
-		// #Y Todo: Implement notification types
+		
 		theGame.GetGuiManager().ShowNotification(notificationText, duration);
 	}
 	
-	event /* C++ */ OnClosingMenu()
+	event  OnClosingMenu()
 	{
 		var overlayPopupRef  : CR4OverlayPopup;
 		
-		// Remove input feedback
+		
 		overlayPopupRef = (CR4OverlayPopup)theGame.GetGuiManager().GetPopup('OverlayPopup');
 		if (overlayPopupRef)
 		{
@@ -413,7 +425,7 @@ class CR4MenuBase extends CR4Menu
 		}
 	}
 
-	event OnCloseMenu() // #B will be changed
+	event OnCloseMenu() 
 	{
 		CloseMenu();
 	}
@@ -437,20 +449,20 @@ class CR4MenuBase extends CR4Menu
 		return m_parentMenu;
 	}
 	
-	event /*flash*/ OnBreakPoint( text : string )
+	event  OnBreakPoint( text : string )
 	{
 		LogChannel('GUIBreakpoint'," text "+text);
 	}
 	
-	// deprecated
+	
 	function UpdateButtons( ButtonsDef : array<SMenuButtonDef>)
 	{}	
 
-	// deprecated
+	
 	function UpdateButton( ButtonDef : SMenuButtonDef, ID : int)
 	{}
 	
-	// deprecated
+	
 	protected function AddButtonDef(out targetList:array<SMenuButtonDef>, navCode:string, label:string)
 	{
 		var ButtonDef:SMenuButtonDef;
@@ -488,9 +500,7 @@ class CR4MenuBase extends CR4Menu
 		}
 	}
 	
-	/*
-		functions to organize communication between swf
-	*/
+	
 	
 	public function GetLastChild():CR4MenuBase
 	{
@@ -597,9 +607,9 @@ class CR4MenuBase extends CR4Menu
 		OnPlaySoundEvent("gui_global_panel_open");	
 	}
 	
-	event /*flash*/ OnModuleSelected( moduleID : int, moduleBindingName : string )
+	event  OnModuleSelected( moduleID : int, moduleBindingName : string )
 	{
-		// #J Could use this instead of m_lastSelectedModule but its an old partially unplugged system I rather not play with right now.
+		
 		if (m_lastSelectedModule !=  moduleID)
 		{
 			OnPlaySoundEvent("gui_global_highlight");
@@ -611,7 +621,7 @@ class CR4MenuBase extends CR4Menu
 		UISavedData.selectedModule = moduleID;
 	}
 	
-	event /*falsh*/ OnAppendButton(actionId:int, gamepadNavCode:string, keyboardKeyCode:int, label:string):void
+	event  OnAppendButton(actionId:int, gamepadNavCode:string, keyboardKeyCode:int, label:string):void
 	{
 		var overlayPopupRef  : CR4OverlayPopup;
 		overlayPopupRef = (CR4OverlayPopup)theGame.GetGuiManager().GetPopup('OverlayPopup');
@@ -621,7 +631,7 @@ class CR4MenuBase extends CR4Menu
 		}
 	}
 	
-	event /*flash*/ OnRemoveButton(actionId:int)
+	event  OnRemoveButton(actionId:int)
 	{
 		var overlayPopupRef  : CR4OverlayPopup;
 		overlayPopupRef = (CR4OverlayPopup)theGame.GetGuiManager().GetPopup('OverlayPopup');
@@ -631,7 +641,7 @@ class CR4MenuBase extends CR4Menu
 		}
 	}
 	
-	event /*flash*/ OnCleanupButtons()
+	event  OnCleanupButtons()
 	{
 		var overlayPopupRef  : CR4OverlayPopup;
 		overlayPopupRef = (CR4OverlayPopup)theGame.GetGuiManager().GetPopup('OverlayPopup');
@@ -641,7 +651,7 @@ class CR4MenuBase extends CR4Menu
 		}
 	}
 	
-	event /*flash*/ OnUpdateGFxButtonsList()
+	event  OnUpdateGFxButtonsList()
 	{
 		var commonMenuRef : CR4CommonMenu;
 		
@@ -652,7 +662,7 @@ class CR4MenuBase extends CR4Menu
 		}
 	}
 	
-	event /*flash*/ OnAppendGFxButton(actionId:int, gamepadNavCode:String, keyboardKeyCode:int, label:String, holdPrefix:bool)
+	event  OnAppendGFxButton(actionId:int, gamepadNavCode:String, keyboardKeyCode:int, label:String, holdPrefix:bool)
 	{
 		var newButtonDef:SKeyBinding;
 		
@@ -673,8 +683,8 @@ class CR4MenuBase extends CR4Menu
 		m_GFxInputBindings.PushBack(newButtonDef);
 	}
 	
-	// #Y @deprecated
-	event /*flash*/ OnRemoveGFxButton(actionId:int)
+	
+	event  OnRemoveGFxButton(actionId:int)
 	{
 		RemoveGFxButtonById(actionId);
 	}
@@ -704,12 +714,12 @@ class CR4MenuBase extends CR4Menu
 		m_fxSetCurrentModule.InvokeSelfOneArg(FlashArgInt(0));
 	}
 	
-	event /*flash*/ OnInputHandled(NavCode:string, KeyCode:int, ActionId:int) // #B 
+	event  OnInputHandled(NavCode:string, KeyCode:int, ActionId:int) 
 	{
 		LogChannel('GUIWARNING', "Unecesary call of OnInputHandled NavCode "+NavCode+" KeyCode "+KeyCode);
 	}
 	
-	// do not make it 'event OnGuiSceneEntitySpawned' so it won't be executed in all menus
+	
 	function Event_OnGuiSceneEntitySpawned()
 	{
 		var guiSceneController : CR4GuiSceneController;
@@ -721,7 +731,7 @@ class CR4MenuBase extends CR4Menu
 		}
 	}
 
-	// do not make it 'event OnGuiSceneEntityDestroyed' so it won't be executed in all menus
+	
 	function Event_OnGuiSceneEntityDestroyed()
 	{
 		var guiSceneController : CR4GuiSceneController;
@@ -802,7 +812,7 @@ class CR4MenuBase extends CR4Menu
 		l_craftsmanComponent = (W3CraftsmanComponent)npcEntity.GetComponentByClassName('W3CraftsmanComponent');
 		if (l_craftsmanComponent)
 		{
-			l_craftsmanLevel = l_craftsmanComponent.GetCraftsmanLevel(l_craftsmanType); // #Y Temp, fix l_craftsmanType
+			l_craftsmanLevel = l_craftsmanComponent.GetCraftsmanLevel(l_craftsmanType); 
 			switch( l_craftsmanLevel )
 			{
 				case ECL_Journeyman:

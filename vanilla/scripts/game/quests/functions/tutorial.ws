@@ -1,11 +1,14 @@
 ﻿/***********************************************************************/
-/** Copyright © 2014-2015
-/** Author : Tomek Kozera
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////  TUTORIAL QUEST SCRIPT FUNCTIONS  ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
 
 quest function TutorialScript(scriptName : name, tutorialMessageName : name)
 {
@@ -19,16 +22,16 @@ quest function TutorialScript(scriptName : name, tutorialMessageName : name)
 	var configValue : string;
 	var inGameConfigWrapper : CInGameConfigWrapper;
 
-	//starting tutorial
+	
 	if(scriptName == 'start')
 	{
-		//start only if not started already - wrong quest implementation failsafe
+		
 		if(!theGame.GetTutorialSystem() || !theGame.GetTutorialSystem().IsRunning())
 			theGame.GetTutorialSystem().TutorialStart(true);
 			
 		return;
 	}
-	//do nothing if tutorial is not started
+	
 	else if(!theGame.GetTutorialSystem() || !theGame.GetTutorialSystem().IsRunning())
 	{
 		return;
@@ -122,19 +125,7 @@ quest function TutorialScript(scriptName : name, tutorialMessageName : name)
 		uitut.requiredGameplayFactComparator = CO_GreaterEq;
 		theGame.GetTutorialSystem().uiHandler.RegisterUIHint(uitut);
 	}
-	/*
-	disabled
 	
-	else if(scriptName == 'preparation_go_to')
-	{
-		uitut.menuName = 'PreparationMenu';
-		uitut.tutorialStateName = 'Preparation';
-		uitut.triggerCondition = EUITTC_OnMenuOpen;
-		uitut.abortOnMenuClose = true;
-		uitut.priority = 10;
-		theGame.GetTutorialSystem().uiHandler.RegisterUIHint(uitut);
-	}
-	*/
 	else if(scriptName == 'alchemy')
 	{
 		uitut.menuName = 'AlchemyMenu';
@@ -159,7 +150,7 @@ quest function TutorialScript(scriptName : name, tutorialMessageName : name)
 	}
 	else if(scriptName == 'alchemyForced')
 	{
-		//alchemy panel
+		
 		uitut.menuName = 'AlchemyMenu';
 		uitut.tutorialStateName = 'Alchemy';
 		uitut.triggerCondition = EUITTC_OnMenuOpen;
@@ -168,7 +159,7 @@ quest function TutorialScript(scriptName : name, tutorialMessageName : name)
 				
 		theGame.GetTutorialSystem().uiHandler.RegisterUIHint(uitut);
 		
-		//menu panel - go to alchemy
+		
 		uitut.menuName = 'CommonMenu';
 		uitut.tutorialStateName = 'ForcedAlchemy';
 		uitut.triggerCondition = EUITTC_OnMenuOpen;
@@ -176,7 +167,7 @@ quest function TutorialScript(scriptName : name, tutorialMessageName : name)
 		uitut.priority = 3;
 		theGame.GetTutorialSystem().uiHandler.RegisterUIHint(uitut);
 		
-		//preparation panel - equip potion
+		
 		uitut.menuName = 'InventoryMenu';
 		uitut.tutorialStateName = 'Potions';
 		uitut.triggerCondition = EUITTC_OnMenuOpen;
@@ -187,7 +178,7 @@ quest function TutorialScript(scriptName : name, tutorialMessageName : name)
 	}
 	else if(scriptName == 'worldMap')
 	{
-		//menu panel - go to map
+		
 		uitut.menuName = 'CommonMenu';
 		uitut.tutorialStateName = 'OpenWorldMap';
 		uitut.triggerCondition = EUITTC_OnMenuOpen;
@@ -195,7 +186,7 @@ quest function TutorialScript(scriptName : name, tutorialMessageName : name)
 		uitut.priority = 5;
 		theGame.GetTutorialSystem().uiHandler.RegisterUIHint(uitut);
 		
-		//map panel
+		
 		uitut.menuName = 'MapMenu';
 		uitut.tutorialStateName = 'Map';
 		uitut.triggerCondition = EUITTC_OnMenuOpen;
@@ -205,7 +196,7 @@ quest function TutorialScript(scriptName : name, tutorialMessageName : name)
 	}
 	else if(scriptName == 'food')
 	{
-		//menu panel - go to map
+		
 		uitut.menuName = 'CommonMenu';
 		uitut.tutorialStateName = 'OpenInventory';
 		uitut.triggerCondition = EUITTC_OnMenuOpen;
@@ -213,7 +204,7 @@ quest function TutorialScript(scriptName : name, tutorialMessageName : name)
 		uitut.priority = 8;
 		theGame.GetTutorialSystem().uiHandler.RegisterUIHint(uitut);
 		
-		//map panel
+		
 		uitut.menuName = 'InventoryMenu';
 		uitut.tutorialStateName = 'Food';
 		uitut.triggerCondition = EUITTC_OnMenuOpen;
@@ -227,14 +218,14 @@ quest function TutorialScript(scriptName : name, tutorialMessageName : name)
 	}
 	else if(scriptName == 'bestiary_ON')
 	{
-		//open ui menu to open bestiary
+		
 		uitut.menuName = 'CommonMenu';
 		uitut.tutorialStateName = 'IngameMenuBestiary';
 		uitut.triggerCondition = EUITTC_OnMenuOpen;
 		uitut.priority = 20;
 		theGame.GetTutorialSystem().uiHandler.RegisterUIHint(uitut);
 		
-		//bestiary menu
+		
 		uitut.menuName = 'GlossaryBestiaryMenu';
 		uitut.tutorialStateName = 'Bestiary';
 		uitut.triggerCondition = EUITTC_OnMenuOpen;
@@ -243,11 +234,11 @@ quest function TutorialScript(scriptName : name, tutorialMessageName : name)
 	else if(scriptName == 'bestiary_OFF')
 	{
 		theGame.GetTutorialSystem().uiHandler.UnregisterUIHint('IngameMenuBestiary');
-		//bestiary menu is left - will trigger when you enter it first
+		
 	}
 	else if(scriptName == 'bestiaryQ103_ON')
 	{
-		//open ui menu to open bestiary
+		
 		uitut.menuName = 'CommonMenu';
 		uitut.tutorialStateName = 'IngameMenuBestiary';
 		uitut.triggerCondition = EUITTC_OnMenuOpen;
@@ -260,25 +251,13 @@ quest function TutorialScript(scriptName : name, tutorialMessageName : name)
 	}
 	else if(scriptName == 'journal')
 	{
-		//quest page
+		
 		uitut.menuName = 'JournalQuestMenu';
 		uitut.tutorialStateName = 'JournalQuest';
 		uitut.triggerCondition = EUITTC_OnMenuOpen;
 		theGame.GetTutorialSystem().uiHandler.RegisterUIHint(uitut);
 		
-		/*
-		//monster hunting page
-		uitut.menuName = 'JournalQuestMenu';
-		uitut.tutorialStateName = 'JournalMonsterHunt';
-		uitut.triggerCondition = EUITTC_OnMenuOpen;
-		theGame.GetTutorialSystem().uiHandler.RegisterUIHint(uitut);
 		
-		//treasure hunting page
-		uitut.menuName = 'JournalQuestMenu';
-		uitut.tutorialStateName = 'JournalTreasureHunt';
-		uitut.triggerCondition = EUITTC_OnMenuOpen;
-		theGame.GetTutorialSystem().uiHandler.RegisterUIHint(uitut);
-		*/
 	}	
 	else if(scriptName == 'shop_ON')
 	{
@@ -311,7 +290,7 @@ quest function TutorialScript(scriptName : name, tutorialMessageName : name)
 	}
 	else
 	{
-		//script studio's OOM hack
+		
 		TutorialScript2(scriptName, tutorialMessageName);
 	}
 }
@@ -445,18 +424,7 @@ function TutorialScript2(scriptName : name, tutorialMessageName : name)
 		uitut.requiredGameplayFactComparator2 = CO_Lesser;
 		theGame.GetTutorialSystem().uiHandler.RegisterUIHint(uitut);
 	}
-	/*
-	disabled
 	
-	else if(scriptName == 'NoticeBoard')
-	{
-		uitut.menuName = 'NoticeBoardMenu';
-		uitut.tutorialStateName = 'NoticeBoard';
-		uitut.triggerCondition = EUITTC_OnMenuOpen;
-		uitut.abortOnMenuClose = true;
-		theGame.GetTutorialSystem().uiHandler.RegisterUIHint(uitut);
-	}	
-	*/
 	else if(scriptName == 'markSeen')
 	{
 		theGame.GetTutorialSystem().MarkMessageAsSeen(tutorialMessageName);
@@ -466,7 +434,7 @@ function TutorialScript2(scriptName : name, tutorialMessageName : name)
 		uitut.menuName = 'InventoryMenu';
 		uitut.tutorialStateName = 'Books';
 		uitut.triggerCondition = EUITTC_OnMenuOpen;
-		uitut.priority = 29;	//before potions
+		uitut.priority = 29;	
 		uitut.abortOnMenuClose = true;
 		theGame.GetTutorialSystem().uiHandler.RegisterUIHint(uitut);
 	}
@@ -475,7 +443,7 @@ function TutorialScript2(scriptName : name, tutorialMessageName : name)
 		uitut.menuName = 'InventoryMenu';
 		uitut.tutorialStateName = 'RecipeReading';
 		uitut.triggerCondition = EUITTC_OnMenuOpen;
-		uitut.priority = 29;	//before potions
+		uitut.priority = 29;	
 		uitut.abortOnMenuClose = true;
 		theGame.GetTutorialSystem().uiHandler.RegisterUIHint(uitut);
 	}	
@@ -505,7 +473,7 @@ function TutorialScript2(scriptName : name, tutorialMessageName : name)
 	}
 	else
 	{
-		//script studio's OOM hack
+		
 		TutorialScript3(scriptName, tutorialMessageName);
 	}
 }
@@ -546,7 +514,7 @@ function TutorialScript3(scriptName : name, tutorialMessageName : name)
 	}
 	else if(scriptName == 'finalizePrologue')
 	{
-		//called when prologue tutorial is over - activates all entries met so far to amount for skipped tutorials
+		
 		
 		tutSystem = theGame.GetTutorialSystem();
 		
@@ -609,29 +577,29 @@ function TutorialScript3(scriptName : name, tutorialMessageName : name)
 		tutSystem.ActivateJournalEntry('TutorialJournalCharDevGroups');
 		tutSystem.ActivateJournalEntry('TutorialJournalFastTravel');
 		
-		//stop processing some tutorials - the ones which are hard to say when done
+		
 		tutSystem.MarkMessageAsSeen('TutorialFocusClues');
 	}
 }
 
 quest function TutorialRegisterUIHint(data : SUITutorial)
 {
-	//do nothing if tutorial is not running
+	
 	if(!theGame.GetTutorialSystem() || !theGame.GetTutorialSystem().IsRunning())
 		return;
 		
 	theGame.GetTutorialSystem().uiHandler.RegisterUIHint(data);
 }
 
-//used to debug test tutorial quest in the middle - after the dream
-//DEBUG ONLY!!!
+
+
 quest function HAX_Debug_TutorialStartInTheMiddle()
 {
-	//do nothing if tutorial is not running
+	
 	if(!theGame.GetTutorialSystem() || !theGame.GetTutorialSystem().IsRunning())
 		return;
 		
-	//ignore if tutorials are disabled
+	
 	if(theGame.GetTutorialSystem().AreMessagesEnabled())
 		return;
 	
@@ -664,7 +632,7 @@ quest function HAX_Debug_TutorialStartInTheMiddle()
 
 quest function TutorialHintHide(journalEntry : name)
 {
-	//do nothing if tutorial is not running
+	
 	if(!theGame.GetTutorialSystem() || !theGame.GetTutorialSystem().IsRunning())
 		return;
 		
@@ -673,7 +641,7 @@ quest function TutorialHintHide(journalEntry : name)
 
 quest function TutorialHintFeedback(tutorialMessageName : name, negative : bool)
 {
-	//do nothing if tutorial is not running
+	
 	if(!theGame.GetTutorialSystem() || !theGame.GetTutorialSystem().IsRunning())
 		return;
 		
@@ -683,11 +651,11 @@ quest function TutorialHintFeedback(tutorialMessageName : name, negative : bool)
 
 quest function TutorialMessage(message : STutorialMessage)
 {
-	//ignore if tutorials are disabled
+	
 	if(!theGame.GetTutorialSystem())
 		return;
 	
-	//do nothing if tutorial is not running
+	
 	if(!theGame.GetTutorialSystem().IsRunning())
 		return;
 	
@@ -728,7 +696,7 @@ function TutorialMessagesEnable(optional enable : bool)
 	if(!enable)
 	{
 		inGameConfigWrapper.SetVarValue('Gameplay', 'HudTutorialEnabled', "false");
-		theGame.GetTutorialSystem().SetHudMessage('', false);	//disable hud message
+		theGame.GetTutorialSystem().SetHudMessage('', false);	
 	}
 	else
 	{
@@ -745,7 +713,7 @@ exec function tut_scr(scriptName : name)
 	TutorialScript(scriptName, '');
 }
 
-//if player doesn't have level 2 gives enough exp to get it
+
 quest function TutorialForceSecondLevel(minExpToGive : int)
 {
 	var witcher : W3PlayerWitcher;
@@ -766,10 +734,10 @@ quest function TutorialForceSecondLevel(minExpToGive : int)
 	witcher.AddPoints(EExperiencePoint, exp, true );
 }
 
-//checks if we should process tutorial calculations or not (because tutorial was already displayed)
+
 function ShouldProcessTutorial(scriptName : name) : bool
 {
-	//do nothing if tutorial is not running
+	
 	if(!theGame.GetTutorialSystem() || !theGame.GetTutorialSystem().IsRunning())
 		return false;
 		
@@ -778,7 +746,7 @@ function ShouldProcessTutorial(scriptName : name) : bool
 
 function ShouldProcessInteractionTutorials() : bool
 {
-	//do nothing if tutorial is not running
+	
 	if(!theGame.GetTutorialSystem() || !theGame.GetTutorialSystem().IsRunning())
 		return false;
 		

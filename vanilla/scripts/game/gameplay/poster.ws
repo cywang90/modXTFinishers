@@ -1,4 +1,9 @@
-﻿//Right now class is empty poster class handels all functionalities
+﻿/***********************************************************************/
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/***********************************************************************/
+
 statemachine class W3Signboard  extends W3Poster
 {
 }
@@ -86,7 +91,7 @@ statemachine class W3Poster extends CGameplayEntity
 	function OnEndedObservingPoster()
 	{
 		thePlayer.RemoveActivePoster();
-		//spawnedCamera.timeout	= blendOutTime + 1.0f;
+		
 		spawnedCamera.Stop();
 		AddTimer( 'RestoreGameplay', blendOutTime, false, , , true );
 	}

@@ -1,4 +1,9 @@
-﻿//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+﻿/***********************************************************************/
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/***********************************************************************/
+
 class W3AardProjectile extends W3SignProjectile
 {
 	protected var staminaDrainPerc : float;
@@ -19,23 +24,23 @@ class W3AardProjectile extends W3SignProjectile
 		action.SetHitAnimationPlayType(EAHA_ForceNo);
 		action.SetProcessBuffsIfNoDamage(true);
 		
-		//add skill bonus damage
+		
 		if ( owner.CanUseSkill(S_Magic_s06) )
 		{			
 			dmgVal = GetWitcherPlayer().GetSkillLevel(S_Magic_s06) * CalculateAttributeValue( owner.GetSkillAttributeValue( S_Magic_s06, theGame.params.DAMAGE_NAME_FORCE, false, true ) );
 			action.AddDamage( theGame.params.DAMAGE_NAME_FORCE, dmgVal );
 		}
 		
-		//HAXXOR
+		
 		if ( !owner.IsPlayer() )
 		{
 			action.AddEffectInfo( EET_KnockdownTypeApplicator );
 		}
 		
-		//action.SetHitEffect('aard_hit', false, false);
-		//action.SetHitEffect('aard_hit_back', true, false);
-		//action.SetHitEffect('aard_hit_parried', false, true);
-		//action.SetHitEffect('aard_hit_back_parried', true, true);
+		
+		
+		
+		
 		
 		theGame.damageMgr.ProcessAction( action );
 		
@@ -58,7 +63,7 @@ class W3AardProjectile extends W3SignProjectile
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 class W3AxiiProjectile extends W3SignProjectile
 {
@@ -67,7 +72,7 @@ class W3AxiiProjectile extends W3SignProjectile
 		DestroyAfter( 3.f );
 		
 		collider.OnAxiiHit( this );	
-		//Destroy();
+		
 	}
 	
 	protected function ShouldCheckAttitude() : bool
@@ -75,7 +80,7 @@ class W3AxiiProjectile extends W3SignProjectile
 		return false;
 	}
 }
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 class W3IgniProjectile extends W3SignProjectile
 {
 	private var channelCollided : bool;
@@ -113,12 +118,12 @@ class W3IgniProjectile extends W3SignProjectile
 		
 		channelCollided = true;
 		
-		//show collision fx at the place of impact
+		
 		igniEntity = (W3IgniEntity)signEntity;
 		
 		if(signEntity.IsAlternateCast())
 		{			
-			//igni burn fx left on objects and terrain
+			
 			test = (!collidingComponent && hitCollisionsGroups.Contains( 'Terrain' ) ) || (collidingComponent && !((CActor)collidingComponent.GetEntity()));
 			
 			colEnt = collidingComponent.GetEntity();
@@ -135,12 +140,12 @@ class W3IgniProjectile extends W3SignProjectile
 					
 					template = (CEntityTemplate)LoadResource( "igni_object_fx" );
 					
-					//set rotation to normal of terrain
+					
 					rot.Pitch	= AcosF( VecDot( Vector( 0, 0, 0 ), normal ) );
 					rot.Yaw		= this.GetHeading();
 					rot.Roll	= 0.0f;
 					
-					//trace
+					
 					posF = pos + VecNormalize(pos - signEntity.GetWorldPosition());
 					if(theGame.GetWorld().StaticTrace(pos, posF, pos2, n, igniEntity.projectileCollision))
 					{					
@@ -153,10 +158,10 @@ class W3IgniProjectile extends W3SignProjectile
 				}				
 			}
 			
-			//collision fx
+			
 			if ( !hitCollisionsGroups.Contains( 'Water' ) )
 			{
-				//show collision fx at the place of impact
+				
 				v = GetWorldPosition() - signEntity.GetWorldPosition();
 				rot = MatrixGetRotation(MatrixBuildFromDirectionVector(-v));
 				
@@ -170,9 +175,9 @@ class W3IgniProjectile extends W3SignProjectile
 	protected function ProcessCollision( collider : CGameplayEntity, pos, normal : Vector )
 	{
 		var signPower, channelDmg : SAbilityAttributeValue;
-		var burnChance : float;					// chance to apply burn effect (NPC only)
-		var maxArmorReduction : float;			// by how much the armor can be reduced
-		var applyNbr : int;						// how many times base armor reduction has to be applied
+		var burnChance : float;					
+		var maxArmorReduction : float;			
+		var applyNbr : int;						
 		var i : int;
 		var npc : CNewNPC;
 		var armorRedAblName : name;
@@ -186,7 +191,7 @@ class W3IgniProjectile extends W3SignProjectile
 		
 		postEffect.AddSurfacePostFXGroup( pos, 0.5f, 8.0f, 10.0f, 2.5f, 1 );
 		
-		// this condition prevents from hitting actor twice by the same projectile
+		
 		if ( hitEntities.Contains( collider ) )
 		{
 			return;
@@ -199,14 +204,14 @@ class W3IgniProjectile extends W3SignProjectile
 		actorVictim = ( CActor ) action.victim;
 		npc = (CNewNPC)collider;
 				
-		//igni burning
+		
 		if(signEntity.IsAlternateCast())		
 		{
 			igniEntity = (W3IgniEntity)signEntity;
 			performBurningTest = igniEntity.UpdateBurningChance(actorVictim, dt);
 			
-			// if target was already hit then skip initial damage, also skip the hit particle
-			// this condition prevents from hitting actor twice by the the whole igni entity
+			
+			
 			if( igniEntity.hitEntities.Contains( collider ) )
 			{
 				channelCollided = true;
@@ -216,14 +221,14 @@ class W3IgniProjectile extends W3SignProjectile
 				action.SetHitEffect('', true, true);
 				action.ClearDamage();
 				
-				//add channeling damage
+				
 				channelDmg = owner.GetSkillAttributeValue(signSkill, 'channeling_damage', false, true);
 				dmg = channelDmg.valueAdditive + channelDmg.valueMultiplicative * actorVictim.GetMaxHealth();
 				dmg *= dt;
 				action.AddDamage(theGame.params.DAMAGE_NAME_FIRE, dmg);
 				action.SetIsDoTDamage(dt);
 				
-				if(!collider)	//if no target (just showing impact fx) then exit
+				if(!collider)	
 					return;
 			}
 			else
@@ -237,20 +242,20 @@ class W3IgniProjectile extends W3SignProjectile
 			}
 		}
 		
-		//if npc is shielded do not take any dmg
+		
 		if ( npc && npc.IsShielded( ownerActor ) )
 		{
 			collider.OnIgniHit( this );	
 			return;
 		}
 		
-		// Claculate sign spellpower, taking target resistances into consideration
+		
 		signPower = signEntity.GetOwner().GetTotalSignSpellPower(signEntity.GetSkill());
 
-		// a piece of custom code for calculating burning effect
+		
 		if ( !owner.IsPlayer() )
 		{
-			//NPCs
+			
 			burnChance = signPower.valueMultiplicative;
 			if ( RandF() < burnChance )
 			{
@@ -278,7 +283,7 @@ class W3IgniProjectile extends W3SignProjectile
 		
 		theGame.damageMgr.ProcessAction( action );	
 		
-		// Melt armor
+		
 		if ( owner.CanUseSkill(S_Magic_s08) && (CActor)collider)
 		{	
 			maxArmorReduction = CalculateAttributeValue(owner.GetSkillAttributeValue(S_Magic_s08, 'max_armor_reduction', false, true)) * GetWitcherPlayer().GetSkillLevel(S_Magic_s08);
@@ -300,16 +305,16 @@ class W3IgniProjectile extends W3SignProjectile
 		entity.OnIgniHit( this );
 	}
 
-	//range fx
+	
 	event OnRangeReached()
 	{
 		var v : Vector;
 		var rot : EulerAngles;
 				
-		//projectile keeps flying e.g. through actors so we need to check if it hit something before or not
+		
 		if(!channelCollided)
 		{			
-			//collision fx
+			
 			v = GetWorldPosition() - signEntity.GetWorldPosition();
 			rot = MatrixGetRotation(MatrixBuildFromDirectionVector(-v));
 			((W3IgniEntity)signEntity).ShowChannelingRangeFx(GetWorldPosition(), rot);

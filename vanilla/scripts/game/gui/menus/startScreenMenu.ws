@@ -1,9 +1,11 @@
 ﻿/***********************************************************************/
-/** Witcher Script file - Start Screen Menu
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
-/** Copyright © 2014 CDProjektRed
-/** Author : Bartosz Bigaj
-/***********************************************************************/
+
+
+
 
 class CR4StartScreenMenu extends CR4MenuBase
 {	
@@ -15,23 +17,23 @@ class CR4StartScreenMenu extends CR4MenuBase
 	private var m_fxSetGameLogoLanguage	: CScriptedFlashFunction;
 	protected var m_fxSetText			: CScriptedFlashFunction;
 	
-	event /*flash*/ OnConfigUI()
+	event  OnConfigUI()
 	{	
 		var languageName : string;
 		var audioLanguageName : string;
-		//theSound.EnterGameState( ESGS_EndScreen ); // #B old, check
-		//theSound.SoundEvent("mus_menu_theme"); // #B old, check
+		
+		
 		super.OnConfigUI();
 		
 		_fadeDuration = thePlayer.GetStartScreenFadeDuration();
 		m_fxSetFadeDuration = GetMenuFlash().GetMemberFlashFunction("SetFadeDuration");
 		m_fxStartFade = GetMenuFlash().GetMemberFlashFunction("startClosingTimer");
 		m_fxSetText = GetMenuFlash().GetMemberFlashFunction("setDisplayedText");
-		//m_fxSetIsStageDemo = GetMenuFlash().GetMemberFlashFunction("SetIsStageDemo");
-		//m_fxSetIsStageDemo.InvokeSelfOneArg(FlashArgBool(thePlayer.GetStartScreenIsOpenedAsStageDemo()));
+		
+		
 		SetFadeTime();
 		theInput.StoreContext( 'EMPTY_CONTEXT' );
-		// #B fixme bidon - add context "EMPTY_CONTEXT"
+		
 		
 		setStandardtext();
 		theGame.GetGuiManager().OnEnteredStartScreen();
@@ -39,7 +41,7 @@ class CR4StartScreenMenu extends CR4MenuBase
 		theGame.SetActiveUserPromiscuous();
 		
 		m_fxSetGameLogoLanguage = m_flashModule.GetMemberFlashFunction( "setGameLogoLanguage" );
-		//m_fxSetMovieData.InvokeSelfOneArg(FlashArgString(GetCurrentBackgroundMovie()));
+		
 		theGame.GetGameLanguageName(audioLanguageName,languageName);
 		m_fxSetGameLogoLanguage.InvokeSelfOneArg( FlashArgString(languageName) );
 		
@@ -55,7 +57,7 @@ class CR4StartScreenMenu extends CR4MenuBase
 		}
 	}
 	
-	event /*flash*/ OnCloseMenu()
+	event  OnCloseMenu()
 	{
 		if( !thePlayer.GetStartScreenEndWithBlackScreen() )
 		{
@@ -67,7 +69,7 @@ class CR4StartScreenMenu extends CR4MenuBase
 		
 		theGame.GetGuiManager().SetIsDuringFirstStartup( false );
 		
-		theSound.SoundEvent("stop_music"); // Need to stop it for the cinematic between and main menu
+		theSound.SoundEvent("stop_music"); 
 	}
 
 	private function SetFadeTime()
@@ -81,13 +83,13 @@ class CR4StartScreenMenu extends CR4MenuBase
 	public function startFade():void
 	{
 		m_fxStartFade.InvokeSelf();
-		//theGame.FadeOutAsync(_fadeDuration);
+		
 	}
 	
 	event OnKeyPress()
 	{
-		//theSound.SoundEvent("mus_loc_silent"); // #B old, check
-		//theSound.EnterGameState( ESGS_Movie ); // #B old, check
+		
+		
 		if (theGame.isUserSignedIn())
 		{
 			startFade();
@@ -116,11 +118,11 @@ class CR4StartScreenMenu extends CR4MenuBase
 	
 	public function setWaitingText()
 	{
-		// Same for all platforms
+		
 		m_fxSetText.InvokeSelfOneArg(FlashArgString(GetLocStringByKeyExt("panel_please_wait")));
 	}
 	
-	function PlayOpenSoundEvent() // # Disable the open sound when entering start screen
+	function PlayOpenSoundEvent() 
 	{
 	}
 }

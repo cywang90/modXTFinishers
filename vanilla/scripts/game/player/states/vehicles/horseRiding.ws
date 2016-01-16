@@ -1,4 +1,9 @@
-﻿state HorseRiding in CR4Player extends UseGenericVehicle
+﻿/***********************************************************************/
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/***********************************************************************/
+state HorseRiding in CR4Player extends UseGenericVehicle
 {
 	private var dismountRequest : bool;
 	private var vehicleCombatMgr : W3HorseCombatManager;
@@ -13,9 +18,9 @@
 
 	private var initCamera : bool;
 	
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
-	// INIT, ENTER, LEAVE //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	
+	
 	
 	protected function Init()
 	{
@@ -41,7 +46,7 @@
 	{
 		super.OnEnterState(prevStateName);
 		
-		theTelemetry.Log(TE_STATE_HORSE_RIDING);
+		theTelemetry.LogWithName(TE_STATE_HORSE_RIDING);
 		
 		ChangeTicketPool( true );
 		
@@ -50,7 +55,7 @@
 		
 		thePlayer.SoundEvent( "amb_g_speed_wind_start", 'head' );
 		
-		// enlarge combat radius
+		
 		parent.findMoveTargetDistMin = 20.f;
 		
 		parent.AddTimer( 'EnableDynamicCanter', 0.5 );
@@ -87,7 +92,7 @@
 		
 		thePlayer.SoundEvent( "amb_g_speed_wind_stop", 'head' );
 		
-		//make combat radius smaller again
+		
 		parent.findMoveTargetDistMin = 10.f;
 		
 		vehicleCombatMgr.Destroy();
@@ -166,9 +171,9 @@
 		PlayerDied();
 	}
 	
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
-	// MAIN LOOP, DISMOUNTING //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	
+	
 	
 	entry function ProcessHorseRiding()
 	{
@@ -216,18 +221,18 @@
 	{
 		vehicle.ToggleVehicleCamera( false );
 		
-		// Do not call this here but maybe use instant dismount ?
-		//vehicle.OnDismountStarted( parent );
-		//vehicle.OnDismountFinished( parent );
+		
+		
+		
 		parent.SignalGameplayEventParamInt( 'RidingManagerDismountHorse', DT_instant | DT_fromScript );
 		
 		parent.EnableCharacterCollisions( true );
 		parent.RegisterCollisionEventsListener();
 	}
 	
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// CAMERA //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	
+	
 
 	private var currDesiredDist : float;
 	private var cameraManualRotationDisabled : bool;
@@ -304,8 +309,8 @@
 		{
 			moveData.pivotDistanceController.SetDesiredDistance( 2.4 );
 			currDesiredDist = 2.4;
-			//theGame.GetGameplayConfigFloatValue( 'debugA' ) );
-			//moveData.pivotRotationController.SetDesiredPitch( horseComp.GetCurrentPitch() - 10 );//theGame.GetGameplayConfigFloatValue( 'debugB' ) );
+			
+			
 			if ( !horseComp.OnCheckHorseJump() )
 				moveData.pivotRotationController.SetDesiredPitch( horseComp.GetCurrentPitch() - 10 );
 		}
@@ -334,7 +339,7 @@
 			shouldStopCamera = false;
 		}
 		else
-			shouldStopCamera = false;//parent.IsInCombat();
+			shouldStopCamera = false;
 			
 		DampVectorSpring( moveData.cameraLocalSpaceOffset, moveData.cameraLocalSpaceOffsetVel, Vector(0,0,0), 0.3f, dt );			
 		
@@ -342,16 +347,16 @@
 		{
 			if( !camera.IsManualControledHor() && horseComp.inputApplied )
 			{
-				if( !horseComp.inCanter && !horseComp.inGallop && !vehicleCombatMgr.IsInSwordAttackCombatAction() ) // follow camera
+				if( !horseComp.inCanter && !horseComp.inGallop && !vehicleCombatMgr.IsInSwordAttackCombatAction() ) 
 				{
-					if( trailCameraTimeStamp + trailCameraCooldown > theGame.GetEngineTimeAsSeconds() ) // to avoid weird shot when manually moving camera after having trail camera active
+					if( trailCameraTimeStamp + trailCameraCooldown > theGame.GetEngineTimeAsSeconds() ) 
 					{
 						parent.OnGameCameraPostTick( moveData, dt );
 						return shouldStopCamera;
 					}
 					else if( trailCameraTimeStamp + trailCameraCooldown < theGame.GetEngineTimeAsSeconds() && wasTrailCameraActive )
 					{
-						moveData.pivotRotationVelocity.Yaw = 0.0; // to avoid weird shot when going back from trail camera to follow camera
+						moveData.pivotRotationVelocity.Yaw = 0.0; 
 						wasTrailCameraActive = false;
 					}
 				
@@ -367,17 +372,17 @@
 					parent.OnGameCameraPostTick( moveData, dt );
 					return true;	
 				}
-				else // trail camera
+				else 
 				{
 					wasTrailCameraActive = true;
 					trailCameraTimeStamp = theGame.GetEngineTimeAsSeconds();
 				}
 			}
-			else // manual control
+			else 
 			{
 				if( wasTrailCameraActive ) 
 				{
-					moveData.pivotRotationVelocity.Yaw = 0.0; // to avoid weird shot when going back from trail camera to manual control
+					moveData.pivotRotationVelocity.Yaw = 0.0; 
 					wasTrailCameraActive = false;
 				}
 			}
@@ -388,9 +393,9 @@
 		return shouldStopCamera;
 	}
 	
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// PRIVATE FUNCTIONS ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	
+	
 	
 	private function CheckForWeapons()
 	{
@@ -410,12 +415,12 @@
 		{
 			if ( meleeTicketRequest	== -1 )
 			{
-				//adds +400 to ticket pool
+				
 				meleeTicketRequest = combatData.TicketSourceOverrideRequest( 'TICKET_Melee', 400, 0.0 );
 			}
 			if ( rangeTicketRequest == -1 )
 			{
-				//adds +100 to ticket pool
+				
 				rangeTicketRequest = combatData.TicketSourceOverrideRequest( 'TICKET_Range', 100, 0.0 );
 			}
 		}
@@ -469,9 +474,9 @@
 		}
 	}
 		
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// EVENTS //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	
+	
 	
 	event OnAnimEvent_ActionBlend( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
@@ -513,13 +518,13 @@
 		return vehicleCombatMgr.OnRaiseSignEvent();
 	}
 	
-	// Do nothing
+	
 	event OnProcessCastingOrientation( isContinueCasting : bool ) {}
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// COMBAT ACTIONS //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 statemachine class W3HorseCombatManager extends W3VehicleCombatManager
 {

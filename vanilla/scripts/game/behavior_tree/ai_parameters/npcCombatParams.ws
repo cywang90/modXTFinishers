@@ -1,6 +1,11 @@
-﻿//-----------------------------------------------------------------------------------------------------
-///////////////////////////////////////////////////////////////
-// CAIScaredCombatTree
+﻿/***********************************************************************/
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/***********************************************************************/
+
+
+
 class CAIScaredCombatTree extends CAISubTree
 {
 	default aiTreeName = "resdef:ai\combat\npc_scared_combat";
@@ -8,14 +13,14 @@ class CAIScaredCombatTree extends CAISubTree
 
 
 
-///////////////////////////////////////////////////////////////
-// CAINpcDefenseAction
+
+
 abstract class CAINpcDefenseAction extends CAICombatActionTree
 {
 };
 
-//////////////////////////////////////////////////////
-// CAINpcParryAction
+
+
 class CAINpcParryAction extends CAINpcDefenseAction
 {
 	default aiTreeName = "resdef:ai\combat\npc_def_parry";
@@ -27,78 +32,78 @@ class CAINpcParryAction extends CAINpcDefenseAction
 	default activationTimeLimitBonusLight = 0.5;
 };
 
-////////////////////////////////////////////////////////
-// CAINpcDodgeAction
+
+
 class CAINpcDodgeAction extends CAINpcDefenseAction
 {
 	default aiTreeName = "resdef:ai\combat\npc_def_dodge";
 };
 
-//////////////////////////////////////////////////////
-// CAINpcCounterAction
+
+
 class CAINpcCounterAction extends CAINpcDefenseAction
 {
 	default aiTreeName = "resdef:ai\combat\npc_def_counter";
 };
 
-//////////////////////////////////////////////////////
-// CAINpcCounterFistFightAction
+
+
 class CAINpcCounterFistFightAction extends CAINpcDefenseAction
 {
 	default aiTreeName = "resdef:ai\combat\npc_def_counter_fistfight";
 };
 
-//////////////////////////////////////////////////////
-// CAINpcCounterHitAction
+
+
 class CAINpcCounterHitAction extends CAINpcDefenseAction
 {
 	default aiTreeName = "resdef:ai\combat\npc_def_counterhit";
 };
 
-//////////////////////////////////////////////////////
-// CAIWildHuntCounterHitAction
+
+
 class CAIWildHuntCounterHitAction extends CAINpcDefenseAction
 {
 	default aiTreeName = "resdef:ai\combat\npc_def_wildhunt_counterhit";
 };
 
-//////////////////////////////////////////////////////
-// CAINpcCounterPushAction
+
+
 class CAINpcCounterPushAction extends CAINpcDefenseAction
 {
 	default aiTreeName = "resdef:ai\combat\npc_def_counter_push";
 };
 
-//////////////////////////////////////////////////////
-// CAINpcWitcherCounterAction
+
+
 class CAINpcWitcherCounterAction extends CAINpcDefenseAction
 {
 	default aiTreeName = "resdef:ai\combat\npc_def_witcher_counter";
 };
 
-//////////////////////////////////////////////////////
-// CAINpcCiriCounterAction
+
+
 class CAINpcCiriCounterAction extends CAINpcDefenseAction
 {
 	default aiTreeName = "resdef:ai\combat\npc_def_ciri_counter";
 };
 
-//////////////////////////////////////////////////////
-// CAINpcImlerithCounterAction
+
+
 class CAINpcImlerithCounterAction extends CAINpcDefenseAction
 {
 	default aiTreeName = "resdef:ai\combat\npc_def_imlerith_counter";
 };
 
-//////////////////////////////////////////////////////
-// CAINpcImlerithCounterActionSecondStage
+
+
 class CAINpcImlerithCounterActionSecondStage extends CAINpcDefenseAction
 {
 	default aiTreeName = "resdef:ai\combat\npc_def_imlerith_counter_second_stage";
 };
 
-////////////////////////////////////////////////////////
-// CAINpcImlerithParry
+
+
 class CAINpcImlerithParry extends CAINpcDefenseAction
 {
 	default aiTreeName = "resdef:ai\combat\npc_def_imlerith_parry";
@@ -110,50 +115,50 @@ class CAINpcImlerithParry extends CAINpcDefenseAction
 	default activationTimeLimitBonusLight = 0.5;
 };
 
-//////////////////////////////////////////////////////
-// CAINpcImlerithGuardAction
+
+
 class CAINpcImlerithGuardAction extends CAINpcDefenseAction
 {
 	default aiTreeName = "resdef:ai\combat\npc_def_imlerith_guard";
 };
 
-//////////////////////////////////////////////////////
-// CAINpcImlerithSignsBlockAction
+
+
 class CAINpcImlerithSignsBlockAction extends CAINpcDefenseAction
 {
 	default aiTreeName = "resdef:ai\combat\npc_def_imlerith_signs_block";
 };
 
-//////////////////////////////////////////////////////
-// CAINpcEredinCounterAction
+
+
 class CAINpcEredinCounterAction extends CAINpcDefenseAction
 {
 	default aiTreeName = "resdef:ai\combat\npc_def_eredin_counter";
 };
 
-//////////////////////////////////////////////////////
-// CAINpcEredinRaiseGuardAction
+
+
 class CAINpcEredinRaiseGuardAction extends CAINpcDefenseAction
 {
 	default aiTreeName = "resdef:ai\combat\npc_def_eredin_raise_guard";
 };
 
-//////////////////////////////////////////////////////
-// CAINpcEredinSignsBlockAction
+
+
 class CAINpcEredinSignsBlockAction extends CAINpcDefenseAction
 {
 	default aiTreeName = "resdef:ai\combat\npc_def_eredin_signs_block";
 };
 
-////////////////////////////////////////////////////////
-// CAINpcEredinDodgeAction
+
+
 class CAINpcEredinDodgeAction extends CAINpcDefenseAction
 {
 	default aiTreeName = "resdef:ai\combat\npc_def_eredin_dodge";
 };
 
-////////////////////////////////////////////////////////
-// CAINpcEredinParryAction
+
+
 class CAINpcEredinParryAction extends CAINpcDefenseAction
 {
 	default aiTreeName = "resdef:ai\combat\npc_def_eredin_parry";
@@ -165,29 +170,29 @@ class CAINpcEredinParryAction extends CAINpcDefenseAction
 	default activationTimeLimitBonusLight = 0.5;
 };
 
-//////////////////////////////////////////////////////
-// CAINpcOlgierdCounterAction
+
+
 class CAINpcOlgierdCounterAction extends CAINpcDefenseAction
 {
 	default aiTreeName = "resdef:ai\combat\npc_def_olgierd_counter";
 };
 
-//////////////////////////////////////////////////////
-// CAINpcOlgierdDodgeAction
+
+
 class CAINpcOlgierdDodgeAction extends CAINpcDefenseAction
 {
 	default aiTreeName = "resdef:ai\combat\npc_def_olgierd_dodge";
 };
 
-//////////////////////////////////////////////////////
-// CAINpcOlgierdCounterAfterHitAction
+
+
 class CAINpcOlgierdCounterAfterHitAction extends CAINpcDefenseAction
 {
 	default aiTreeName = "resdef:ai\combat\npc_def_olgierd_counter_after_hit";
 };
 
-//////////////////////////////////////////////////////
-// CAINpcOlgierdParryAction
+
+
 class CAINpcOlgierdParryAction extends CAINpcDefenseAction
 {
 	default aiTreeName = "resdef:ai\combat\npc_def_olgierd_parry";
@@ -199,31 +204,31 @@ class CAINpcOlgierdParryAction extends CAINpcDefenseAction
 	default activationTimeLimitBonusLight = 0.5;
 };
 
-////////////////////////////////////////////////////////
-// CAINpcSummonGuardsAction
+
+
 class CAINpcSummonGuardsAction extends CAINpcDefenseAction
 {
 	default aiTreeName = "resdef:ai\combat\npc_def_summon_guards";
 };
 
-////////////////////////////////////////////////////////
-// CAINpcCaranthirCounterAction
+
+
 class CAINpcCaranthirCounterAction extends CAINpcDefenseAction
 {
 	default aiTreeName = "resdef:ai\combat\npc_def_caranthir_counter";
 };
 
-////////////////////////////////////////////////////////
-// CAINpcCaranthirIceArmorAction
+
+
 class CAINpcCaranthirIceArmorAction extends CAINpcDefenseAction
 {
 	default aiTreeName = "resdef:ai\combat\npc_def_caranthir_ice_armor";
 };
 
-//-----------------------------------------------------------------------------------------------------
 
-////////////////////////////////////////////////////////
-// CAINpcTacticTree
+
+
+
 abstract class CAINpcTacticTree extends CAISubTree
 {
 	editable inlined var params : CAINpcTacticTreeParams;
@@ -235,33 +240,33 @@ abstract class CAINpcTacticTree extends CAISubTree
 	}
 };
 
-////////////////////////////////////////////////////////
-// CAINpcMeleeTacticTree
+
+
 abstract class CAINpcMeleeTacticTree extends CAINpcTacticTree
 {
 };
 
-////////////////////////////////////////////////////////
-// CAINpcRangedTacticTree
+
+
 abstract class CAINpcRangedTacticTree extends CAINpcTacticTree
 {
 };
 
-////////////////////////////////////////////////////////
-// CAINpcCustomTacticTree
+
+
 abstract class CAINpcCustomTacticTree extends CAINpcTacticTree
 {
 };
 
-// CAINpcTacticTreeParams
+
 class CAINpcTacticTreeParams extends CAISubTreeParameters
 {
-	//editable inlined var attackBehavior : CAIAttackBehaviorTree;
+	
 	
 	editable inlined var specialActions : array<CAISpecialAction>;
 	
-	//editable inlined var closeSteeringGraph : CMoveSteeringBehavior;
-	//editable inlined var farSteeringGraph : CMoveSteeringBehavior;
+	
+	
 	
 	editable var dontUseRunWhileStrafing	: bool;
 	editable var allowChangingGuard			: bool;
@@ -271,8 +276,8 @@ class CAINpcTacticTreeParams extends CAISubTreeParameters
 	
 	function Init()
 	{
-		//attackBehavior = new CAIAttackBehaviorTree in this;
-		//attackBehavior.OnCreated();
+		
+		
 	}
 	
 	function InitializeSpecialActions()
@@ -286,8 +291,8 @@ class CAINpcTacticTreeParams extends CAISubTreeParameters
 	}
 };
 
-///////////////////////////////////////////////////////////
-// CAINpcSimpleTacticTree
+
+
 class CAINpcSimpleTacticTree extends CAINpcMeleeTacticTree
 {
 	default aiTreeName = "resdef:ai\combat\npc_tactic_simple";
@@ -299,8 +304,8 @@ class CAINpcSimpleTacticTree extends CAINpcMeleeTacticTree
 	}
 };
 
-///////////////////////////////////////////////////////////
-// CAINpcSurroundTacticTree
+
+
 class CAINpcSurroundTacticTree extends CAINpcMeleeTacticTree
 {
 	default aiTreeName = "resdef:ai\combat\npc_tactic_surround";
@@ -312,7 +317,7 @@ class CAINpcSurroundTacticTree extends CAINpcMeleeTacticTree
 	}
 };
 
-// CAINpcSurroundTacticTreeParams
+
 class CAINpcSurroundTacticTreeParams extends CAINpcTacticTreeParams
 {
 	editable var minStrafeDist : float;
@@ -330,7 +335,7 @@ class CAINpcSurroundTacticTreeParams extends CAINpcTacticTreeParams
 	}
 };
 
-// CAINpcSurroundTacticCloseTree
+
 class CAINpcSurroundTacticCloseTree extends CAINpcMeleeTacticTree
 {
 	default aiTreeName = "resdef:ai\combat\npc_tactic_surround_close";
@@ -342,7 +347,7 @@ class CAINpcSurroundTacticCloseTree extends CAINpcMeleeTacticTree
 	}
 };
 
-// CAINpcSurroundTacticFarTree
+
 class CAINpcSurroundTacticFarTree extends CAINpcMeleeTacticTree
 {
 	default aiTreeName = "resdef:ai\combat\npc_tactic_surround_far";
@@ -354,7 +359,7 @@ class CAINpcSurroundTacticFarTree extends CAINpcMeleeTacticTree
 	}
 };
 
-// CAINpcSurroundRangedTacticTree
+
 class CAINpcSurroundRangedTacticTree extends CAINpcRangedTacticTree
 {
 	default aiTreeName = "resdef:ai\combat\npc_tactic_surround_ranged";
@@ -367,7 +372,7 @@ class CAINpcSurroundRangedTacticTree extends CAINpcRangedTacticTree
 };
 
 
-// CAINpcHoldGroundTacticTree
+
 class CAINpcHoldGroundTacticTree extends CAINpcMeleeTacticTree
 {
 	default aiTreeName = "resdef:ai\combat\npc_tactic_holdground";
@@ -379,7 +384,7 @@ class CAINpcHoldGroundTacticTree extends CAINpcMeleeTacticTree
 	}
 };
 
-// CAINpcHoldGroundTacticTreeParams
+
 class CAINpcHoldGroundTacticTreeParams extends CAINpcTacticTreeParams
 {
 	editable var holdPositionTag 					: name;
@@ -394,7 +399,7 @@ class CAINpcHoldGroundTacticTreeParams extends CAINpcTacticTreeParams
 	}
 };
 
-// CAINpcHoldGroundRangedTacticTree
+
 class CAINpcHoldGroundRangedTacticTree extends CAINpcRangedTacticTree
 {
 	default aiTreeName = "resdef:ai\combat\npc_tactic_holdground_ranged";
@@ -407,7 +412,7 @@ class CAINpcHoldGroundRangedTacticTree extends CAINpcRangedTacticTree
 	}
 };
 
-// CAINpcHoldGroundTacticTreeParams
+
 class CAINpcHoldGroundRangedTacticTreeParams extends CAINpcTacticTreeParams
 {
 	editable var holdPositionTag 					: name;
@@ -420,7 +425,7 @@ class CAINpcHoldGroundRangedTacticTreeParams extends CAINpcTacticTreeParams
 	}
 };
 
-// CAINpcVesemirTutorialTacticTree
+
 class CAINpcVesemirTutorialTacticTree extends CAINpcCustomTacticTree
 {
 	default aiTreeName = "resdef:ai\combat\npc_tactic_vesemir_tutorial";
@@ -432,7 +437,7 @@ class CAINpcVesemirTutorialTacticTree extends CAINpcCustomTacticTree
 	}
 };
 
-// CAINpcVesemirTutorialTacticTreeParams
+
 class CAINpcVesemirTutorialTacticTreeParams extends CAINpcTacticTreeParams
 {
 	editable var backgroundTraining	: bool;
@@ -454,8 +459,8 @@ class CAINpcVesemirTutorialTacticTreeParams extends CAINpcTacticTreeParams
 	}
 };
 
-///////////////////////////////////////////////////////////
-// CAINpcVampiressTree
+
+
 class CAINpcVampiressTree extends CAINpcMeleeTacticTree
 {
 	default aiTreeName = "resdef:ai\combat\npc_tactic_vampiress";
@@ -467,7 +472,7 @@ class CAINpcVampiressTree extends CAINpcMeleeTacticTree
 	}
 };
 
-// CAINpcSorceressTacticTree
+
 class CAINpcSorceressTacticTree extends CAINpcRangedTacticTree
 {
 	default aiTreeName = "resdef:ai\combat\npc_tactic_sorceress";
@@ -478,7 +483,7 @@ class CAINpcSorceressTacticTree extends CAINpcRangedTacticTree
 		params.OnCreated();
 	}
 };
-// CAINpcSorceressTacticTreeParams
+
 class CAINpcSorceressTacticTreeParams extends CAINpcTacticTreeParams
 {
 	editable var minStrafeDist : float;
@@ -496,7 +501,7 @@ class CAINpcSorceressTacticTreeParams extends CAINpcTacticTreeParams
 	}
 };
 
-// CAINpcSorcererTacticTree
+
 class CAINpcSorcererTacticTree extends CAINpcRangedTacticTree
 {
 	default aiTreeName = "resdef:ai\combat\npc_tactic_sorcerer";
@@ -507,7 +512,7 @@ class CAINpcSorcererTacticTree extends CAINpcRangedTacticTree
 		params.OnCreated();
 	}
 };
-// CAINpcSorcererTacticTreeParams
+
 class CAINpcSorcererTacticTreeParams extends CAINpcTacticTreeParams
 {
 	editable var minStrafeDist : float;
@@ -525,7 +530,7 @@ class CAINpcSorcererTacticTreeParams extends CAINpcTacticTreeParams
 	}
 };
 
-// CAINpcEredinTacticTree
+
 class CAINpcEredinTacticTree extends CAINpcCustomTacticTree
 {
 	default aiTreeName = "resdef:ai\combat\npc_tactic_eredin";
@@ -537,7 +542,7 @@ class CAINpcEredinTacticTree extends CAINpcCustomTacticTree
 	}
 };
 
-// CAINpcEredinTESTTacticTree
+
 class CAINpcEredinTESTTacticTree extends CAINpcCustomTacticTree
 {
 	default aiTreeName = "resdef:ai\combat\npc_tactic_eredin_test";
@@ -549,7 +554,7 @@ class CAINpcEredinTESTTacticTree extends CAINpcCustomTacticTree
 	}
 };
 
-// CAINpcImlerithTacticTree
+
 class CAINpcImlerithTacticTree extends CAINpcCustomTacticTree
 {
 	default aiTreeName = "resdef:ai\combat\npc_tactic_imlerith";
@@ -561,7 +566,7 @@ class CAINpcImlerithTacticTree extends CAINpcCustomTacticTree
 	}
 };
 
-// CAINpcImlerithSecondStageTacticTree
+
 class CAINpcImlerithSecondStageTacticTree extends CAINpcCustomTacticTree
 {
 	default aiTreeName = "resdef:ai\combat\npc_tactic_imlerith_second_stage";
@@ -573,7 +578,7 @@ class CAINpcImlerithSecondStageTacticTree extends CAINpcCustomTacticTree
 	}
 };
 
-// CAINpcCaranthirTacticTree
+
 class CAINpcCaranthirTacticTree extends CAINpcCustomTacticTree
 {
 	default aiTreeName = "resdef:ai\combat\npc_tactic_caranthir";
@@ -588,7 +593,7 @@ class CAINpcCaranthirTacticTree extends CAINpcCustomTacticTree
 	}
 };
 
-// CAINpcCaretakerTacticTree
+
 class CAINpcCaretakerTacticTree extends CAINpcCustomTacticTree
 {
 	default aiTreeName = "resdef:ai\combat\npc_caretaker_logic";
@@ -600,7 +605,7 @@ class CAINpcCaretakerTacticTree extends CAINpcCustomTacticTree
 	}
 };
 
-// CAINpcPhilippaTacticTree
+
 class CAINpcPhilippaTacticTree extends CAINpcCustomTacticTree
 {
 	default aiTreeName = "resdef:ai\combat\npc_tactic_philippa";
@@ -612,7 +617,7 @@ class CAINpcPhilippaTacticTree extends CAINpcCustomTacticTree
 	}
 };
 
-// CAINpcOlgierdTacticTree
+
 class CAINpcOlgierdTacticTree extends CAINpcCustomTacticTree
 {
 	default aiTreeName = "resdef:ai\combat\npc_tactic_olgierd";
@@ -624,25 +629,25 @@ class CAINpcOlgierdTacticTree extends CAINpcCustomTacticTree
 	}
 };
 
-//-----------------------------------------------------------------------------------------------------
+
 class CAINpcCombatRetreatActionTree extends CAICombatActionTree 
 {
 	default aiTreeName = "resdef:ai\combat\npc_combataction_retreat";
 }
 
-//-----------------------------------------------------------------------------------------------------
 
-//-----------------------------------------------------------------------------------------------------
+
+
 class CAINpcPreCombatWarningActionTree extends CAICombatActionTree 
 {
 	default aiTreeName = "resdef:ai\combat\npc_combataction_precombatwarning";
 }
 
-//-----------------------------------------------------------------------------------------------------
 
-////////////////////////////////////////////////////////
-// CAINpcFormationTacticTree
-class CAINpcFormationTacticTree extends CAISubTree //make this class abstract when there will more than 1 formation tactic
+
+
+
+class CAINpcFormationTacticTree extends CAISubTree 
 {
 	default aiTreeName = "resdef:ai\combat\npc_formation_tactic_base";
 	
@@ -655,7 +660,7 @@ class CAINpcFormationTacticTree extends CAISubTree //make this class abstract wh
 		params.OnCreated();
 	}
 };
-// CAINpcFormationTacticTreeParams
+
 class CAINpcFormationTacticTreeParams extends CAISubTreeParameters
 {
 	editable inlined var formationFollowerAttackAction 	: CAIAttackActionTree;
@@ -671,10 +676,10 @@ class CAINpcFormationTacticTreeParams extends CAISubTreeParameters
 	}
 };
 
-//-----------------------------------------------------------------------------------------------------
 
-/////////////////////////////////////////////////////////
-// CAIAttackBehaviorTree
+
+
+
 class CAIAttackBehaviorTree extends CAICombatActionTree
 {
 	default aiTreeName = "resdef:ai\combat\npc_attackbehavior";
@@ -687,7 +692,7 @@ class CAIAttackBehaviorTree extends CAICombatActionTree
 		params.OnCreated();
 	}
 };
-// CAIAttackBehaviorTreeParams
+
 class CAIAttackBehaviorTreeParams extends CAICombatActionParameters
 {
 	editable inlined var chargeAction 	: bool;
@@ -710,10 +715,10 @@ class CAIAttackBehaviorTreeParams extends CAICombatActionParameters
 	}
 };
 
-//-----------------------------------------------------------------------------------------------------
 
-/////////////////////////////////////////////////////////////////
-// CAISpecialAttackTree
+
+
+
 abstract class CAISpecialAction extends CAISubTree
 {
 	var params : CAISpecialActionParams;
@@ -740,7 +745,7 @@ class CAIDwimeritiumBombSpecialAction extends CAISpecialAction
 		params.OnCreated();
 	}
 };
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 class CAIAttachEntitiesSpecialAction extends CAISpecialAction
 {
 	default aiTreeName = "resdef:ai\combat\npc_special_attach_entities";
@@ -894,7 +899,7 @@ class CAIShootProjectilesFromGroundSpecialAction extends CAISpecialAction
 		params.OnCreated();
 	}
 };
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 class CAICastRipApartSpecialAction extends CAISpecialAction
 {
 	default aiTreeName = "resdef:ai\combat\npc_special_cast_rip_apart";
@@ -972,10 +977,10 @@ class CAIShadowDashSpecialAction extends CAISpecialAction
 	}
 };
 
-//-----------------------------------------------------------------------------------------------------
 
-//////////////////////////////////////////////////////////////////
-// CAIAttackActionTree
+
+
+
 abstract class CAIAttackActionTree extends CAICombatActionTree
 {
 	default aiTreeName = "resdef:ai\combat\npc_attackaction_basic";
@@ -986,7 +991,7 @@ abstract class CAIAttackActionTree extends CAICombatActionTree
 		params.OnCreated();
 	}
 };
-// CAIAttackActionTreeParams
+
 class CAIAttackActionTreeParams extends CAICombatActionParameters
 {
 	function Init()
@@ -994,8 +999,8 @@ class CAIAttackActionTreeParams extends CAICombatActionParameters
 	}
 };
 
-///////////////////////////////////////////////////////////////////
-// CAISimpleAttackActionTree
+
+
 class CAISimpleAttackActionTree extends CAIAttackActionTree
 {
 	default aiTreeName = "resdef:ai\combat\npc_attackaction_simple";
@@ -1006,13 +1011,13 @@ class CAISimpleAttackActionTree extends CAIAttackActionTree
 		params.OnCreated();
 	}
 };
-// CAIBasicAttackActionTreeParams
+
 class CAISimpleAttackActionTreeParams extends CAIAttackActionTreeParams
 {
 };
 
-///////////////////////////////////////////////////////////////////
-// CAIBasicAttackActionTree
+
+
 class CAIBasicAttackActionTree extends CAIAttackActionTree
 {
 	default aiTreeName = "resdef:ai\combat\npc_attackaction_basic";
@@ -1023,24 +1028,14 @@ class CAIBasicAttackActionTree extends CAIAttackActionTree
 		params.OnCreated();
 	}
 };
-// CAIBasicAttackActionTreeParams
+
 class CAIBasicAttackActionTreeParams extends CAIAttackActionTreeParams
 {
 };
-////////////////////////////////////////////////////////////////
-// CAIComboAttackActionTree
 
-/*class CAIComboAttackActionTree extends CAIAttackActionTree
-{
-	default aiTreeName = "resdef:ai\combat\npc_attackaction_combo";
-	
-	function Init()
-	{
-		super.Init();
-		params = new CAIBasicAttackActionTreeParams in this;
-		params.OnCreated();
-	}
-};*/
+
+
+
 
 class CAIFistAttackActionTree extends CAIAttackActionTree
 {

@@ -1,7 +1,12 @@
-﻿// CExplorationStateStartFalling
-//------------------------------------------------------------------------------------------------------------------
-// Eduard Lopez Plans	( 06/12/2013 )	 
-//------------------------------------------------------------------------------------------------------------------
+﻿/***********************************************************************/
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/***********************************************************************/
+
+
+
+
 
 enum EFallType
 {
@@ -11,8 +16,8 @@ enum EFallType
 	FT_Sprint	,
 }
 
-//>-----------------------------------------------------------------------------------------------------------------
-//------------------------------------------------------------------------------------------------------------------
+
+
 class CExplorationStateStartFalling extends CExplorationStateAbstract
 {
 	private editable	var	timeToJump		: float;		default timeToJump	= 0.2f;
@@ -21,7 +26,7 @@ class CExplorationStateStartFalling extends CExplorationStateAbstract
 	private				var behFallType		: name;			default	behFallType	= 'FallType';
 	
 
-	//---------------------------------------------------------------------------------
+	
 	private function InitializeSpecific( _Exploration : CExplorationStateManager )
 	{	
 		if( !IsNameValid( m_StateNameN ) )
@@ -36,32 +41,32 @@ class CExplorationStateStartFalling extends CExplorationStateAbstract
 		SetCanSave( false );
 	}
 	
-	//---------------------------------------------------------------------------------
+	
 	private function AddDefaultStateChangesSpecific()
 	{
 	}
 
-	//---------------------------------------------------------------------------------
+	
 	function StateWantsToEnter() : bool
 	{
 		return false;
 	}
 
-	//---------------------------------------------------------------------------------
+	
 	function StateCanEnter( curStateName : name ) : bool
 	{	
 		return curStateName != 'Jump' && curStateName != 'Swim';
 	}
 	
-	//---------------------------------------------------------------------------------
+	
 	private function StateEnterSpecific( prevStateName : name )	
 	{
 		fallCancelled	= false;
 		
-		// Force holster
+		
 		thePlayer.OnRangedForceHolster( true );
 		
-		// Check the fall type
+		
 		if( prevStateName == 'Idle' )
 		{
 			if( thePlayer.GetIsSprinting() )
@@ -86,23 +91,23 @@ class CExplorationStateStartFalling extends CExplorationStateAbstract
 			fallType	= FT_Idle;
 		}
 		
-		// Set it to the behavior graph
+		
 		m_ExplorationO.m_OwnerE.SetBehaviorVariable( behFallType, ( float ) ( int ) fallType );		
 		
-		//Abort all signs
+		
 		thePlayer.AbortSign();	
 	}
 	
-	//---------------------------------------------------------------------------------
+	
 	function StateChangePrecheck( )	: name
 	{	
-		// Swimming
+		
 		if( thePlayer.IsSwimming() )
 		{
 			return 'Swim';
 		}
 		
-		// Keep running
+		
 		if( fallCancelled )
 		{
 			if( m_ExplorationO.CanChangeBetwenStates( GetStateName(), 'Idle' ) )
@@ -111,41 +116,33 @@ class CExplorationStateStartFalling extends CExplorationStateAbstract
 			}
 		}
 		
-		// Jump
+		
 		return 'Jump';
-		/*
-		if( m_ExplorationO.CanChangeBetwenStates( GetStateName(), 'Jump' ) )
-		{
-			if( true )//if( m_ExplorationO.GetStateTimeF() >= timeToJump )
-			{
-				return 'Jump';
-			}
-		}
-		*/
+		
 		return super.StateChangePrecheck();
 	}
 	
-	//---------------------------------------------------------------------------------
+	
 	protected function StateUpdateSpecific( _Dt : float )
 	{
 	}
 	
-	//---------------------------------------------------------------------------------
+	
 	private function StateExitSpecific( nextStateName : name )
 	{
 	}
 	
-	//---------------------------------------------------------------------------------
-	// Collision events
-	//---------------------------------------------------------------------------------
 	
-	//---------------------------------------------------------------------------------
+	
+	
+	
+	
 	function ReactToLoseGround() : bool
 	{
 		return true;
 	}
 	
-	//---------------------------------------------------------------------------------
+	
 	function ReactToHitGround() : bool
 	{		
 		fallCancelled	= true;
@@ -153,7 +150,7 @@ class CExplorationStateStartFalling extends CExplorationStateAbstract
 		return true;
 	}
 	
-	//---------------------------------------------------------------------------------
+	
 	function CanInteract( ) :bool
 	{		
 		return false;

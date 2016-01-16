@@ -1,9 +1,11 @@
 ﻿/***********************************************************************/
-/** Witcher Script file
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
-/** Copyright © 2013
-/** Author : Andrzej Kwiatkowski
-/***********************************************************************/
+
+
+
 
 class W3GameZoneTrigger extends CEntity
 {
@@ -21,7 +23,7 @@ class W3GameZoneTrigger extends CEntity
 			tags = this.GetTags();
 			if ( tags.Size() > 0 )
 			{
-				//FIXME URGENT - ALWAYS USES TAGS[0] ONLY
+				
 				for ( i = 0; i < tags.Size(); i+=1 )
 				{
 					zoneName = tags[i];

@@ -1,7 +1,10 @@
 ﻿/***********************************************************************/
-/** Copyright © 2013-2014
-/** Author : Wojciech Żerek, Tomek Kozera
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
+
+
 
 class W3Effect_Ragdoll extends W3CriticalEffect
 {
@@ -43,7 +46,7 @@ class W3Effect_Ragdoll extends W3CriticalEffect
 		blockedActions.PushBack(EIAB_QuickSlots);
 	}
 	
-	//@Override ragdoll hack
+	
 	public function OnTimeUpdated(deltaTime : float)
 	{
 		var mac : CMovingPhysicalAgentComponent;
@@ -67,7 +70,7 @@ class W3Effect_Ragdoll extends W3CriticalEffect
 			{
 				timeEndedHandled = true;				
 				
-				//if this effect is currently animated
+				
 				if(isActive && this == target.GetCurrentlyAnimatedCS())
 				{				
 					target.RequestCriticalAnimStop(target.IsInAir());

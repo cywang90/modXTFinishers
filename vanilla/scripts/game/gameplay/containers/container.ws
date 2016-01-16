@@ -1,17 +1,17 @@
 ﻿/***********************************************************************/
-/** Witcher Script file - Container controll class
-/***********************************************************************/
-/** Copyright © 2012 CDProjektRed
-/** Author : Malgorzata Napiontek
-/**			 Bartosz Bigaj
-/**			 Tomasz Kozera
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
 
-import class W3Container extends W3LockableEntity //@FIXME Bidon - apply loot window mechanics
+
+
+
+import class W3Container extends W3LockableEntity 
 {
-	editable 			var isDynamic				: bool;					//set to true if container is dynamically created (e.g. loot bag)
-																			//obsolete parameter --- > should be always false	//if false then once container is emptied you cannot use it anymore
-	editable 			var skipInventoryPanel		: bool;					//if true then no inventory panel will be shown upon looting (forces auto loot)
+	editable 			var isDynamic				: bool;					
+																			
+	editable 			var skipInventoryPanel		: bool;					
 	editable 			var focusModeHighlight		: EFocusModeVisibility;
 	editable			var factOnContainerOpened	: string;
 						var usedByCiri				: bool;
@@ -22,14 +22,14 @@ import class W3Container extends W3LockableEntity //@FIXME Bidon - apply loot wi
 	editable			var disableStealing			: bool;
 					default	disableStealing			= true;
 	
-	protected saved 	var checkedForBonusMoney	: bool;					//set when container was tested for dropping bonus money
+	protected saved 	var checkedForBonusMoney	: bool;					
 	
 	private	saved		var	usedByClueStash 		: EntityHandle;
 
 	protected optional autobind 	inv							: CInventoryComponent = single;
 	protected optional autobind 	lootInteractionComponent 	: CInteractionComponent = "Loot";
 	protected var isPlayingInteractionAnim : bool; default isPlayingInteractionAnim = false;
-	private const var QUEST_HIGHLIGHT_FX : name;							//fx marking that container has a quest item
+	private const var QUEST_HIGHLIGHT_FX : name;							
 
 	hint skipInventoryPanel = "If set then the inventory panel will not be shown upon looting";
 	hint isDynamic = "set to true if you want to destroy container when empty";
@@ -51,7 +51,7 @@ import class W3Container extends W3LockableEntity //@FIXME Bidon - apply loot wi
 		EnableVisualDebug( SHOW_Containers, true );
 		super.OnSpawned(spawnData);
 		
-		//container cannot ever be looted - treat as decoration
+		
 		if(disableLooting)
 		{
 			SetFocusModeVisibility( FMV_None );
@@ -96,7 +96,7 @@ import class W3Container extends W3LockableEntity //@FIXME Bidon - apply loot wi
 		var tags : array<name>;
 		var factName : string;
 		
-		//check for fact hidden items (not visible unless fact exists)
+		
 		if( inv && !disableLooting)
 		{
 			inv.GetAllItems( items );
@@ -105,7 +105,7 @@ import class W3Container extends W3LockableEntity //@FIXME Bidon - apply loot wi
 		for(i=0; i<items.Size(); i+=1)
 		{
 			tags.Clear();
-			inv.GetItemTags(items[i], tags);	// inv exists here, cause if it wouldn't, we would iterate over empty array
+			inv.GetItemTags(items[i], tags);	
 			for(j=0; j<tags.Size(); j+=1)
 			{
 				factName = StrAfterLast(NameToString(tags[j]), "fact_hidden_");
@@ -128,21 +128,10 @@ import class W3Container extends W3LockableEntity //@FIXME Bidon - apply loot wi
 	
 	function InjectItemsOnLevels()
 	{
-		/*var playerLevel : int  = thePlayer.GetLevel() - 1; 
-		var itemName 	: name = thePlayer.itemsPerLevel[playerLevel];
 		
-		if ( !inv.HasItem( itemName ) && 
-			 !thePlayer.inv.HasItem( itemName ) && 
-			 !thePlayer.itemsPerLevelGiven[playerLevel] &&
-			 !( playerLevel > thePlayer.itemsPerLevel.Size() ) && 
-             allowToInjectBalanceItems ) 
-		{
-			thePlayer.SetItemsPerLevelGiven(playerLevel);
-			inv.AddAnItem( itemName, 1, true, true );
-		}*/
 	}
 	
-	// Called when entity gets within interaction range
+	
 	event OnInteractionActivated( interactionComponentName : string, activator : CEntity )
 	{
 		UpdateContainer();
@@ -150,7 +139,7 @@ import class W3Container extends W3LockableEntity //@FIXME Bidon - apply loot wi
 		RemoveUnwantedItems();
 		if ( DisableIfEmpty() )
 		{
-			// was destroyed inside DisableIfEmpty()
+			
 			return false;
 		}
 		
@@ -173,14 +162,14 @@ import class W3Container extends W3LockableEntity //@FIXME Bidon - apply loot wi
 			if ( interactionComponentName == "Medallion" && isMagicalObject )
 				SenseMagic();
 			
-			if( (!IsEmpty() && !disableLooting) || lockedByKey)	//if empty and not reusable but locked then we still need to process it
+			if( (!IsEmpty() && !disableLooting) || lockedByKey)	
 			{
 				ShowInteractionComponent();
 			}
 		}
 	}
 	
-	// Called when entity leaves interaction range
+	
 	event OnInteractionDeactivated( interactionComponentName : string, activator : CEntity )
 	{
 		super.OnInteractionDeactivated(interactionComponentName, activator);
@@ -191,7 +180,7 @@ import class W3Container extends W3LockableEntity //@FIXME Bidon - apply loot wi
 		}
 	}
 	
-	// Returns true if container can be used during combat
+	
 	public final function IsEnabledInCombat() : bool
 	{
 		if( !lootInteractionComponent || disableLooting)
@@ -265,7 +254,7 @@ import class W3Container extends W3LockableEntity //@FIXME Bidon - apply loot wi
 			inv.UpdateLoot();
 		}
 		
-		// container is always visible (full) when game is not active
+		
 		if ( !theGame.IsActive() || ( inv && !disableLooting && isEnabled && !inv.IsEmpty( SKIP_NO_DROP_NO_SHOW ) ) )
 		{
 			SetFocusModeVisibility( focusModeHighlight );
@@ -294,7 +283,7 @@ import class W3Container extends W3LockableEntity //@FIXME Bidon - apply loot wi
 			StopQuestItemFx();
 		}
 		
-		if ( !isMagicalObject ) // @FIXME Bidon - move to better place
+		if ( !isMagicalObject ) 
 		{
 			medalion = GetComponent("Medallion");
 			if(medalion)
@@ -311,7 +300,7 @@ import class W3Container extends W3LockableEntity //@FIXME Bidon - apply loot wi
 			}
 			else
 			{
-				lootInteractionComponent.SetEnabled( inv && !inv.IsEmpty( SKIP_NO_DROP_NO_SHOW ) ) ; //Only enable "Loot" when there is content inside.
+				lootInteractionComponent.SetEnabled( inv && !inv.IsEmpty( SKIP_NO_DROP_NO_SHOW ) ) ; 
 			}
 		}
 		
@@ -336,7 +325,7 @@ import class W3Container extends W3LockableEntity //@FIXME Bidon - apply loot wi
 		
 		for(i=0; i<items.Size(); i+=1)
 		{
-			// Adding abilities to masterwork / magical items
+			
 			if ( inv.GetItemModifierInt(items[i], 'ItemQualityModified') > 0 )
 					continue;
 					
@@ -385,13 +374,13 @@ import class W3Container extends W3LockableEntity //@FIXME Bidon - apply loot wi
 		}
 	}
 	
-	// #B when returns false item is not transfered, so for example if we want container that gives only one item (or one item type) it should be checked in this function
+	
 	public final function OnTryToGiveItem( itemId : SItemUniqueId ) : bool 
 	{
 		return true; 
 	}
 	
-	//Transfers all items from container to player's inventory
+	
 	public function TakeAllItems()
 	{
 		var targetInv : CInventoryComponent;
@@ -401,7 +390,7 @@ import class W3Container extends W3LockableEntity //@FIXME Bidon - apply loot wi
 		var itemsCategories : array< name >;
 		var category : name;
 		
-		// Transfer items
+		
 		targetInv = thePlayer.inv;
 		
 		if( !inv || !targetInv )
@@ -453,13 +442,13 @@ import class W3Container extends W3LockableEntity //@FIXME Bidon - apply loot wi
 	{
 		if( IsNameValid(keyItemName) && removeKeyOnUse )
 		{
-			// save state of this container
+			
 			SetIsQuestContainer( true );
 		}
 		super.Unlock();
 	}
 	
-	// Called when some interaction occurs with this container
+	
 	event OnInteraction( actionName : string, activator : CEntity )
 	{
 		var processed : bool;
@@ -482,11 +471,11 @@ import class W3Container extends W3LockableEntity //@FIXME Bidon - apply loot wi
 			FactsAdd ( factOnContainerOpened, 1, -1 );
 		}
 		
-		//don't add recipes that you already have and items with to high level
+		
 		m_recipeList     = GetWitcherPlayer().GetAlchemyRecipes();
 		m_schematicList = GetWitcherPlayer().GetCraftingSchematicsNames();
 		
-		// Process New Game+ Witcher sets schematics
+		
 		if ( FactsQuerySum("NewGamePlus") > 0 )
 		{
 			AddWolfNewGamePlusSchematics();
@@ -497,7 +486,7 @@ import class W3Container extends W3LockableEntity //@FIXME Bidon - apply loot wi
 		
 		processed = super.OnInteraction(actionName, activator);
 		if(processed)
-			return true;		//handled by super
+			return true;		
 							
 		if(actionName != "Container" && actionName != "GatherHerbs")
 			return false;		
@@ -524,29 +513,29 @@ import class W3Container extends W3LockableEntity //@FIXME Bidon - apply loot wi
 			{
 				itemName = inv.GetItemName( allItems[i] );
 			
-				// recipes
+				
 				for( j = 0; j < m_recipeList.Size(); j+= 1 )
 				{	
 					if ( itemName == m_recipeList[j] )
 					{
 						inv.RemoveItem( allItems[i], inv.GetItemQuantity(  allItems[i] ) );
 						inv.NotifyItemLooted( allItems[i] );
-						//inv.AddAnItem( 'Crowns', RoundF(RandRangeF(4, 2)), true, true);
+						
 					}
 				}
-				// schematics
+				
 				for( j = 0; j < m_schematicList.Size(); j+= 1 )
 				{	
 					if ( itemName == m_schematicList[j] )
 					{
 						inv.RemoveItem( allItems[i], inv.GetItemQuantity(  allItems[i] ) );
 						inv.NotifyItemLooted( allItems[i] );
-						//inv.AddAnItem( 'Crowns', RoundF(RandRangeF(4, 2)), true, true);
+						
 					}	
 				}
 				
 				if ( GetWitcherPlayer().GetLevel() - 1 > 1 && inv.GetItemLevel( allItems[i] ) == 1 && inv.ItemHasTag(allItems[i], 'Autogen') )
-				{ // failsafe - when item is spawned in container and there is no player level yet - reset item and regenerate
+				{ 
 					inv.RemoveItemCraftedAbility(allItems[i], 'autogen_steel_base');
 					inv.RemoveItemCraftedAbility(allItems[i], 'autogen_silver_base');
 					inv.RemoveItemCraftedAbility(allItems[i], 'autogen_armor_base');
@@ -555,7 +544,7 @@ import class W3Container extends W3LockableEntity //@FIXME Bidon - apply loot wi
 					inv.GenerateItemLevel(allItems[i], false);
 				}
 				
-				// too many the same gwint cards collected already
+				
 				if ( inv.GetItemCategory(allItems[i]) == 'gwint' )
 				{
 					inv.ClearGwintCards();
@@ -584,7 +573,7 @@ import class W3Container extends W3LockableEntity //@FIXME Bidon - apply loot wi
 	{
 		var index : int;
 		
-		// Wolf
+		
 		index = m_schematicList.FindFirst('Wolf Armor schematic');
 		if ( index > -1 ) m_schematicList.Erase( index );
 		index = m_schematicList.FindFirst('Witcher Wolf Jacket Upgrade schematic 1');
@@ -651,7 +640,7 @@ import class W3Container extends W3LockableEntity //@FIXME Bidon - apply loot wi
 		{	
 			itemName = inv.GetItemName( allItems[i] );
 		
-			// Wolf Armors
+			
 			if ( itemName == 'Wolf Armor schematic' && !inv.HasItem('NGP Wolf Armor schematic') )
 				inv.AddAnItem( 'NGP Wolf Armor schematic', 1, true, true);
 			if ( itemName == 'Witcher Wolf Jacket Upgrade schematic 1' && !inv.HasItem('NGP Witcher Wolf Jacket Upgrade schematic 1') )
@@ -718,7 +707,7 @@ import class W3Container extends W3LockableEntity //@FIXME Bidon - apply loot wi
 		super.OnStateChange( newState );
 	}
 	
-	// Function showing the loot panel
+	
 	public final function ShowLoot()
 	{
 		var lootData : W3LootPopupData;
@@ -729,15 +718,7 @@ import class W3Container extends W3LockableEntity //@FIXME Bidon - apply loot wi
 		
 		theGame.RequestPopup('LootPopup', lootData);
 		
-		/*var hud : CR4ScriptedHud;
-		var lootPopupModule : CR4HudModuleLootPopup;
-
-		hud = (CR4ScriptedHud)theGame.GetHud();
-		if( hud )
-		{
-			lootPopupModule = (CR4HudModuleLootPopup)hud.GetHudModule("LootPopupModule");
-			lootPopupModule.Open( this );
-		}*/
+		
 	}
 	
 	public function IsEmpty() : bool				{ return !inv || inv.IsEmpty( SKIP_NO_DROP_NO_SHOW ); }
@@ -746,7 +727,7 @@ import class W3Container extends W3LockableEntity //@FIXME Bidon - apply loot wi
 	{
 		if( !(e && questForcedEnable) )
 		{
-			//don't enable if container is empty and is not reusable
+			
 			if(e && IsEmpty() )
 			{
 				return;
@@ -760,7 +741,7 @@ import class W3Container extends W3LockableEntity //@FIXME Bidon - apply loot wi
 		super.Enable(e, skipInteractionUpdate);
 	}
 	
-	// Called when the container is closed
+	
 	public function OnContainerClosed()
 	{
 		if(!HasQuestItem())
@@ -769,7 +750,7 @@ import class W3Container extends W3LockableEntity //@FIXME Bidon - apply loot wi
 		DisableIfEmpty();
 	}
 	
-	// returns true if container was destroyed
+	
 	protected function DisableIfEmpty() : bool
 	{
 		if(IsEmpty())
@@ -778,13 +759,13 @@ import class W3Container extends W3LockableEntity //@FIXME Bidon - apply loot wi
 			
 			RemoveTag('HighlightedByMedalionFX');
 			
-			//disable highlights
+			
 			UnhighlightEntity();
 			
-			//disable container
+			
 			Enable(false);
 			
-			//change model if empty			
+			
 			ApplyAppearance("2_empty");
 			
 			if(isDynamic)
@@ -796,7 +777,7 @@ import class W3Container extends W3LockableEntity //@FIXME Bidon - apply loot wi
 		return false;
 	}
 	
-	//adds additional money based on player bonuses
+	
 	protected final function CheckForBonusMoney(oldMoney : int)
 	{
 		var money, bonusMoney : int;

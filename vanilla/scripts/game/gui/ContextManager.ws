@@ -1,12 +1,17 @@
-﻿class W3UIContext extends CObject
+﻿/***********************************************************************/
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/***********************************************************************/
+class W3UIContext extends CObject
 {
-	// current context bindings
+	
 	protected var m_inputBindings : array<SKeyBinding>;	
-	// context bindings for context menu
+	
 	protected var m_contextBindings : array<SKeyBinding>;
 	protected var m_managerRef    : W3ContextManager;
 
-	// virtual
+	
 	public function HandleUserFeedback(keyName:string) {}
 	
 	public function Deactivate() 
@@ -60,9 +65,7 @@
 	}	
 }
 
-/*
-	MANAGER
-*/
+
 
 class W3ContextManager extends CObject
 {
@@ -85,7 +88,7 @@ class W3ContextManager extends CObject
 	{
 		if (m_currentContext)
 		{
-			m_currentContext.HandleUserFeedback(navCode); // + actionId
+			m_currentContext.HandleUserFeedback(navCode); 
 		}
 	}
 	

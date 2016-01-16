@@ -1,4 +1,9 @@
-﻿enum EStorySceneOutputAction
+﻿/***********************************************************************/
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/***********************************************************************/
+enum EStorySceneOutputAction
 {
 	SSOA_None,
 	SSOA_ReturnToPreviousState,
@@ -42,6 +47,7 @@ import statemachine class CStoryScenePlayer extends CEntity
 		var ents : array<CGameplayEntity>;
 		var i : int;
 		var actor : CActor;
+		var hud : CR4ScriptedHud;
 
 		if ( !theGame.IsActive() )
 		{
@@ -50,7 +56,7 @@ import statemachine class CStoryScenePlayer extends CEntity
 		
 		theGame.SetIsDialogOrCutscenePlaying(true);
 		
-		//kill all npcs nearby that are in agony state to prevent them from agonizing in the background :)
+		
 		box.Min = Vector(-30,-30,-30);
 		box.Max = Vector(30, 30, 30);
 		
@@ -64,8 +70,14 @@ import statemachine class CStoryScenePlayer extends CEntity
 			ents[i].StopCutsceneForbiddenFXs();
 		}
 		
-		//remove blizzard from player if he has one
+		
 		thePlayer.RemoveAllBuffsOfType(EET_Blizzard);
+		
+		hud = (CR4ScriptedHud)theGame.GetHud();
+		if ( hud )
+		{
+			hud.OnCutsceneStarted();
+		}
 	}
 	
 	import final function DbFactAdded( factName : string );
@@ -75,12 +87,31 @@ import statemachine class CStoryScenePlayer extends CEntity
 	
 	event OnBlockingSceneEnded( output : CStorySceneOutput )
 	{
+		var hud : CR4ScriptedHud;
+
+		hud = (CR4ScriptedHud)theGame.GetHud();
+		if ( hud )
+		{
+			hud.OnCutsceneEnded();
+		}
+		
 		if ( !theGame.IsActive() )
 		{
 			return true;
 		}
 
 		theGame.SetIsDialogOrCutscenePlaying(false);
+	}
+	
+	event OnCameraBlendToGameplay()
+	{
+		var hud : CR4ScriptedHud;
+
+		hud = (CR4ScriptedHud)theGame.GetHud();
+		if ( hud )
+		{
+			hud.OnCutsceneEnded();
+		}
 	}
 	
 	event OnCustceneStarted()
@@ -95,7 +126,7 @@ import statemachine class CStoryScenePlayer extends CEntity
 	
 	event OnMovieStarted()
 	{
-		//theSound.SoundState( "game_state", "movie" );
+		
 		if( m_isFinalboard )
 		{
 			theSound.EnterGameState( ESGS_MusicOnly );
@@ -139,7 +170,7 @@ state Gameplay in CStoryScenePlayer
 	{
 		if ( prevStateName == 'Blocking' )
 		{
-			// State could be ESGS_Dialogue or ESGS_DialogueNight
+			
 			theSound.LeaveGameState( theSound.GetCurrentGameState() );
 		}
 		else if ( prevStateName == 'Cutscene' )
@@ -229,7 +260,7 @@ state Movie in CStoryScenePlayer
 }
 
 
-/////////////////////////////////////////////////////////
+
 
 import class CStoryScene extends CResource
 {
@@ -271,7 +302,7 @@ import class CStorySceneSpawner extends CGameplayEntity
 	}
 }
 
-////////////////////////////////////////////////////////////////////////////
+
 
 enum EStorySceneGameplayAction
 {
@@ -299,7 +330,7 @@ import struct SStorySceneGameplayActionCallbackInfo
 
 	import var inActorPosition : Vector;
 	import var inActorHeading : Vector;
-	import var inGameplayAction : int; // Param 'inGameplayAction' is EStorySceneGameplayAction but it is called from code so it needs to be int
+	import var inGameplayAction : int; 
 	import var inActor : CActor;
 }
 
@@ -319,11 +350,11 @@ function DoStorySceneGameplayAction( out callbackInfo : SStorySceneGameplayActio
 	
 	action = callbackInfo.inGameplayAction;
 	
-	// Items
+	
 	callbackInfo.outChangeItems = action == SSGA_Walk_2m_GoTo_Combat || action == SSGA_Walk_5m_GoTo_Combat || action == SSGA_Walk_8m_GoTo_Combat
 		|| action == SSGA_Walk_2m_GoTo_Combat_Silver || action == SSGA_Walk_5m_GoTo_Combat_Silver || action == SSGA_Walk_8m_GoTo_Combat_Silver;
 	
-	// Combat
+	
 	combatActionSteel = action == SSGA_Walk_2m_GoTo_Combat || action == SSGA_Walk_5m_GoTo_Combat || action == SSGA_Walk_8m_GoTo_Combat || action == SSGA_GoTo_Combat_Pose;
 	combatActionSteel = combatActionSteel && callbackInfo.inActor == thePlayer;
 	combatActionSilver = action == SSGA_Walk_2m_GoTo_Combat_Silver || action == SSGA_Walk_5m_GoTo_Combat_Silver || action == SSGA_Walk_8m_GoTo_Combat_Silver || action == SSGA_GoTo_Combat_Pose_Silver;
@@ -352,7 +383,7 @@ function DoStorySceneGameplayAction( out callbackInfo : SStorySceneGameplayActio
 			thePlayer.GotoState( 'CombatFists', false );
 	}
 	
-	// Walk
+	
 	walkAction = action == SSGA_Walk_2m || action == SSGA_Walk_5m || action == SSGA_Walk_8m
 			  || action == SSGA_Walk_2m_GoTo_Combat || action == SSGA_Walk_5m_GoTo_Combat || action == SSGA_Walk_8m_GoTo_Combat
 			  || action == SSGA_Walk_2m_GoTo_Combat_Silver || action == SSGA_Walk_5m_GoTo_Combat_Silver || action == SSGA_Walk_8m_GoTo_Combat_Silver;
@@ -366,7 +397,7 @@ function DoStorySceneGameplayAction( out callbackInfo : SStorySceneGameplayActio
 		{
 			distance = 5.f;
 		}
-		else // SSGA_Walk_8m
+		else 
 		{
 			distance = 8.f;
 		}
@@ -421,11 +452,11 @@ function DoStorySceneGameplayAction( out callbackInfo : SStorySceneGameplayActio
 	}
 	else if ( action == SSGA_EndInWork )
 	{
-		// Work
+		
 		callbackInfo.inActor.SignalGameplayEvent( 'AI_ForceLastWork' );
 		callbackInfo.inActor.ForceAIUpdate();
 		
-		callbackInfo.outDontUseSceneTeleport = true; // Teleport will be done by work system - it will know the proper place for job
+		callbackInfo.outDontUseSceneTeleport = true; 
 	}
 	else if ( action == SSGA_DelayWork )
 	{
@@ -443,4 +474,4 @@ function DoStorySceneGameplayAction( out callbackInfo : SStorySceneGameplayActio
 	}
 }
 
-////////////////////////////////////////////////////////////////////////////////////
+

@@ -1,9 +1,11 @@
 ﻿/***********************************************************************/
-/** 
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
-/** Copyright © 2012-2013
-/** Author : Rafal Jarczewski, Tomek Kozera
-/***********************************************************************/
+
+
+
 
 struct SCraftsman
 {
@@ -98,7 +100,7 @@ class W3CraftsmanComponent extends W3MerchantComponent
 		
 		owner = (W3MerchantNPC) this.GetEntity();
 		
-		//Removes all the tags that the entity might have had to avoid duplicates
+		
 		owner.RemoveTag( 'Blacksmith' );
 		owner.RemoveTag( 'Armorer' );
 		owner.RemoveTag( 'Apprentice' );
@@ -181,7 +183,7 @@ class W3CraftsmanComponent extends W3MerchantComponent
 				
 			schematics.PushBack(schem);		
 			
-			//clear
+			
 			schem.level = -1;
 			schem.schemName = '';
 			tmpName = '';
@@ -200,8 +202,8 @@ class W3CraftsmanComponent extends W3MerchantComponent
 		
 		level = GetCraftsmanLevel( ECT_Enchanter );
 		
-		// TEMP:
-		// level = ECL_Grand_Master;
+		
+		
 		
 		schematics = LoadSchematicsXMLData();
 		
