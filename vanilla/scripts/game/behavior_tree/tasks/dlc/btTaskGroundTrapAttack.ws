@@ -1,9 +1,11 @@
 ﻿/***********************************************************************/
-/** Witcher Script file
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
-/** Copyright © 2015 CD Projekt RED
-/** Author : Andrzej Kwiatkowski
-/***********************************************************************/
+
+
+
 
 class CBTTaskGroundTrapAttack extends CBTTaskAttack
 {
@@ -23,8 +25,8 @@ class CBTTaskGroundTrapAttack extends CBTTaskAttack
 	private var m_activated 				: bool;
 	
 	
-	//>----------------------------------------------------------------------
-	//-----------------------------------------------------------------------
+	
+	
 	latent function Main() : EBTNodeStatus
 	{
 		var npc						: CNewNPC = GetNPC();
@@ -132,8 +134,8 @@ class CBTTaskGroundTrapAttack extends CBTTaskAttack
 		return BTNS_Active;
 	}
 	
-	//>----------------------------------------------------------------------
-	//-----------------------------------------------------------------------
+	
+	
 	function OnDeactivate()
 	{
 		m_trap.DestroyAfter( 5.0 );
@@ -143,8 +145,8 @@ class CBTTaskGroundTrapAttack extends CBTTaskAttack
 		super.OnDeactivate();
 	}
 	
-	//>----------------------------------------------------------------------
-	//-----------------------------------------------------------------------
+	
+	
 	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo ) : bool
 	{
 		if ( animEventName == activateOnAnimEvent )
@@ -158,8 +160,8 @@ class CBTTaskGroundTrapAttack extends CBTTaskAttack
 }
 
 
-//>----------------------------------------------------------------------
-//-----------------------------------------------------------------------
+
+
 class CBTTaskGroundTrapAttackDef extends CBTTaskAttackDef
 {
 	default instanceClass = 'CBTTaskGroundTrapAttack';

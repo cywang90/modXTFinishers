@@ -1,12 +1,15 @@
 ﻿/***********************************************************************/
-/** Copyright © 2012-2014
-/** Author : Tomek Kozera
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
+
+
 
 class W3Potion_Cat extends CBaseGameplayEffect
 {
 	private saved var highlightObjectsRange, highlightEnemiesRange : float;
-	private var witcher : W3PlayerWitcher;				//cached witcher object to avoid casting each tick
+	private var witcher : W3PlayerWitcher;				
 	private var isScreenFxActive : bool;
 	private var timeSinceLastHighlight, timeSinceLastEnemyHighlight : float;
 	private const var HIGHLIGHT_REFRESH_DT, ENEMY_HIGHLIGHT_DT : float;
@@ -39,7 +42,7 @@ class W3Potion_Cat extends CBaseGameplayEffect
 		timeSinceLastHighlight = 0;
 		timeSinceLastEnemyHighlight = 0;
 		
-		//screen fx
+		
 		EnableScreenFx(true);
 	}
 		
@@ -58,7 +61,7 @@ class W3Potion_Cat extends CBaseGameplayEffect
 			}
 		}
 		
-		//highlight enemies
+		
 		if(highlightEnemiesRange > 0)			
 		{
 			timeSinceLastEnemyHighlight += dt;
@@ -104,11 +107,11 @@ class W3Potion_Cat extends CBaseGameplayEffect
 	{
 		if(en)
 		{
-			EnableCatViewFx( 1.0f );	// enable effect and blend it in over 1 sec
+			EnableCatViewFx( 1.0f );	
 			SetTintColorsCatViewFx(Vector(0.1f,0.12f,0.13f,0.6f),Vector(0.075f,0.1f,0.11f,0.6f),0.2f);
 			SetBrightnessCatViewFx(350.0f);
 			SetViewRangeCatViewFx(200.0f);
-			SetPositionCatViewFx( Vector(0,0,0,0) , true );	// Set auto poistioning
+			SetPositionCatViewFx( Vector(0,0,0,0) , true );	
 			SetHightlightCatViewFx( Vector(0.3f,0.1f,0.1f,0.1f),0.05f,1.5f);
 			SetFogDensityCatViewFx( 0.5 );
 			isScreenFxActive = true;

@@ -1,4 +1,9 @@
-﻿class CR4HudModuleWolfHead extends CR4HudModuleBase
+﻿/***********************************************************************/
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/***********************************************************************/
+class CR4HudModuleWolfHead extends CR4HudModuleBase
 {	
 	private	var m_fxSetVitality						: CScriptedFlashFunction;
 	private	var m_fxSetStamina						: CScriptedFlashFunction;
@@ -50,7 +55,7 @@
 	default m_iCurrentNegativeEffectsSize = 0;
 	default m_IsPlayerCiri				  = false;
 
-	/* flash */ event OnConfigUI()
+	 event OnConfigUI()
 	{
 		var flashModule : CScriptedFlashSprite;
 		var hud : CR4ScriptedHud;
@@ -130,12 +135,12 @@
 		
 		UpdateExperience();
 		UpdateMedallion();
-		//UpdateBuffsCounter();
+		
 		UpdateFocusPoints();
 		UpdateStateByPlayer();
-		//UpdateOverloadedIcon();
 		
-		//always wolf's head when combat music is playing OR if our toxicity is above 0 OR if our health is below MAX
+		
+		
 		if ( thePlayer.IsCombatMusicEnabled() || (m_curToxicity > 0.f || m_lockedToxicity > 0.f) || (m_curVitality < m_maxVitality) )
 			SetAlwaysDisplayed( true );
 		else
@@ -154,7 +159,7 @@
 
 		if( l_currentVitality != m_LastVitality ||  l_currentMaxVitality != m_LastMaxVitality )
 		{
-			//Percentage is between 0 and 1
+			
 			m_fxSetVitality.InvokeSelfOneArg( FlashArgNumber(  l_currentVitality / l_currentMaxVitality ) );
 			m_LastVitality = l_currentVitality;
 			m_LastMaxVitality = l_currentMaxVitality;
@@ -178,18 +183,18 @@
 			m_LastStamina 	 = l_curStamina;
 			m_LastMaxStamina = l_curMaxStamina;
 			
-			if ( l_curStamina <= l_curMaxStamina*0.60 ) // if 60% of stamina play soundcue
+			if ( l_curStamina <= l_curMaxStamina*0.60 ) 
 				playStaminaSoundCue = true;
 				
 			if ( l_curStamina <= 0 )
 			{
 				thePlayer.SoundEvent("gui_no_stamina");
-				theGame.VibrateControllerVeryLight(); // no stamina
+				theGame.VibrateControllerVeryLight(); 
 			}
 			else if ( l_curStamina >= l_curMaxStamina && playStaminaSoundCue )
 			{
 				thePlayer.SoundEvent("gui_stamina_recharged");
-				theGame.VibrateControllerVeryLight(); // stamina recharged
+				theGame.VibrateControllerVeryLight(); 
 				playStaminaSoundCue = false;
 			}
 		}
@@ -203,7 +208,7 @@
 
 	public function UpdateToxicity() : void
 	{
-		var curToxicity 	: float;	//current toxicity WITHOUT offset lock
+		var curToxicity 	: float;	
 		var curMaxToxicity 	: float;
 		var curLockedToxicity: float;
 		var damageThreshold	: float;
@@ -213,13 +218,13 @@
 		
 		curLockedToxicity = thePlayer.GetStat(BCS_Toxicity) - curToxicity;
 		
-		//need to keep track of these for displaying/hiding the module
+		
 		m_curToxicity = curToxicity;
 		m_lockedToxicity = curLockedToxicity;
 		
 		if ( m_LastToxicity != curToxicity || m_LastMaxToxicity != curMaxToxicity || m_LastLockedToxicity != curLockedToxicity )
 		{
-			//update locked toxicity if lock or max changed
+			
 			if( m_LastLockedToxicity != curLockedToxicity || m_LastMaxToxicity != curMaxToxicity)
 			{
 				m_fxSetLockedToxicity.InvokeSelfOneArg( FlashArgNumber( ( curLockedToxicity )/ curMaxToxicity ) );
@@ -237,7 +242,7 @@
 				m_bLastDeadlyToxicity = curDeadlyToxicity;
 			}
 			
-			//keep the wolfhead module displayed if 
+			
 		}
 	}
 
@@ -314,64 +319,16 @@
 	
 	public function LockFocusPoints( value : int )
 	{
-		//we only have 3 adrenaline points
+		
 		if ( value <= 3 )
 			m_fxLockFocusPointsSFF.InvokeSelfOneArg( FlashArgInt( value) );
 	}
 	
-	// #J Moved into buffs module. Keeping here in case we change our mind
-	/*private function UpdateOverloadedIcon():void
-	{
-		var isPlayerOveloaded : bool;
-		var encumbrance 	  : int;
-		var encumbranceMax    : int;
-		
-		isPlayerOveloaded = thePlayer.HasBuff( EET_OverEncumbered );
-		if (m_oveloadedIconVisible != isPlayerOveloaded)
-		{
-			m_oveloadedIconVisible = isPlayerOveloaded;
-			m_fxDisplayOverloadedIcon.InvokeSelfOneArg( FlashArgBool(m_oveloadedIconVisible) );
-		}
-	}*/
 	
-	// #J Will now always show the full buffs list. Keeping this code in case we change our mind
-	/*private function UpdateBuffsCounter()
-	{
-		var l_PositiveEffectsSize : int;
-		var l_NegativeEffectsSize : int;
-		var effectArray : array< CBaseGameplayEffect >;
-		var i : int;
-		
-		effectArray = thePlayer.GetCurrentEffects();
-		l_PositiveEffectsSize = 0;
-		l_NegativeEffectsSize = 0;
-		
-		for ( i = 0; i < effectArray.Size(); i += 1 )
-		{
-			if(effectArray[i].ShowOnHUD())
-			{				
-				if(effectArray[i].IsPositive() )
-				{
-					l_PositiveEffectsSize += 1;
-				}
-				else
-				{
-					l_NegativeEffectsSize += 1;
-				}
-			}
-		}
-		
-		if( l_PositiveEffectsSize != m_iCurrentPositiveEffectsSize )
-		{
-			m_iCurrentPositiveEffectsSize = l_PositiveEffectsSize;
-			m_fxSetPositiveEffectsCounterSFF.InvokeSelfOneArg(FlashArgInt(m_iCurrentPositiveEffectsSize));
-		}		
-		if( l_NegativeEffectsSize != m_iCurrentNegativeEffectsSize )
-		{
-			m_iCurrentNegativeEffectsSize = l_NegativeEffectsSize;
-			m_fxSetNegativeEffectsCounterSFF.InvokeSelfOneArg(FlashArgInt(m_iCurrentNegativeEffectsSize));
-		}
-	}*/
+	
+	
+	
+	
 	
 	public function UpdateSignData()
 	{

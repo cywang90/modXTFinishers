@@ -1,8 +1,10 @@
 ﻿/***********************************************************************/
-/** Copyright © 2012
-/** Author : Rafal Jarczewski
-/** 		 Bartosz Bigaj
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
+
+
 
 class W3QuestCond_IsItemQuantityMet_GlobalListener extends IGlobalEventScriptedListener
 {
@@ -50,7 +52,7 @@ class W3QuestCond_IsItemQuantityMet extends CQuestScriptedCondition
 	
 	function RegisterGlobalListener( flag : bool )
 	{
-		//player by default if not set
+		
 		if(!IsNameValid(entityTag))
 			entityTag = 'PLAYER';
 	
@@ -149,7 +151,6 @@ class W3QuestCond_IsItemQuantityMet extends CQuestScriptedCondition
 	{
 		var itemQuantity, i : int;
 		var itemID :  SItemUniqueId;
-		var items : array< SItemUniqueId >;
 		var horseInv : CInventoryComponent;
 		var witcher : W3PlayerWitcher;
 				
@@ -172,22 +173,17 @@ class W3QuestCond_IsItemQuantityMet extends CQuestScriptedCondition
 			{
 				itemQuantity = inventory.GetItemQuantityByTag( itemTag, includeHorseInventory );
 			}
-			else	//no item name, category or tag - count all
+			else	
 			{
 				itemQuantity = inventory.GetAllItemsQuantity( includeHorseInventory );
 			}
 			
-			items = inventory.GetItemsIds( itemName );
-			itemID = items[0];
-			
-			if ( inventory.IsItemTrophy(itemID) || itemCategory == 'trophy' || itemTag == 'Trophy' ||  itemTag == 'HorseTrophy' )
+			itemID = inventory.GetItemId( itemName );
+			if ( itemCategory == 'trophy' || itemTag == 'Trophy' ||  itemTag == 'HorseTrophy' || inventory.IsItemTrophy( itemID ) )
 			{
 				isTrophy = true;
 			}
 			isFulfilled = ProcessCompare( comparator, itemQuantity, count );
-			
-			
-			
 		}
 		else
 		{

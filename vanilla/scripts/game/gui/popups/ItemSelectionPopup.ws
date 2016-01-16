@@ -1,4 +1,9 @@
-﻿class W3ItemSelectionPopupData extends CObject
+﻿/***********************************************************************/
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/***********************************************************************/
+class W3ItemSelectionPopupData extends CObject
 {
 	var targetInventory : CInventoryComponent;
 	var filterTagsList : array<name>;
@@ -13,7 +18,7 @@ class CR4ItemSelectionPopup extends CR4PopupBase
 	var m_containerInv   : W3GuiContainerInventoryComponent;
 	var m_containerOwner : CGameplayEntity;
 	
-	event /*flash*/ OnConfigUI()
+	event  OnConfigUI()
 	{
 		super.OnConfigUI();
 		
@@ -36,24 +41,24 @@ class CR4ItemSelectionPopup extends CR4PopupBase
 		m_playerInv.SetFilterType(IFT_QuestItems);
 		
 		m_containerOwner = (CGameplayEntity)theGame.GetEntityByTag( m_DataObject.collectorTag );
-		//m_containerInv = new W3GuiContainerInventoryComponent in this;
-		//m_containerInv.Initialize( m_containerOwner.GetInventory() );
+		
+		
 		
 		UpdateData();
 		
-		//MakeModal(true);
+		
 		m_guiManager.RequestMouseCursor(true);
 		theGame.ForceUIAnalog(true);
 		
 		theGame.Pause("ItemSelectionPopup");
 	}
 	
-	event /*flash*/ OnCloseSelectionPopup()
+	event  OnCloseSelectionPopup()
 	{
 		ClosePopup();
 	}
 	
-	event /*flash*/ OnCallSelectItem(itemId : SItemUniqueId)
+	event  OnCallSelectItem(itemId : SItemUniqueId)
 	{
 		var len, i : int;
 		
@@ -72,12 +77,12 @@ class CR4ItemSelectionPopup extends CR4PopupBase
 		}
 	}
 	
-	event /* flash */ OnInventoryItemSelected(itemId : SItemUniqueId)
+	event  OnInventoryItemSelected(itemId : SItemUniqueId)
 	{
-		//
+		
 	}
 	
-	event /* C++ */ OnClosingPopup()
+	event  OnClosingPopup()
 	{
 		theGame.Unpause("ItemSelectionPopup");
 		

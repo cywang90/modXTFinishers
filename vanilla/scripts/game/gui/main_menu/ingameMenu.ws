@@ -1,9 +1,11 @@
 ﻿/***********************************************************************/
-/** Witcher Script file - Main Visuals Options Menu
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
-/** Copyright © 2014 CDProjektRed
-/** Author : Jason Slama
-/***********************************************************************/
+
+
+
 
 enum InGameMenuActionType
 {
@@ -41,7 +43,7 @@ enum InGameMenuActionType
 
 enum EIngameMenuConstants
 {
-	IGMC_Difficulty_mask	= 	7,   // (0111) bit mask as highest difficulty value is 4
+	IGMC_Difficulty_mask	= 	7,   
 	IGMC_Tutorials_On		= 	1024,
 	IGMC_Simulate_Import 	= 	2048,
 	IGMC_Import_Save		= 	4096,
@@ -80,7 +82,7 @@ class CR4IngameMenu extends CR4MenuBase
 	private var m_fxForceEnterCurEntry	: CScriptedFlashFunction;
 	private var m_fxForceBackgroundVis	: CScriptedFlashFunction;
 	private var m_fxSetHardwareCursorOn : CScriptedFlashFunction;
-	//private var m_fxShowBigMessage		: CScriptedFlashFunction;
+	
 	private var m_fxSetExpansionText	: CScriptedFlashFunction;
 	
 	protected var loadConfPopup			: W3ApplyLoadConfirmation;
@@ -128,7 +130,7 @@ class CR4IngameMenu extends CR4MenuBase
 	
 	public var lastSetDifficulty		: int;
 	
-	event /*flash*/ OnConfigUI()
+	event  OnConfigUI()
 	{
 		var initDataObject 		: W3MenuInitData;
 		var commonIngameMenu 	: CR4CommonIngameMenu;
@@ -151,7 +153,7 @@ class CR4IngameMenu extends CR4MenuBase
 		m_fxShowHelp = m_flashModule.GetMemberFlashFunction("showHelpPanel");		
 		m_fxSetVisible = m_flashModule.GetMemberFlashFunction("setVisible");
 		m_fxSetPanelMode = m_flashModule.GetMemberFlashFunction("setPanelMode");
-		m_fxRemoveOption = m_flashModule.GetMemberFlashFunction("removeOption"); // WARNING - Current implementation only works top level
+		m_fxRemoveOption = m_flashModule.GetMemberFlashFunction("removeOption"); 
 		m_fxSetGameLogoLanguage = m_flashModule.GetMemberFlashFunction( "setGameLogoLanguage" );
 		m_fxUpdateOptionValue = m_flashModule.GetMemberFlashFunction( "updateOptionValue" );
 		m_fxUpdateInputFeedback = m_flashModule.GetMemberFlashFunction( "updateInputFeedback" );
@@ -160,7 +162,7 @@ class CR4IngameMenu extends CR4MenuBase
 		m_fxForceEnterCurEntry = m_flashModule.GetMemberFlashFunction( "forceEnterCurrentEntry" );
 		m_fxForceBackgroundVis = m_flashModule.GetMemberFlashFunction( "setForceBackgroundVisible" );
 		m_fxSetHardwareCursorOn = m_flashModule.GetMemberFlashFunction( "setHardwareCursorOn" );
-		//m_fxShowBigMessage = m_flashModule.GetMemberFlashFunction( "showBigMessage" );
+		
 		m_fxSetExpansionText = m_flashModule.GetMemberFlashFunction( "setExpansionText" );
 		
 		m_structureCreator = new IngameMenuStructureCreator in this;
@@ -211,7 +213,7 @@ class CR4IngameMenu extends CR4MenuBase
 			if (theGame.GetDLCManager().IsEP1Available() && theGame.GetInGameConfigWrapper().GetVarValue('Hidden', 'HasSeenEP1WelcomeMessage') == "false")
 			{
 				theGame.GetInGameConfigWrapper().SetVarValue('Hidden', 'HasSeenEP1WelcomeMessage', "true");
-				//m_fxShowBigMessage.InvokeSelfTwoArgs(FlashArgString(GetLocStringByKeyExt("Hos_popup_head")), FlashArgString(GetLocStringByKeyExt("Hos_popup_text")));				
+				
 				showBigMessage();
 			}
 			
@@ -289,12 +291,12 @@ class CR4IngameMenu extends CR4MenuBase
 		
 		if (!panelMode)
 		{
-			m_fxSetIsMainMenu.InvokeSelfOneArg(FlashArgBool(isMainMenu)); //#J Needs to be called before setPlatform
+			m_fxSetIsMainMenu.InvokeSelfOneArg(FlashArgBool(isMainMenu)); 
 			if (isMainMenu)
 			{
 				username = FixStringForFont(theGame.GetActiveUserDisplayName());
 				m_fxSetCurrentUsername.InvokeSelfOneArg(FlashArgString(username));
-				//theGame.GetGuiManager().ShowKinectMessage(); // Kinect unplugged for TTP#98732. Keeping code on offchance we bring it back
+				
 				m_fxSetVersion.InvokeSelfOneArg(FlashArgString(theGame.GetApplicationVersion()));
 			}
 			theGame.GetSecondScreenManager().SendGameMenuOpen();
@@ -328,7 +330,7 @@ class CR4IngameMenu extends CR4MenuBase
 		var ep1StatusText		: string;
 		var ep2StatusText		: string;
 		
-		// Clear local variables (user might have changed, so we need to clear those variables)
+		
 		currentLangValue = mInGameConfigWrapper.GetVarValue('Localization', 'Virtual_Localization_text');
 		lastUsedLangValue = currentLangValue;
 			
@@ -342,12 +344,12 @@ class CR4IngameMenu extends CR4MenuBase
 			
 			PopulateMenuData();
 			
-			// Kinect unplugged for TTP#98732. Keeping code on offchance we bring it back
-			//if (shouldRefreshKinect)
-			//{
-			//	shouldRefreshKinect = false;
-			//	theGame.GetGuiManager().ShowKinectMessage();
-			//}
+			
+			
+			
+			
+			
+			
 		}
 		
 		UpdateAcceptCancelSwaping();
@@ -376,7 +378,7 @@ class CR4IngameMenu extends CR4MenuBase
 			}
 		}
 		
-		// this needs to be called also when ep1 is installed in main menu
+		
 		{
 			if (theGame.GetDLCManager().IsEP1Available())
 			{
@@ -412,7 +414,7 @@ class CR4IngameMenu extends CR4MenuBase
 		m_fxSetVisible.InvokeSelfOneArg(FlashArgBool(true));
 	}
 	
-	event OnCloseMenu() // #B will be changed
+	event OnCloseMenu() 
 	{
 		CloseMenu();
 	}
@@ -444,7 +446,7 @@ class CR4IngameMenu extends CR4MenuBase
 		CloseMenu();
 	}
 		
-	event /* C++ */ OnClosingMenu()
+	event  OnClosingMenu()
 	{
 		var commonInGameMenu : CR4CommonIngameMenu;
 		var commonMainMenu : CR4CommonMainMenu;
@@ -459,7 +461,7 @@ class CR4IngameMenu extends CR4MenuBase
 		theGame.GetSecondScreenManager().SendGameMenuClose();
 		super.OnClosingMenu();
 		
-		// #Y hud update
+		
 		hud = (CR4ScriptedHud)(theGame.GetHud());
 		if (hud)
 		{
@@ -552,7 +554,7 @@ class CR4IngameMenu extends CR4MenuBase
 		}
 	}
 	
-	// #Y TODO: array
+	
 	protected function CloseCurrentPopup():void
 	{
 		if (loadConfPopup)
@@ -608,7 +610,7 @@ class CR4IngameMenu extends CR4MenuBase
 		CloseCurrentPopup();
 	}
 	
-	event /*flash*/ OnItemActivated( actionType:int, menuTag:int ) : void
+	event  OnItemActivated( actionType:int, menuTag:int ) : void
 	{
 		var l_DataFlashArray : CScriptedFlashArray;
 		
@@ -624,8 +626,8 @@ class CR4IngameMenu extends CR4MenuBase
 				theGame.RequestMenu( 'CommonMenu' );
 				break;
 			case IGMActionType_MenuHolder:
-				//commonIngameMenu = (CR4CommonIngameMenu)GetParent();
-				//commonIngameMenu.OnRequestSubMenu( 'MainOptionsMenu', GetMenuInitData() );
+				
+				
 				m_initialSelectionsToIgnore = 1;
 				OnPlaySoundEvent( "gui_global_panel_open" );
 				break;
@@ -640,7 +642,7 @@ class CR4IngameMenu extends CR4MenuBase
 				}
 				else
 				{
-					// Cancel the navigation by going back
+					
 					m_fxNavigateBack.InvokeSelf();
 				}
 				isInLoadselector = true;
@@ -681,7 +683,7 @@ class CR4IngameMenu extends CR4MenuBase
 				LoadLastSave();
 				break;
 			case IGMActionType_Close:
-				//parentMenu.OnCloseMenu();
+				
 				break;
 			case IGMActionType_Tutorials:
 				theGame.RequestMenuWithBackground( 'GlossaryTutorialsMenu', 'CommonMenu' );
@@ -762,15 +764,15 @@ class CR4IngameMenu extends CR4MenuBase
 		l_DataFlashObject = m_flashValueStorage.CreateTempFlashObject();
 		l_DataFlashObject.SetMemberFlashString( "tfTitle1", GetLocStringByKeyExt("ep1_installed_information_title_1") );
 		l_DataFlashObject.SetMemberFlashString( "tfTitle2", GetLocStringByKeyExt("ep1_installed_information_title_2") );
-		//---------------------------------//PATH TITLES
+		
 		l_DataFlashObject.SetMemberFlashString( "tfTitlePath1", GetLocStringByKeyExt("ep1_installed_information_title_path_1") );
 		l_DataFlashObject.SetMemberFlashString( "tfTitlePath2", GetLocStringByKeyExt("ep1_installed_information_title_path_2") );
 		l_DataFlashObject.SetMemberFlashString( "tfTitlePath3", GetLocStringByKeyExt("ep1_installed_information_title_path_3") );
-		//---------------------------------//PATH DESCRIPTIONS
+		
 		l_DataFlashObject.SetMemberFlashString( "tfDescPath1", GetLocStringByKeyExt("ep1_installed_information_title_path_1_description") );
 		l_DataFlashObject.SetMemberFlashString( "tfDescPath2", GetLocStringByKeyExt("ep1_installed_information_title_path_2_description") );
 		l_DataFlashObject.SetMemberFlashString( "tfDescPath3", GetLocStringByKeyExt("ep1_installed_information_title_path_3_description") );
-		//---------------------------------//WARNING/GOODLUCK FIELDS
+		
 		l_DataFlashObject.SetMemberFlashString( "tfWarning", GetLocStringByKeyExt("ep1_installed_information_warning_level") );
 		l_DataFlashObject.SetMemberFlashString( "tfGoodLuck", GetLocStringByKeyExt("ep1_installed_information_good_luck") );
 		
@@ -834,7 +836,7 @@ class CR4IngameMenu extends CR4MenuBase
 		}
 	}
 	
-	event /*flash*/ OnPresetApplied(groupId:name, targetPresetIndex:int)
+	event  OnPresetApplied(groupId:name, targetPresetIndex:int)
 	{
 		hasChangedOption = true;
 		IngameMenu_ChangePresetValue(groupId, targetPresetIndex, this);
@@ -855,7 +857,7 @@ class CR4IngameMenu extends CR4MenuBase
 		m_flashValueStorage.SetFlashObject( "ingamemenu.optionValueChanges", optionChangeContainer );
 	}
 	
-	event /*flash*/ OnOptionValueChanged(groupId:int, optionName:name, optionValue:string)
+	event  OnOptionValueChanged(groupId:int, optionName:name, optionValue:string)
 	{
 		var groupName:name;
 		var hud : CR4ScriptedHud;
@@ -910,7 +912,7 @@ class CR4IngameMenu extends CR4MenuBase
 		
 		groupName = mInGameConfigWrapper.GetGroupName(groupId);
 		
-		// Set var value in buffered in-game config or direct in-game config
+		
 		isBuffered = mInGameConfigWrapper.DoGroupHasTag( groupName, 'buffered' );
 		if( isBuffered == false )
 		{
@@ -955,6 +957,10 @@ class CR4IngameMenu extends CR4MenuBase
 			m_fxForceBackgroundVis.InvokeSelfOneArg(FlashArgBool(true));
 		}
 		
+		if (groupName == 'Rendering' && optionName == 'PreserveSystemGamma')
+		{
+			theGame.GetGuiManager().DisplayRestartGameToApplyAllChanges();
+		}
 	}
 	
 	protected function HandleSpecialValueChanged(optionName:name, optionValue:string):void
@@ -971,14 +977,14 @@ class CR4IngameMenu extends CR4MenuBase
 	
 	public function OnGraphicsUpdated(keepChanges:bool):void
 	{
-		//if (graphicalChangesPending)
-		//{
-		//	theGame.Pause('IngameMenu');
-		//}
-		//m_fxNavigateBack.InvokeSelf(); // No need to do this anymore as you cannot stop the back navigation!
+		
+		
+		
+		
+		
 	}
 	
-	event /*flash*/ OnOptionPanelNavigateBack()
+	event  OnOptionPanelNavigateBack()
 	{
 		var graphicChangesPending:bool;
 		var hud : CR4ScriptedHud;
@@ -998,7 +1004,7 @@ class CR4IngameMenu extends CR4MenuBase
 		}
 	}
 	
-	event /*flash*/ OnNavigatedBack()
+	event  OnNavigatedBack()
 	{
 		var lowestDifficultyUsed : EDifficultyMode;
 		var hud : CR4ScriptedHud;
@@ -1023,7 +1029,7 @@ class CR4IngameMenu extends CR4MenuBase
 			lastUsedLangValue = currentLangValue;
 			lastUsedSpeechLang = currentSpeechLang;
 			theGame.ReloadLanguage();
-			//shouldRefreshKinect = true; // Kinect unplugged for TTP#98732. Keeping code on offchance we bring it back
+			
 		}
 		
 		if (swapAcceptCancelChanged)
@@ -1049,8 +1055,8 @@ class CR4IngameMenu extends CR4MenuBase
 		
 		lowestDifficultyUsed = theGame.GetLowestDifficultyUsed();
 		
-		// This dialog is only for when lowering difficulty from the two hardest difficulties. There are no achievements for beating the game specifically
-		// On Medium or Easy
+		
+		
 		if (!isMainMenu && theGame.GetDifficultyLevel() != lastSetDifficulty && lowestDifficultyUsed > lastSetDifficulty && lowestDifficultyUsed > EDM_Medium)
 		{
 			diffChangeConfPopup = new W3DifficultyChangeConfirmation in this;
@@ -1108,7 +1114,7 @@ class CR4IngameMenu extends CR4MenuBase
 		}
 	}
 	
-	event /*flash*/ OnProfileChange()
+	event  OnProfileChange()
 	{
 		if( !disableAccountPicker )
 		{
@@ -1117,12 +1123,12 @@ class CR4IngameMenu extends CR4MenuBase
 		}
 	}
 	
-	event /*flash*/ OnSaveGameCalled(type : ESaveGameType, saveArrayIndex : int)
+	event  OnSaveGameCalled(type : ESaveGameType, saveArrayIndex : int)
 	{
 		var saves : array< SSavegameInfo >;
 		var currentSave : SSavegameInfo;
 		
-		ignoreInput = true; // Set in flash side already
+		ignoreInput = true; 
 		
 		if ( theGame.AreSavesLocked() )
 		{
@@ -1179,7 +1185,7 @@ class CR4IngameMenu extends CR4MenuBase
 		m_fxNavigateBack.InvokeSelf();
 	}
 	
-	event /*flash*/ OnLoadGameCalled(type : ESaveGameType, saveListIndex : int)
+	event  OnLoadGameCalled(type : ESaveGameType, saveListIndex : int)
 	{
 		var saveGameRef : SSavegameInfo;
 		var saveGames		: array< SSavegameInfo >;
@@ -1279,7 +1285,7 @@ class CR4IngameMenu extends CR4MenuBase
 		theGame.LoadGameInit( saveSlotRef );
 	}
 	
-	event /*flash*/ OnImportGameCalled(menuTag:int):void
+	event  OnImportGameCalled(menuTag:int):void
 	{
 		var savesToImport : array< SSavegameInfo >;
 		var difficulty:int;
@@ -1315,7 +1321,7 @@ class CR4IngameMenu extends CR4MenuBase
 					}
 					else
 					{
-						// Never want to simulate an import when actually importing haha
+						
 						theGame.SetDifficultyLevel(currentNewGameConfig.difficulty);
 						TutorialMessagesEnable(currentNewGameConfig.tutorialsOn);
 						
@@ -1336,7 +1342,7 @@ class CR4IngameMenu extends CR4MenuBase
 		}
 	}
 	
-	event /*flash*/ OnNewGamePlusCalled(saveListIndex:int):void
+	event  OnNewGamePlusCalled(saveListIndex:int):void
 	{
 		var startGameStatus : ENewGamePlusStatus;
 		var saveGameRef 	: SSavegameInfo;
@@ -1346,7 +1352,7 @@ class CR4IngameMenu extends CR4MenuBase
 		
 		var requiredContent : name = 'content12';
 		
-		ignoreInput = true; // Set in flash side already
+		ignoreInput = true; 
 		
 		if (!theGame.IsContentAvailable(requiredContent))
 		{
@@ -1414,7 +1420,7 @@ class CR4IngameMenu extends CR4MenuBase
 		}
 	}
 	
-	event /*flash*/ OnDeleteSaveCalled(type : ESaveGameType, saveListIndex : int, isSaveMode:bool)
+	event  OnDeleteSaveCalled(type : ESaveGameType, saveListIndex : int, isSaveMode:bool)
 	{
 		if (ignoreInput)
 		{
@@ -1519,7 +1525,7 @@ class CR4IngameMenu extends CR4MenuBase
 			
 			if ((optionsArray & IGMC_EP1_Save) == IGMC_EP1_Save)
 			{
-				// EP1 save loading
+				
 				theGame.InitStandaloneDLCLoading('ep1', currentNewGameConfig.difficulty);
 			}
 			else
@@ -1598,7 +1604,7 @@ class CR4IngameMenu extends CR4MenuBase
 		StartNewGame();
 	}
 	
-	event /*flash*/ OnUpdateRescale(hScale : float, vScale : float)
+	event  OnUpdateRescale(hScale : float, vScale : float)
 	{
 		var hud : CR4ScriptedHud;
 		var needRescale : bool;
@@ -1671,7 +1677,7 @@ class CR4IngameMenu extends CR4MenuBase
 		l_DataFlashObject.SetMemberFlashString( "id", "mainmenu_loadgame");
 		l_DataFlashObject.SetMemberFlashUInt(  "tag", NameToFlashUInt('LoadGame') );
 		l_DataFlashObject.SetMemberFlashString(  "label", GetLocStringByKeyExt("panel_mainmenu_loadgame") );	
-		//l_DataFlashObject.SetMemberFlashString(  "description", GetLocStringByKeyExt("panel_loadgame_description") );
+		
 		l_DataFlashObject.SetMemberFlashUInt( "type", IGMActionType_Load );	
 		
 		l_ChildMenuFlashArray = m_flashValueStorage.CreateTempFlashArray();
@@ -1680,7 +1686,7 @@ class CR4IngameMenu extends CR4MenuBase
 		m_flashValueStorage.SetFlashObject( "ingamemenu.addloading", l_DataFlashObject );
 	}
 	
-	event /*flash*/ OnBack()
+	event  OnBack()
 	{
 		CloseMenu();
 	}
@@ -1781,8 +1787,8 @@ class CR4IngameMenu extends CR4MenuBase
 		
 		dataFlashArray = m_flashValueStorage.CreateTempFlashArray();
 		
-		//PopulateSaveDataForSlotType(SGT_AutoSave, dataFlashArray, true);
-		//PopulateSaveDataForSlotType(SGT_QuickSave, dataFlashArray, true);
+		
+		
 		PopulateSaveDataForSlotType(SGT_Manual, dataFlashArray, true);
 		
 		m_initialSelectionsToIgnore = 1;
@@ -1826,12 +1832,12 @@ class CR4IngameMenu extends CR4MenuBase
 		IngameMenu_PopulateSaveDataForSlotType(m_flashValueStorage, saveType, parentObject, allowEmptySlot);
 	}
 	
-	event /*flash*/ OnLoadSaveImageCancelled():void
+	event  OnLoadSaveImageCancelled():void
 	{
 		theGame.FreeScreenshotData();
 	}
 	
-	event /*flash*/ OnScreenshotDataRequested(saveIndex:int):void
+	event  OnScreenshotDataRequested(saveIndex:int):void
 	{
 		var targetSaveInfo 	: SSavegameInfo;
 		var saveGames		: array< SSavegameInfo >;
@@ -1846,7 +1852,7 @@ class CR4IngameMenu extends CR4MenuBase
 		}
 	}
 	
-	event /*flash*/ OnCheckScreenshotDataReady():void
+	event  OnCheckScreenshotDataReady():void
 	{
 		if (theGame.IsScreenshotDataReady())
 		{
@@ -1865,7 +1871,7 @@ class CR4IngameMenu extends CR4MenuBase
 		var currentName : string;
 		var currentDesc : string;
 		
-		//var m_journalManager : CWitcherJournalManager;
+		
 		
 		dataArray = m_flashValueStorage.CreateTempFlashArray();
 		
@@ -1874,12 +1880,12 @@ class CR4IngameMenu extends CR4MenuBase
 		
 		for (i = 0; i < dlcList.Size(); i += 1)
 		{
-			//if (dlcManager.IsDLCAvailable(dlcList[i]))
-			//{
+			
+			
 				currentData = m_flashValueStorage.CreateTempFlashObject();
 				
 				currentName = GetLocStringByKeyExt( "content_name_" + NameToString(dlcList[i]) );
-				currentDesc = "";//GetLocStringById( tempSubEntry.GetDescriptionStringId() );
+				currentDesc = "";
 				
 				if (currentName != "")
 				{
@@ -1888,10 +1894,10 @@ class CR4IngameMenu extends CR4MenuBase
 					
 					dataArray.PushBackFlashObject(currentData);
 				}
-			//}
+			
 		}
 		
-		// WIP "content_name_" + NameToString(missingContent[i])
+		
 		
 		m_flashValueStorage.SetFlashArray("ingamemenu.installedDLCs", dataArray);
 	}
@@ -1935,15 +1941,15 @@ class CR4IngameMenu extends CR4MenuBase
 		m_flashValueStorage.SetFlashArray( "ingamemenu.keybindValues", dataFlashArray );
 	}
 	
-	event /*flash*/ OnClearKeybind(keybindTag:name):void
+	event  OnClearKeybind(keybindTag:name):void
 	{
 		hasChangedOption = true;
-		mInGameConfigWrapper.SetVarValue('PCInput', keybindTag, "IK_None;IK_None"); // #J TODO, if we want to support two keybinds, this wont work as is
+		mInGameConfigWrapper.SetVarValue('PCInput', keybindTag, "IK_None;IK_None"); 
 		SendKeybindData();
 	}
 	
-	// #J Hopefully Temporary function as I cannot get the tags of an object right now :(
-	// If we keep this and want to support overlap, may want to return a list of names instead of the first one found
+	
+	
 	protected function GetKeybindGroupTag(keybindName : name) : name
 	{
 		if (mInGameConfigWrapper.DoVarHasTag('PCInput', keybindName, 'input_overlap1'))
@@ -1970,7 +1976,7 @@ class CR4IngameMenu extends CR4MenuBase
 		return '';
 	}
 	
-	event /*flash*/ OnChangeKeybind(keybindTag:name, newKeybindValue:EInputKey):void
+	event  OnChangeKeybind(keybindTag:name, newKeybindValue:EInputKey):void
 	{
 		var newSettingString : string;
 		var exisitingKeybind : name;
@@ -1987,8 +1993,8 @@ class CR4IngameMenu extends CR4MenuBase
 		
 		newSettingString = newKeybindValue;
 		
-		// #J this code is what forces unique keybinds.
-		//if (smartKeybindingEnabled)
+		
+		
 		{
 			groupIndex = IngameMenu_GetPCInputGroupIndex();
 		
@@ -2002,10 +2008,10 @@ class CR4IngameMenu extends CR4MenuBase
 					iterator_KeybindName = mInGameConfigWrapper.GetVarName(groupIndex, i);
 					iterator_KeybindKey = mInGameConfigWrapper.GetVarValue('PCInput', iterator_KeybindName);
 					
-					iterator_KeybindKey = StrReplace(iterator_KeybindKey, ";IK_None", ""); // #J TODO, if we want to support two keybinds, this wont work as is
+					iterator_KeybindKey = StrReplace(iterator_KeybindKey, ";IK_None", ""); 
 					iterator_KeybindKey = StrReplace(iterator_KeybindKey, "IK_None;", "");
 					
-					if (iterator_KeybindKey == newSettingString && 
+					if (iterator_KeybindKey == newSettingString && iterator_KeybindName != keybindTag && 
 						(currentBindingTag == '' || currentBindingTag != GetKeybindGroupTag(iterator_KeybindName)))
 					{
 						if (keybindChangedMessage != "")
@@ -2025,29 +2031,29 @@ class CR4IngameMenu extends CR4MenuBase
 			}
 		}
 		
-		newSettingString = newKeybindValue + ";IK_None"; // #J TODO, if we want to support two keybinds, this wont work as is
+		newSettingString = newKeybindValue + ";IK_None"; 
 		mInGameConfigWrapper.SetVarValue('PCInput', keybindTag, newSettingString);
 		SendKeybindData();
 	}
 	
-	event /*flash*/ OnSmartKeybindEnabledChanged(value:bool):void
+	event  OnSmartKeybindEnabledChanged(value:bool):void
 	{
 		smartKeybindingEnabled = value;
 	}
 	
-	event /*flash*/ OnInvalidKeybindTried(keyCode:EInputKey):void
+	event  OnInvalidKeybindTried(keyCode:EInputKey):void
 	{
 		showNotification(GetLocStringByKeyExt("menu_cannot_perform_action_now"));
 		OnPlaySoundEvent("gui_global_denied");
 	}
 	
-	event /*flash*/ OnLockedKeybindTried():void
+	event  OnLockedKeybindTried():void
 	{
 		showNotification(GetLocStringByKeyExt("menu_cannot_perform_action_now"));
 		OnPlaySoundEvent("gui_global_denied");
 	}
 	
-	event /*flash*/ OnResetKeybinds():void
+	event  OnResetKeybinds():void
 	{
 		mInGameConfigWrapper.ResetGroupToDefaults('PCInput');
 		SendKeybindData();

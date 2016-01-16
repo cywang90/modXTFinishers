@@ -1,4 +1,9 @@
-﻿
+﻿/***********************************************************************/
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/***********************************************************************/
+
 class CBTTaskPlaySyncedAnimation extends IBehTreeTask
 {
 	private var isRunning				: bool;
@@ -34,7 +39,7 @@ class CBTTaskPlaySyncedAnimation extends IBehTreeTask
 		owner.EnableCharacterCollisions( false );
 		owner.SetCanPlayHitAnim( false );
 		
-		// Add immortality so the monster cannot be killed while he plays the finisher death anim
+		
 		owner.SetImmortalityMode( AIM_Invulnerable, AIC_Combat );
 		return BTNS_Active;
 	}

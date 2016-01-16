@@ -1,4 +1,9 @@
-﻿class CBTTaskStopYrden extends IBehTreeTask
+﻿/***********************************************************************/
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/***********************************************************************/
+class CBTTaskStopYrden extends IBehTreeTask
 {
 	var npc 					: CNewNPC;
 	var yrden					: W3YrdenEntity;
@@ -47,15 +52,15 @@
 		var l_actor		: CActor;
 		var l_yrden		: W3YrdenEntity;
 		
-		// Remove effects on me
+		
 		npc.RemoveAllBuffsOfType( EET_Burning );
 		npc.RemoveAllBuffsOfType( EET_Frozen );
 		npc.RemoveAllBuffsOfType( EET_Bleeding );
 		npc.RemoveAllBuffsOfType( EET_SlowdownFrost );
 		npc.RemoveAllBuffsOfType( EET_Slowdown );
 		
-		// Remove effects on target if in range
-		//m_Npc.GatherEntitiesInAttackRange( l_entities, 'shock' );			
+		
+		
 		FindGameplayEntitiesInSphere( l_entities, npc.GetWorldPosition(), range, maxResults );
 		
 		for( i = 0; i < l_entities.Size(); i += 1 )

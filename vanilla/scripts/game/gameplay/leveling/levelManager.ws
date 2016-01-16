@@ -1,17 +1,18 @@
 ﻿/***********************************************************************/
-/** Copyright © 2012
-/** Author : Rafal Jarczeswki
-//			 Maciej Mach (???)
-//			 Tomek Kozera
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
 
-// handles leveling and exp
+
+
+
 class W3LevelManager
 {
 	private var owner : W3PlayerWitcher;
-	private saved var levelDefinitions : array< SLevelDefinition >;		// describes abilities difining each level
-	private saved var level : int;									// current level
-	private saved var points : array< SSpendablePoints >;			// array of spendable points (exp, knowledge, mutation)
+	private saved var levelDefinitions : array< SLevelDefinition >;		
+	private saved var level : int;									
+	private saved var points : array< SSpendablePoints >;			
 	
 	public function Initialize()
 	{
@@ -47,9 +48,7 @@ class W3LevelManager
 		}
 	}
 	
-	/*
-		Loads data regarding levels form XML (required exp, gained points etc.).
-	*/
+	
 	private function LoadLevelingDataFromXML()
 	{	
 		var dm : CDefinitionsManagerAccessor;
@@ -61,7 +60,7 @@ class W3LevelManager
 		dm = theGame.GetDefinitionsManager();
 		main = dm.GetCustomDefinition('leveling');
 		
-		//first read all levels to check if we're not missing any data
+		
 		for(i=0; i<main.subNodes.Size(); i+=1)
 		{
 			dm.GetCustomNodeAttributeValueInt(main.subNodes[i], 'number', temp);	
@@ -78,10 +77,10 @@ class W3LevelManager
 			}
 		}
 		
-		//if here, all ok
+		
 		LogChannel('Leveling',"W3LevelManager.LoadLevelingDataFromXML: min level is " + tmpLevels[0] + ", max level is " + tmpLevels[tmpLevels.Size()-1]);
 		
-		//read & fill actual data
+		
 		for(i=0; i<main.subNodes.Size(); i+=1)
 		{
 			dm.GetCustomNodeAttributeValueInt(main.subNodes[i], 'number', temp);				
@@ -104,7 +103,30 @@ class W3LevelManager
 		points[ESkillPoint].free = amount;
 	}
 	
-	// adds points of given type
+	public function FixMaxLevel()
+	{
+		var i : int;
+		
+		
+		if(points[EExperiencePoint].used >= levelDefinitions[GetMaxLevel()].requiredTotalExp)
+		{
+			level = GetMaxLevel();
+			points[EExperiencePoint].free = 0;
+			
+			i = 0;
+			while( levelDefinitions[i].number != level )
+			{
+				i+=1;
+			}
+			points[EExperiencePoint].used = levelDefinitions[i].requiredTotalExp;
+		}
+		else if(level == GetMaxLevel())
+		{
+			points[EExperiencePoint].free = 0;
+		}
+	}
+	
+	
 	public function AddPoints(type : ESpendablePointType, amount : int, show : bool )
 	{
 		var total : int;
@@ -119,22 +141,22 @@ class W3LevelManager
 			return;
 		}
 		
-		//no exp if at max level
-		if(type == EExperiencePoint && level == 70)
+		
+		if(type == EExperiencePoint && level >= GetMaxLevel())
 			return;
 			 
 		points[type].free += amount;
 
 		if(type == EExperiencePoint)
 		{
-			//NewGame+ grants bonus exp as we cannot lower exp required for next levels
+			
 			if(FactsQuerySum("NewGamePlus") > 0 && GetLevel() < 50)
 			{
 				points[type].free += amount;
 				amount *= 2;
 			}
 			
-			//keep gaining levels while you have excess experience points
+			
 			while(true)
 			{
 				total = GetTotalExpForNextLevel();
@@ -147,19 +169,23 @@ class W3LevelManager
 					break;
 			}
 			
+			if(level == GetMaxLevel())
+			{
+				points[type].free = 0;
+			}
 		
 			theTelemetry.LogWithValue(TE_HERO_EXP_EARNED, amount);
 			
 			arrInt.PushBack(amount);
-			//GetWitcherPlayer().DisplayHudMessage(msg);
-			// here exp
+			
+			
 			hud.OnExperienceUpdate(amount, show);
 		}
 		else if(type == ESkillPoint)
 		{
 			theTelemetry.LogWithValue(TE_HERO_SKILL_POINT_EARNED, amount);
 			
-			//show upgrade icon next to health bar
+			
 			hudWolfHeadModule = (CR4HudModuleWolfHead)hud.GetHudModule( "WolfHeadModule" );
 			if ( hudWolfHeadModule )
 			{
@@ -168,9 +194,7 @@ class W3LevelManager
 		}
 	}
 	
-	/*
-		Spends given amount of points (uses them).
-	*/
+	
 	public function SpendPoints(type : ESpendablePointType, amount : int)
 	{
 		if(amount <= 0)
@@ -189,15 +213,32 @@ class W3LevelManager
 		}
 	}
 	
+	
+	public final function UnspendPoints(type : ESpendablePointType, amount : int)
+	{
+		if(amount <= 0)
+		{
+			LogAssert(false, "W3LevelManager.UnspendPoints: amount to restore is <=0");
+			return;
+		}
+		if( points[type].used >= amount )
+		{
+			points[type].free += amount;
+			points[type].used -= amount;
+		}
+		else
+		{
+			LogAssert(false, "W3LevelManager.UnspendPoints: trying to restore more than you have spent!");
+		}
+	}
+	
 	public function GetPointsFree(type : ESpendablePointType) : int			{return points[type].free;}	
 	public function GetPointsUsed(type : ESpendablePointType) : int			{return points[type].used;}
 	public function GetPointsTotal(type : ESpendablePointType) : int		{return points[type].free + points[type].used;}
-	public function GetLevel() : int										{var _level : int; _level = level; if ( _level > 70 ) _level = 70; return _level;} // levels > 50 are "paragon levels" granting only ip
-	public function GetMaxLevel() : int										{return levelDefinitions[levelDefinitions.Size()-1].number;}
+	public function GetLevel() : int										{return level;}
+	public function GetMaxLevel() : int										{return 70;}
 
-	/*
-		Returns total experience required for current level or 0 if at 0 level.
-	*/
+	
 	public function GetTotalExpForCurrLevel() : int
 	{
 		if ( level > 0 )
@@ -206,9 +247,7 @@ class W3LevelManager
 			return 0;
 	}
 	
-	/*
-		Returns total experience required for next level or -1 if already at max level.
-	*/
+	
 	public function GetTotalExpForNextLevel() : int							
 	{
 		if(level < levelDefinitions[levelDefinitions.Size()-1].number)
@@ -221,7 +260,7 @@ class W3LevelManager
 	{
 		var totalExp : int;
 	
-		if(level == levelDefinitions[levelDefinitions.Size()-1].number)
+		if(level == GetMaxLevel())
 		{
 			LogAssert(false, "W3LevelManager.GainLevel: already at max level, so why trying to gain a level?");
 			return;

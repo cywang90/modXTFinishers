@@ -1,40 +1,20 @@
 ﻿/***********************************************************************/
-/** Witcher Script file - Journal base file 
-/** #R4R6# make sure that versions in scripts are coherent (with code) both for R4 and R6
-/***********************************************************************/
-/** The Journal
-/** Copyright © 2012
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
 
-/*
-C++
-enum eQuestType
-{
-	QuestType_Story = 0,	// TXT( "Story" )
-	QuestType_Chapter, 		// TXT( "Chapter" )
-	QuestType_Side,			// TXT( "Side" )
-	QuestType_MonsterHunt,	// TXT( "MonsterHunt" )
-	QuestType_TreasureHunt,	// TXT( "TreasureHunt" )
 
-	QuestType_Max
-};
 
-enum EJournalStatus
-{
-	JS_Inactive = 0, 
-	JS_Active,
-	JS_Success,
-	JS_Failed,
-};
 
-*/
 
-// Common
+
+
 import class CJournalBase extends CObject
 {
 	import public const var guid : CGUID;
 	
-	// Debugging only:
+	
 	import public const var baseName : string;
 	
 	import final function GetUniqueScriptTag() : name;
@@ -56,9 +36,9 @@ import class CJournalContainer extends CJournalContainerEntry
 	import final function GetNumChildren() : int;
 }
 
-// Witcher 3
 
-// Quests
+
+
 import class CJournalQuestObjective extends CJournalContainer
 {
 	import final function GetTitleStringId() : int;
@@ -105,7 +85,7 @@ import class CJournalQuestGroup extends CJournalBase
 	import final function GetTitleStringId() : int;
 }
 
-// Creatures
+
 import class CJournalCreatureGroup extends CJournalBase
 {
 	import final function GetNameStringId() : int;
@@ -135,10 +115,10 @@ import class CJournalCreatureHuntingClueGroup extends CJournalContainer
 
 import class CJournalCreatureHuntingClue extends CJournalContainerEntry
 {
-	// Name of the enum that the "clue" value below points to
+	
 	import public const var category : name;
 	
-	// This value is an int as it can represent one of many enums
+	
 	import public const var clue : int;
 }
 
@@ -214,7 +194,7 @@ import class CJournalStoryBookPageDescription extends CJournalContainerEntry
 	import final function GetDescriptionStringId() : int;
 }
 
-// places
+
 
 import class CJournalPlaceGroup extends CJournalBase
 {
@@ -233,7 +213,7 @@ import class CJournalPlaceDescription extends CJournalContainerEntry
 	import final function GetDescriptionStringId() : int;
 }
 
-// Common
+
 import class CJournalManager extends IGameSystem
 {
 	import final function ActivateEntry			(	journalEntry : CJournalBase, optional status : EJournalStatus, optional showInfoOnScreen : bool, optional activateParents : bool );
@@ -243,9 +223,9 @@ import class CJournalManager extends IGameSystem
 	import final function IsEntryUnread			(	journalEntry : CJournalBase ) : bool;
 	import final function SetEntryUnread		(	journalEntry : CJournalBase, isUnread : bool );
 
-	// i.e. Get Number of instances of "CJournalQuest"
+	
 	import final function GetNumberOfActivatedOfType( type : name ) : int;
-	// i.e. Get All instances of "CJournalQuest"
+	
 	import final function GetActivatedOfType	( type : name, out entries : array< CJournalBase > );
 	import final function GetNumberOfActivatedChildren( parentEntry : CJournalBase ) : int;
 	import final function GetActivatedChildren( parentEntry : CJournalBase, out entries : array< CJournalBase > );
@@ -282,7 +262,7 @@ import struct SJournalQuestObjectiveData
 	import const var objectiveEntry : CJournalQuestObjective;
 };
 
-// Witcher 3
+
 import class CWitcherJournalManager extends CJournalManager
 {	
 	function GetCurrentlyBuffedCreature():CJournalCreature
@@ -300,7 +280,7 @@ import class CWitcherJournalManager extends CJournalManager
 		return foundCreature;
 	}
 	
-	// #J this function is used in a hack in hudModuleMinimap2.ws UpdateBuffedMonsterDisplay() function so we can get icons for locked glossary entries
+	
 	function GetCurrentlyBuffedCreatureName():name
 	{
 		var curGameTime : GameTime;
@@ -315,33 +295,33 @@ import class CWitcherJournalManager extends CJournalManager
 		currentWeatherEffect = GetCurWeather();
 		currentMoonState = GetCurMoonState();
 		
-		// #J check what should really do with EWE_None and EWE_Storm, EDP_Undefined. Assuming these defaults for now (HAXGetMonsterIconFromJournalName)
+		
 		if (currentWeatherEffect == EWE_Clear || currentWeatherEffect == EWE_None)
 		{
 			switch (currentDayPart)
 			{
 			case EDP_Undefined:
 			case EDP_Dawn:
-				monsterTag = 'Baba cmentarna'; // M.J. - Waterhag
+				monsterTag = 'Baba cmentarna'; 
 				break;
 			case EDP_Noon:
-				monsterTag = 'bestiary_noonwright'; // M.J. - Noonwraith
+				monsterTag = 'bestiary_noonwright'; 
 				break;
 			case EDP_Dusk:
-				monsterTag = 'bestiary_alghoul'; // M.J. - ghouls in general, but alghoul is the strongest so we use it here
+				monsterTag = 'bestiary_alghoul'; 
 				break;
 			case EDP_Midnight:
 				if (currentMoonState == EMS_Red)
 				{
-					monsterTag = 'Ogar Dzikiego Gonu'; // M.J. - Wild Hunt minion
+					monsterTag = 'Ogar Dzikiego Gonu'; 
 				}
 				else if (currentMoonState == EMS_Full)
 				{
-					monsterTag = 'bestiary_werewolf'; // #J Technically cursed, putting werewolf for now; M.J. Default monster for full moon case
+					monsterTag = 'bestiary_werewolf'; 
 				}
-				else // EMS_NotFull
+				else 
 				{
-					monsterTag = 'bestiary_moonwright'; // M.J Moonwraith
+					monsterTag = 'bestiary_moonwright'; 
 				}
 				break;
 			}
@@ -355,7 +335,7 @@ import class CWitcherJournalManager extends CJournalManager
 				monsterTag = 'bestiary_icegiant'; 
 				break;
 			case EDP_Noon:
-				monsterTag = 'Troll lodowy'; // M.J. Ice troll
+				monsterTag = 'Troll lodowy'; 
 				break;
 			case EDP_Dusk:
 				monsterTag = 'bestiary_icegiant';
@@ -363,15 +343,15 @@ import class CWitcherJournalManager extends CJournalManager
 			case EDP_Midnight:
 				if (currentMoonState == EMS_Red)
 				{
-					monsterTag = 'Ogar Dzikiego Gonu'; //M.J. Wild Hunt minion
+					monsterTag = 'Ogar Dzikiego Gonu'; 
 				}
 				else if (currentMoonState == EMS_Full)
 				{
-					monsterTag = 'bestiary_werewolf'; // #J Technically cursed, putting werewolf for now, M.J. Default monster for full moon case
+					monsterTag = 'bestiary_werewolf'; 
 				}
-				else // EMS_NotFull
+				else 
 				{
-					monsterTag = 'bestiary_wraith'; // M.J. Wraiths
+					monsterTag = 'bestiary_wraith'; 
 				}
 				break;
 			}
@@ -382,26 +362,26 @@ import class CWitcherJournalManager extends CJournalManager
 			{
 			case EDP_Undefined:
 			case EDP_Dawn:
-				monsterTag = 'Baba wodna'; // M.J Waterhag
+				monsterTag = 'Baba wodna'; 
 				break;
 			case EDP_Noon:
-				monsterTag = 'Baba wodna'; // M.J Waterhag
+				monsterTag = 'Baba wodna'; 
 				break;
 			case EDP_Dusk:
-				monsterTag = 'Utopiec'; // M.J Drowner
+				monsterTag = 'Utopiec'; 
 				break;
 			case EDP_Midnight:
 				if (currentMoonState == EMS_Red)
 				{
-					monsterTag = 'Ogar Dzikiego Gonu'; //M.J. Wild Hunt minion
+					monsterTag = 'Ogar Dzikiego Gonu'; 
 				}
 				else if (currentMoonState == EMS_Full)
 				{
-					monsterTag = 'bestiary_werewolf'; // #J Technically cursed, putting werewolf for now; M.J. Default monster for full moon case
+					monsterTag = 'bestiary_werewolf'; 
 				}
-				else // EMS_NotFull
+				else 
 				{
-					monsterTag = 'bestiary_greater_rotfiend'; // M.J Rotfiend
+					monsterTag = 'bestiary_greater_rotfiend'; 
 				}
 				break;
 			}
@@ -518,58 +498,8 @@ exec function testMonsterAdvanced()
 	}
 }
 
-// DO NOT USE IT UNLESS IT'S REALLY NECESSARY
-/*
-function activateJournalEntry(entryResourceName:string, journalManager:CWitcherJournalManager):void
-{
-	var i, j : int;
-	var resource : CJournalResource;
-	var entryBase : CJournalBase;
-	var childGroups : array<CJournalBase>;
-	var childEntries : array<CJournalBase>;
-	var descriptionGroup : CJournalCreatureDescriptionGroup;
-	var descriptionEntry : CJournalCreatureDescriptionEntry;
-	var childJournal : CJournalBase;
-	
-	resource = (CJournalResource)LoadResource( entryResourceName, true );
-	
-	if ( resource )
-	{
-		entryBase = resource.GetEntry();
-		if ( entryBase )
-		{
-			journalManager.ActivateEntry( entryBase, JS_Active );
-			
-			journalManager.SetEntryHasAdvancedInfo( entryBase, true );
-			
-			// additionally activate all description entries from description group
-			journalManager.GetAllChildren( entryBase, childGroups );
-			for ( i = 0; i < childGroups.Size(); i += 1 )
-			{
-				descriptionGroup = ( CJournalCreatureDescriptionGroup )childGroups[ i ];
-				childJournal = childGroups[ i ];
-				if ( descriptionGroup )
-				{
-					journalManager.GetAllChildren( descriptionGroup, childEntries );
-					for ( j = 0; j < childEntries.Size(); j += 1 )
-					{
-						descriptionEntry = ( CJournalCreatureDescriptionEntry )childEntries[ j ];
-						if ( descriptionEntry )
-						{
-							journalManager.ActivateEntry( descriptionEntry, JS_Active );
-						}
-					}
-					return;
-				}
-				else if ( childJournal )
-				{
-					journalManager.ActivateEntry( childJournal, JS_Active );
-				}
-			}
-		}
-	}
-}
-*/
+
+
 
 function activateJournalBestiaryEntryWithAlias(entryAlias:string, journalManager:CWitcherJournalManager):void
 {
@@ -591,7 +521,7 @@ function activateJournalBestiaryEntryWithAlias(entryAlias:string, journalManager
 			
 			journalManager.SetEntryHasAdvancedInfo( entryBase, true );
 			
-			// additionally activate all description entries from description group
+			
 			journalManager.GetAllChildren( entryBase, childGroups );
 			for ( i = 0; i < childGroups.Size(); i += 1 )
 			{
@@ -630,7 +560,7 @@ function activateJournalGlossaryGroupWithAlias(entryAlias:string, journalManager
 		{
 			journalManager.ActivateEntry( entryBase, JS_Active );
 			
-			// additionally activate all glossary entries entries from group
+			
 			journalManager.GetAllChildren( entryBase, childEntries );
 			for ( i = 0; i < childEntries.Size(); i += 1 )
 			{
@@ -660,7 +590,7 @@ function activateJournalStoryBookPageEntryWithAlias(entryAlias:string, journalMa
 		{
 			journalManager.ActivateEntry( entryBase, JS_Active );
 			
-			// additionally activate all description entries from page
+			
 			journalManager.GetAllChildren( entryBase, childEntries );
 			for ( i = 0; i < childEntries.Size(); i += 1 )
 			{
@@ -691,7 +621,7 @@ function activateJournalCharacterEntryWithAlias(entryAlias:string, journalManage
 		{
 			journalManager.ActivateEntry( entryBase, JS_Active );
 			
-			// additionally activate all description entries from page
+			
 			journalManager.GetAllChildren( entryBase, childEntries );
 			for ( i = 0; i < childEntries.Size(); i += 1 )
 			{
@@ -729,7 +659,7 @@ function activateBaseBestiaryEntryWithAlias(entryAlias:string, journalManager:CW
 			
 			journalManager.SetEntryHasAdvancedInfo( entryBase, true );
 			
-			// additionally activate all description entries from description group
+			
 			journalManager.GetAllChildren( entryBase, childGroups );
 			for ( i = 0; i < childGroups.Size(); i += 1 )
 			{
@@ -739,7 +669,7 @@ function activateBaseBestiaryEntryWithAlias(entryAlias:string, journalManager:CW
 				{
 					journalManager.GetAllChildren( descriptionGroup, childEntries );
 					
-					// find child with min order and activate
+					
 					minOrderIndex = -1;
 					for ( j = 0; j < childEntries.Size(); j += 1 )
 					{

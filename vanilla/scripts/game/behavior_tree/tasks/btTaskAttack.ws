@@ -1,9 +1,11 @@
 ﻿/***********************************************************************/
-/** 
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
-/** Copyright © 2012
-/** Author : Patryk Fiutowski, Andrzej Kwiatkowski
-/***********************************************************************/
+
+
+
 class CBTTaskAttack extends CBTTaskPlayAnimationEventDecorator
 {
 	var attackType									: EAttackType;
@@ -16,8 +18,8 @@ class CBTTaskAttack extends CBTTaskPlayAnimationEventDecorator
 	var behVarNameOnDeactivation 					: name;
 	var behVarValueOnDeactivation 					: float;
 	var stopAllEfectsOnDeactivation 				: bool;
-	//var forceMovementToAttackRangeOnAllowBlend 	: name;
-	//var checkDistanceToGivenAttackRange 			: bool;
+	
+	
 	var slideToTargetOnAnimEvent 					: bool;
 	var useCombatTarget 							: bool;
 	var applyEffectType								: EEffectType;
@@ -48,7 +50,7 @@ class CBTTaskAttack extends CBTTaskPlayAnimationEventDecorator
 		if ( setAttackEndVarOnStopTask )
 			npc.SetBehaviorVariable( 'AttackEnd', 0 );
 		
-		// Set unpushable
+		
 		target.SetUnpushableTarget( npc );
 		npc.SetUnpushableTarget( target );
 		
@@ -60,47 +62,47 @@ class CBTTaskAttack extends CBTTaskPlayAnimationEventDecorator
 			
 			if( targetToAttackerAngle >= -180.0 && targetToAttackerAngle < -157.5 )
 			{
-				//attack from 180 degree left
+				
 				npc.SetBehaviorVariable( 'targetDirection', (int)ETD_Direction_m180, true );
 			}
 			if( targetToAttackerAngle >= -157.5 && targetToAttackerAngle < -112.5 )
 			{
-				//attack from 135 degree left
+				
 				npc.SetBehaviorVariable( 'targetDirection', (int)ETD_Direction_m135, true );
 			}
 			if( targetToAttackerAngle >= -112.5 && targetToAttackerAngle < -67.5 )
 			{
-				//attack from 90 degree left
+				
 				npc.SetBehaviorVariable( 'targetDirection', (int)ETD_Direction_m90, true );
 			}
 			else if( targetToAttackerAngle >= -67.5 && targetToAttackerAngle < -22.5 )
 			{
-				//attack from 45 degree left
+				
 				npc.SetBehaviorVariable( 'targetDirection', (int)ETD_Direction_m45, true );
 			}
 			else if( targetToAttackerAngle >= -22.5 && targetToAttackerAngle < 22.5 )
 			{
-				//attack from front
+				
 				npc.SetBehaviorVariable( 'targetDirection', (int)ETD_Direction_0, true );
 			}
 			else if( targetToAttackerAngle >= 22.5 && targetToAttackerAngle < 67.5 )
 			{
-				//attack from 45 degree right
+				
 				npc.SetBehaviorVariable( 'targetDirection', (int)ETD_Direction_45, true );
 			}
 			else if( targetToAttackerAngle >= 67.5 && targetToAttackerAngle < 112.5 )
 			{
-				//attack from 90 degree right
+				
 				npc.SetBehaviorVariable( 'targetDirection', (int)ETD_Direction_90, true );
 			}
 			else if( targetToAttackerAngle >= 112.5 && targetToAttackerAngle < 157.5 )
 			{
-				//attack from 135 degree right
+				
 				npc.SetBehaviorVariable( 'targetDirection', (int)ETD_Direction_135, true );
 			}
 			else if( targetToAttackerAngle >= 157.5 && targetToAttackerAngle < 180.0 )
 			{
-				//attack from 180 degree right
+				
 				npc.SetBehaviorVariable( 'targetDirection', (int)ETD_Direction_180, true );
 			}
 			
@@ -129,26 +131,15 @@ class CBTTaskAttack extends CBTTaskPlayAnimationEventDecorator
 		
 		combatDataStorage.SetIsAttacking( false );
 		
-		// Set unpushable
+		
 		target.SetUnpushableTarget( NULL );
 		npc.SetUnpushableTarget( NULL );
 		
-		//remove ui glow for counter
+		
 		if ( thePlayer.GetDodgeFeedbackTarget() == npc )
 			npc.SetDodgeFeedback( false );		
 		
-		/*if ( checkDistanceToGivenAttackRange ) 
-		{	
-			// checks if player is beyond given attack range
-			if ( !npc.InAttackRange( npc.GetTarget(), forceMovementToAttackRangeOnAllowBlend ) )
-			{
-				npc.SetBehaviorVariable( 'ShouldPursueTarget', 1 );
-			}
-			else
-			{
-				npc.SetBehaviorVariable( 'ShouldPursueTarget', 0 );
-			}
-		}*/
+		
 		
 		if ( behVarNameOnDeactivation )
 		{
@@ -182,7 +173,7 @@ class CBTTaskAttack extends CBTTaskPlayAnimationEventDecorator
 				movementAdjustor.CancelByName( 'SlideToTarget' );
 				ticket = movementAdjustor.CreateNewRequest( 'SlideToTarget' );
 				movementAdjustor.BindToEventAnimInfo( ticket, animInfo );
-				//movementAdjustor.Continuous(ticket);
+				
 				movementAdjustor.MaxLocationAdjustmentSpeed( ticket, 1000000 );
 				movementAdjustor.ScaleAnimation( ticket );
 				minDistance = ((CMovingPhysicalAgentComponent)owner.GetMovingAgentComponent()).GetCapsuleRadius()+((CMovingPhysicalAgentComponent)target.GetMovingAgentComponent()).GetCapsuleRadius();
@@ -197,10 +188,7 @@ class CBTTaskAttack extends CBTTaskPlayAnimationEventDecorator
 			Complete(true);
 			return true;
 		}
-		/*if ( forceMovementToAttackRangeOnAllowBlend && ( animEventName == 'AllowBlend' ) )
-		{
-			checkDistanceToGivenAttackRange = true;
-		}*/
+		
 		return super.OnAnimEvent(animEventName, animEventType, animInfo);
 	}
 	
@@ -280,7 +268,7 @@ class CBTTaskAttackDef extends CBTTaskPlayAnimationEventDecoratorDef
 	editable var behVarNameOnDeactivation 					: name;
 	editable var behVarValueOnDeactivation 					: float;	
 	editable var stopAllEfectsOnDeactivation 				: bool;
-	//editable var forceMovementToAttackRangeOnAllowBlend 	: name;
+	
 	editable var slideToTargetOnAnimEvent 					: bool;
 	editable var useCombatTarget 							: bool;
 	editable var useActionBlend 							: bool;

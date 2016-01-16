@@ -1,9 +1,11 @@
 ﻿/***********************************************************************/
-/** 
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
-/** Copyright © 2012
-/** Author : Patryk Fiutowski, Andrzej Kwiatkowski
-/***********************************************************************/
+
+
+
 
 class CBTTaskPlayAnimationEventDecorator extends IBehTreeTask
 {
@@ -280,20 +282,7 @@ class CBTTaskPlayAnimationEventDecorator extends IBehTreeTask
 		{
 			Complete( true );
 		}
-		/*else if ( animEventName == 'SlowMo' )
-		{
-			if( animEventType != AET_DurationEnd && !slowMo )
-				//&& npc.InAttackRange(GetCombatTarget(),'SlowMo') )
-			{
-				theGame.SetTimeScale(0.2, theGame.GetTimescaleSource(ETS_SlowMoTask), theGame.GetTimescalePriority(ETS_SlowMoTask) );
-				slowMo = true;
-			}
- 			else if( animEventType == AET_DurationEnd )
-			{
-				theGame.RemoveTimeScale( theGame.GetTimescaleSource(ETS_SlowMoTask) );
-				slowMo = false;
-			}
-		}*/
+		
 		return false;
 	}
 	

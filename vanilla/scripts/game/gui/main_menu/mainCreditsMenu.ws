@@ -1,9 +1,11 @@
 ﻿/***********************************************************************/
-/** Witcher Script file - Main Credits Menu
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
-/** Copyright © 2014 CDProjektRed
-/** Author : Bartosz Bigaj
-/***********************************************************************/
+
+
+
 
 struct CreditsSection
 {
@@ -35,13 +37,13 @@ class CR4MainCreditsMenu extends CR4MenuBase
 	public var shouldCloseOnMovieEnd: bool;
 	private var creditsSections : array< CreditsSection >;
 	private var currentSectionID : int;
-	private var htmlNewline		: string;	default htmlNewline = "&#10;"; //default htmlNewline = "<br>";
+	private var htmlNewline		: string;	default htmlNewline = "&#10;"; 
 	private var playedSecondSection : bool; default playedSecondSection = false;
 	
 	private var SCROLLING_TEXT_LINE_COUNT	: int;		default SCROLLING_TEXT_LINE_COUNT	= 50;
 	private var SCROLLING_SPEED				: int;		default SCROLLING_SPEED				= 100;
 
-	event /*flash*/ OnConfigUI()
+	event  OnConfigUI()
 	{
 		var flashModule : CScriptedFlashSprite;
 
@@ -98,9 +100,9 @@ class CR4MainCreditsMenu extends CR4MenuBase
 		DisplayNextSection();
 	}
 	
-	event OnVideoStopped() // c++
+	event OnVideoStopped() 
 	{
-		//guiManager.PlayFlashbackVideoAsync("gamestart/credits_6000bitrate.usm");
+		
 	}
 	
 	protected function BuildCreditsSections() : void
@@ -139,7 +141,7 @@ class CR4MainCreditsMenu extends CR4MenuBase
 			
 			if ( sectionID != readSectionID )
 			{
-				// NEW SECTION
+				
 				if( sectionID > 0 )
 				{
 					creditsSections.PushBack( tempCreditsSection );
@@ -148,7 +150,7 @@ class CR4MainCreditsMenu extends CR4MenuBase
 				sectionID = readSectionID;
 				if( sectionID == 0 )
 				{
-					// empty line, end of section
+					
 					continue;
 				}
 				
@@ -249,7 +251,7 @@ class CR4MainCreditsMenu extends CR4MenuBase
 			LogChannel( 'credits', "START" );
 			for( i = 0; i < creditsSections[currentSectionID].positionNames.Size(); i += 1 )
 			{
-				// #J Hack for certain languages that don' support (C) and (R) characters and are in english anyways
+				
 				if (legalTextOverride && creditsSections[currentSectionID].positionNames[i] == "credits_LEGAL_NOTICE")
 				{
 					tempString += "<font face=\"$CreditsFont\" color=\"#FFFFFF\">" + GetLocalizedPositionAndDepartment(creditsSections[currentSectionID].positionNames[i]) + "</font> ";
@@ -296,22 +298,15 @@ class CR4MainCreditsMenu extends CR4MenuBase
 		
 		if ( tempStr == "" )
 		{
-			//LogChannel('Credits_Missing', "[" + StrLower(inString) + "]" );
+			
 			return inString;
 		}
 		
-		//
-		// THIS CAN'T BE DONE THIS WAY
-		//
 		
-		/*
-		if( tempStr == "" || StrFindFirst(tempStr,"#") != -1 )
-		{
-			inString = FixColorString(inString);
-			return inString;
-		}
-		tempStr = FixColorString(tempStr);
-		*/
+		
+		
+		
+		
 		
 		return tempStr;
 	}

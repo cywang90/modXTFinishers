@@ -1,17 +1,19 @@
 ﻿/***********************************************************************/
-/** Copyright © 2012-2013
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
 
-state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
+
+
+state CombatSword in W3PlayerWitcher extends Combat 
 {
 	protected 	var bIsInPirouette 				: bool;
 	protected	var swordId 					: SItemUniqueId;
 	
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// Enter/Leave events	
-	/**
 	
-	*/
+	
+	
 	event OnEnterState( prevStateName : name )
 	{
 		var npcs 	: array<CActor>;
@@ -26,7 +28,7 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 		
 		this.CombatSwordInit();
 		
-		// FIXME this broadcasting has to be moves as soon as we have reactions in combat
+		
 		npcs = GetActorsInRange( thePlayer, 5, 20, '', true );
 		for( i = 0; i < npcs.Size(); i += 1 )
 		{
@@ -54,12 +56,10 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 		parent.inv.PlayItemEffect(swordId, 'rune_blast_loop');
 	}
 	
-	/**
 	
-	*/
 	event OnLeaveState( nextStateName : name )
 	{
-		// Pass to base class
+		
 		super.OnLeaveState(nextStateName);
 		 
 		parent.RemoveAnimEventCallback('FinishSpecialHeavyAttack');
@@ -67,9 +67,7 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 		parent.inv.StopItemEffect(swordId, 'rune_blast_loop');
 	}
 	
-	/**
-	
-	*/	
+		
 	protected function ProcessStartupAction( action : EInitialAction )
 	{
 		switch( action )
@@ -89,17 +87,13 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 		}		
 	}
 	
-	/**
 	
-	*/
 	entry function CombatSwordInit()
 	{
 		CombatSwordLoop();
 	}
 	
-	/**
 	
-	*/
 	latent function CombatSwordLoop()
 	{
 		while( true )
@@ -130,20 +124,17 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 	
 		var aspect 		: CComboAspect;
 		var str 		: CComboString;
-		//var comboLink	: array<name>;
+		
 
 		aspect = comboDefinition.CreateComboAspect( 'AttackLight' );
 		
 		{
 			str = aspect.CreateComboString( false );
 			
-			//Add directional attacks near
-			/*str.AddDirAttack( 'man_geralt_sword_attack_close_combo2_r_1', AD_Front, ADIST_Small );
-			str.AddDirAttack( 'man_geralt_sword_attack_fast_back_1_rp_40ms', AD_Back, ADIST_Small );
-			str.AddDirAttack( 'man_geralt_sword_attack_fast_left_1_rp_40ms', AD_Left, ADIST_Small );
-			str.AddDirAttack( 'man_geralt_sword_attack_fast_right_1_rp_40ms', AD_Right, ADIST_Small );*/
+			
+			
 
-			//Add directional attacks medium
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_1_rp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_2_rp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_3_rp_40ms', AD_Front, ADIST_Medium );
@@ -155,7 +146,7 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_left_1_rp_40ms', AD_Left, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_right_1_rp_40ms', AD_Right, ADIST_Medium );			
 
-			//Add directional attacks far
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_far_forward_1_rp_50ms', AD_Front, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_far_back_1_rp_50ms', AD_Back, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_far_back_2_rp_50ms', AD_Back, ADIST_Large );
@@ -165,13 +156,10 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_far_right_1_rp_50ms', AD_Right, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_far_right_2_rp_50ms', AD_Right, ADIST_Large );			
 
-			//Add standard attacks near
-			/*str.AddAttack( 'man_geralt_sword_attack_close_combo_r_2', ADIST_Small );
-			str.AddAttack( 'man_geralt_sword_attack_close_combo2_r_1', ADIST_Small );
-			str.AddAttack( 'man_geralt_sword_attack_close_combo2_r_4', ADIST_Small );
-			str.AddAttack( 'man_geralt_sword_attack_close_combo2_r_5', ADIST_Small );*/
+			
+			
 
-			//Add standard attacks medium
+			
 			str.AddAttack( 'man_geralt_sword_attack_fast_1_rp_40ms', ADIST_Medium );
 			str.AddAttack( 'man_geralt_sword_attack_fast_2_rp_40ms', ADIST_Medium );
 			str.AddAttack( 'man_geralt_sword_attack_fast_3_rp_40ms', ADIST_Medium );
@@ -180,7 +168,7 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 			str.AddAttack( 'man_geralt_sword_attack_fast_6_rp_40ms', ADIST_Medium );
 			str.AddAttack( 'man_geralt_sword_attack_fast_7_rp_40ms', ADIST_Medium );			
 
-			//Create combo links in the aspect near
+			
 			aspect.AddLink( 'man_geralt_sword_attack_close_combo_l_1', 'man_geralt_sword_attack_close_combo_r_2' );
 			aspect.AddLink( 'man_geralt_sword_attack_close_combo_l_4', 'man_geralt_sword_attack_close_combo2_r_1' );
 			aspect.AddLink( 'man_geralt_sword_attack_close_combo2_r_1', 'man_geralt_sword_attack_close_combo2_l_2' );
@@ -188,35 +176,17 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 			aspect.AddLink( 'man_geralt_sword_attack_close_combo2_r_4', 'man_geralt_sword_attack_close_combo2_r_5' );
 			aspect.AddLink( 'man_geralt_sword_attack_close_combo2_r_5', 'man_geralt_sword_attack_close_combo_r_2' );
 			
-			/*
-			//Create combo links
-			comboLink.PushBack( 'man_geralt_sword_attack_fast_3_rp_40ms' );
-			comboLink.PushBack( 'man_geralt_sword_attack_fast_4_rp_40ms' );
-			comboLink.PushBack( 'man_geralt_sword_attack_fast_5_rp_40ms' );
-			comboLink.PushBack( 'man_geralt_sword_attack_fast_1_rp_40ms' );
-			comboLink.PushBack( 'man_geralt_sword_attack_fast_2_rp_40ms' );
-			aspect.AddLinks( 'man_geralt_sword_attack_fast_1_lp_40ms', comboLink );
-			comboLink.Clear();
 			
-			comboLink.PushBack( 'man_geralt_sword_attack_fast_1_rp_40ms' );
-			comboLink.PushBack( 'man_geralt_sword_attack_fast_2_rp_40ms' );
-			comboLink.PushBack( 'man_geralt_sword_attack_fast_3_rp_40ms' );
-			aspect.AddLinks( 'man_geralt_sword_attack_fast_2_lp_40ms', comboLink );
-			comboLink.Clear();
-			*/
-			//AddLinks does not support same stance transitions!
+			
 			
 		}
 		{
 			str = aspect.CreateComboString( true );
 
-			//Add directional attacks near
-			/*str.AddDirAttack( 'man_geralt_sword_attack_close_combo_l_1', AD_Front, ADIST_Small );
-			str.AddDirAttack( 'man_geralt_sword_attack_fast_back_1_lp_40ms', AD_Back, ADIST_Small );
-			str.AddDirAttack( 'man_geralt_sword_attack_fast_left_1_lp_40ms', AD_Left, ADIST_Small );
-			str.AddDirAttack( 'man_geralt_sword_attack_fast_right_1_lp_40ms', AD_Right, ADIST_Small );*/
+			
+			
 
-			//Add directional attacks medium
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_1_lp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_2_lp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_3_lp_40ms', AD_Front, ADIST_Medium );
@@ -228,7 +198,7 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_left_1_lp_40ms', AD_Left, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_right_1_lp_40ms', AD_Right, ADIST_Medium );
 
-			//Add directional attacks far
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_far_forward_1_lp_50ms', AD_Front, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_far_back_1_lp_50ms', AD_Back, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_far_back_2_lp_50ms', AD_Back, ADIST_Large );			
@@ -237,14 +207,10 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_far_right_1_lp_50ms', AD_Right, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_far_right_2_lp_50ms', AD_Right, ADIST_Large );				
 
-			//Add standard attacks near
-			/*str.AddAttack( 'man_geralt_sword_attack_close_combo_l_1', ADIST_Small );
-			str.AddAttack( 'man_geralt_sword_attack_close_combo_l_3', ADIST_Small );
-			str.AddAttack( 'man_geralt_sword_attack_close_combo_l_4', ADIST_Small );
-			str.AddAttack( 'man_geralt_sword_attack_close_combo2_l_2', ADIST_Small );
-			str.AddAttack( 'man_geralt_sword_attack_close_combo2_l_3', ADIST_Small );*/
+			
+			
 
-			//Add standard attacks medium
+			
 			str.AddAttack( 'man_geralt_sword_attack_fast_1_lp_40ms', ADIST_Medium );
 			str.AddAttack( 'man_geralt_sword_attack_fast_2_lp_40ms', ADIST_Medium );
 			str.AddAttack( 'man_geralt_sword_attack_fast_3_lp_40ms', ADIST_Medium );
@@ -253,7 +219,7 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 			str.AddAttack( 'man_geralt_sword_attack_fast_6_lp_40ms', ADIST_Medium );
 			str.AddAttack( 'man_geralt_sword_attack_fast_7_lp_40ms', ADIST_Medium );			
 
-			//Create combo links near in the aspect
+			
 			aspect.AddLink( 'man_geralt_attack_close_30ms_r_1', 'man_geralt_sword_attack_close_combo_l_1' );
 			aspect.AddLink( 'man_geralt_sword_attack_close_combo_r_2', 'man_geralt_sword_attack_close_combo_l_3' );
 			aspect.AddLink( 'man_geralt_sword_attack_close_combo_l_3', 'man_geralt_sword_attack_close_combo_l_4' );
@@ -303,7 +269,7 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 			str.AddAttack( 'man_geralt_sword_attack_strong_10_rp_70ms', ADIST_Medium );		
 			}		
 
-			// Left Pose Start - String 1
+			
 			{
 			str = aspect.CreateComboString( true );
 
@@ -399,14 +365,14 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 	{
 		var aspect 		: CComboAspect;
 		var str 		: CComboString;
-		//var comboLink	: array<name>;
+		
 
 		aspect = comboDefinition.CreateComboAspect( 'AttackLightFlying' );
 		
 		{
 			str = aspect.CreateComboString( false );
 			
-			//Add directional attacks near
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_2_rp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_3_rp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_6_rp_40ms', AD_Front, ADIST_Small );
@@ -414,7 +380,7 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_left_1_rp_40ms', AD_Left, ADIST_Small );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_right_1_rp_40ms', AD_Right, ADIST_Small );		
 			
-			//Add directional attacks medium
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_2_rp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_3_rp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_6_rp_40ms', AD_Front, ADIST_Medium );
@@ -422,7 +388,7 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_left_1_rp_40ms', AD_Left, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_right_1_rp_40ms', AD_Right, ADIST_Medium );			
 			
-			//Add directional attacks far
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_2_rp_40ms', AD_Front, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_3_rp_40ms', AD_Front, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_6_rp_40ms', AD_Front, ADIST_Large );
@@ -430,12 +396,12 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_left_1_rp_40ms', AD_Left, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_right_1_rp_40ms', AD_Right, ADIST_Large );			
 			
-			//Add standard attacks near
+			
 			str.AddAttack( 'man_geralt_sword_attack_fast_2_rp_40ms', ADIST_Small );
 			str.AddAttack( 'man_geralt_sword_attack_fast_3_rp_40ms', ADIST_Small );
 			str.AddAttack( 'man_geralt_sword_attack_fast_6_rp_40ms', ADIST_Small );
 			
-			//Add standard attacks medium
+			
 			str.AddAttack( 'man_geralt_sword_attack_fast_2_rp_40ms', ADIST_Medium );
 			str.AddAttack( 'man_geralt_sword_attack_fast_3_rp_40ms', ADIST_Medium );
 			str.AddAttack( 'man_geralt_sword_attack_fast_6_rp_40ms', ADIST_Medium );
@@ -443,28 +409,28 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 		{
 			str = aspect.CreateComboString( true );
 
-			//Add directional attacks near
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_2_lp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_back_1_lp_40ms', AD_Back, ADIST_Small );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_left_1_lp_40ms', AD_Left, ADIST_Small );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_right_1_lp_40ms', AD_Right, ADIST_Small );
 
-			//Add directional attacks medium
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_2_lp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_back_1_lp_40ms', AD_Back, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_left_1_lp_40ms', AD_Left, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_right_1_lp_40ms', AD_Right, ADIST_Medium );
 
-			//Add directional attacks far
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_2_lp_40ms', AD_Front, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_back_1_lp_40ms', AD_Back, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_left_1_lp_40ms', AD_Left, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_right_1_lp_40ms', AD_Right, ADIST_Large );
 
-			//Add standard attacks near
+			
 			str.AddAttack( 'man_geralt_sword_attack_fast_2_lp_40ms', ADIST_Small );
 			
-			//Add standard attacks medium
+			
 			str.AddAttack( 'man_geralt_sword_attack_fast_2_lp_40ms', ADIST_Medium );		
 		}		
 	}
@@ -495,7 +461,7 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 			str.AddAttack( 'man_geralt_sword_attack_strong_9_rp_70ms', ADIST_Medium );
 		}		
 		
-		// Left Pose Start - String 1
+		
 		{
 			str = aspect.CreateComboString( true );
 			
@@ -520,69 +486,69 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 	{
 		var aspect 		: CComboAspect;
 		var str 		: CComboString;
-		//var comboLink	: array<name>;
+		
 
 		aspect = comboDefinition.CreateComboAspect( 'AttackLightVsRider' );
 		
 		{
 			str = aspect.CreateComboString( false );
 			
-			//Add directional attacks near
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_7_rp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_back_1_rp_40ms', AD_Back, ADIST_Small );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_left_1_rp_40ms', AD_Left, ADIST_Small );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_right_1_rp_40ms', AD_Right, ADIST_Small );		
 			
-			//Add directional attacks medium
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_7_rp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_back_1_rp_40ms', AD_Back, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_left_1_rp_40ms', AD_Left, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_right_1_rp_40ms', AD_Right, ADIST_Medium );			
 			
-			//Add directional attacks far
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_7_rp_40ms', AD_Front, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_back_1_rp_40ms', AD_Back, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_left_1_rp_40ms', AD_Left, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_right_1_rp_40ms', AD_Right, ADIST_Large );			
 			
-			//Add standard attacks near
+			
 			str.AddAttack( 'man_geralt_sword_attack_fast_2_rp_40ms', ADIST_Small );
 			str.AddAttack( 'man_geralt_sword_attack_fast_7_rp_40ms', ADIST_Small );
 			
-			//Add standard attacks medium
+			
 			str.AddAttack( 'man_geralt_sword_attack_fast_2_rp_40ms', ADIST_Medium );
 			str.AddAttack( 'man_geralt_sword_attack_fast_7_rp_40ms', ADIST_Medium );
 		}
 		{
 			str = aspect.CreateComboString( true );
 
-			//Add directional attacks near
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_7_lp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_9_lp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_back_1_lp_40ms', AD_Back, ADIST_Small );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_left_1_lp_40ms', AD_Left, ADIST_Small );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_right_1_lp_40ms', AD_Right, ADIST_Small );
 
-			//Add directional attacks medium
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_7_lp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_9_lp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_back_1_lp_40ms', AD_Back, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_left_1_lp_40ms', AD_Left, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_right_1_lp_40ms', AD_Right, ADIST_Medium );
 
-			//Add directional attacks far
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_7_lp_40ms', AD_Front, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_9_lp_40ms', AD_Front, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_back_1_lp_40ms', AD_Back, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_left_1_lp_40ms', AD_Left, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_right_1_lp_40ms', AD_Right, ADIST_Large );
 
-			//Add standard attacks near
+			
 			str.AddAttack( 'man_geralt_sword_attack_fast_7_lp_40ms', ADIST_Small );
 			str.AddAttack( 'man_geralt_sword_attack_fast_9_lp_40ms', ADIST_Small );
 			str.AddAttack( 'man_geralt_sword_attack_fast_2_lp_40ms', ADIST_Small );
 			
-			//Add standard attacks medium
+			
 			str.AddAttack( 'man_geralt_sword_attack_fast_7_lp_40ms', ADIST_Medium );		
 			str.AddAttack( 'man_geralt_sword_attack_fast_9_lp_40ms', ADIST_Medium );		
 			str.AddAttack( 'man_geralt_sword_attack_fast_2_lp_40ms', ADIST_Medium );		
@@ -613,7 +579,7 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 			str.AddAttack( 'man_geralt_sword_attack_strong_4_rp_70ms', ADIST_Medium );
 		}		
 		
-		// Left Pose Start - String 1
+		
 		{
 			str = aspect.CreateComboString( true );
 			
@@ -638,62 +604,62 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 	{
 		var aspect 		: CComboAspect;
 		var str 		: CComboString;
-		//var comboLink	: array<name>;
+		
 
 		aspect = comboDefinition.CreateComboAspect( 'AttackLightSlopeUp' );
 		
 		{
 			str = aspect.CreateComboString( false );
 			
-			//Add directional attacks near
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_2_rp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_back_1_rp_40ms', AD_Back, ADIST_Small );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_left_1_rp_40ms', AD_Left, ADIST_Small );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_right_1_rp_40ms', AD_Right, ADIST_Small );		
 			
-			//Add directional attacks medium
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_2_rp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_back_1_rp_40ms', AD_Back, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_left_1_rp_40ms', AD_Left, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_right_1_rp_40ms', AD_Right, ADIST_Medium );			
 			
-			//Add directional attacks far
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_2_rp_40ms', AD_Front, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_back_1_rp_40ms', AD_Back, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_left_1_rp_40ms', AD_Left, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_right_1_rp_40ms', AD_Right, ADIST_Large );			
 			
-			//Add standard attacks near
+			
 			str.AddAttack( 'man_geralt_sword_attack_fast_2_rp_40ms', ADIST_Small );
 			
-			//Add standard attacks medium
+			
 			str.AddAttack( 'man_geralt_sword_attack_fast_2_rp_40ms', ADIST_Medium );
 		}
 		{
 			str = aspect.CreateComboString( true );
 
-			//Add directional attacks near
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_2_lp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_back_1_lp_40ms', AD_Back, ADIST_Small );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_left_1_lp_40ms', AD_Left, ADIST_Small );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_right_1_lp_40ms', AD_Right, ADIST_Small );
 
-			//Add directional attacks medium
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_2_lp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_back_1_lp_40ms', AD_Back, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_left_1_lp_40ms', AD_Left, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_right_1_lp_40ms', AD_Right, ADIST_Medium );
 
-			//Add directional attacks far
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_2_lp_40ms', AD_Front, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_back_1_lp_40ms', AD_Back, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_left_1_lp_40ms', AD_Left, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_right_1_lp_40ms', AD_Right, ADIST_Large );
 
-			//Add standard attacks near
+			
 			str.AddAttack( 'man_geralt_sword_attack_fast_2_lp_40ms', ADIST_Small );
 			
-			//Add standard attacks medium
+			
 			str.AddAttack( 'man_geralt_sword_attack_fast_2_lp_40ms', ADIST_Medium );		
 		}	
 	}	
@@ -702,14 +668,14 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 	{
 		var aspect 		: CComboAspect;
 		var str 		: CComboString;
-		//var comboLink	: array<name>;
+		
 
 		aspect = comboDefinition.CreateComboAspect( 'AttackLightSlopeDown' );
 		
 		{
 			str = aspect.CreateComboString( false );
 			
-			//Add directional attacks near
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_1_rp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_5_rp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_7_rp_40ms', AD_Front, ADIST_Small );
@@ -718,7 +684,7 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_left_1_rp_40ms', AD_Left, ADIST_Small );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_right_1_rp_40ms', AD_Right, ADIST_Small );		
 			
-			//Add directional attacks medium
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_1_rp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_5_rp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_7_rp_40ms', AD_Front, ADIST_Medium );
@@ -727,7 +693,7 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_left_1_rp_40ms', AD_Left, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_right_1_rp_40ms', AD_Right, ADIST_Medium );			
 			
-			//Add directional attacks far
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_far_forward_1_rp_50ms', AD_Front, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_far_back_1_rp_50ms', AD_Back, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_far_back_2_rp_50ms', AD_Back, ADIST_Large );
@@ -737,13 +703,13 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_far_right_1_rp_50ms', AD_Right, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_far_right_2_rp_50ms', AD_Right, ADIST_Large );			
 			
-			//Add standard attacks near
+			
 			str.AddAttack( 'man_geralt_sword_attack_fast_1_rp_40ms', ADIST_Small );
 			str.AddAttack( 'man_geralt_sword_attack_fast_5_rp_40ms', ADIST_Small );
 			str.AddAttack( 'man_geralt_sword_attack_fast_7_rp_40ms', ADIST_Small );
 			str.AddAttack( 'man_geralt_sword_attack_fast_8_rp_40ms', ADIST_Small );
 			
-			//Add standard attacks medium
+			
 			str.AddAttack( 'man_geralt_sword_attack_fast_1_rp_40ms', ADIST_Medium  );
 			str.AddAttack( 'man_geralt_sword_attack_fast_5_rp_40ms', ADIST_Medium  );
 			str.AddAttack( 'man_geralt_sword_attack_fast_7_rp_40ms', ADIST_Medium  );
@@ -752,7 +718,7 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 		{
 			str = aspect.CreateComboString( true );
 
-			//Add directional attacks near
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_1_lp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_5_lp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_6_lp_40ms', AD_Front, ADIST_Small );
@@ -762,7 +728,7 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_left_1_lp_40ms', AD_Left, ADIST_Small );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_right_1_lp_40ms', AD_Right, ADIST_Small );
 
-			//Add directional attacks medium
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_1_lp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_5_lp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_6_lp_40ms', AD_Front, ADIST_Medium );
@@ -772,7 +738,7 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_left_1_lp_40ms', AD_Left, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_right_1_lp_40ms', AD_Right, ADIST_Medium );
 
-			//Add directional attacks far
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_far_forward_1_lp_50ms', AD_Front, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_far_back_1_lp_50ms', AD_Back, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_far_back_2_lp_50ms', AD_Back, ADIST_Large );			
@@ -781,14 +747,14 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_far_right_1_lp_50ms', AD_Right, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_far_right_2_lp_50ms', AD_Right, ADIST_Large );	
 
-			//Add standard attacks near
+			
 			str.AddAttack( 'man_geralt_sword_attack_fast_1_lp_40ms', ADIST_Small );
 			str.AddAttack( 'man_geralt_sword_attack_fast_5_lp_40ms', ADIST_Small );
 			str.AddAttack( 'man_geralt_sword_attack_fast_6_lp_40ms', ADIST_Small );
 			str.AddAttack( 'man_geralt_sword_attack_fast_7_lp_40ms', ADIST_Small );
 			str.AddAttack( 'man_geralt_sword_attack_fast_9_lp_40ms', ADIST_Small );
 			
-			//Add standard attacks medium
+			
 			str.AddAttack( 'man_geralt_sword_attack_fast_1_lp_40ms', ADIST_Medium );
 			str.AddAttack( 'man_geralt_sword_attack_fast_5_lp_40ms', ADIST_Medium );
 			str.AddAttack( 'man_geralt_sword_attack_fast_6_lp_40ms', ADIST_Medium );
@@ -802,14 +768,14 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 	{
 		var aspect 		: CComboAspect;
 		var str 		: CComboString;
-		//var comboLink	: array<name>;
+		
 
 		aspect = comboDefinition.CreateComboAspect( 'AttackLightCapsuleShort' );
 		
 		{
 			str = aspect.CreateComboString( false );
 			
-			//Add directional attacks near
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_1_rp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_5_rp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_7_rp_40ms', AD_Front, ADIST_Small );
@@ -818,7 +784,7 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_left_1_rp_40ms', AD_Left, ADIST_Small );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_right_1_rp_40ms', AD_Right, ADIST_Small );		
 			
-			//Add directional attacks medium
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_1_rp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_5_rp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_7_rp_40ms', AD_Front, ADIST_Medium );
@@ -827,7 +793,7 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_left_1_rp_40ms', AD_Left, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_right_1_rp_40ms', AD_Right, ADIST_Medium );			
 			
-			//Add directional attacks far
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_far_forward_1_rp_50ms', AD_Front, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_far_back_1_rp_50ms', AD_Back, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_far_back_2_rp_50ms', AD_Back, ADIST_Large );
@@ -837,13 +803,13 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_far_right_1_rp_50ms', AD_Right, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_far_right_2_rp_50ms', AD_Right, ADIST_Large );	
 				
-			//Add standard attacks near
+			
 			str.AddAttack( 'man_geralt_sword_attack_fast_1_rp_40ms', ADIST_Small );
 			str.AddAttack( 'man_geralt_sword_attack_fast_5_rp_40ms', ADIST_Small );
 			str.AddAttack( 'man_geralt_sword_attack_fast_7_rp_40ms', ADIST_Small );
 			str.AddAttack( 'man_geralt_sword_attack_fast_8_rp_40ms', ADIST_Small );
 			
-			//Add standard attacks medium
+			
 			str.AddAttack( 'man_geralt_sword_attack_fast_1_rp_40ms', ADIST_Medium  );
 			str.AddAttack( 'man_geralt_sword_attack_fast_5_rp_40ms', ADIST_Medium  );
 			str.AddAttack( 'man_geralt_sword_attack_fast_7_rp_40ms', ADIST_Medium  );
@@ -852,7 +818,7 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 		{
 			str = aspect.CreateComboString( true );
 
-			//Add directional attacks near
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_1_lp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_5_lp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_6_lp_40ms', AD_Front, ADIST_Small );
@@ -862,7 +828,7 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_left_1_lp_40ms', AD_Left, ADIST_Small );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_right_1_lp_40ms', AD_Right, ADIST_Small );
 
-			//Add directional attacks medium
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_1_lp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_5_lp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_6_lp_40ms', AD_Front, ADIST_Medium );
@@ -872,7 +838,7 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_left_1_lp_40ms', AD_Left, ADIST_Medium );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_right_1_lp_40ms', AD_Right, ADIST_Medium );
 
-			//Add directional attacks far
+			
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_far_forward_1_lp_50ms', AD_Front, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_far_back_1_lp_50ms', AD_Back, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_far_back_2_lp_50ms', AD_Back, ADIST_Large );			
@@ -881,14 +847,14 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_far_right_1_lp_50ms', AD_Right, ADIST_Large );
 			str.AddDirAttack( 'man_geralt_sword_attack_fast_far_right_2_lp_50ms', AD_Right, ADIST_Large );		
 
-			//Add standard attacks near
+			
 			str.AddAttack( 'man_geralt_sword_attack_fast_1_lp_40ms', ADIST_Small );
 			str.AddAttack( 'man_geralt_sword_attack_fast_5_lp_40ms', ADIST_Small );
 			str.AddAttack( 'man_geralt_sword_attack_fast_6_lp_40ms', ADIST_Small );
 			str.AddAttack( 'man_geralt_sword_attack_fast_7_lp_40ms', ADIST_Small );
 			str.AddAttack( 'man_geralt_sword_attack_fast_9_lp_40ms', ADIST_Small );
 			
-			//Add standard attacks medium
+			
 			str.AddAttack( 'man_geralt_sword_attack_fast_1_lp_40ms', ADIST_Medium );
 			str.AddAttack( 'man_geralt_sword_attack_fast_5_lp_40ms', ADIST_Medium );
 			str.AddAttack( 'man_geralt_sword_attack_fast_6_lp_40ms', ADIST_Medium );
@@ -902,37 +868,37 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 	
 		var aspect 		: CComboAspect;
 		var str 		: CComboString;
-		//var comboLink	: array<name>;
+		
 
 		aspect = comboDefinition.CreateComboAspect( 'AttackNeutral' );
 		{
 			str = aspect.CreateComboString( false );
 			
-			//Add directional attacks near
+			
 			str.AddDirAttack( 'combat_locomotion_sucker_punch_40ms_close', AD_Front, ADIST_Small );
 			
-			//Add directional attacks medium
+			
 			str.AddDirAttack( 'combat_locomotion_sucker_punch_70ms_far', AD_Front, ADIST_Medium );	
 
-			//Add standard attacks near
+			
 			str.AddAttack( 'combat_locomotion_sucker_punch_40ms_close', ADIST_Small );
 			
-			//Add standard attacks medium
+			
 			str.AddAttack( 'combat_locomotion_sucker_punch_70ms_far', ADIST_Medium );				
 		}
 		{
 			str = aspect.CreateComboString( true );
 
-			//Add directional attacks near
+			
 			str.AddDirAttack( 'combat_locomotion_sucker_punch_40ms_close', AD_Front, ADIST_Small );
 
-			//Add directional attacks medium
+			
 			str.AddDirAttack( 'combat_locomotion_sucker_punch_70ms_far', AD_Front, ADIST_Medium );	
 			
-			//Add standard attacks near
+			
 			str.AddAttack( 'combat_locomotion_sucker_punch_40ms_close', ADIST_Small );
 			
-			//Add standard attacks medium
+			
 			str.AddAttack( 'combat_locomotion_sucker_punch_70ms_far', ADIST_Medium );		
 		}		
 	}
@@ -942,28 +908,28 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 	
 		var aspect 		: CComboAspect;
 		var str 		: CComboString;
-		//var comboLink	: array<name>;
+		
 
 		aspect = comboDefinition.CreateComboAspect( 'AttackNeutralUnconscious' );
 		{
 			str = aspect.CreateComboString( false );
 			
-			//Add directional attacks near
+			
 			str.AddDirAttack( 'combat_locomotion_kick_1', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'combat_locomotion_kick_2', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'combat_locomotion_kick_3', AD_Front, ADIST_Small );
 		
-			//Add directional attacks medium
+			
 			str.AddDirAttack( 'combat_locomotion_kick_1', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'combat_locomotion_kick_2', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'combat_locomotion_kick_3', AD_Front, ADIST_Medium );			
 
-			//Add standard attacks near
+			
 			str.AddAttack( 'combat_locomotion_kick_1', ADIST_Small );
 			str.AddAttack( 'combat_locomotion_kick_2', ADIST_Small );
 			str.AddAttack( 'combat_locomotion_kick_3', ADIST_Small );
 			
-			//Add standard attacks medium
+			
 			str.AddAttack( 'combat_locomotion_kick_1', ADIST_Medium );
 			str.AddAttack( 'combat_locomotion_kick_2', ADIST_Medium );
 			str.AddAttack( 'combat_locomotion_kick_3', ADIST_Medium );			
@@ -971,22 +937,22 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 		{
 			str = aspect.CreateComboString( true );
 
-			//Add directional attacks near
+			
 			str.AddDirAttack( 'combat_locomotion_kick_1', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'combat_locomotion_kick_2', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'combat_locomotion_kick_3', AD_Front, ADIST_Small );
 			
-			//Add directional attacks medium
+			
 			str.AddDirAttack( 'combat_locomotion_kick_1', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'combat_locomotion_kick_2', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'combat_locomotion_kick_3', AD_Front, ADIST_Medium );			
 
-			//Add standard attacks near
+			
 			str.AddAttack( 'combat_locomotion_kick_1', ADIST_Small );
 			str.AddAttack( 'combat_locomotion_kick_2', ADIST_Small );
 			str.AddAttack( 'combat_locomotion_kick_3', ADIST_Small );
 			
-			//Add standard attacks medium
+			
 			str.AddAttack( 'combat_locomotion_kick_1', ADIST_Medium );
 			str.AddAttack( 'combat_locomotion_kick_2', ADIST_Medium );
 			str.AddAttack( 'combat_locomotion_kick_3', ADIST_Medium );		
@@ -1014,8 +980,8 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 		vx /= mgt;
 		vy /= mgt;		
 
-		vec.X = startPoint.X + vx * (mgt + distanceToTarget );//+ test.GetRadius() );
-		vec.Y = startPoint.Y + vy * (mgt + distanceToTarget );//+ test.GetRadius() );
+		vec.X = startPoint.X + vx * (mgt + distanceToTarget );
+		vec.Y = startPoint.Y + vy * (mgt + distanceToTarget );
 		
 		thePlayer.ActionMoveOnCurveToAsync( vec, distanceToTarget, true );		
 	}
@@ -1065,7 +1031,7 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 				}
 				else
 				{
-					//Remove looping timer that checks HOLD input for special attacks
+					
 					parent.RemoveTimer( 'IsSpecialLightAttackInputHeld' );
 					parent.RemoveTimer( 'IsSpecialHeavyAttackInputHeld' );
 					parent.RemoveTimer('SpecialAttackLightSustainCost');
@@ -1085,10 +1051,10 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 			{
 				if(enableAttack)
 				{
-					//set start time of when special heavy was started
+					
 					parent.specialHeavyStartEngineTime = theGame.GetEngineTime();
 					
-					//if we have max stamina then max duration will be clamped by how much we can afford
+					
 					if(parent.GetStatPercents(BCS_Stamina) > 0.99f)
 					{
 						staminaCostPerSec = parent.GetStaminaActionCost(ESAT_Ability, parent.GetSkillAbilityName(S_Sword_s02), 1.0f);
@@ -1125,14 +1091,14 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 				parent.AddCustomOrientationTarget( OT_CustomHeading, 'SpecialAttackLight' );
 				parent.SetBehaviorVariable( 'isPerformingSpecialAttack', 1.f );
 				temp = parent.GetBehaviorVariable( 'combatActionType' );
-				//if ( parent.IsInCombatAction() && ( parent.GetBehaviorVariable( 'combatActionType' ) == (int)CAT_Attack || parent.GetBehaviorVariable( 'combatActionType' ) == (int)CAT_PreAttack ) )
-				//{
+				
+				
 					if ( parent.RaiseForceEvent( 'CombatAction' ) )
 					{
 						parent.AddTimer('SpecialAttackLightSustainCost', 0.001, true);
 						virtual_parent.OnCombatActionStart();
 					}
-				//}
+				
 				
 				parent.SetBehaviorVariable( 'combatActionType', (int)CAT_SpecialAttack );
 				parent.SetBehaviorVariable( 'playerAttackType', 0 );
@@ -1147,7 +1113,7 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 		else
 		{
 			if ( !enableAttack
-				//&& parent.IsInCombatAction()
+				
 				&& parent.GetBehaviorVariable( 'combatActionType' ) == (int)CAT_SpecialAttack
 				&& parent.GetBehaviorVariable( 'playerAttackType' ) == 0 )
 			{
@@ -1160,24 +1126,14 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 	
 	timer function UpdateSpecialAttackLightHeading( time : float , id : int)
 	{	
-		/*if ( !thePlayer.IsInCombat() && !thePlayer.CanAttackWhenNotInCombat( EBAT_SpecialAttack_Light ) )
-		{
-			thePlayer.RemoveTimer( 'IsSpecialLightAttackInputHeld' );
-			thePlayer.RemoveTimer( 'IsSpecialHeavyAttackInputHeld' );
-			thePlayer.RemoveTimer( 'SpecialAttackLightSustainCost' );
-			thePlayer.RemoveTimer( 'SpecialAttackHeavySustainCost' );
-			thePlayer.RemoveTimer( 'UpdateSpecialAttackLightHeading' );	
-			PerformSpecialAttackLight( false );
-		}
-		else
-		{*/
+		
 			if ( parent.bLAxisReleased )
 				parent.SetOrientationTargetCustomHeading( parent.GetHeading(), 'SpecialAttackLight' );
 			else
 			{
 				parent.SetOrientationTargetCustomHeading(  parent.rawPlayerHeading, 'SpecialAttackLight' );
 			}
-		//}
+		
 	}
 	
 	entry function PerformSpecialAttackHeavy( enableAttack : bool )
@@ -1232,15 +1188,11 @@ state CombatSword in W3PlayerWitcher extends Combat // ABSTRACT
 			
 			theGame.GetGameCamera().PlayAnimation( animation );
 			
-			/*
-				Get event duration but increase it by time that passed between button press and event start.
-				The reason is that once we start holding the button we 'feel' and want to start charging up the skill BUT
-				we still need some time to blend from current anim to special attack heavy anim.
-			*/
+			
 			specialHeavyAnimDuration = GetEventDurationFromEventAnimInfo( animInfo );									
 			specialHeavyAnimDuration += EngineTimeToFloat(theGame.GetEngineTime() - parent.specialHeavyStartEngineTime);			
 			
-			//Final duration is lesser of: how long it takes animation-wise and how much we can keep it with max stamina (already stored in parent.specialHeavyChargeDuration)
+			
 			parent.specialHeavyChargeDuration = MinF(parent.specialHeavyChargeDuration, specialHeavyAnimDuration);
 		}
 	}

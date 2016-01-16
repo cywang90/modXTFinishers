@@ -1,7 +1,10 @@
 ﻿/***********************************************************************/
-/** Copyright © ?-2014
-/** Author : Wojciech Żerek, Tomek Kozera
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
+
+
 
 enum EToxicCloudOperation
 {
@@ -29,17 +32,17 @@ import statemachine class W3ToxicCloud extends CGameplayEntity
 		default isEnvironment = true;
 		default burningChance = 1;
 
-	protected var chainedExplosion : bool;									//set to true if this entity ignites from another gas cloud explosion
-	protected var entitiesInPoisonRange : array<CActor>;					//entities being in poison/explosion range
+	protected var chainedExplosion : bool;									
+	protected var entitiesInPoisonRange : array<CActor>;					
 	protected saved var effectType : EEffectType;
 	private var poisonArea, explosionArea : CTriggerAreaComponent;
-	private var explodingTargetDamages : array<SRawDamage>;					//damage dealt when target killed with gas dies (exploding and dealing additional damage)
+	private var explodingTargetDamages : array<SRawDamage>;					
 	private var entitiesInExplosionRange : array<CGameplayEntity>;
-	private var isFromBomb : bool;											//set to true if gas is created from bomb
-	private var buffParams : SCustomEffectParams;							//cached params for poison buff
-	private var buffSpecParams : W3BuffDoTParams;							//cached special params for poison buff
-	private var isFromClusterBomb : bool;									//set to true if gas is created as a result of cluster bomb explosion
-	private var bombOwner : CActor;											//who threw bomb - used to avoid hitting friendlies & neutrals
+	private var isFromBomb : bool;											
+	private var buffParams : SCustomEffectParams;							
+	private var buffSpecParams : W3BuffDoTParams;							
+	private var isFromClusterBomb : bool;									
+	private var bombOwner : CActor;											
 	
 		default isFromBomb = false;
 		
@@ -132,7 +135,7 @@ import statemachine class W3ToxicCloud extends CGameplayEntity
 		StopPoisonTimer();		
 		
 		StopAllEffects();
-		DestroyAfter(5);	//destroy when fx off, if dynamic
+		DestroyAfter(5);	
 	}
 	
 	timer function KeepTryingToDisable(dt : float, id : int)
@@ -155,7 +158,7 @@ import statemachine class W3ToxicCloud extends CGameplayEntity
 			GotoState('Disabled');
 	}
 	
-	//might be NULL if trigger did not stream yet
+	
 	public function GetPoisonAreaUnsafe() : CTriggerAreaComponent
 	{
 		if(!poisonArea)
@@ -164,7 +167,7 @@ import statemachine class W3ToxicCloud extends CGameplayEntity
 		return poisonArea;
 	}
 	
-	//might be NULL if trigger did not stream yet
+	
 	public function GetGasAreaUnsafe() : CTriggerAreaComponent
 	{
 		if(!explosionArea)
@@ -194,7 +197,7 @@ import statemachine class W3ToxicCloud extends CGameplayEntity
 		var ent : CEntity;
 		var expBolt : W3ExplosiveBolt;
 		
-		//entity with fire - explode
+		
 		ent = activator.GetEntity();
 		if(area == GetPoisonAreaUnsafe() && ent.HasTag(theGame.params.TAG_OPEN_FIRE) && GetCurrentStateName() == 'Armed')
 		{
@@ -214,13 +217,13 @@ import statemachine class W3ToxicCloud extends CGameplayEntity
 		if(area == GetPoisonAreaUnsafe())
 		{
 			actor = (CActor)ent;
-			if(actor && !entitiesInPoisonRange.Contains(actor) && IsRequiredAttitudeBetween(bombOwner, actor, true))
+			if(actor && !entitiesInPoisonRange.Contains(actor) && (!bombOwner || IsRequiredAttitudeBetween(bombOwner, actor, true)) )
 			{
 				entitiesInPoisonRange.PushBack(actor);
 				
 				if(entitiesInPoisonRange.Size() == 1)
 				{
-					//if buff params not set yet
+					
 					if(buffParams.effectType == EET_Undefined)
 					{						
 						buffParams.effectType = effectType;
@@ -254,7 +257,7 @@ import statemachine class W3ToxicCloud extends CGameplayEntity
 		else if(area == GetGasAreaUnsafe())
 		{
 			gameplayEnt = (CGameplayEntity)ent;
-			if(gameplayEnt && IsRequiredAttitudeBetween(bombOwner, gameplayEnt, true))
+			if(gameplayEnt && (!bombOwner || IsRequiredAttitudeBetween(bombOwner, gameplayEnt, true)) )
 			{
 				entitiesInExplosionRange.PushBack(gameplayEnt);
 				
@@ -359,7 +362,7 @@ import statemachine class W3ToxicCloud extends CGameplayEntity
 	}
 }
 
-//-------------------------------------------------------------------- DISABLED ----------------------------------------------------------------------
+
 state Disabled in W3ToxicCloud
 {
 	event OnEnterState( prevStateName : name )
@@ -378,12 +381,12 @@ state Disabled in W3ToxicCloud
 	}
 }
 
-//-------------------------------------------------------------------- SETTLE ----------------------------------------------------------------------
+
 state Settle in W3ToxicCloud
 {
 	event OnEnterState( prevStateName : name )
 	{
-		//gas cloud fx
+		
 		if(parent.IsFromClusterBomb() && IsNameValid(parent.fxOnSettleCluster))
 			parent.PlayEffectSingle(parent.fxOnSettleCluster);
 		else
@@ -401,7 +404,7 @@ state Settle in W3ToxicCloud
 	}
 }
 
-//-------------------------------------------------------------------- ARMED ----------------------------------------------------------------------
+
 state Armed in W3ToxicCloud
 {
 	private var isExploding : bool;
@@ -414,7 +417,7 @@ state Armed in W3ToxicCloud
 		
 		isExploding = false;
 
-		//make cloud targetable again if Player is outside it's area
+		
 		area = parent.GetPoisonAreaUnsafe();
 		area.SetEnabled(true);				
 		
@@ -423,12 +426,12 @@ state Armed in W3ToxicCloud
 		else
 			parent.SetCanBeTargeted( true );
 		
-		//check if there's a fire entity already in trigger
-		//due to performance we only check actors, there's no function to get entities
+		
+		
 		actors = parent.GetActorsInPoisonRange();
 		for(i=0; i<actors.Size(); i+=1)
 			if(actors[i].HasTag(theGame.params.TAG_OPEN_FIRE))
-				Explode(actors[i]);	//this will go to other state
+				Explode(actors[i]);	
 				
 		if(parent.IsActorInPoisonRange(thePlayer))
 		{
@@ -439,11 +442,11 @@ state Armed in W3ToxicCloud
 	event OnFireHit(source : CGameplayEntity)
 	{
 		if(isExploding)
-			return true;	//already handling it at the moment
+			return true;	
 			
 		parent.OnFireHit(source);
 		
-		//chain explosion
+		
 		if((W3ToxicCloud)source)
 			parent.chainedExplosion = true;
 		
@@ -460,7 +463,7 @@ state Armed in W3ToxicCloud
 	
 		isExploding = true;
 	
-		//achievement
+		
 		actor = (CActor)source;
 		if(actor && actor.HasBuff(EET_Burning) && parent.IsFromBomb())
 			theGame.GetGamerProfile().IncStat(ES_DragonsDreamTriggers);
@@ -468,7 +471,7 @@ state Armed in W3ToxicCloud
 		parent.StopAllEffects();
 		parent.StopPoisonTimer();
 		
-		//explosion fx
+		
 		if(parent.IsFromClusterBomb() && IsNameValid(parent.fxOnExplodeCluster))
 			parent.PlayEffectSingle(parent.fxOnExplodeCluster);
 		else
@@ -517,7 +520,7 @@ state Armed in W3ToxicCloud
 	}
 }
 
-//-------------------------------------------------------------------- WAIT ----------------------------------------------------------------------
+
 state Wait in W3ToxicCloud
 {
 	event OnEnterState( prevStateName : name )
