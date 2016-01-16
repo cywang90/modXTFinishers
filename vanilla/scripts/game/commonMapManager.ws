@@ -1,4 +1,9 @@
-﻿import struct SAreaMapPinInfo
+﻿/***********************************************************************/
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/***********************************************************************/
+import struct SAreaMapPinInfo
 {
 	import var areaType : int;
 	import var position : Vector;
@@ -126,7 +131,7 @@ import abstract class CCommonMapManager extends IGameSystem
 	import final function SetPinFilterVisible( pinID : name, visible : bool );
 	import final function GetPinFilterVisible( pinID : name ) : bool;
 
-	// called from c++
+	
 	event OnMapPinChanged()
 	{
 		theGame.GetGlobalEventsManager().OnScriptedEvent( SEC_OnMapPinChanged );
@@ -147,7 +152,7 @@ import abstract class CCommonMapManager extends IGameSystem
 
 		SetEntityMapPinDiscovered(tag, set);
 		
-		//achievement for discovering 100 fast travel points in the entire game
+		
 		if( !previouslyDiscovered && isFastTravelPoint && set)
 		{
 			CheckExplorerAchievement();
@@ -195,7 +200,7 @@ import abstract class CCommonMapManager extends IGameSystem
 			}
 		}
 		
-		//saw first tutorial but didn't see the second one
+		
 		if(!ShouldProcessTutorial('TutorialPOIAppeared') && ShouldProcessTutorial('TutorialPOIUncovered'))
 		{
 			FactsAdd("tut_uncovered_POI");
@@ -213,7 +218,7 @@ import abstract class CCommonMapManager extends IGameSystem
 		}	
 	}
 	
-	public function GetMappinType( tag : name ) : name // #B refactor it Paweł :)
+	public function GetMappinType( tag : name ) : name 
 	{
 		var i : int;
 		var mappinArray : array< SAvailableFastTravelMapPin >;			
@@ -229,7 +234,7 @@ import abstract class CCommonMapManager extends IGameSystem
 	}
 	
 		
-	function GetMappins( onlyDiscovered : bool, onlyEnabled : bool ) : array< SAvailableFastTravelMapPin >  // #B refactor it Paweł :)
+	function GetMappins( onlyDiscovered : bool, onlyEnabled : bool ) : array< SAvailableFastTravelMapPin >  
 	{
 		var i, j : int;
 		var areaMapPins : array< SAreaMapPinInfo >;
@@ -293,12 +298,12 @@ import abstract class CCommonMapManager extends IGameSystem
 		DBG_UpdateShownPins();
 	}
 
-	function /* C++ */ GetCurrentJournalArea() : int
+	function  GetCurrentJournalArea() : int
 	{
 		return GetCurrentJournalAreaByPosition( thePlayer.GetWorldPosition() );
 	}
 
-	function /* C++ */ GetCurrentJournalAreaByPosition( position : Vector ) : int
+	function  GetCurrentJournalAreaByPosition( position : Vector ) : int
 	{
 		return GetJournalAreaByPosition( GetCurrentArea(), position );
 	}
@@ -307,9 +312,9 @@ import abstract class CCommonMapManager extends IGameSystem
 	{
 		if ( area == AN_NMLandNovigrad  )
 		{
-			// we need to distinguish Novigrad and Velen
-			// checking against these coords seems to be fine
-			// (can't use triggers as we need to distinguish them also when the world in not loaded)
+			
+			
+			
 			if ( position.X > 970 || position.Y < 1600 )
 			{
 				return AN_Velen;
@@ -323,7 +328,7 @@ import abstract class CCommonMapManager extends IGameSystem
 		return area;
 	}
 
-	function /* C++ */ AddMapPathToMinimap( path : SMapPathInstance )
+	function  AddMapPathToMinimap( path : SMapPathInstance )
 	{
 		var minimapModule : CR4HudModuleMinimap2 = GetMinimap2Module();
 		if ( minimapModule )
@@ -332,7 +337,7 @@ import abstract class CCommonMapManager extends IGameSystem
 		}
 	}
 
-	function /* C++ */ DeleteMapPathsFromMinimap( ids : array< int > )
+	function  DeleteMapPathsFromMinimap( ids : array< int > )
 	{
 		var minimapModule : CR4HudModuleMinimap2 = GetMinimap2Module();
 		if ( minimapModule )
@@ -341,22 +346,22 @@ import abstract class CCommonMapManager extends IGameSystem
 		}
 	}
 	
-	function /* C++ */ NotifyPlayerEnteredInterior( areaPos : Vector, areaYaw : float, texture : string )
+	function  NotifyPlayerEnteredInterior( areaPos : Vector, areaYaw : float, texture : string )
 	{
 		theGame.GetGuiManager().GetHudEventController().RunEvent_MinimapModule_NotifyPlayerEnteredInterior( areaPos, areaYaw, texture );
 	}
 	
-	function /* C++ */ NotifyPlayerExitedInterior()
+	function  NotifyPlayerExitedInterior()
 	{
 		theGame.GetGuiManager().GetHudEventController().RunEvent_MinimapModule_NotifyPlayerExitedInterior();
 	}
 	
-	function /* C++ */ NotifyPlayerMountedBoat()
+	function  NotifyPlayerMountedBoat()
 	{
 		theGame.GetGuiManager().GetHudEventController().RunEvent_MinimapModule_NotifyPlayerMountedBoat();
 	}
 	
-	function /* C++ */ NotifyPlayerDismountedBoat()
+	function  NotifyPlayerDismountedBoat()
 	{
 		theGame.GetGuiManager().GetHudEventController().RunEvent_MinimapModule_NotifyPlayerDismountedBoat();
 	}
@@ -367,15 +372,15 @@ import abstract class CCommonMapManager extends IGameSystem
 		
 		definitions.Clear();
 	
-		// dynamic map pins (entity tag, mappin type)
+		
 
-		// for testing only
-		//definition.tag	= 'monster_nekker';
-		//definition.type	= 'Quest';
-		//definitions.PushBack( definition );
-		//definition.tag	= 'Quest';
-		//definition.type	= 'Quest';
-		//definitions.PushBack( definition );
+		
+		
+		
+		
+		
+		
+		
 	}
 
 	function GetKnowableMapPinTypes( out types : array< name > )
@@ -407,8 +412,8 @@ import abstract class CCommonMapManager extends IGameSystem
 		types.PushBack( 'MagicLamp' );
 		types.PushBack( 'TreasureHuntMappin' );
 		types.PushBack( 'PointOfInterestMappin' );
-		//types.PushBack( 'NoticeBoard' ); // TTP 98991
-		//types.PushBack( 'PlayerStash' ); // visible from begining
+		
+		
 		types.PushBack( 'Rift' );
 		types.PushBack( 'Teleport' );
 		types.PushBack( 'Whetstone' );
@@ -500,18 +505,18 @@ import abstract class CCommonMapManager extends IGameSystem
 		return (CR4HudModuleMinimap2)hud.GetHudModule( "Minimap2Module" );
 	}
 
-	function /* C++ */ GetAreaMappinsFileName( out filePath : string )
+	function  GetAreaMappinsFileName( out filePath : string )
 	{
 		filePath = "game\world.w2am";
 	}
 
-	function /* C++ */ GetAreaMappinsData( out mappins : array< SAreaMapPinInfo > )
+	function  GetAreaMappinsData( out mappins : array< SAreaMapPinInfo > )
 	{
 		var i		: int;
 
 		mappins.Clear();
 
-		// for requiredChunk parameter see r4data\engine\misc\playgo_chunks.csv
+		
 		FillAreaMapPinInfo( mappins, AN_NMLandNovigrad,           185,  -190,  "levels\novigrad\novigrad.w2w",                    'content4',  'map_location_novigrad',       'map_description_novigrad' );
 		FillAreaMapPinInfo( mappins, AN_Skellige_ArdSkellig,     -567,   665,  "levels\skellige\skellige.w2w",                    'content5',  'map_location_skellige',       'map_description_skellige' );
 		FillAreaMapPinInfo( mappins, AN_Kaer_Morhen,              1720, -1098, "levels\kaer_morhen\kaer_morhen.w2w",              'content6',  'map_location_kaer_morhen',    'map_description_kaer_morhen' );
@@ -522,9 +527,9 @@ import abstract class CCommonMapManager extends IGameSystem
 		FillAreaMapPinInfo( mappins, AN_Prologue_Village_Winter,  797,   250,  "levels\prolog_village_winter\prolog_village.w2w", 'content12', 'map_location_prolog_village', 'map_description_prolog_village' );
 		FillAreaMapPinInfo( mappins, AN_Velen,                    176,   91,   "levels\novigrad\novigrad.w2w",                    'content4',  'map_location_no_mans_land',   'map_description_no_mans_land' );
 
-		//
-		//FillAreaMapPinInfo( mappins, AN_CombatTestLevel,          -300, 400, "qa\combat_test_level\combat_test_level.w2w",       "COMBAT TEST LEVEL" );
-		//
+		
+		
+		
 	}
 	
 	private function FillAreaMapPinInfo( out mappins : array< SAreaMapPinInfo >, areaType : EAreaName, areaPinX : int, areaPinY : int, worldPath : string, requiredChunk : name, localisationName : name, localisationDescription : name )
@@ -574,11 +579,11 @@ import abstract class CCommonMapManager extends IGameSystem
 			contextName = theGame.GetCommonMapManager().GetLocalisationNameFromAreaType( GetCurrentJournalAreaByPosition( position ) );
 			theGame.SetSingleShotLoadingScreen( contextName );
 			
-			// Use only Yaw from rotation. We dont want to roll or pitch character.
+			
 			rotation.Roll = 0.f;
 			rotation.Pitch = 0.f;
 			thePlayer.TeleportWithRotation( position, rotation );
-			UseMapPin( destinationPinTag, false ); // needed because of used fast travel event
+			UseMapPin( destinationPinTag, false ); 
 			
 			theGame.RequestAutoSave( "fast travel", true );
 		}
@@ -590,7 +595,7 @@ import abstract class CCommonMapManager extends IGameSystem
 		var position : Vector;
 		var rotation : EulerAngles;
 
-		// needed for calling UseMapPin in destination world
+		
 		m_destinationPinTag = destinationPinTag;
 
 		worldPath = GetWorldPathFromAreaType( destinationArea );
@@ -604,7 +609,7 @@ import abstract class CCommonMapManager extends IGameSystem
 			}
 			else
 			{
-				// this should never happen, but just in case
+				
 				theGame.ScheduleWorldChangeToMapPin( worldPath, destinationPinTag );
 			}
 			
@@ -636,7 +641,7 @@ import abstract class CCommonMapManager extends IGameSystem
 		}
 	}
 
-	////
+	
 	
 	function GetAreaFromWorldPath( worldPath : string, optional noWinterPrologVillage : bool ) : int
 	{
@@ -654,7 +659,7 @@ import abstract class CCommonMapManager extends IGameSystem
 				{
 					if ( area == AN_Prologue_Village_Winter )
 					{
-						// fix for different w2w that actually mean the same map
+						
 						area = AN_Prologue_Village;
 					}
 				}
@@ -676,7 +681,7 @@ import abstract class CCommonMapManager extends IGameSystem
 	    {
 			if ( areaMapPins[ i ].areaType == areaType )
 			{
-				mapName = StrAfterLast( areaMapPins[ i ].worldPath, StrChar( 92 ) ); //#B because "/" can't be inserted here as string StrChar(92) was used
+				mapName = StrAfterLast( areaMapPins[ i ].worldPath, StrChar( 92 ) ); 
 				mapName = StrReplace( mapName, ".w2w", "" );
 				return mapName;
 			}
@@ -742,15 +747,7 @@ import abstract class CCommonMapManager extends IGameSystem
 
 		for ( i = 0; i < affectedAreas.Size(); i += 1 )
 		{
-			/*
-			if ( GetEntityMapPinTags( GetWorldPathFromAreaType( affectedAreas[ i ] ), tags ) )
-			{
-				for ( j = 0; j < tags.Size(); j += 1 )
-				{
-					ManageFastTravelPoint( enable, show, tags[ j ] );
-				}
-			}
-			*/
+			
 		}
 	}
 
@@ -769,7 +766,7 @@ import abstract class CCommonMapManager extends IGameSystem
 		SetEntityMapPinDiscoveredScript(true, tag, show );
 	}
 	
-	// keep it "compatible" with HasFastTravelPoints points (below)
+	
 	function GetFastTravelPoints( onlyDiscovered : bool, onlyEnabled : bool, optional ignoreLand : bool, optional ignoreWater : bool, optional ignoreVelenAndPrologueWinter : bool ) : array< SAvailableFastTravelMapPin >
 	{
 		var i, j : int;
@@ -825,7 +822,7 @@ import abstract class CCommonMapManager extends IGameSystem
 		return pins;
 	}
 
-	// keep it "compatible" with GetFastTravelPoints points (above)
+	
 	function HasFastTravelPoints( onlyDiscovered : bool, onlyEnabled : bool, optional ignoreLand : bool, optional ignoreWater : bool, optional ignoreVelenAndPrologueWinter : bool ) : bool
 	{
 		var i, j : int;

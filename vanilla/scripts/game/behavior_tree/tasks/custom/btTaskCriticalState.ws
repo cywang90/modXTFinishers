@@ -1,9 +1,11 @@
 ﻿/***********************************************************************/
-/** 
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
-/** Copyright © 2012
-/** Author : Patryk Fiutowski
-/***********************************************************************/
+
+
+
 
 class CBehTreeTaskCriticalState extends IBehTreeTask
 {
@@ -56,8 +58,8 @@ class CBehTreeTaskCriticalState extends IBehTreeTask
 		nextBuff = owner.ChooseNextCriticalBuffForAnim();
 		nextBuffType = GetBuffCriticalType(nextBuff);
 		
-		//force remove current buff if there is no other buff (CS anim is shorter then buff duration) 
-		//or next buff is the same as current buff (task ended before anim end info reached effect manager)
+		
+		
 		if(!nextBuff || (currentCS == nextBuffType))
 		{			
 			forceRemoveCurrentBuff = true;
@@ -73,7 +75,7 @@ class CBehTreeTaskCriticalState extends IBehTreeTask
 		
 		if(!nextBuff)
 		{
-			//if no other critical buffs to play then disallow play anim of current buff
+			
 			currBuff = owner.GetCurrentlyAnimatedCS();
 			CriticalBuffDisallowPlayAnimation(currBuff);
 		}
@@ -108,18 +110,18 @@ class CBehTreeTaskCriticalState extends IBehTreeTask
 			
 			npc = GetNPC();
 			
-			// We no longer have seperate trees for critical states. Previously we could disable critical state animation by removing
-			// critical state tree in ai parametrization. This is a workaround that prevents animation from playing.
+			
+			
 			if ( receivedBuffType == ECST_BurnCritical && npc.HasAbility( 'BurnNoAnim' ) )
 				return false;
 			
-			// Ability condition that blocks critical state animations - for handling critical states with additive anims
+			
 			if ( npc.HasAbility( 'ablIgnoreSigns' ) )
 				return false;
 			
 			if ( ShouldBeScaredOnOverlay() )
 			{
-				theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( GetNPC(), 'TauntAction', -1, 1.f, -1.f, 1, false ); //reactionSystemSearch
+				theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( GetNPC(), 'TauntAction', -1, 1.f, -1.f, 1, false ); 
 				return false;
 			}
 			

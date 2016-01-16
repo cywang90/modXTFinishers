@@ -1,4 +1,9 @@
-﻿class CR4HudModuleRadialMenu extends CR4HudModuleBase
+﻿/***********************************************************************/
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/***********************************************************************/
+class CR4HudModuleRadialMenu extends CR4HudModuleBase
 {
 	private var m_fxBlockRadialMenuSFF			: CScriptedFlashFunction;
 	private var m_fxShowRadialMenuSFF			: CScriptedFlashFunction;
@@ -27,7 +32,7 @@
 	default m_isDesaturated = false;
 	default m_allowAutoRotationReturnValue = true;
 
-	event /* flash */ OnConfigUI()
+	event  OnConfigUI()
 	{
 		var flashModule : CScriptedFlashSprite;
 		
@@ -88,14 +93,14 @@
 
 	event OnRadialMenuItemChoose( choosenSymbol : string )
 	{
-		//thePlayer.OnRadialMenuItemChoose(choosenSymbol);
+		
 	}	
 
 	event OnRadialMenuConfirmSelection(  action : SInputAction  )
 	{
 		if( IsPressed(action) )
 		{
-			// option for J version
+			
 			if (m_swappedAcceptCancel)
 			{
 				UserClose();
@@ -111,7 +116,7 @@
 	{
 		if( IsPressed(action) )
 		{
-			// option for J version
+			
 			if (m_swappedAcceptCancel)
 			{
 				UserConfirmSelection();
@@ -139,7 +144,7 @@
 		}
 	}
 	
-	event /*flash*/ OnActivateSlot(slotName:string)
+	event  OnActivateSlot(slotName:string)
 	{
 		var outKeys : array< EInputKey >;
 		var player : W3PlayerWitcher;
@@ -150,7 +155,7 @@
 		UpdateItemsIcons();
 	}
 	
-	event /*flash*/ OnRequestCloseRadial()
+	event  OnRequestCloseRadial()
 	{
 		UserClose();
 	}
@@ -179,15 +184,15 @@
 					ResetMeditationSavedData();
 					thePlayer.OnRadialMenuItemChoose("Meditation"); 
 					
-					//if failed to kneel down and enter meditation (for whatever animation-driven reason)
-					//  show message that you cannot do this action now and fail
+					
+					
 					if(thePlayer.GetCurrentStateName() != 'Meditation')
 					{
 						thePlayer.DisplayActionDisallowedHudMessage(EIAB_OpenMeditation, , witcher.IsThreatened(), !witcher.CanMeditateHere(), witcher.IsThreatened());
 					}
 					else
 					{
-						//theGame.Unpause( "RadialMenu" );
+						
 						return true;
 					}
 				}
@@ -209,14 +214,12 @@
 	
 	event OnRadialMenu( action : SInputAction )
 	{
-		var hud : CR4ScriptedHud;
-		
 		if( IsPressed(action) )
 		{
 			if( m_shown )
 			{
 				HideRadialMenu();
-				//theGame.Unpause( "RadialMenu" );
+				
 				return true;
 			}
 			if(!thePlayer.IsActionAllowed(EIAB_RadialMenu))
@@ -228,27 +231,22 @@
 			if ( theGame.IsDialogOrCutscenePlaying() || theGame.IsBlackscreenOrFading() || (!thePlayer.GetBIsInputAllowed() && !GetWitcherPlayer().IsUITakeInput()) )
 				return false;
 				
-			hud = (CR4ScriptedHud)theGame.GetHud();
-			if ( hud && !hud.IsHudVisibilityAllowedByUser() )
-			{
-				return false;
-			}
-		
 			ShowRadialMenu();
-			//theGame.Pause( "RadialMenu" );
+			
 		}
 	}
 	
 	function ShowRadialMenu()
 	{
 		var camera : CCustomCamera;
+		var hud : CR4ScriptedHud;
 		
 		if( !m_shown && !theGame.IsDialogOrCutscenePlaying())
 		{
-			// Ł.SZ to make this work properly a fix on Action Script side is reqired. Right now radial menu slots are rest after this is called. It must by fixed.
+			
 			thePlayer.RestoreBlockedSlots();
 			
-			//theGame.GetGuiManager().RequestMouseCursor(true);
+			
 			theGame.CenterMouse();
 			
 			theGame.ForceUIAnalog(true);
@@ -268,11 +266,11 @@
 			theGame.SetTimeScale( 0.1, theGame.GetTimescaleSource(ETS_RadialMenu), theGame.GetTimescalePriority(ETS_RadialMenu), false, true);
 			GetWitcherPlayer().SetUITakeInput(true);
 
-			// TEMP HACK
+			
 			camera = (CCustomCamera)theCamera.GetTopmostCameraObject();
 			m_allowAutoRotationReturnValue = camera.allowAutoRotation;
 			camera.allowAutoRotation = false;
-			// /HACK
+			
 			
 			m_shown = true;
 			ResetItemsModule();
@@ -290,6 +288,12 @@
 			{
 				theGame.GetGuiManager().HideTutorial( true, false );
 				m_tutorialsHidden = true;
+			}
+			
+			hud = (CR4ScriptedHud)theGame.GetHud();
+			if ( hud )
+			{
+				hud.OnRadialOpened();
 			}
 		}
 	}
@@ -315,17 +319,18 @@
 	function HideRadialMenu()
 	{
 		var camera : CCustomCamera;
+		var hud : CR4ScriptedHud;
 		
 		if( m_shown )
 		{	
-			//theGame.GetGuiManager().RequestMouseCursor(false);
+			
 			theGame.ForceUIAnalog(false);
 			theSound.SoundEvent( "gui_ingame_wheel_close" );
-			//m_fxShowRadialMenuSFF.InvokeSelfOneArg( FlashArgBool(false) );
+			
 			theGame.RemoveTimeScale( theGame.GetTimescaleSource(ETS_RadialMenu) );
 			GetWitcherPlayer().SetUITakeInput(false);
 
-			// TEMP HACK
+			
 			camera = (CCustomCamera)theCamera.GetTopmostCameraObject();
 			camera.allowAutoRotation = m_allowAutoRotationReturnValue;
 			
@@ -340,6 +345,11 @@
 			}
 			thePlayer.UnblockAction( EIAB_Jump, 'RadialMenu' );
 						
+			hud = (CR4ScriptedHud)theGame.GetHud();
+			if ( hud )
+			{
+				hud.OnRadialClosed();
+			}
 		}
 	}
 	
@@ -436,38 +446,16 @@
 	
 	public function SetDesaturated( value : bool, fieldName : string )
 	{
-		// Ł.Sz --> there was already working a proper functinality for bloking radial slots. For thje future please use function "EnableRadialSlotsWithSource" in R4Player class. 
-		//Enabling Radial Slots should use BlockAction mechanics but it doesn't and at this point due to
-		//patches rewriting that could break saves for someone so we need to handle it here
-		/*if(GetWitcherPlayer())
-		{
-			switch(StrLower(fieldName))
-			{
-				case "aard" :
-					GetWitcherPlayer().BlockSignSelection(ST_Aard, value);
-					break;
-				case "axii" :
-					GetWitcherPlayer().BlockSignSelection(ST_Axii, value);
-					break;
-				case "igni" :
-					GetWitcherPlayer().BlockSignSelection(ST_Igni, value);
-					break;
-				case "quen" :
-					GetWitcherPlayer().BlockSignSelection(ST_Quen, value);
-					break;
-				case "yrden" :
-					GetWitcherPlayer().BlockSignSelection(ST_Yrden, value);
-					break;
-				default:
-					break;
-			}
-		}*/
 		
-		// #B use Yrden, Quen, Igni, Axii, Aard, Slot1, Slot2, Slot3, Slot4, Slot5
+		
+		
+		
+		
+		
 		m_fxSetDesaturatedSFF.InvokeSelfTwoArgs(FlashArgBool(value),FlashArgString(fieldName));
 	}
 		
-	protected function UpdateScale( scale : float, flashModule : CScriptedFlashSprite ) : bool // #B should be scaling ?
+	protected function UpdateScale( scale : float, flashModule : CScriptedFlashSprite ) : bool 
 	{
 		return false;
 	}

@@ -1,9 +1,12 @@
 ﻿/***********************************************************************/
-/** Copyright © 2012-2014
-/** Author : Rafal Jarczewski, Andrzej Kwiatkowski, Tomek Kozera
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
 
-// the difference form knockdown is that in this state the character is thrown far far away while being knocked down
+
+
+
 class W3Effect_HeavyKnockdown extends W3CriticalEffect
 {
 	default criticalStateType 			= ECST_HeavyKnockdown;
@@ -61,7 +64,7 @@ class W3Effect_HeavyKnockdown extends W3CriticalEffect
 		target.FinishQuen(false);
 	}
 	
-	//@Override ragdoll hack
+	
 	public function OnTimeUpdated(deltaTime : float)
 	{
 		var mac : CMovingPhysicalAgentComponent;
@@ -85,7 +88,7 @@ class W3Effect_HeavyKnockdown extends W3CriticalEffect
 			{
 				timeEndedHandled = true;				
 				
-				//if this effect is currently animated
+				
 				if(isActive && this == target.GetCurrentlyAnimatedCS())
 				{				
 					target.RequestCriticalAnimStop(target.IsInAir());

@@ -1,9 +1,11 @@
 ﻿/***********************************************************************/
-/** 
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
-/** Copyright © 2012
-/** Author : Andrzej Kwiatkowski
-/***********************************************************************/
+
+
+
 
 class CBTTaskDash extends CBTTaskPlayAnimationEventDecorator
 {
@@ -69,7 +71,7 @@ class CBTTaskDash extends CBTTaskPlayAnimationEventDecorator
 	{
 		var npc : CNewNPC = GetNPC();
 		
-		//npc.GetStat('','');
+		
 		dashChance	= (int)(100*CalculateAttributeValue(npc.GetAttributeValue('dash_movement_chance')));
 	}
 	

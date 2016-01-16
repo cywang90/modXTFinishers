@@ -1,6 +1,9 @@
-﻿/*
-NEEDS CHECKING! MADE COMPATIBLE WITH NEW COLLISION SYSTEM (added physicalActorindex / shapeIndex): Dennis Zoetebier
-*/
+﻿/***********************************************************************/
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/***********************************************************************/
+
 
 enum EPhysicalDamagemechanismOperation
 {
@@ -77,7 +80,7 @@ class W3PhysicalDamageMechanism extends CGameplayEntity
 			{
 				action = new W3DamageAction in theGame.damageMgr;
 				action.Initialize(this,victim,component,this.GetName(),hitReactionType,CPS_AttackPower,true,false,false,true);
-				action.AddDamage(theGame.params.DAMAGE_NAME_PHYSICAL, dmgValue );		//FIXME URGENT - fixed value -TK
+				action.AddDamage(theGame.params.DAMAGE_NAME_PHYSICAL, dmgValue );		
 				theGame.damageMgr.ProcessAction( action );
 				
 				delete action;

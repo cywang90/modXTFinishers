@@ -1,11 +1,15 @@
 ﻿/***********************************************************************/
-/** 
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
 
 
-////////////////////////////////////////////////////////////
-// CombatStyle
-////////////////////////////////////////////////////////////
+
+
+
+
+
 class CAINpcCombatStyle extends CAISubTree
 {
 	default aiTreeName = "resdef:ai\combat/npc_combatstyle";
@@ -21,10 +25,10 @@ class CAINpcCombatStyle extends CAISubTree
 	}
 };
 
-//------------------------------------------------------------------
+
 class CAINpcCombatStyleParams extends CAISubTreeParameters
 {
-	// combat style decorator params
+	
 	editable var LeftItemType 				: name;
 	editable var RightItemType 				: name;
 	editable var chooseSilverIfPossible 	: bool;
@@ -33,19 +37,19 @@ class CAINpcCombatStyleParams extends CAISubTreeParameters
 	
 	default minCombatStyleDistance = 0.f;
 	
-	// defense actions
+	
 	editable inlined var defenseActions 		: array<CAINpcDefenseAction>;
 	
-	// tactic params
+	
 	editable inlined var combatTacticTree 		: CAINpcTacticTree;
 	
-	// attack behavior
+	
 	editable inlined var attackBehavior 		: CAIAttackBehaviorTree;
 	
-	// potentialFollower
+	
 	editable var potentialFollower				: bool;
 	
-	// formation params
+	
 	editable var tryToUseFormation				: bool;
 	editable inlined var formationTacticTree 	: CAINpcFormationTacticTree;
 	
@@ -82,9 +86,9 @@ class CAINpcCombatStyleParams extends CAISubTreeParameters
 	}
 };
 
-////////////////////////////////////////////////////////////////////////
-// OneHandedCombatStyle
-////////////////////////////////////////////////////////////////////////
+
+
+
 class CAINpcOneHandedSwordCombatStyle extends CAINpcCombatStyle
 {
 	function Init()
@@ -94,7 +98,7 @@ class CAINpcOneHandedSwordCombatStyle extends CAINpcCombatStyle
 		params.OnCreated();
 	}	
 };
-//------------------------------------------------------------------
+
 class CAINpcStyleOneHandedSwordParams extends CAINpcCombatStyleParams
 {
 	default RightItemType = 'sword1h';
@@ -110,9 +114,9 @@ class CAINpcStyleOneHandedSwordParams extends CAINpcCombatStyleParams
 	}
 };
 
-////////////////////////////////////////////////////////////////////////
-// OneHandedAxeCombatStyle
-////////////////////////////////////////////////////////////////////////
+
+
+
 class CAINpcOneHandedAxeCombatStyle extends CAINpcCombatStyle
 {
 	function Init()
@@ -122,7 +126,7 @@ class CAINpcOneHandedAxeCombatStyle extends CAINpcCombatStyle
 		params.OnCreated();
 	}	
 };
-//------------------------------------------------------------------
+
 class CAINpcStyleOneHandedAxeParams extends CAINpcCombatStyleParams
 {
 	default RightItemType = 'axe1h';
@@ -141,9 +145,9 @@ class CAINpcStyleOneHandedAxeParams extends CAINpcCombatStyleParams
 	}
 };
 
-////////////////////////////////////////////////////////////////////////
-// OneHandedBluntCombatStyle
-////////////////////////////////////////////////////////////////////////
+
+
+
 class CAINpcOneHandedBluntCombatStyle extends CAINpcCombatStyle
 {
 	function Init()
@@ -153,7 +157,7 @@ class CAINpcOneHandedBluntCombatStyle extends CAINpcCombatStyle
 		params.OnCreated();
 	}	
 };
-//------------------------------------------------------------------
+
 class CAINpcStyleOneHandedBluntParams extends CAINpcCombatStyleParams
 {
 	default RightItemType = 'blunt1h';
@@ -172,9 +176,9 @@ class CAINpcStyleOneHandedBluntParams extends CAINpcCombatStyleParams
 	}
 };
 
-////////////////////////////////////////////////////////////////////////
-// OneHandedAnyCombatStyle
-////////////////////////////////////////////////////////////////////////
+
+
+
 class CAINpcOneHandedAnyCombatStyle extends CAINpcCombatStyle
 {
 	function Init()
@@ -184,7 +188,7 @@ class CAINpcOneHandedAnyCombatStyle extends CAINpcCombatStyle
 		params.OnCreated();
 	}	
 };
-//------------------------------------------------------------------
+
 class CAINpcStyleOneHandedAnyParams extends CAINpcCombatStyleParams
 {
 	default RightItemType = '1handedWeapon';
@@ -194,20 +198,20 @@ class CAINpcStyleOneHandedAnyParams extends CAINpcCombatStyleParams
 	{
 		super.Init();
 		
-		//tactic
+		
 		combatTacticTree = new CAINpcSurroundTacticTree in this;
 		combatTacticTree.OnCreated();
 		
-		//attack behavior
+		
 		attackBehavior.params.chargeAction = true;
 		
-		//clear defense actions
+		
 		defenseActions.Clear();
 	}
 };
-////////////////////////////////////////////////////////////////////////
-// TwoHandedAnyCombatStyle
-////////////////////////////////////////////////////////////////////////
+
+
+
 class CAINpcTwoHandedAnyCombatStyle extends CAINpcCombatStyle
 {
 	function Init()
@@ -226,22 +230,22 @@ class CAINpcStyleTwoHandedAnyParams extends CAINpcCombatStyleParams
 	{
 		super.Init();
 		
-		//tactic
+		
 		combatTacticTree = new CAINpcSurroundTacticTree in this;
 		combatTacticTree.OnCreated();
 		
-		//attack behavior
+		
 		attackBehavior.params.attackAction = new CAITwoHandedAttackActionTree in attackBehavior.params;
 		attackBehavior.params.attackAction.OnCreated();
 		
-		//clear defense actions
+		
 		defenseActions.Clear();
 	}
 };
 
-////////////////////////////////////////////////////////////////////////
-// FistsCombatParams
-////////////////////////////////////////////////////////////////////////
+
+
+
 abstract class CAINpcFistsCombatStyleBaseParams extends CAINpcCombatStyleParams
 {
 	editable var canBeScared : bool;
@@ -260,7 +264,7 @@ abstract class CAINpcFistsCombatStyleBaseParams extends CAINpcCombatStyleParams
 		combatTacticTree.OnCreated();
 		combatTacticTree.params.dontUseRunWhileStrafing = true;
 		
-		//defense actions
+		
 		defenseActions.Clear();
 		defenseActions.PushBack( new CAINpcParryAction in this );
 		defenseActions.PushBack( new CAINpcDodgeAction in this );
@@ -273,9 +277,9 @@ abstract class CAINpcFistsCombatStyleBaseParams extends CAINpcCombatStyleParams
 	}
 };
 
-////////////////////////////////////////////////////////////////////////
-// FistsCombatStyle
-////////////////////////////////////////////////////////////////////////
+
+
+
 class CAINpcFistsCombatStyle extends CAINpcCombatStyle
 {
 	function Init()
@@ -285,7 +289,7 @@ class CAINpcFistsCombatStyle extends CAINpcCombatStyle
 		params.OnCreated();
 	}	
 };
-//------------------------------------------------------------------
+
 class CAINpcStyleFistsParams extends CAINpcFistsCombatStyleBaseParams
 {
 	function Init()
@@ -300,9 +304,9 @@ class CAINpcStyleFistsParams extends CAINpcFistsCombatStyleBaseParams
 };
 
 
-////////////////////////////////////////////////////////////////////////
-// FistsCombatStyle
-////////////////////////////////////////////////////////////////////////
+
+
+
 class CAINpcFistsEasyCombatStyle extends CAINpcCombatStyle
 {
 	function Init()
@@ -312,7 +316,7 @@ class CAINpcFistsEasyCombatStyle extends CAINpcCombatStyle
 		params.OnCreated();
 	}	
 };
-//------------------------------------------------------------------
+
 class CAINpcStyleFistsEasyParams extends CAINpcFistsCombatStyleBaseParams
 {
 	function Init()
@@ -324,9 +328,9 @@ class CAINpcStyleFistsEasyParams extends CAINpcFistsCombatStyleBaseParams
 	}
 };
 
-////////////////////////////////////////////////////////////////////////
-// FistsHardCombatStyle
-////////////////////////////////////////////////////////////////////////
+
+
+
 class CAINpcFistsHardCombatStyle extends CAINpcCombatStyle
 {
 	function Init()
@@ -336,7 +340,7 @@ class CAINpcFistsHardCombatStyle extends CAINpcCombatStyle
 		params.OnCreated();
 	}	
 };
-//------------------------------------------------------------------
+
 class CAINpcStyleFistsHardParams extends CAINpcFistsCombatStyleBaseParams
 {
 	function Init()
@@ -349,9 +353,9 @@ class CAINpcStyleFistsHardParams extends CAINpcFistsCombatStyleBaseParams
 	}
 };
 
-////////////////////////////////////////////////////////////////////////
-// ShieldCombatStyle
-////////////////////////////////////////////////////////////////////////
+
+
+
 class CAINpcShieldCombatStyle extends CAINpcCombatStyle
 {
 	function Init()
@@ -361,7 +365,7 @@ class CAINpcShieldCombatStyle extends CAINpcCombatStyle
 		params.OnCreated();
 	}	
 };
-//------------------------------------------------------------------
+
 class CAINpcStyleShieldParams extends CAINpcCombatStyleParams
 {
 	default RightItemType = '1handedWeapon';
@@ -378,9 +382,9 @@ class CAINpcStyleShieldParams extends CAINpcCombatStyleParams
 	}
 };
 
-////////////////////////////////////////////////////////////////////////
-// VampiressCombatStyle
-////////////////////////////////////////////////////////////////////////
+
+
+
 class CAINpcVampiressCombatStyle extends CAINpcCombatStyle
 {
 	function Init()
@@ -400,7 +404,7 @@ class CAINpcBruxaCombatStyle extends CAINpcVampiressCombatStyle
 }
 
 
-//------------------------------------------------------------------
+
 class CAINpcStyleVampiressParams extends CAINpcCombatStyleParams
 {
 	default behGraph = EBG_Combat_Vampiress;
@@ -417,9 +421,9 @@ class CAINpcStyleVampiressParams extends CAINpcCombatStyleParams
 };
 
 
-////////////////////////////////////////////////////////////////////////
-// SorceressCombatStyle
-////////////////////////////////////////////////////////////////////////
+
+
+
 class CAINpcSorceressCombatStyle extends CAINpcCombatStyle
 {
 	function Init()
@@ -526,7 +530,7 @@ class CAINpcPhilippaCombatStyle extends CAINpcSorceressCombatStyle
 		params.combatTacticTree.params.InitializeSpecialActions();
 	}
 }
-//------------------------------------------------------------------
+
 class CAINpcStyleSorceressParams extends CAINpcCombatStyleParams
 {
 	default behGraph = EBG_Combat_Sorceress;
@@ -544,7 +548,7 @@ class CAINpcStyleSorceressParams extends CAINpcCombatStyleParams
 		combatTacticTree = new CAINpcSorceressTacticTree in this;
 		combatTacticTree.OnCreated();
 		
-		//defense actions
+		
 		defenseActions.Clear();
 		defenseActions.PushBack( new CAINpcCounterPushAction in this );
 		
@@ -581,9 +585,9 @@ class CAINpcStylePhilippaParams extends CAINpcCombatStyleParams
 	}
 };
 
-////////////////////////////////////////////////////////////////////////
-// SorcererCombatStyle
-////////////////////////////////////////////////////////////////////////
+
+
+
 class CAINpcSorcererCombatStyle extends CAINpcCombatStyle
 {
 	function Init()
@@ -610,8 +614,8 @@ class CAINpcDruidCombatStyle extends CAINpcSorcererCombatStyle
 		params.combatTacticTree.params.specialActions.Clear();
 		params.combatTacticTree.params.specialActions.PushBack( new CAIMagicGroundBlastSpecialAction in params.combatTacticTree.params );
 		params.combatTacticTree.params.specialActions.PushBack( new CAIMagicPushSpecialAction in params.combatTacticTree.params );
-		//params.combatTacticTree.params.specialActions.PushBack( new CAIMagicRootAttackSpecialAction in params.combatTacticTree.params );
-		//params.combatTacticTree.params.specialActions.PushBack( new CAICastLightningSpecialAction in params.combatTacticTree.params );
+		
+		
 		
 		params.combatTacticTree.params.InitializeSpecialActions();
 	}
@@ -638,9 +642,9 @@ class CAINpcWindMageCombatStyle extends CAINpcSorcererCombatStyle
 		params.combatTacticTree.params.specialActions.PushBack( new CAIMagicSandCageSpecialAction in params.combatTacticTree.params );
 		params.combatTacticTree.params.specialActions.PushBack( new CAIMagicShieldSpecialAction in params.combatTacticTree.params );
 		
-		//params.combatTacticTree.params.specialActions.PushBack( new CAIMagicRootAttackSpecialAction in params.combatTacticTree.params );
-		//params.combatTacticTree.params.specialActions.PushBack( new CAICastFireballSpecialAction in params.combatTacticTree.params );
-		//params.combatTacticTree.params.specialActions.PushBack( new CAICastLightningSpecialAction in params.combatTacticTree.params );
+		
+		
+		
 		
 		params.combatTacticTree.params.InitializeSpecialActions();
 	}
@@ -661,14 +665,14 @@ class CAINpcAvallachCombatStyle extends CAINpcSorcererCombatStyle
 		params.combatTacticTree.params.specialActions.Clear();
 		params.combatTacticTree.params.specialActions.PushBack( new CAIMagicGroundBlastSpecialAction in params.combatTacticTree.params );
 		params.combatTacticTree.params.specialActions.PushBack( new CAIMagicPushSpecialAction in params.combatTacticTree.params );
-		//params.combatTacticTree.params.specialActions.PushBack( new CAICastFireballSpecialAction in params.combatTacticTree.params );
-		//params.combatTacticTree.params.specialActions.PushBack( new CAICastLightningSpecialAction in params.combatTacticTree.params );
+		
+		
 		
 		params.combatTacticTree.params.InitializeSpecialActions();
 	}
 }
 
-//------------------------------------------------------------------
+
 class CAINpcStyleSorcererParams extends CAINpcCombatStyleParams
 {
 	default behGraph = EBG_Combat_2Handed_Staff;
@@ -683,18 +687,18 @@ class CAINpcStyleSorcererParams extends CAINpcCombatStyleParams
 		var i : int;
 		super.Init();
 		
-		//tactic
+		
 		combatTacticTree = new CAINpcSorcererTacticTree in this;
 		combatTacticTree.OnCreated();
 		combatTacticTree.params.dontUseRunWhileStrafing = true;
 		
-		//attack behavior
+		
 		attackBehavior.params.attackAction = new CAITwoHandedAttackActionTree in attackBehavior.params;
 		attackBehavior.params.attackAction.OnCreated();
 		attackBehavior.params.attackActionRange 	= 'thrust250';
 		attackBehavior.params.farAttackActionRange 	= 'thrust320';
 		
-		//defense actions
+		
 		defenseActions.Clear();
 		defenseActions.PushBack( new CAINpcCounterPushAction in this );
 		
@@ -707,9 +711,9 @@ class CAINpcStyleSorcererParams extends CAINpcCombatStyleParams
 
 
 
-////////////////////////////////////////////////////////////////////////
-// BowCombatStyle
-////////////////////////////////////////////////////////////////////////
+
+
+
 class CAINpcBowCombatStyle extends CAINpcCombatStyle
 {
 	function Init()
@@ -719,7 +723,7 @@ class CAINpcBowCombatStyle extends CAINpcCombatStyle
 		params.OnCreated();
 	}	
 };
-//------------------------------------------------------------------
+
 class CAINpcStyleBowParams extends CAINpcCombatStyleParams
 {
 	default LeftItemType = 'bow';
@@ -737,9 +741,9 @@ class CAINpcStyleBowParams extends CAINpcCombatStyleParams
 	}
 };
 
-////////////////////////////////////////////////////////////////////////
-// BowmanSwordCombatStyle
-////////////////////////////////////////////////////////////////////////
+
+
+
 class CAINpcBowmanMeleeCombatStyle extends CAINpcCombatStyle
 {
 	function Init()
@@ -752,7 +756,7 @@ class CAINpcBowmanMeleeCombatStyle extends CAINpcCombatStyle
 	}	
 };
 
-//------------------------------------------------------------------
+
 class CAINpcStyleBowmanMeleeParams extends CAINpcCombatStyleParams
 {
 	default RightItemType = '1handedWeapon';
@@ -767,7 +771,7 @@ class CAINpcStyleBowmanMeleeParams extends CAINpcCombatStyleParams
 		combatTacticTree = new CAINpcSurroundTacticFarTree in this;
 		combatTacticTree.OnCreated();
 		
-		//defense actions
+		
 		defenseActions.Clear();
 		defenseActions.PushBack( new CAINpcParryAction in this );
 		defenseActions.PushBack( new CAINpcDodgeAction in this );
@@ -780,9 +784,9 @@ class CAINpcStyleBowmanMeleeParams extends CAINpcCombatStyleParams
 	}
 };
 
-////////////////////////////////////////////////////////////////////////
-// CrossbowCombatStyle
-////////////////////////////////////////////////////////////////////////
+
+
+
 class CAINpcCrossbowCombatStyle extends CAINpcCombatStyle
 {
 	function Init()
@@ -792,7 +796,7 @@ class CAINpcCrossbowCombatStyle extends CAINpcCombatStyle
 		params.OnCreated();
 	}	
 };
-//------------------------------------------------------------------
+
 class CAINpcStyleCrossbowParams extends CAINpcCombatStyleParams
 {
 	default RightItemType = 'crossbow';
@@ -809,9 +813,9 @@ class CAINpcStyleCrossbowParams extends CAINpcCombatStyleParams
 		combatTacticTree.OnCreated();
 	}
 };
-////////////////////////////////////////////////////////////////////////
-// TwoHandedHammerCombatStyle
-////////////////////////////////////////////////////////////////////////
+
+
+
 class CAINpcTwoHandedHammerCombatStyle extends CAINpcCombatStyle
 {
 	function Init()
@@ -821,7 +825,7 @@ class CAINpcTwoHandedHammerCombatStyle extends CAINpcCombatStyle
 		params.OnCreated();
 	}	
 };
-//------------------------------------------------------------------
+
 class CAINpcStyleTwoHandedHammerParams extends CAINpcCombatStyleParams
 {
 	default RightItemType = 'hammer2h';
@@ -833,16 +837,16 @@ class CAINpcStyleTwoHandedHammerParams extends CAINpcCombatStyleParams
 		
 		super.Init();
 		
-		//tactic
+		
 		combatTacticTree = new CAINpcSurroundTacticTree in this;
 		combatTacticTree.OnCreated();
 		combatTacticTree.params.dontUseRunWhileStrafing = true;
 		
-		//attack behavior
+		
 		attackBehavior.params.attackAction = new CAITwoHandedAttackActionTree in attackBehavior.params;
 		attackBehavior.params.attackAction.OnCreated();
 		
-		//defense actions
+		
 		defenseActions.Clear();
 		defenseActions.PushBack( new CAINpcCounterHitAction in this );
 		
@@ -853,9 +857,9 @@ class CAINpcStyleTwoHandedHammerParams extends CAINpcCombatStyleParams
 	}
 };
 
-////////////////////////////////////////////////////////////////////////
-// TwoHandedAxeCombatStyle
-////////////////////////////////////////////////////////////////////////
+
+
+
 class CAINpcTwoHandedAxeCombatStyle extends CAINpcCombatStyle
 {
 	function Init()
@@ -865,7 +869,7 @@ class CAINpcTwoHandedAxeCombatStyle extends CAINpcCombatStyle
 		params.OnCreated();
 	}	
 };
-//------------------------------------------------------------------
+
 class CAINpcStyleTwoHandedAxeParams extends CAINpcCombatStyleParams
 {
 	default RightItemType = 'axe2h';
@@ -877,17 +881,17 @@ class CAINpcStyleTwoHandedAxeParams extends CAINpcCombatStyleParams
 		
 		super.Init();
 		
-		//tactic
+		
 		combatTacticTree = new CAINpcSurroundTacticTree in this;
 		combatTacticTree.OnCreated();
 		combatTacticTree.params.dontUseRunWhileStrafing = true;
 		
-		//attack behavior
+		
 		attackBehavior.params.attackAction = new CAITwoHandedAttackActionTree in attackBehavior.params;
 		attackBehavior.params.attackAction.OnCreated();
-		//attackBehavior.params.attackActionRange = '';
 		
-		//defense actions
+		
+		
 		defenseActions.Clear();
 		defenseActions.PushBack( new CAINpcCounterHitAction in this );
 		
@@ -898,9 +902,9 @@ class CAINpcStyleTwoHandedAxeParams extends CAINpcCombatStyleParams
 	}
 };
 
-////////////////////////////////////////////////////////////////////////
-// TwoHandedHalberdCombatStyle
-////////////////////////////////////////////////////////////////////////
+
+
+
 class CAINpcTwoHandedHalberdCombatStyle extends CAINpcCombatStyle
 {
 	function Init()
@@ -910,7 +914,7 @@ class CAINpcTwoHandedHalberdCombatStyle extends CAINpcCombatStyle
 		params.OnCreated();
 	}
 };
-//------------------------------------------------------------------
+
 class CAINpcStyleTwoHandedHalberdParams extends CAINpcCombatStyleParams
 {
 	default RightItemType = 'halberd2h';
@@ -922,18 +926,18 @@ class CAINpcStyleTwoHandedHalberdParams extends CAINpcCombatStyleParams
 		
 		super.Init();
 		
-		//tactic
+		
 		combatTacticTree = new CAINpcSurroundTacticTree in this;
 		combatTacticTree.OnCreated();
 		combatTacticTree.params.dontUseRunWhileStrafing = true;
 		
-		//attack behavior
+		
 		attackBehavior.params.attackAction = new CAITwoHandedAttackActionTree in attackBehavior.params;
 		attackBehavior.params.attackAction.OnCreated();
 		attackBehavior.params.attackActionRange 	= 'thrust250';
 		attackBehavior.params.farAttackActionRange 	= 'thrust320';
 		
-		//defense actions
+		
 		defenseActions.Clear();
 		defenseActions.PushBack( new CAINpcCounterHitAction in this );
 		
@@ -944,9 +948,9 @@ class CAINpcStyleTwoHandedHalberdParams extends CAINpcCombatStyleParams
 	}
 };
 
-////////////////////////////////////////////////////////////////////////
-// TwoHandedSpearCombatStyle
-////////////////////////////////////////////////////////////////////////
+
+
+
 class CAINpcTwoHandedSpearCombatStyle extends CAINpcCombatStyle
 {
 	function Init()
@@ -956,7 +960,7 @@ class CAINpcTwoHandedSpearCombatStyle extends CAINpcCombatStyle
 		params.OnCreated();
 	}	
 };
-//------------------------------------------------------------------
+
 class CAINpcStyleTwoHandedSpearParams extends CAINpcCombatStyleParams
 {
 	default RightItemType = 'spear2h';
@@ -968,12 +972,12 @@ class CAINpcStyleTwoHandedSpearParams extends CAINpcCombatStyleParams
 		
 		super.Init();
 		
-		//tactic
+		
 		combatTacticTree = new CAINpcSurroundTacticTree in this;
 		combatTacticTree.OnCreated();
 		combatTacticTree.params.dontUseRunWhileStrafing = true;
 		
-		//attack behavior
+		
 		attackBehavior.params.attackAction = new CAITwoHandedAttackActionTree in attackBehavior.params;
 		attackBehavior.params.attackAction.OnCreated();
 		attackBehavior.params.attackActionRange = 'thrust250';
@@ -981,7 +985,7 @@ class CAINpcStyleTwoHandedSpearParams extends CAINpcCombatStyleParams
 		attackBehavior.params.farAttackAction.OnCreated();
 		attackBehavior.params.farAttackActionRange = 'thrust320';
 		
-		//defense actions
+		
 		defenseActions.Clear();
 		defenseActions.PushBack( new CAINpcCounterHitAction in this );
 		
@@ -992,9 +996,9 @@ class CAINpcStyleTwoHandedSpearParams extends CAINpcCombatStyleParams
 	}
 };
 
-////////////////////////////////////////////////////////////////////////
-// PitchforkCombatStyle
-////////////////////////////////////////////////////////////////////////
+
+
+
 class CAINpcPitchforkCombatStyle extends CAINpcCombatStyle
 {
 	function Init()
@@ -1004,7 +1008,7 @@ class CAINpcPitchforkCombatStyle extends CAINpcCombatStyle
 		params.OnCreated();
 	}	
 };
-//------------------------------------------------------------------
+
 class CAINpcStylePitchforkParams extends CAINpcCombatStyleParams
 {
 	default RightItemType = 'spear2h';
@@ -1016,17 +1020,17 @@ class CAINpcStylePitchforkParams extends CAINpcCombatStyleParams
 		
 		super.Init();
 		
-		//tactic
+		
 		combatTacticTree = new CAINpcSurroundTacticTree in this;
 		combatTacticTree.OnCreated();
 		combatTacticTree.params.dontUseRunWhileStrafing = true;
 		
-		//attack behavior
+		
 		attackBehavior.params.attackAction = new CAIPitchforkAttackActionTree in attackBehavior.params;
 		attackBehavior.params.attackAction.OnCreated();
 		attackBehavior.params.attackActionRange = 'thrust250';
 				
-		//defense actions
+		
 		defenseActions.Clear();
 		defenseActions.PushBack( new CAINpcCounterHitAction in this );
 		
@@ -1037,9 +1041,9 @@ class CAINpcStylePitchforkParams extends CAINpcCombatStyleParams
 	}
 };
 
-////////////////////////////////////////////////////////////////////////
-// WitcherCombatStyle
-////////////////////////////////////////////////////////////////////////
+
+
+
 class CAINpcWitcherCombatStyle extends CAINpcCombatStyle
 {
 	function Init()
@@ -1049,7 +1053,7 @@ class CAINpcWitcherCombatStyle extends CAINpcCombatStyle
 		params.OnCreated();
 	}	
 };
-//------------------------------------------------------------------
+
 class CAINpcWitcherCombatStyleParams extends CAINpcCombatStyleParams
 {
 	default RightItemType = 'steelsword';
@@ -1062,18 +1066,18 @@ class CAINpcWitcherCombatStyleParams extends CAINpcCombatStyleParams
 		
 		super.Init();
 		
-		//tactic
+		
 		combatTacticTree = new CAINpcSurroundTacticTree in this;
 		combatTacticTree.OnCreated();
 		combatTacticTree.params.dontUseRunWhileStrafing = true;
 		
-		//attack behavior
+		
 		attackBehavior.params.attackAction = new CAIWitcherAttackActionTree in this;
 		attackBehavior.params.attackAction.OnCreated();
 		attackBehavior.params.approachAction 	= true;
 		attackBehavior.params.throwBomb 		= true;
 		
-		//defense actions
+		
 		defenseActions.Clear();
 		defenseActions.PushBack( new CAINpcWitcherCounterAction in this );
 		defenseActions.PushBack( new CAINpcParryAction in this );
@@ -1086,9 +1090,9 @@ class CAINpcWitcherCombatStyleParams extends CAINpcCombatStyleParams
 	}
 };
 
-////////////////////////////////////////////////////////////////////////
-// EredinCombatStyle
-////////////////////////////////////////////////////////////////////////
+
+
+
 class CAINpcEredinCombatStyle extends CAINpcCombatStyle
 {
 	function Init()
@@ -1098,7 +1102,7 @@ class CAINpcEredinCombatStyle extends CAINpcCombatStyle
 		params.OnCreated();
 	}	
 };
-//------------------------------------------------------------------
+
 class CAINpcEredinCombatStyleParams extends CAINpcCombatStyleParams
 {
 	default RightItemType = 'steelsword';
@@ -1111,11 +1115,11 @@ class CAINpcEredinCombatStyleParams extends CAINpcCombatStyleParams
 		
 		super.Init();
 		
-		// tactic
+		
 		combatTacticTree = new CAINpcEredinTacticTree in this;
 		combatTacticTree.OnCreated();
 		
-		//defense actions
+		
 		defenseActions.Clear();
 		
 		parryAction = new CAINpcEredinParryAction in this;
@@ -1134,9 +1138,9 @@ class CAINpcEredinCombatStyleParams extends CAINpcCombatStyleParams
 		}
 	}
 };
-////////////////////////////////////////////////////////////////////////
-// CaranthirCombatStyle
-////////////////////////////////////////////////////////////////////////
+
+
+
 class CAINpcCaranthirCombatStyle extends CAINpcCombatStyle
 {
 	function Init()
@@ -1146,7 +1150,7 @@ class CAINpcCaranthirCombatStyle extends CAINpcCombatStyle
 		params.OnCreated();
 	}	
 };
-//------------------------------------------------------------------
+
 class CAINpcCaranthirCombatStyleParams extends CAINpcCombatStyleParams
 {
 	default RightItemType = 'hammer2h';
@@ -1158,17 +1162,14 @@ class CAINpcCaranthirCombatStyleParams extends CAINpcCombatStyleParams
 		super.Init();
 		
 		
-		// tactic
+		
 		combatTacticTree = new CAINpcCaranthirTacticTree in this;
 		combatTacticTree.OnCreated();
 		combatTacticTree.params.dontUseRunWhileStrafing = true;
 		
-		/*//attackBehavior
-		attackBehavior.params.attackAction = new CAITwoHandedAttackActionTree in attackBehavior.params;
-		attackBehavior.params.attackAction.OnCreated();
-		*/
 		
-		//defense actions
+		
+		
 		defenseActions.Clear();					
 		defenseActions.PushBack( new CAINpcCaranthirCounterAction in this );
 		defenseActions.PushBack( new CAINpcCaranthirIceArmorAction in this );
@@ -1183,9 +1184,9 @@ class CAINpcCaranthirCombatStyleParams extends CAINpcCombatStyleParams
 };
 
 
-////////////////////////////////////////////////////////////////////////
-// ImlerithCombatStyle
-////////////////////////////////////////////////////////////////////////
+
+
+
 class CAINpcImlerithCombatStyle extends CAINpcCombatStyle
 {
 	function Init()
@@ -1195,7 +1196,7 @@ class CAINpcImlerithCombatStyle extends CAINpcCombatStyle
 		params.OnCreated();
 	}	
 };
-//------------------------------------------------------------------
+
 class CAINpcImlerithCombatStyleParams extends CAINpcCombatStyleParams
 {
 	default RightItemType = '1handedWeapon';
@@ -1208,11 +1209,11 @@ class CAINpcImlerithCombatStyleParams extends CAINpcCombatStyleParams
 		
 		super.Init();
 		
-		// tactic
+		
 		combatTacticTree = new CAINpcImlerithTacticTree in this;
 		combatTacticTree.OnCreated();
 		
-		//defense actions
+		
 		defenseActions.Clear();
 		
 		defenseActions.PushBack( new CAINpcImlerithParry in this );
@@ -1227,9 +1228,9 @@ class CAINpcImlerithCombatStyleParams extends CAINpcCombatStyleParams
 	}
 };
 
-////////////////////////////////////////////////////////////////////////
-// ImlerithSecondStageCombatStyle
-////////////////////////////////////////////////////////////////////////
+
+
+
 class CAINpcImlerithSecondStageCombatStyle extends CAINpcCombatStyle
 {
 	function Init()
@@ -1239,7 +1240,7 @@ class CAINpcImlerithSecondStageCombatStyle extends CAINpcCombatStyle
 		params.OnCreated();
 	}	
 };
-//------------------------------------------------------------------
+
 class CAINpcImlerithSecondStageCombatStyleParams extends CAINpcCombatStyleParams
 {
 	default RightItemType = '1handedWeapon';
@@ -1252,11 +1253,11 @@ class CAINpcImlerithSecondStageCombatStyleParams extends CAINpcCombatStyleParams
 		
 		super.Init();
 		
-		// tactic
+		
 		combatTacticTree = new CAINpcImlerithSecondStageTacticTree in this;
 		combatTacticTree.OnCreated();
 		
-		//defense actions
+		
 		defenseActions.Clear();
 		defenseActions.PushBack( new CAINpcImlerithCounterActionSecondStage in this );
 		for ( i = 0; i < defenseActions.Size(); i+=1 )
@@ -1267,9 +1268,9 @@ class CAINpcImlerithSecondStageCombatStyleParams extends CAINpcCombatStyleParams
 };
 
 
-////////////////////////////////////////////////////////////////////////
-// CaretakerCombatStyle
-////////////////////////////////////////////////////////////////////////
+
+
+
 class CAINpcCaretakerCombatStyle extends CAINpcCombatStyle
 {
 	function Init()
@@ -1279,7 +1280,7 @@ class CAINpcCaretakerCombatStyle extends CAINpcCombatStyle
 		params.OnCreated();
 	}	
 };
-//------------------------------------------------------------------
+
 class CAINpcCaretakerCombatStyleParams extends CAINpcCombatStyleParams
 {
 	default RightItemType = 'axe2h';
@@ -1289,15 +1290,15 @@ class CAINpcCaretakerCombatStyleParams extends CAINpcCombatStyleParams
 	{
 		super.Init();
 		
-		// tactic
+		
 		combatTacticTree = new CAINpcCaretakerTacticTree in this;
 		combatTacticTree.OnCreated();
 	}
 };
 
-////////////////////////////////////////////////////////////////////////
-// CiriCombatStyle
-////////////////////////////////////////////////////////////////////////
+
+
+
 class CAINpcCiriCombatStyle extends CAINpcCombatStyle
 {
 	function Init()
@@ -1307,7 +1308,7 @@ class CAINpcCiriCombatStyle extends CAINpcCombatStyle
 		params.OnCreated();
 	}	
 };
-//------------------------------------------------------------------
+
 class CAINpcCiriCombatStyleParams extends CAINpcCombatStyleParams
 {
 	default RightItemType = 'steelsword';
@@ -1317,23 +1318,23 @@ class CAINpcCiriCombatStyleParams extends CAINpcCombatStyleParams
 	{
 		super.Init();
 		
-		// tactic
+		
 		combatTacticTree = new CAINpcSurroundTacticTree in this;
 		combatTacticTree.OnCreated();
 		
-		//attack behavior
+		
 		attackBehavior.params.attackAction = new CAICiriAttackActionTree in this;
 		attackBehavior.params.attackAction.OnCreated();
 		attackBehavior.params.teleportAction 	= true;
 		
-		// defense actions
+		
 		defenseActions.Clear();
 	}
 };
 
-////////////////////////////////////////////////////////////////////////
-// TwoHandedSwordCombatStyle
-////////////////////////////////////////////////////////////////////////
+
+
+
 class CAINpcTwoHandedSwordCombatStyle extends CAINpcCombatStyle
 {
 	function Init()
@@ -1343,7 +1344,7 @@ class CAINpcTwoHandedSwordCombatStyle extends CAINpcCombatStyle
 		params.OnCreated();
 	}	
 };
-//------------------------------------------------------------------
+
 class CAINpcStyleTwoHandedSwordParams extends CAINpcCombatStyleParams
 {
 	default RightItemType = 'steelsword';
@@ -1353,19 +1354,19 @@ class CAINpcStyleTwoHandedSwordParams extends CAINpcCombatStyleParams
 	{
 		super.Init();
 		
-		//tactic
+		
 		combatTacticTree = new CAINpcSurroundTacticTree in this;
 		combatTacticTree.OnCreated();
 		
-		//attack behavior
+		
 		attackBehavior.params.attackAction = new CAISword2hAttackActionTree in this;
 		attackBehavior.params.attackAction.OnCreated();
 	}
 };
 
-////////////////////////////////////////////////////////////////////////
-// VesemirTutorialCombatStyle
-////////////////////////////////////////////////////////////////////////
+
+
+
 class CAINpcVesemirTutorialCombatStyle extends CAINpcCombatStyle
 {
 	function Init()
@@ -1375,7 +1376,7 @@ class CAINpcVesemirTutorialCombatStyle extends CAINpcCombatStyle
 		params.OnCreated();
 	}	
 };
-//------------------------------------------------------------------
+
 class CAINpcStyleVesemirTutorialParams extends CAINpcCombatStyleParams
 {
 	default RightItemType = 'steelsword';
@@ -1385,16 +1386,16 @@ class CAINpcStyleVesemirTutorialParams extends CAINpcCombatStyleParams
 	{
 		super.Init();
 		
-		//tactic
+		
 		combatTacticTree = new CAINpcVesemirTutorialTacticTree in this;
 		combatTacticTree.OnCreated();
 		
 	}
 };
 
-////////////////////////////////////////////////////////////////////////
-// OlgierdCombatStyle
-////////////////////////////////////////////////////////////////////////
+
+
+
 class CAINpcOlgierdCombatStyle extends CAINpcCombatStyle
 {
 	function Init()
@@ -1404,7 +1405,7 @@ class CAINpcOlgierdCombatStyle extends CAINpcCombatStyle
 		params.OnCreated();
 	}	
 };
-//------------------------------------------------------------------
+
 class CAINpcStyleOlgierdParams extends CAINpcCombatStyleParams
 {
 	default RightItemType = 'steelsword';

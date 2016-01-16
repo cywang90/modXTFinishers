@@ -42,6 +42,17 @@
 				</group>
 				<group name="Compatibility Options" type="SelectAtMostOne">
 					<plugins order="Explicit">
+						<plugin name="Patch 1.11">
+							<description>
+								<![CDATA[Will install Patch 1.11-compatible files. These files may not have the most up-to-date features and bug fixes. Only select this option if you are running Patch 1.11!]]>
+							</description>
+							<conditionFlags>
+								<flag name="compatibility">1.11</flag>
+							</conditionFlags>
+							<typeDescriptor>
+								<type name="Optional"/>
+							</typeDescriptor>
+						</plugin>
 						<plugin name="Patch 1.10">
 							<description>
 								<![CDATA[Will install Patch 1.10-compatible files. These files may not have the most up-to-date features and bug fixes. Only select this option if you are running Patch 1.10!]]>
@@ -88,6 +99,7 @@
 				</files>
 			</pattern>
 			<!--Compatibility Files-->
+			<!--Patch 1.10-->
 			<pattern>
 				<dependencies operator="And">
 					<flagDependency flag="install_type" value="DEFAULT_TAILOREDFINISHERS"/>
@@ -113,6 +125,34 @@
 				</dependencies>
 				<files>
 					<folder source="compatibility/1.10/PREPACKAGE_default+tailoredfinishers/content" destination="modXTFinishers/content" priority="1"/>
+				</files>
+			</pattern>
+			<!--Patch 1.11-->
+			<pattern>
+				<dependencies operator="And">
+					<flagDependency flag="install_type" value="DEFAULT_TAILOREDFINISHERS"/>
+					<flagDependency flag="compatibility" value="1.11"/>
+				</dependencies>
+				<files>
+					<folder source="compatibility/1.11/PREPACKAGE_default+tailoredfinishers/content" destination="modXTFinishers/content" priority="1"/>
+				</files>
+			</pattern>
+			<pattern>
+				<dependencies operator="And">
+					<flagDependency flag="install_type" value="DEFAULT"/>
+					<flagDependency flag="compatibility" value="1.11"/>
+				</dependencies>
+				<files>
+					<folder source="compatibility/1.11/PREPACKAGE_default/content" destination="modXTFinishers/content" priority="1"/>
+				</files>
+			</pattern>
+			<pattern>
+				<dependencies operator="And">
+					<flagDependency flag="install_type" value="DEFAULT_TAILOREDFINISHERS"/>
+					<flagDependency flag="compatibility" value="1.11"/>
+				</dependencies>
+				<files>
+					<folder source="compatibility/1.11/PREPACKAGE_default+tailoredfinishers/content" destination="modXTFinishers/content" priority="1"/>
 				</files>
 			</pattern>
 		</patterns>

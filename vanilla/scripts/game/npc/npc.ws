@@ -1,7 +1,10 @@
 ﻿/***********************************************************************/
-/** Copyright © 2009-2012
-/** Author : Dexio's Late Night R&D Home Center, the collective mind of CDP
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
+
+
 
 enum EConverserType
 {
@@ -19,19 +22,19 @@ enum EConverserType
 
 statemachine import class CNewNPC extends CActor
 {
-	//////////////////////////////////////////
-	//EDITABLE
 	
-	editable var isImmortal 		: bool;				//this is bad should set the immortality mode simply, left because it would screw up entities
-	editable var isInvulnerable 	: bool;				//this is bad should set the immortality mode simply, left because it would screw up entities
-	editable var willBeUnconscious 	: bool;				//this is bad should set the immortality mode simply, left because it would screw up entities
+	
+	
+	editable var isImmortal 		: bool;				
+	editable var isInvulnerable 	: bool;				
+	editable var willBeUnconscious 	: bool;				
 	editable var minUnconsciousTime : float;    		default minUnconsciousTime = 20.f;
 	
 	editable var unstoppable		: bool;				hint unstoppable = "won't play hit reaction nor critical state reaction";
 	
 	editable var RemainsTags 		: array<name>;		hint RemainsTags="If set then the NPC's remains will be tagged with given tags";
 	editable var level 				: int;				default level = 1;
-	saved	 var currentLevel		: int;
+	var currentLevel		: int;
 	editable saved var levelFakeAddon     : int;				default levelFakeAddon = 0;
 	private	 saved var newGamePlusFakeLevelAddon : bool;		default newGamePlusFakeLevelAddon = false;
 	editable var isMiniBossLevel    : bool;				default isMiniBossLevel = false;
@@ -57,12 +60,12 @@ statemachine import class CNewNPC extends CActor
 	hint disableConstrainLookat = "It will disable lookats form reactions and from QuestLookat block";
 	hint useSoundValue = "If true it will add the SoundValue to the threat Rating used for combat music control";
 	hint soundValue = "This value will be added or subtracted from sound system to achieve final threat Rating";
-	///////////////////////////////////////////////////////
 	
-	// NPC type
+	
+	
 	import private saved var npcGroupType 		: ENPCGroupType;	default npcGroupType = ENGT_Enemy;
 	
-	// for horse
+	
 	private optional autobind 	horseComponent 		: W3HorseComponent = single;
 	private var 		isHorse 			: bool;
 	private saved var 	canFlee				: bool; 	default 	canFlee	= true;
@@ -70,10 +73,10 @@ statemachine import class CNewNPC extends CActor
 	
 	private var		immortalityInitialized	: bool;
 	
-	// for player to enable following other rider
+	
 	private var 	canBeFollowed 			: bool;		default 		canBeFollowed = false;
 
-	//for agony state
+	
 	private var 	bAgony					: bool;		default 		bAgony 	= false;
 	private var		bFinisher 				: bool;		default 		bFinisher = false;
 	private var		bPlayDeathAnim 			: bool;		default			bPlayDeathAnim = true;
@@ -82,74 +85,74 @@ statemachine import class CNewNPC extends CActor
 	
 	private var		bIsInHitAnim : bool;
 	
-	// for combat 
+	
 	private var		threatLevel					: int;				default			threatLevel = 10;
-	private var 	counterWindowStartTime 		: EngineTime;		//timestamp of moment when the counter window was opened
+	private var 	counterWindowStartTime 		: EngineTime;		
 	private var		bIsCountering				: bool;
 	private var		allowBehGraphChange			: bool;				default			allowBehGraphChange = true;
-	private var		aardedFlight				: bool;				//set when hit by aard to check aard related fall kills
-	public var		lastMeleeHitTime			: EngineTime;		//time when last hit by melee attack
+	private var		aardedFlight				: bool;				
+	public var		lastMeleeHitTime			: EngineTime;		
 	
 	private saved var preferedCombatStyle : EBehaviorGraph;
 	
-	// for stance
+	
 	private var		previousStance				: ENpcStance;		default			previousStance	= NS_Normal;
 	private var		regularStance				: ENpcStance;		default			regularStance	= NS_Normal;
 	
-	//fight stage
+	
 	private var 	currentFightStage			: ENPCFightStage;
 	
-	// for states
+	
 	private var 	currentState 				: CName;			default 		autoState = 'NewIdle';
 
 	private var 	behaviorGraphEventListened	: array<name>;
 	
-	// for visual
+	
 	private var 	isTemporaryOffGround			: bool;
 	
-	// for water
+	
 	private var		isUnderwater 				: bool;		default isUnderwater = false;
 	
-	// to check whether npc's hitreaction animation is scaled
+	
 	private var isTranslationScaled 			: bool; 
 	
-	//tauntedToAttack
+	
 	private var tauntedToAttackTimeStamp 		: float;
 	
 	private var hitCounter 						: int;		default hitCounter = 0;
 	private var totalHitCounter 				: int;		default totalHitCounter = 0;
 	public var customHits 						: bool;		default customHits = false;
 	
-	//public var enemy 							: CActor;
 	
-	//for debug purpouse
+	
+	
 	public var isTeleporting 					: bool;			default isTeleporting = false;
 	
 	
-	//flying creatures in interiors
-	//private editable var interior : bool;
-	//default interior = false;	
 	
-	// inventory
+	
+	
+	
+	
 	public var itemToEquip 						: SItemUniqueId;
 	
-	//achievement
+	
 	private saved var wasBleedingBurningPoisoned 	: bool;		default wasBleedingBurningPoisoned = false;
 	
-	// misc
+	
 	public 	var wasInTalkInteraction				: bool;
 	private var wasInCutscene						: bool;
 	public 	var shieldDebris 						: CItemEntity;
-	public 	var lastMealTime						: float;	default lastMealTime = -1;// Used for food component
-	public 	var packName							: name;		// Used for animal movements
-	public 	var isPackLeader						: bool;		// Used for animal movements
+	public 	var lastMealTime						: float;	default lastMealTime = -1;
+	public 	var packName							: name;		
+	public 	var isPackLeader						: bool;		
 	private var mac 								: CMovingPhysicalAgentComponent;
 	
-	//reactions, talking
+	
 	private saved  var isTalkDisabled				: bool; default isTalkDisabled = false;
 	private   	   var isTalkDisabledTemporary		: bool; default isTalkDisabledTemporary = false;
 	
-	//flag fro adding ng+ levels OnSpawn
+	
 	private var wasNGPlusLevelAdded					: bool; default wasNGPlusLevelAdded = false;
 	
 	event OnGameDifficultyChanged( previousDifficulty : int, currentDifficulty : int )
@@ -196,9 +199,9 @@ statemachine import class CNewNPC extends CActor
 			SetCombatStartTime();
 			SetCombatPartStartTime();
 			
-			//autogen level is not updated when player levels up so we need to check it when enemy enters combat
-			//apart from that we do similar recalc when we target enemy (show health bar)
-			//cannot do this on player level up as actors are not streamed and it generates 1s+ freeze due to few thousands actors checked
+			
+			
+			
 			RecalcLevel();
 		}
 		else
@@ -225,12 +228,7 @@ statemachine import class CNewNPC extends CActor
 		
 		if(animEventType == AET_DurationStart )
 		{
-			/* AK : we are draining stamina on all special actions now, but not globally on regular attacks
-			if ( IsHeavyAttack(data.attackName))
-				DrainStamina(ESAT_HeavyAttack);
-			else
-				DrainStamina(ESAT_LightAttack);
-			*/
+			
 			
 			witcher = GetWitcherPlayer();
 			
@@ -246,7 +244,7 @@ statemachine import class CNewNPC extends CActor
 			
 			if ( IsCountering() )
 			{
-				//if has skill, toxicity and can dodge
+				
 				if(GetTarget() == witcher && ( thePlayer.IsActionAllowed(EIAB_Dodge) || thePlayer.IsActionAllowed(EIAB_Roll) ) && witcher.GetStat(BCS_Toxicity) > 0 && witcher.CanUseSkill(S_Alchemy_s16))
 					witcher.StartFrenzy();
 			}
@@ -286,13 +284,13 @@ statemachine import class CNewNPC extends CActor
 		return wasInCutscene;
 	}
 	
-	//UI: quick function to check whether NPC's are VIP (to highlight their name in a special color beyond their attitude)
+	
 	public function IsVIP() : bool
 	{
 		var tags : array<name>;
 		var i : int;
 		
-		// iterating through tags will be probably faster than HasTag function
+		
 		tags = GetTags();
 		for ( i = 0; i < tags.Size(); i+=1 )
 		{
@@ -305,13 +303,11 @@ statemachine import class CNewNPC extends CActor
 		return false;
 	}
 	
-	/////////////////////////////////////////////
-	// Defaults
-	/////////////////////////////////////////////	
 	
-	/**
-		Initialize NPC
-	*/
+	
+	
+	
+	
 	event OnSpawned(spawnData : SEntitySpawnData )
 	{
 		var lvlDiff, playerLevel: int;
@@ -319,21 +315,29 @@ statemachine import class CNewNPC extends CActor
 		var remainingDuration : float;
 		var oldLevel : int;
 		
-		if (!spawnData.restored)
-			currentLevel = level;
+		currentLevel = level;
 		
 		super.OnSpawned(spawnData);
 		
-		//Set threat level
+		
 		SetThreatLevel();
 		
-		//set default state after spawn
+		
 		GotoStateAuto();		
 		
-		// reset temporary "disable talk"
-		isTalkDisabledTemporary = false;
 		
-		//set immortality mode
+		isTalkDisabledTemporary = false;
+
+		
+		if ( HasTag( 'fergus_graem' ) )
+		{
+			if ( !isTalkDisabled )
+			{
+				GetComponent( 'talk' ).SetEnabled( true );
+			}
+		}
+		
+		
 		if(!spawnData.restored && !immortalityInitialized )
 		{
 			SetCanPlayHitAnim( true );
@@ -357,7 +361,7 @@ statemachine import class CNewNPC extends CActor
 			}
 		}
 		
-		// Special push priorities
+		
 		if( npcGroupType == ENGT_Guard )
 		{
 			SetOriginalInteractionPriority( IP_Prio_5 );
@@ -369,28 +373,27 @@ statemachine import class CNewNPC extends CActor
 			RestoreOriginalInteractionPriority();
 		}
 		
-		/*if( npcGroupType == ENGT_Guard || npcGroupType == ENGT_Commoner )
-			GetComponent('talk').SetEnabled(false);*/
+		
 		
 		mac = (CMovingPhysicalAgentComponent)GetMovingAgentComponent();
 		if(mac && IsFlying() )
 			mac.SetAnimatedMovement( true );
 		
-		// register for collision reports
+		
 		RegisterCollisionEventsListener();		
 		
-		// set default for NPC's focus mode sound visualisation, and if no other colour has been assigned.
+		
 		if (focusModeSoundEffectType == FMSET_None)
 			SetFocusModeSoundEffectType( FMSET_Gray );
 		
 		heading	= AngleNormalize( GetHeading() );
-		//update requestedFacingDirection to match current heading
+		
 		SetBehaviorVariable( 'requestedFacingDirection', heading );
 		
 		if ( disableConstrainLookat )
 			SetBehaviorVariable( 'disableConstraintLookat', 1.f);
 			
-		// switch for voiceovers for npcs on foot
+		
 		SoundSwitch( "vo_3d", 'vo_3d_long', 'head' );
 		
 		AddAnimEventCallback('EquipItemL' ,			'OnAnimEvent_EquipItemL');
@@ -431,75 +434,17 @@ statemachine import class CNewNPC extends CActor
 		if(HasAbility('_canBeFollower') && theGame.GetDifficultyMode() != EDM_Hardcore) 
 			RemoveAbility('_canBeFollower');
 
-		//if ( level > 3 && HasTag('main_quest_opponent') )
-			//level += theGame.newGameLevelAddon;
+		
 			
-		//FIXME URGENT - what if player is not spawned yet?
-		if( (!spawnData.restored || !wasNGPlusLevelAdded)  && (FactsQuerySum("NewGamePlus") > 0 || (!HasAbility('NoAdaptBalance') && currentLevel > 1 ) ) )
+			
+		
+		if( (FactsQuerySum("NewGamePlus") > 0 || (!HasAbility('NoAdaptBalance') && currentLevel > 1 ) ) )
 		{
-			/*
-			playerLevel = thePlayer.GetLevel();
-			oldLevel = level;
 			
-			if ( (npcGroupType != ENGT_Guard || IsHuman() || GetStat( BCS_Vitality, true ) <= 0 ) )
-			{
-				lvlDiff = level - playerLevel;
-				
-				if ( ( lvlDiff < theGame.params.LEVEL_DIFF_HIGH && lvlDiff > -5 ) && HasTag('main_quest_opponent') )
-				{
-					if ( !isMiniBossLevel ) 
-					{
-						level = RandRange(1, 0) + playerLevel;
-					} else
-					{
-						level = 3 + playerLevel;
-					}
-				} else
-				if ( ( lvlDiff < theGame.params.LEVEL_DIFF_HIGH && lvlDiff > -5 ) && !HasTag('main_quest_opponent') )
-				{
-					if ( !isMiniBossLevel ) 
-					{
-						level = RandRange(2, 0) + playerLevel;
-					} else
-					{
-						level = 3 + playerLevel;
-					}
-				}
-				
-				if ( level < oldLevel ) level = oldLevel;
-				
-				/////////////////////////
-				//THIS CODE DOES NOTHING - after a bunch of ifs it adds randomly 0 or 0 to level
-				if ( (npcGroupType != ENGT_Guard || IsHuman() || GetStat( BCS_Vitality, true ) <= 0 ) )
-				{
-					lvlDiff = level - thePlayer.GetLevel();
-				
-					if ( HasTag('main_quest_opponent') )
-					{
-						if ( !isMiniBossLevel ) 
-						{
-							level = level - RandRange(1, 0);
-						} 
-					} else
-					{
-						if ( !isMiniBossLevel ) 
-						{
-							level = level - RandRange(1, 0);
-						} 
-					}
-				}
-				/////////////////////////
-				
-				if ( (npcGroupType != ENGT_Guard || IsHuman() || GetStat( BCS_Vitality, true ) <= 0 ) )
-				{
-					lvlDiff = level - thePlayer.GetLevel();
-				
-				if ( ( lvlDiff < theGame.params.LEVEL_DIFF_HIGH && lvlDiff > -5 ) )	if ( level > thePlayer.GetLevel() + 4 ) { level = thePlayer.GetLevel() + 4; levelFakeAddon = 0; }
-			*/
 			
 			if ( theGame.IsActive() )
 			{
-				if( ( FactsQuerySum("NewGamePlus") > 0 ) && !HasTag('animal') )
+				if( !wasNGPlusLevelAdded && ( ( FactsQuerySum("NewGamePlus") > 0 ) && !HasTag('animal') ))
 				{
 					if( !HasAbility('NPCDoNotGainBoost') && !HasAbility('NewGamePlusFakeLevel') )
 					{
@@ -508,14 +453,13 @@ statemachine import class CNewNPC extends CActor
 					else if ( !HasAbility('NPCDoNotGainNGPlusLevel') )
 					{
 						newGamePlusFakeLevelAddon = true;
-					}
+					}	
 					
 					wasNGPlusLevelAdded = true;
-					
 				}
 				else
 				{
-					// Prolog modifier	for easy and normal
+					
 					if ( ( theGame.GetDifficultyMode() == EDM_Easy || theGame.GetDifficultyMode() == EDM_Medium ) && playerLevel == 1 && npcGroupType != ENGT_Guard && !HasAbility('PrologModifier'))
 					{
 						AddAbility('PrologModifier');
@@ -564,7 +508,7 @@ statemachine import class CNewNPC extends CActor
 		threatLevel = newValue;
 	}
 	
-	/* C++ */ public function GetHorseUser() : CActor
+	 public function GetHorseUser() : CActor
 	{
 		if( horseComponent )
 		{
@@ -574,8 +518,8 @@ statemachine import class CNewNPC extends CActor
 		return NULL;
 	}
 	
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// Combat
+	
+	
 	
 	public function GetPreferedCombatStyle() : EBehaviorGraph
 	{
@@ -587,7 +531,7 @@ statemachine import class CNewNPC extends CActor
 		preferedCombatStyle = _preferedCombatStyle;
 	}
 	
-	//checks weather and if needed adds/removes weather bonus from NPC
+	
 	timer function WeatherBonusCheck(dt : float, id : int)
 	{
 		var curGameTime : GameTime;
@@ -644,7 +588,7 @@ statemachine import class CNewNPC extends CActor
 	
 	public function IsRanged() : bool
 	{
-		//MS: Please change this to a more general function (e.g. checks whether it has a 'Ranged' ability )
+		
 		var weapon : SItemUniqueId;
 		var weapon2 : SItemUniqueId;
 	
@@ -655,8 +599,8 @@ statemachine import class CNewNPC extends CActor
 		
 	}
 	
-	// Used to know when the npc model is not touching the ground, even if the capsule in on ground
-	// Needed for freezing bomb
+	
+	
 	public function IsVisuallyOffGround() : bool
 	{
 		if( isTemporaryOffGround ) 
@@ -763,8 +707,8 @@ statemachine import class CNewNPC extends CActor
 		tauntedToAttackTimeStamp = theGame.GetEngineTimeAsSeconds();
 	}
 	
-	//hax
-	//--------------------------------------------------------
+	
+	
 	timer function MaintainSpeedTimer( d : float , id : int)
 	{
 		this.SetBehaviorVariable( 'Editor_MovementSpeed', 0 );
@@ -773,8 +717,8 @@ statemachine import class CNewNPC extends CActor
 	{
 		this.SetBehaviorVariable( 'Editor_FlySpeed', 0 );
 	}
-	//--------------------------------------------------------
-	//hax end
+	
+	
 	
 	
 	public function SetIsInHitAnim( toggle : bool )
@@ -803,7 +747,7 @@ statemachine import class CNewNPC extends CActor
 	}
 
 	
-	/**************************************************/
+	
 	
 	function EnableCounterParryFor( time : float )
 	{
@@ -839,13 +783,13 @@ statemachine import class CNewNPC extends CActor
 		AddLevelBonuses(0, 0);
 	}
 	
-	/****************************** @PARRY *****************************************************************************/
+	
 	protected function PerformCounterCheck(parryInfo: SParryInfo) : bool
 	{
 		return false;
 	}
 	
-	//Performs a check for parry and if successfull then parries the attack
+	
 	protected function PerformParryCheck(parryInfo : SParryInfo) : bool
 	{
 		var mult : float;
@@ -871,10 +815,10 @@ statemachine import class CNewNPC extends CActor
 		{	
 			isHeavy = IsHeavyAttack(parryInfo.attackActionName);
 						
-			//inform combat task that we can do actual parry now
+			
 			if( HasStaminaToParry( parryInfo.attackActionName ) && ( HasAbility( 'ablParryHeavyAttacks' ) || !isHeavy ) )
 			{
-				//set attack type for behavior for parry anim switch
+				
 				SetBehaviorVariable( 'parryAttackType', (int)PAT_Light );
 				
 				if( isHeavy )
@@ -884,7 +828,7 @@ statemachine import class CNewNPC extends CActor
 			}
 			else
 			{
-				//set attack type for behavior for parry anim switch
+				
 				SetBehaviorVariable( 'parryAttackType', (int)PAT_Heavy );
 			
 				if( isHeavy )
@@ -921,7 +865,7 @@ statemachine import class CNewNPC extends CActor
 		return GetPowerStatValue(CPS_SpellPower);
 	}
 	
-	/*script*/ event OnPocessActionPost(action : W3DamageAction)
+	 event OnPocessActionPost(action : W3DamageAction)
 	{
 		var actorVictim : CActor;
 		var time : float;
@@ -931,7 +875,7 @@ statemachine import class CNewNPC extends CActor
 		
 		super.OnPocessActionPost(action);
 		
-		//runeword: increase hypnosis duration with each successfull strike
+		
 		actorVictim = (CActor)action.victim;
 		if(HasBuff(EET_AxiiGuardMe) && (thePlayer.HasAbility('Glyphword 14 _Stats', true) || thePlayer.HasAbility('Glyphword 18 _Stats', true)) && action.DealtDamage())
 		{
@@ -957,9 +901,9 @@ statemachine import class CNewNPC extends CActor
 			fxEnt.DestroyAfter(5);
 		}
 	}
-	////////////////////////////////////////////////////////////////////////////////////////////
-	///////////////////////////  @STATS  ///////////////////////////////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////
+	
+	
+	
 	
 	timer function AddLevelBonuses (dt : float, id : int)
 	{
@@ -1005,7 +949,7 @@ statemachine import class CNewNPC extends CActor
 		} 
 		else
 		{
-			if ( GetStat( BCS_Vitality, true ) > 0 ) // if monster, but based on vitality ( animal )
+			if ( GetStat( BCS_Vitality, true ) > 0 ) 
 			{
 				if ( !ciriEntity ) 
 				{
@@ -1017,41 +961,50 @@ statemachine import class CNewNPC extends CActor
 					
 					if ( !HasAbility(theGame.params.ENEMY_BONUS_PER_LEVEL) ) AddAbilityMultiple(theGame.params.ENEMY_BONUS_PER_LEVEL, currentLevel-1);
 				}
-			} else
-			{
-			
-			if ( (int)CalculateAttributeValue( GetAttributeValue('armor') ) > 0 )
-			{
-				if ( GetIsMonsterTypeGroup() )
-				{
-					if ( !HasAbility(theGame.params.MONSTER_BONUS_PER_LEVEL_GROUP_ARMORED) ) AddAbilityMultiple(theGame.params.MONSTER_BONUS_PER_LEVEL_GROUP_ARMORED, currentLevel-1);
-				} else
-				{
-					if ( !HasAbility(theGame.params.MONSTER_BONUS_PER_LEVEL_ARMORED) ) AddAbilityMultiple(theGame.params.MONSTER_BONUS_PER_LEVEL_ARMORED, currentLevel-1);
-				}
 			}
 			else
 			{
-				if ( GetIsMonsterTypeGroup() )
-				{
-					if ( !HasAbility(theGame.params.MONSTER_BONUS_PER_LEVEL_GROUP) ) AddAbilityMultiple(theGame.params.MONSTER_BONUS_PER_LEVEL_GROUP, currentLevel-1);
-				} else
-				{
-					if ( !HasAbility(theGame.params.MONSTER_BONUS_PER_LEVEL) ) AddAbilityMultiple(theGame.params.MONSTER_BONUS_PER_LEVEL, currentLevel-1);
-				}
-			}
-			
-			
-			if ( thePlayer.IsCiri() && theGame.GetDifficultyMode() == EDM_Hardcore && !HasAbility('CiriHardcoreDebuffMonster') ) AddAbility('CiriHardcoreDebuffMonster');
 				
-			if ( !ciriEntity ) 
-			{
-				lvlDiff = (int)CalculateAttributeValue(GetAttributeValue('level',,true)) - thePlayer.GetLevel();
-				if 		( lvlDiff >= theGame.params.LEVEL_DIFF_DEADLY ) { if ( !HasAbility(theGame.params.MONSTER_BONUS_DEADLY) ) { AddAbility(theGame.params.MONSTER_BONUS_DEADLY, true); AddBuffImmunity(EET_Blindness, 'DeadlyEnemy', true); AddBuffImmunity(EET_WraithBlindness, 'DeadlyEnemy', true); } }	
-				else if ( lvlDiff >= theGame.params.LEVEL_DIFF_HIGH )  { if ( !HasAbility(theGame.params.MONSTER_BONUS_HIGH) ) AddAbility(theGame.params.MONSTER_BONUS_HIGH, true); }
-				else if ( lvlDiff > -theGame.params.LEVEL_DIFF_HIGH )  { }
-				else 					  { if ( !HasAbility(theGame.params.MONSTER_BONUS_LOW) ) AddAbility(theGame.params.MONSTER_BONUS_LOW, true); }		
-			}
+				if(	!HasAbility(theGame.params.MONSTER_BONUS_PER_LEVEL_GROUP_ARMORED) &&
+					!HasAbility(theGame.params.MONSTER_BONUS_PER_LEVEL_ARMORED) &&
+					!HasAbility(theGame.params.MONSTER_BONUS_PER_LEVEL_GROUP) &&
+					!HasAbility(theGame.params.MONSTER_BONUS_PER_LEVEL)
+				)
+				{				
+					if ( CalculateAttributeValue(GetTotalArmor()) > 0.f )
+					{
+						if ( GetIsMonsterTypeGroup() )
+						{
+							AddAbilityMultiple(theGame.params.MONSTER_BONUS_PER_LEVEL_GROUP_ARMORED, currentLevel-1);
+						}
+						else
+						{
+							AddAbilityMultiple(theGame.params.MONSTER_BONUS_PER_LEVEL_ARMORED, currentLevel-1);
+						}
+					}
+					else
+					{
+						if ( GetIsMonsterTypeGroup() )
+						{
+							AddAbilityMultiple(theGame.params.MONSTER_BONUS_PER_LEVEL_GROUP, currentLevel-1);
+						}
+						else
+						{
+							AddAbilityMultiple(theGame.params.MONSTER_BONUS_PER_LEVEL, currentLevel-1);
+						}
+					}
+				}
+				
+				if ( thePlayer.IsCiri() && theGame.GetDifficultyMode() == EDM_Hardcore && !HasAbility('CiriHardcoreDebuffMonster') ) AddAbility('CiriHardcoreDebuffMonster');
+					
+				if ( !ciriEntity ) 
+				{
+					lvlDiff = (int)CalculateAttributeValue(GetAttributeValue('level',,true)) - thePlayer.GetLevel();
+					if 		( lvlDiff >= theGame.params.LEVEL_DIFF_DEADLY ) { if ( !HasAbility(theGame.params.MONSTER_BONUS_DEADLY) ) { AddAbility(theGame.params.MONSTER_BONUS_DEADLY, true); AddBuffImmunity(EET_Blindness, 'DeadlyEnemy', true); AddBuffImmunity(EET_WraithBlindness, 'DeadlyEnemy', true); } }	
+					else if ( lvlDiff >= theGame.params.LEVEL_DIFF_HIGH )  { if ( !HasAbility(theGame.params.MONSTER_BONUS_HIGH) ) AddAbility(theGame.params.MONSTER_BONUS_HIGH, true); }
+					else if ( lvlDiff > -theGame.params.LEVEL_DIFF_HIGH )  { }
+					else 					  { if ( !HasAbility(theGame.params.MONSTER_BONUS_LOW) ) AddAbility(theGame.params.MONSTER_BONUS_LOW, true); }		
+				}
 			}	 
 			
 		}
@@ -1060,7 +1013,7 @@ statemachine import class CNewNPC extends CActor
 	
 	public function GainStat( stat : EBaseCharacterStats, amount : float )
 	{
-		//dont increase panic if npc is a player's mounted horse and player has mutagen
+		
 		if(stat == BCS_Panic && IsHorse() && thePlayer.GetUsedVehicle() == this && thePlayer.HasBuff(EET_Mutagen25))
 		{
 			return;
@@ -1071,7 +1024,7 @@ statemachine import class CNewNPC extends CActor
 	
 	public function ForceSetStat(stat : EBaseCharacterStats, val : float)
 	{
-		//dont increase panic if npc is a player's mounted horse and player has mutagen
+		
 		if(stat == BCS_Panic && IsHorse() && thePlayer.GetUsedVehicle() == this && thePlayer.HasBuff(EET_Mutagen25) && val >= GetStat(BCS_Panic))
 		{
 			return;
@@ -1080,29 +1033,24 @@ statemachine import class CNewNPC extends CActor
 		super.ForceSetStat(stat, val);
 	}
 	
-	////////////////////////////////////////////////////////////////////////////////////////////
-	///////////////////////////  @ACHIEVEMENTS /////////////////////////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////
+	
+	
+	
 	
 	timer function FundamentalsAchFailTimer(dt : float, id : int)
 	{
 		RemoveTag('failedFundamentalsAchievement');
 	}
 	
-	////////////////////////////////////////////////////////////////////////////////////////////
-	///////////////////////////  @CRITICAL STATES  /////////////////////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////
+	
+	
+	
 	protected function CriticalBuffInformBehavior(buff : CBaseGameplayEffect)
 	{
 		SignalGameplayEventParamInt('CriticalState',(int)GetBuffCriticalType(buff));
 	}
 	
-	/*
-		Called when new critical effect has started
-		This will interrupt current critical state
-		
-		returns true if the effect got fired properly
-	*/
+	
 	public function StartCSAnim(buff : CBaseGameplayEffect) : bool
 	{
 		if(super.StartCSAnim(buff))
@@ -1131,8 +1079,8 @@ statemachine import class CNewNPC extends CActor
 		}
 	}
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// Fistfight
+	
+	
 	event OnStartFistfightMinigame()
 	{
 		super.OnStartFistfightMinigame();
@@ -1146,7 +1094,7 @@ statemachine import class CNewNPC extends CActor
 		if(FactsQuerySum("NewGamePlus") > 0)
 		{FistFightNewGamePlusSetup();}
 		FistFightHealthSetup();
-		//ApplyFistFightLevelDiff();
+		
 	}
 	
 	event OnEndFistfightMinigame()
@@ -1164,7 +1112,7 @@ statemachine import class CNewNPC extends CActor
 			Revive();
 		}
 		FistFightHealthSetup();
-		//RemoveFistFightLevelDiff();
+		
 		super.OnEndFistfightMinigame();
 	}
 		
@@ -1287,8 +1235,8 @@ statemachine import class CNewNPC extends CActor
 	}
 
 	
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// NPC Stance
+	
+	
 	
 	private function IsThisStanceRegular( Stance : ENpcStance ) : bool
 	{
@@ -1373,9 +1321,9 @@ statemachine import class CNewNPC extends CActor
 		return true;
 	}
 	
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//	Agony section
-	//
+	
+	
+	
 	
 	function IsInAgony() : bool
 	{
@@ -1495,32 +1443,11 @@ statemachine import class CNewNPC extends CActor
 		else
 			return '';
 	}
-	/*
-	function updateDeathType( optional killed : bool )
-	{
-		var agonyType : float;
-		
-		agonyType = GetAgonyType();
-		if (agonyType == (int)AT_Knockdown)
-		{
-			if ( killed )
-				SetDeathType(DT_CrawlKilled);
-			else
-				SetDeathType(DT_CrawlDying);
-		}
-		else if (agonyType == (int)AT_ThroatCut)
-		{
-			if ( killed )
-				SetDeathType(DT_ThroatCut);
-			else
-				SetDeathType(DT_ThroatCut);
-		}
-	}
-	*/
 	
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//	On Hit section
-	//	
+	
+	
+	
+	
 	protected function PlayHitAnimation(damageAction : W3DamageAction, animType : EHitReactionType)
 	{
 		var node : CNode;
@@ -1568,17 +1495,17 @@ statemachine import class CNewNPC extends CActor
 		percentageLoss 			 	= damaveValue / totalHealth;
 		healthLossToForceLand_perc 	 = GetAttributeValue( 'healthLossToForceLand_perc' );
 		
-		//if hit when flying - add knockdown to fall to the ground and disable hit anim
+		
 		if( percentageLoss >= healthLossToForceLand_perc.valueBase && ( GetCurrentStance() == NS_Fly || ( !IsUsingVehicle() && GetCurrentStance() != NS_Swim && !((CMovingPhysicalAgentComponent) GetMovingAgentComponent()).IsOnGround()) ) )
 		{
-			// More conditions in a separate if for lisibilty
+			
 			if( !((CBaseGameplayEffect) damageAction.causer ) )
 			{
 				damageAction.AddEffectInfo(	EET_Knockdown);
 			}
 		}
 		
-		//if hit is caused by bodkin bolt, hitreaction should be a chance 
+		
 		boltCauser = (W3BoltProjectile)( damageAction.causer );
 		if( boltCauser )
 		{
@@ -1630,11 +1557,11 @@ statemachine import class CNewNPC extends CActor
 		if(((CPlayer)damageAction.attacker || !((CNewNPC)damageAction.attacker)) && damageAction.DealsAnyDamage())
 			theTelemetry.LogWithLabelAndValue( TE_FIGHT_ENEMY_GETS_HIT, damageAction.victim.ToString(), (int)damageAction.processedDmg.vitalityDamage + (int)damageAction.processedDmg.essenceDamage );
 		
-		// we're being hit by the player we should break the charm
+		
 		witcher = GetWitcherPlayer();
 		if ( damageAction.attacker == witcher && HasBuff( EET_AxiiGuardMe ) )
 		{
-			//...unless the skill is at level 3
+			
 			if(!witcher.CanUseSkill(S_Magic_s05) || witcher.GetSkillLevel(S_Magic_s05) < 3)
 				RemoveBuff(EET_AxiiGuardMe, true);
 		}
@@ -1643,16 +1570,9 @@ statemachine import class CNewNPC extends CActor
 		{
 			attackAction = (W3Action_Attack) damageAction;
 			
-			/*
-			if(attackAction.IsCriticalHit() || SkillNameToEnum(attackAction.GetAttackTypeName()) == S_Sword_s02)
-				theGame.VibrateControllerVeryHard();//player attacks npc, rend or critical hit
-			else if(thePlayer.IsHeavyAttack(attackAction.GetAttackName()) )
-				theGame.VibrateControllerHard();//player attacks npc, heavy attack
-			else
-				theGame.VibrateControllerLight();//player attacks npc, light attack
-			*/
 			
-			//Perk reducing stamina to 0
+			
+			
 			if(attackAction && attackAction.UsedZeroStaminaPerk())
 			{
 				ForceSetStat(BCS_Stamina, 0.f);
@@ -1662,7 +1582,7 @@ statemachine import class CNewNPC extends CActor
 		return ret;
 	}
 	
-	//** hit counter - it counts hits!
+	
 	public function GetHitCounter(optional total : bool) : int
 	{
 		if ( total )
@@ -1682,8 +1602,8 @@ statemachine import class CNewNPC extends CActor
 		hitCounter = 0;
 	}	
 	
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//	Death section
+	
+	
 	
 	function Kill(optional ignoreImmortalityMode : bool, optional attacker : CGameplayEntity, optional source : name )
 	{
@@ -1753,7 +1673,7 @@ statemachine import class CNewNPC extends CActor
 		ciriEntity = (W3ReplacerCiri)thePlayer;
 		if ( ciriEntity )
 		{
-			strLevel = "<font color=\"#66FF66\">" + currentLevel + "</font>"; // #B red
+			strLevel = "<font color=\"#66FF66\">" + currentLevel + "</font>"; 
 			return "normalLevel";
 		}
 
@@ -1765,23 +1685,23 @@ statemachine import class CNewNPC extends CActor
 		}	
 		else if ( lvlDiff >= theGame.params.LEVEL_DIFF_HIGH )
 		{
-			strLevel = "<font color=\"#FF1919\">" + currentLevel + "</font>"; // #B red
+			strLevel = "<font color=\"#FF1919\">" + currentLevel + "</font>"; 
 			return "highLevel";
 		}
 		else if ( lvlDiff > -theGame.params.LEVEL_DIFF_HIGH )
 		{
-			strLevel = "<font color=\"#66FF66\">" + currentLevel + "</font>"; // #B green
+			strLevel = "<font color=\"#66FF66\">" + currentLevel + "</font>"; 
 			return "normalLevel";
 		}
 		else
 		{
-			strLevel = "<font color=\"#E6E6E6\">" + currentLevel + "</font>"; // #B grey
+			strLevel = "<font color=\"#E6E6E6\">" + currentLevel + "</font>"; 
 			return "lowLevel";
 		}
 		return "none";
 	}
 	
-	//checks if player should be given exp when this npc dies
+	
 	private function ShouldGiveExp(attacker : CGameplayEntity) : bool
 	{
 		var actor : CActor;
@@ -1792,34 +1712,34 @@ statemachine import class CNewNPC extends CActor
 		victimAt = GetAttitudeBetween(thePlayer, this);
 		giveExp = false;
 		
-		//only exp if victim is hostile
+		
 		if(victimAt == AIA_Hostile)
 		{
 			if(attacker == thePlayer && !((W3PlayerWitcher)thePlayer) )
 			{
-				//player is not Geralt - no exp
+				
 				giveExp = false;
 			}
 			else if(attacker == thePlayer)
 			{
-				//player kill
+				
 				giveExp = true;
 			}
-			//only if close, skip for player to give exp for cliff aard pushes
+			
 			else if(VecDistance(thePlayer.GetWorldPosition(), GetWorldPosition()) <= 20)
 			{
 				npc = (CNewNPC)attacker;
-				if(!npc || npc.npcGroupType != ENGT_Guard)	//no exp from policemen kills				
+				if(!npc || npc.npcGroupType != ENGT_Guard)	
 				{
 					actor = (CActor)attacker;
 					if(!actor)
 					{
-						//if there is no attacking actor
+						
 						giveExp = true;
 					}
 					else if(actor.HasTag(theGame.params.TAG_NPC_IN_PARTY) || actor.HasBuff(EET_AxiiGuardMe))
 					{
-						//if attacker is in player's party or charmed with axii
+						
 						giveExp = true;
 					}							
 				}
@@ -1970,7 +1890,7 @@ statemachine import class CNewNPC extends CActor
 			if ( exp > 5 + ( currentLevel * 4 ) ) { exp = 5 + ( currentLevel * 4 ); } 
 		}
 				
-		//if  ( IsHuman() ) { exp = exp + 1; } else { exp = exp + 1; }
+		
 		exp += 1;
 		
 		if( ( FactsQuerySum("NewGamePlus") > 0 ) )
@@ -1979,7 +1899,7 @@ statemachine import class CNewNPC extends CActor
 		}
 		else if ( thePlayer.GetLevel() < 30 ) exp = ( exp / 4 ); else exp = ( exp / 2 );
 				
-		//In NG+ we double ALL received exp below level 50 to make the curve behave the same way in NG+ as in base game - W3LevelManager.AddPoints
+		
 		
 		if( ( FactsQuerySum("NewGamePlus") > 0 ) )
 			lvlDiff = currentLevel - thePlayer.GetLevel() + theGame.params.GetNewGamePlusLevel();
@@ -1990,7 +1910,7 @@ statemachine import class CNewNPC extends CActor
 		else if ( lvlDiff > -theGame.params.LEVEL_DIFF_HIGH )  { }
 		else { exp = 2; }
 		
-		// Scaling XP for EP1
+		
 		if ( (FactsQuerySum("NewGamePlus") > 0 && thePlayer.GetLevel() >= (35 + theGame.params.GetNewGamePlusLevel()) ) || (FactsQuerySum("NewGamePlus") < 1 && thePlayer.GetLevel() >= 35) )
 		{
 			exp = exp * (1 + lvlDiff * theGame.params.LEVEL_DIFF_XP_MOD);
@@ -1998,7 +1918,7 @@ statemachine import class CNewNPC extends CActor
 			if (exp < 2) exp = 2;
 		}
 		
-		if ( exp > 50 ) exp = 50; // limiter
+		if ( exp > 50 ) exp = 50; 
 		if ( theGame.GetDifficultyMode() == EDM_Easy ) exp = exp * 1.2; else
 		if ( theGame.GetDifficultyMode() == EDM_Hard ) exp = exp * 0.9; else
 		if ( theGame.GetDifficultyMode() == EDM_Hardcore ) exp = exp * 0.8;
@@ -2154,13 +2074,13 @@ statemachine import class CNewNPC extends CActor
 			}
 		}
 		
-		// For npc sharing the same behavior graph (like animals)
+		
 		if ( ( ( CMovingPhysicalAgentComponent ) this.GetMovingAgentComponent() ).HasRagdoll() )
 		{
 			SetBehaviorVariable('HasRagdoll', 1 );
 		}
 		
-		// MS: Fix for 122671
+		
 		if ( (W3AardProjectile)( damageAction.causer ) )
 		{
 			DropItemFromSlot( 'r_weapon' );
@@ -2173,14 +2093,14 @@ statemachine import class CNewNPC extends CActor
 		
 		attackAction = (W3Action_Attack)damageAction;
 		
-		//disable Agony when in water
+		
 		if ( ((CMovingPhysicalAgentComponent)GetMovingAgentComponent()).GetSubmergeDepth() < 0 )
 		{
 			inWater = true;
 			DisableAgony();
 		}
 		
-		// riders die on ragdoll so sound events have to be played here
+		
 		if( IsUsingHorse() )
 		{
 			SoundEvent( "cmb_play_hit_heavy" );
@@ -2200,13 +2120,13 @@ statemachine import class CNewNPC extends CActor
 		
 		actor = (CActor)damageAction.attacker;
 		
-		//experience
+		
 		if(ShouldGiveExp(damageAction.attacker))
 		{
 			npcLevel = (int)CalculateAttributeValue(GetAttributeValue('level',,true));
 			lvlDiff = npcLevel - GetWitcherPlayer().GetLevel();
 			expPoints = CalculateExperiencePoints();
-			//(int)CalculateAttributeValue(GetAttributeValue('experience',,true));
+			
 			
 			if(expPoints > 0)
 			{				
@@ -2226,25 +2146,25 @@ statemachine import class CNewNPC extends CActor
 			}			
 		}
 				
-		//---------------------- achievement progress
+		
 		attitudeToPlayer = GetAttitudeBetween(this, thePlayer);
 		
 		if(attitudeToPlayer == AIA_Hostile && !HasTag('AchievementKillDontCount'))
 		{
-			//charmed NPCs kills		
+			
 			if(actor && actor.HasBuff(EET_AxiiGuardMe))
 			{
 				theGame.GetGamerProfile().IncStat(ES_CharmedNPCKills);
 				FactsAdd("statistics_cerberus_sign");
 			}
 			
-			//aard cliff kills
+			
 			if( aardedFlight && damageAction.GetBuffSourceName() == "FallingDamage" )
 			{
 				theGame.GetGamerProfile().IncStat(ES_AardFallKills);
 			}
 				
-			//environment kills
+			
 			if(damageAction.IsActionEnvironment())
 			{
 				theGame.GetGamerProfile().IncStat(ES_EnvironmentKills);
@@ -2252,7 +2172,7 @@ statemachine import class CNewNPC extends CActor
 			}
 		}
 		
-		//wanted dead or bovine achievement
+		
 		if(HasTag('cow'))
 		{
 			if( (damageAction.attacker == thePlayer) ||
@@ -2264,15 +2184,15 @@ statemachine import class CNewNPC extends CActor
 			}
 		}
 		
-		//player only kills - there's a similar check below - see that one too!
+		
 		if ( damageAction.attacker == thePlayer )
 		{
 			theGame.GetMonsterParamsForActor(this, monsterCategory, tmpName, tmpBool, tmpBool, tmpBool);
 			
-			//mutagen 18 - hp regen bonus
+			
 			if(thePlayer.HasBuff(EET_Mutagen18))
 			{
-				//don't add for non-hostile animals
+				
 				
 				if(monsterCategory != MC_Animal || IsRequiredAttitudeBetween(this, thePlayer, true))
 				{			
@@ -2305,10 +2225,10 @@ statemachine import class CNewNPC extends CActor
 				}
 			}
 			
-			// Mutagen 6 - increases max vitality after each kill
+			
 			if (thePlayer.HasBuff(EET_Mutagen06))
 			{
-				//don't add for non-hostile animals
+				
 				if(monsterCategory != MC_Animal || IsRequiredAttitudeBetween(this, thePlayer, true))
 				{	
 					mutagen = thePlayer.GetBuff(EET_Mutagen06);
@@ -2316,7 +2236,7 @@ statemachine import class CNewNPC extends CActor
 				}
 			}
 			
-			//Blizzard potion
+			
 			if(IsRequiredAttitudeBetween(this, thePlayer, true))
 			{
 				blizzard = (W3Potion_Blizzard)thePlayer.GetBuff(EET_Blizzard);
@@ -2329,7 +2249,7 @@ statemachine import class CNewNPC extends CActor
 				if (damageAction.GetIsHeadShot() && monsterCategory == MC_Human )		
 					theGame.GetGamerProfile().IncStat(ES_HeadShotKills);
 					
-				//cerberus achievement
+				
 				if( (W3SignEntity)damageAction.causer || (W3SignProjectile)damageAction.causer)
 				{
 					FactsAdd("statistics_cerberus_sign");
@@ -2370,18 +2290,18 @@ statemachine import class CNewNPC extends CActor
 			}
 		}
 		
-		//player telemetry kills, direct or indirect
+		
 		if( damageAction.attacker == thePlayer || !((CNewNPC)damageAction.attacker) )
 		{
 			theTelemetry.LogWithLabelAndValue(TE_FIGHT_ENEMY_DIES, this.ToString(), GetLevel());
 		}
 		
-		//player direct kill - achievements
+		
 		if(damageAction.attacker == thePlayer && !HasTag('AchievementKillDontCount'))
 		{
 			if ( attitudeToPlayer == AIA_Hostile )
 			{
-				//Swank achievement
+				
 				if(!HasTag('AchievementSwankDontCount'))
 				{
 					if(FactsQuerySum("statistic_killed_in_10_sec") >= 4)
@@ -2390,14 +2310,14 @@ statemachine import class CNewNPC extends CActor
 						FactsAdd("statistic_killed_in_10_sec", 1, 10);
 				}
 				
-				//Finesse achievement		
+				
 				if(GetWitcherPlayer() && !thePlayer.ReceivedDamageInCombat() && !GetWitcherPlayer().UsedQuenInCombat())
 				{
 					theGame.GetGamerProfile().IncStat(ES_FinesseKills);
 				}
 			}
 			
-			//Fundamentals First achievement
+			
 			if((W3PlayerWitcher)thePlayer)
 			{
 				if(!thePlayer.DidFailFundamentalsFirstAchievementCondition() && HasTag(theGame.params.MONSTER_HUNT_ACTOR_TAG) && !HasTag('failedFundamentalsAchievement'))
@@ -2407,10 +2327,10 @@ statemachine import class CNewNPC extends CActor
 			}
 		}
 					
-		//igni
+		
 		if(!inWater && (W3IgniProjectile)damageAction.causer)
 		{
-			//burning effect + agony if killed by igni
+			
 			if(RandF() < 0.3 && !WillBeUnconscious() )
 			{
 				AddEffectDefault(EET_Burning, this, 'IgniKill', true);
@@ -2419,7 +2339,7 @@ statemachine import class CNewNPC extends CActor
 			}
 		}
 		
-		//glyphword igni explosion		
+		
 		if(damageAction.attacker == thePlayer && thePlayer.HasAbility('Glyphword 20 _Stats', true) && damageAction.GetBuffSourceName() != "Glyphword 20")
 		{
 			burningCauser = (W3Effect_Burning)damageAction.causer;			
@@ -2428,10 +2348,10 @@ statemachine import class CNewNPC extends CActor
 			{
 				damageAction.SetForceExplosionDismemberment();
 				
-				//get radius
+				
 				radius = CalculateAttributeValue(thePlayer.GetAbilityAttributeValue('Glyphword 20 _Stats', 'radius'));
 				
-				//get damages
+				
 				theGame.GetDefinitionsManager().GetAbilityAttributes('Glyphword 20 _Stats', atts);
 				for(i=0; i<atts.Size(); i+=1)
 				{
@@ -2443,10 +2363,10 @@ statemachine import class CNewNPC extends CActor
 					}
 				}
 				
-				//get alive actors in sphere
+				
 				FindGameplayEntitiesInSphere(ents, GetWorldPosition(), radius, 1000, , FLAG_OnlyAliveActors);
 				
-				//deal additional damage & burning
+				
 				for(i=0; i<ents.Size(); i+=1)
 				{
 					if(IsRequiredAttitudeBetween(thePlayer, ents[i], true, false, false))
@@ -2475,7 +2395,7 @@ statemachine import class CNewNPC extends CActor
 			}
 		}
 		
-		//killed in fist fight
+		
 		if(attackAction && IsWeaponHeld('fist') && damageAction.attacker == thePlayer && !thePlayer.ReceivedDamageInCombat() && !HasTag('AchievementKillDontCount'))
 		{
 			weaponID = attackAction.GetWeaponId();
@@ -2483,7 +2403,7 @@ statemachine import class CNewNPC extends CActor
 				theGame.GetGamerProfile().AddAchievement(EA_FistOfTheSouthStar);
 		}
 		
-		//achievement for killing npc with its own arrow
+		
 		if(damageAction.IsActionRanged() && damageAction.IsBouncedArrow())
 		{
 			theGame.GetGamerProfile().IncStat(ES_SelfArrowKills);
@@ -2499,7 +2419,7 @@ statemachine import class CNewNPC extends CActor
 			return true;
 		}
 			
-		//to play awesome death anim
+		
 		this.SetInteractionPriority(IP_Max_Unpushable);
 	}
 	
@@ -2514,9 +2434,9 @@ statemachine import class CNewNPC extends CActor
 		
 		if ( !IsAlive() && IsInAgony() )
 		{
-			//abandon agony if is active
+			
 			SignalGameplayEvent('AbandonAgony');
-			//enable ragdoll
+			
 			SetKinematic(false);
 		}
 	}
@@ -2533,8 +2453,8 @@ statemachine import class CNewNPC extends CActor
 		
 		RemoveAllBuffsOfType(EET_Frozen);
 		
-		//need to be much higher than actually wanted - we get info when ragdoll stops moving
-		//the event of ragdol hitting ground is useless as it comes 0.5 sec after applying ragdol
+		
+		
 		
 		super.OnAardHit(sign);
 		
@@ -2553,33 +2473,21 @@ statemachine import class CNewNPC extends CActor
 			AddTimer('IgnoreSignsTimeOut',0.2,false);
 		}
 		
-		//Glyphword 6 _Stats
+		
 		staminaDrainPerc = sign.GetStaminaDrainPerc();
 		if(IsAlive() && staminaDrainPerc > 0.f && IsRequiredAttitudeBetween(this, sign.GetCaster(), true))
 		{
 			DrainStamina(ESAT_FixedValue, staminaDrainPerc * GetStatMax(BCS_Stamina));
-			/*
-			template = (CEntityTemplate)LoadResource('glyphword_6');
-			if(GetBoneIndex('pelvis') != -1)
-			{
-				fxEnt = (W3VisualFx)theGame.CreateEntity(template, GetBoneWorldPosition('pelvis'), GetWorldRotation(), , , true);
-				fxEnt.CreateAttachment(this, 'pelvis');
-			}
-			else			
-			{
-				fxEnt = (W3VisualFx)theGame.CreateEntity(template, GetBoneWorldPosition('k_pelvis_g'), GetWorldRotation(), , , true);
-				fxEnt.CreateAttachment(this, 'k_pelvis_g');
-			}
-			*/
+			
 		}
 		
 		if ( !IsAlive() )
 		{
-			//abandon agony if is active
+			
 			SignalGameplayEvent('AbandonAgony');
 			
-			// Ignore the following monsters because we don't have time to make a properly working ragdoll for them
-			// Also ignores all the animals because only some have a proper ragdoll
+			
+			
 			if( !HasAbility( 'mon_bear_base' )
 				&& !HasAbility( 'mon_golem_base' )
 				&& !HasAbility( 'mon_endriaga_base' )
@@ -2587,7 +2495,7 @@ statemachine import class CNewNPC extends CActor
 				&& !HasAbility( 'q604_shades' )
 				&& !IsAnimal()	)
 			{			
-				//enable ragdoll			
+				
 				SetKinematic(false);
 			}
 		}
@@ -2704,18 +2612,13 @@ statemachine import class CNewNPC extends CActor
 		this.SignalGameplayEvent( 'IgnoreSignsEnd' );
 		this.SetBehaviorVariable( 'bIgnoreSigns',0.f);
 	}
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
 		
 	
 	function SetIsTeleporting( b : bool )
 	{
 		isTeleporting = b;
-		/*
-		if ( isTeleporting )
-			SetImmortalityMode( AIM_Invulnerable, AIC_Combat );
-		else
-			SetImmortalityMode( AIM_None, AIC_Combat );
-			*/
+		
 	}
 	
 	function IsTeleporting() : bool
@@ -2743,13 +2646,11 @@ statemachine import class CNewNPC extends CActor
 		return bIsCountering;
 	}
 	
-	/**
 	
-	*/
 	timer function Tick(deltaTime : float, id : int)
 	{
-		//PFTODO: this should be here??
-		//this.target = GetTarget();
+		
+		
 	}
 	
 	private function UpdateBumpCollision()
@@ -2758,26 +2659,26 @@ statemachine import class CNewNPC extends CActor
 		var collisionData	: SCollisionData;
 		var collisionNum	: int;
 		var i				: int;
-		//var mac				: CMovingPhysicalAgentComponent;
 		
 		
-		//mac	= ( CMovingPhysicalAgentComponent ) GetMovingAgentComponent();
 		
-		if( mac )// && VecLengthSquared( mac.GetVelocity() ) > 1.0f )
+		
+		
+		if( mac )
 		{
-			// Get collisions with other characters
+			
 			collisionNum	= mac.GetCollisionCharacterDataCount();
 			for( i = 0; i < collisionNum; i += 1 )
 			{
 				collisionData	= mac.GetCollisionCharacterData( i );
 				npc	= ( CNewNPC ) collisionData.entity;
-				if( npc ) // should be true
+				if( npc ) 
 				{
-					this.SignalGameplayEvent( 'AI_GetOutOfTheWay' ); 					// break the job if we can
-					this.SignalGameplayEventParamObject( 'CollideWithPlayer', npc );	// Actual collision
+					this.SignalGameplayEvent( 'AI_GetOutOfTheWay' ); 					
+					this.SignalGameplayEventParamObject( 'CollideWithPlayer', npc );	
 					theGame.GetBehTreeReactionManager().CreateReactionEvent( this, 'BumpAction', 1, 1, 1, 1, false );
 					
-					// Only one collisuion, at least for now
+					
 					break;
 				}
 			}
@@ -2788,58 +2689,58 @@ statemachine import class CNewNPC extends CActor
 	public function SetIsTranslationScaled(b : bool)						{isTranslationScaled = b;}
 	public function GetIsTranslationScaled() : bool						{return isTranslationScaled;}	
 	
-	// Action point
+	
 	import final function GetActiveActionPoint() : SActionPointId;
 
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// W2 Transfer
-	//
-
-	//////////////////////////////////////////////////////////////////////////////////////////
 	
-	// Is in an interior?
+	
+	
+
+	
+	
+	
 	import final function IsInInterior() : bool;	
 	
-	// Is in danger
+	
 	import final function IsInDanger() : bool;
 	
-	// Is seeing any non-friendly guyz
+	
 	import final function IsSeeingNonFriendlyNPC() : bool;
 
-	// Is AI enabled
+	
 	import final function IsAIEnabled() : bool;
 	
-	// Find best action point
+	
 	import final function FindActionPoint( out apID : SActionPointId, out category : name );
 			
-	// Get default despawn point for this NPC
+	
 	import final function GetDefaultDespawnPoint( out spawnPoint : Vector ) : bool;
 	
 
-	// Makes actor noticed by NPC
+	
 	import final function NoticeActor( actor : CActor );
 	
-	// If actor is noticed, forces it to be forgotten
+	
 	import final function ForgetActor( actor : CActor );
 	
-	// Forces to forget all noticed actors
+	
 	import final function ForgetAllActors();
 	
-	// Retrieves a noticed item with the given index
+	
 	import final function GetNoticedObject( index : int) : CActor;
 	
-	//////////////////////////////////////////////////////////////////////////////////////////
+	
 
 	import final function GetPerceptionRange() : float;
 		
-	//////////////////////////////////////////////////////////////////////////////////////////
+	
 	
 	import final function PlayDialog( optional forceSpawnedActors : bool ) : bool;
  
-	//////////////////////////////////////////////////////////////////////////////////////////
 	
-	// Get reaction script by index
+	
+	
 	import final function GetReactionScript( index : int ) : CReactionScript;
 	
 	import final function IfCanSeePlayer() : bool;
@@ -2855,12 +2756,12 @@ statemachine import class CNewNPC extends CActor
 	import final function IsPlayingChatScene() : bool;
 	import final function CanUseChatInCurrentAP() : bool;
 	
-	// Makes attacker noticed by NPC in guard area even if it was actually outside
+	
 	import final function NoticeActorInGuardArea( actor : CActor );
-	//////////////////////////////////////////////////////////////////////////////////////////
 	
 	
-	///////////////////////////////ANIM EVENTS////////////////////////////////////////////
+	
+	
 	event OnAnimEvent_EquipItemL( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
 		GetInventory().MountItem( itemToEquip, true );
@@ -3091,32 +2992,32 @@ statemachine import class CNewNPC extends CActor
 		}
 	}
 	
-	//move to OWL class
+	
 	event OnAnimEvent_OwlSwitchOpen( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
 		SetAppearance('owl_01');
 	}
-	//move to OWL class
+	
 	event OnAnimEvent_OwlSwitchClose( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
 		SetAppearance('owl_02');
 	}
-	// move to GOOSE class
+	
 	event OnAnimEvent_Goose01OpenWings( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
 		SetAppearance('goose_01_wings');
 	}
-	// move to GOOSE class
+	
 	event OnAnimEvent_Goose01CloseWings( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
 		SetAppearance('goose_01');
 	}
-	// move to GOOSE class
+	
 	event OnAnimEvent_Goose02OpenWings( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
 		SetAppearance('goose_02_wings');
 	}
-	// move to GOOSE class
+	
 	event OnAnimEvent_Goose02CloseWings( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
 		SetAppearance('goose_02');
@@ -3138,7 +3039,7 @@ statemachine import class CNewNPC extends CActor
 		SetBehaviorVariable( 'UsesExtension', 1 );
 	}
 	
-	////////////////////////////////////////////////////////////////////////////////////////
+	
 	
 	event OnEquippedItem( category : name, slotName : name )
 	{
@@ -3219,7 +3120,7 @@ statemachine import class CNewNPC extends CActor
 
 	public function CanStartTalk() : bool
 	{
-		// block talk interaction for working npcs who are not conscious at work
+		
 		if( IsAtWork() && !IsConsciousAtWork() || IsTalkDisabled () )
 			return false;
 			
@@ -3240,10 +3141,10 @@ statemachine import class CNewNPC extends CActor
 		if ( actionName == "Talk" )
 		{	
 			LogChannel( 'DialogueTest', "Activating TALK Interaction - PLAY DIALOGUE" );
-			// By default, play dialog
+			
 			if ( !PlayDialog() )
 			{
-				// No main dialog found
+				
 				
 				EnableDynamicLookAt( thePlayer, 5 );
 				ciriEntity = (W3ReplacerCiri)thePlayer;
@@ -3252,7 +3153,7 @@ statemachine import class CNewNPC extends CActor
 				}
 				else
 				{
-					//play greeting										
+					
 					if( !IsAtWork() || IsConsciousAtWork() )
 					{
 						PlayVoiceset(100, "greeting_geralt" );
@@ -3267,11 +3168,7 @@ statemachine import class CNewNPC extends CActor
 		}
 		if ( actionName == "Finish" )
 		{
-			/*if( SignalGameplayEventReturnInt( 'IsFinisherHandledByTask',0 ) == 1 )
-			{
-				SignalGameplayEvent( 'AgonyFinisher' );
-			}
-			SignalGameplayEvent( 'AgonyFinisher ');*/
+			
 		}
 		else if( actionName == "AxiiCalmHorse" )
 		{
@@ -3310,7 +3207,7 @@ statemachine import class CNewNPC extends CActor
 			{
 				if( theGame.GetWorld().NavigationLineTest( activator.GetWorldPosition(), this.GetWorldPosition(), 0.05, false, true ) ) 
 				{
-					// test creatures existence on the path
+					
 					if( theGame.TestNoCreaturesOnLine( activator.GetWorldPosition(), this.GetWorldPosition(), 0.4, (CActor)activator, this, true ) ) 
 					{
 						return true;
@@ -3339,22 +3236,8 @@ statemachine import class CNewNPC extends CActor
 				return false;
 			}
 		}
-		/*else if( interactionComponentName == "follow" && canBeFollowed && activator == thePlayer && !thePlayer.IsUsingHorse() )
-		{
-			if( GetAttitude( thePlayer ) != AIA_Hostile )
-			{
-				thePlayer.SetCanFollowNpc( true, (CActor)this );
-				return true;
-			}
-		}*/
-		/*else if( interactionComponentName == "horseFollow" && canBeFollowed && activator == thePlayer && thePlayer.IsUsingHorse() && !thePlayer.GetUsedHorseComponent().CanFollowNpc() )
-		{
-			if( GetHorseUser() != thePlayer && GetHorseUser().GetAttitude( thePlayer ) != AIA_Hostile )
-			{
-				thePlayer.GetUsedHorseComponent().SetCanFollowNpc( true, GetHorseComponent() );
-				return true;
-			}
-		}*/
+		
+		
 		
 		return false;	
 	}
@@ -3364,34 +3247,34 @@ statemachine import class CNewNPC extends CActor
 		return CanStartTalk();		
 	}
 
-	//not optimised - fix this!!! Method "SetNPCHealthPercent" is called to often
+	
 	event OnInteractionActivated( interactionComponentName : string, activator : CEntity )
 	{
-		//LogChannel( 'DialogueTest', "Event Interaction Activated" );
 		
-		//if( interactionComponentName == "Finish" && (CPlayer)activator )
-		//{
-		//		theUI.GetHud().UpdateInteractionButton( false );
-		//}
+		
+		
+		
+		
+		
 	}
 	
 	event OnInteractionDeactivated( interactionComponentName : string, activator : CEntity )
 	{
-		//if( interactionComponentName == "Finish" && (CPlayer)activator )
-		//{
-		//		theUI.GetHud().UpdateInteractionButton( false );
-		//}
+		
+		
+		
+		
 	}
 
-	// DIALOG STATE EVENTS
 	
-	//event OnBlockingScenePrepare( scene: CStoryScene )
-	//event OnBlockingSceneStarted( scene: CStoryScene )
-	//{
-		//super.OnBlockingSceneStarted( scene );
-		//this is not needed
-		//PushState('NpcDialogScene');				//TODO - Exiting Work, fast finishing all tasks
-	//}
+	
+	
+	
+	
+		
+		
+		
+	
 	
 	event OnBehaviorGraphNotification( notificationName : name, stateName : name )
 	{
@@ -3419,9 +3302,9 @@ statemachine import class CNewNPC extends CActor
 		behaviorGraphEventListened.Remove( notificationName );
 	}
 	
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Abilities/Perks
-	/////////////////////////////////////////////////////////////////////////////////////////////
+	
+	
+	
 	
 	function IsShielded( target : CNode ) : bool
 	{
@@ -3436,7 +3319,7 @@ statemachine import class CNewNPC extends CActor
 				protectionAngleLeft = CalculateAttributeValue( this.GetAttributeValue( 'protection_angle_left' ) );
 				protectionAngleRight = CalculateAttributeValue( this.GetAttributeValue( 'protection_angle_right' ) );
 				
-				// npcs is shielded more from left
+				
 				if( targetToSourceAngle < protectionAngleRight && targetToSourceAngle > protectionAngleLeft )
 				{
 					return true;
@@ -3482,7 +3365,7 @@ statemachine import class CNewNPC extends CActor
 		DropItemFromSlot( 'l_weapon', true );
 	}
 
-	event OnIncomingProjectile( isBomb : bool ) // this is used to react for projectiles from player
+	event OnIncomingProjectile( isBomb : bool ) 
 	{
 		if( IsShielded( thePlayer ) )
 		{
@@ -3514,12 +3397,12 @@ statemachine import class CNewNPC extends CActor
 		if ( thePlayer.GetTarget() == this )
 			thePlayer.OnTargetWeaponDrawn();
 		
-		// to keep visuals with the data from npc class
+		
 		SetBehaviorVariable( 'bIsGuarded', (int)IsGuarded() );
 		
 		inv.GetAllHeldAndMountedItemsCategories(heldItems, mountedItems);
 				
-		// shield section
+		
 		if ( this.HasShieldedAbility() )
 		{
 			RaiseGuard();
@@ -3549,7 +3432,7 @@ statemachine import class CNewNPC extends CActor
 		}
 	}
 	
-	public function ProcessSpearDestruction() : bool //returns true if spear is destroyed//
+	public function ProcessSpearDestruction() : bool 
 	{
 		var appearanceName : name;
 		var shouldDrop : bool;
@@ -3563,9 +3446,9 @@ statemachine import class CNewNPC extends CActor
 		
 	}	
 	
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Vital spots
-	/////////////////////////////////////////////////////////////////////////////////////////////
+	
+	
+	
 	
 	function PlayVitalSpotAmbientSound( soundEvent : string )
 	{
@@ -3579,21 +3462,21 @@ statemachine import class CNewNPC extends CActor
 	
 	event OnScriptReloaded()
 	{
-		//Log( "OnScriptReloaded called on " + this );
+		
 	}
 		
 
 	
 	
-	//Method for changing the fight stage for bossfights and mini-bosses
-	//Remember to set the max value of the npcFightStage in NPC behavior graph to maximum used stage
-	//e.g. if an NPC has two fight stages, the max value should be 1 (0 is first stage, 1 is the second)
+	
+	
+	
 	public function ChangeFightStage( fightStage : ENPCFightStage )
 	{
 		currentFightStage =  fightStage;
 		SetCurrentFightStage();
 	}
-	//Method sets the npcFightStage behavior variable for current npc fight stage
+	
 	public function SetCurrentFightStage()
 	{
 		SetBehaviorVariable( 'npcFightStage', (float)(int)currentFightStage, true );
@@ -3604,7 +3487,7 @@ statemachine import class CNewNPC extends CActor
 		return currentFightStage;
 	}
 	
-	//////////////////////////////////////////////////////////////////////////////////////////
+	
 	public function SetBleedBurnPoison()
 	{
 		wasBleedingBurningPoisoned = true;
@@ -3615,7 +3498,7 @@ statemachine import class CNewNPC extends CActor
 		return wasBleedingBurningPoisoned;
 	}
 	
-	//checks if victim has quen and if so modifies accordingly scheduled buffs
+	
 	public function HasAlternateQuen() : bool
 	{
 		var npcStorage : CHumanAICombatStorage;
@@ -3632,67 +3515,19 @@ statemachine import class CNewNPC extends CActor
 	
 	public function GetIsMonsterTypeGroup() : bool	{ return isMonsterType_Group; }
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Update visual debug information
-	//////////////////////////////////////////////////////////////////////////////////////////
+	
+	
+	
 	function UpdateAIVisualDebug()
 	{	
-/*		var vd : CVisualDebug;
-		var pos : Vector;
-		var col : Color;
-		var att : EAIAttitude;
-		var target : CActor;
-		var idx, subIndex : int;
-		var displayMode : name;
-		
-		super.UpdateAIVisualDebug();
-	
-		displayMode = theGame.aiInfoDisplayMode;		
-		if( displayMode == 'all' || displayMode == 'npc' )
-		{	
-			vd = GetAIVisualDebug();
-			pos = GetVisualDebugPos();
-			col = GetVisualDebugColor();
-			
-			att = GetAttitude( thePlayer );			
-			vd.= GetTarget();
-			if( target && target.combatSlots && target.combatSlots.HasActorInCombatSlot( this ) )
-			{
-				idx = target.combatSlots.GetCombatSlotIndex( this, subIndex );
-				if( idx != -1 )
-				{
-					vd.AddText('inSlot', "IN COMBAT SLOT "+idx+", "+subIndex, pos, false, 14, Color(0, 255, 0), false, 1.0 );
-					vd.AddText('offSlot', "OffSlot: "+offSlot, pos, false, 15, Color(0, 255, 0), false, 1.0 );					
-				}
-				else
-				{
-					vd.RemoveText('inSlot');
-					vd.RemoveText('offSlot');
-				}
-			}
-			else
-			{
-				vd.RemoveText('inSlot');
-				vd.RemoveText('offSlot');
-			}
-			
-			if( combatIdleGroupIdx != -1 )
-			{
-				vd.AddText('inIdleSlot', "IN COMBAT IDLE GROUP "+combatIdleGroupIdx, pos, false, 14, Color(0, 255, 255), false, 1.0 );
-			}
-			else
-			{
-				vd.RemoveText('inIdleSlot');
-			}
-		}
-*/	}
+	}
 
-	//this event comes from behavior graph <- when Idle/Walk/Run becomes current active state
+	
 	event OnAllowBehGraphChange()
 	{
 		allowBehGraphChange = true;
 	}
-	//this event comes from behavior graph <- when Idle/Walk/Run is no longer current active state
+	
 	event OnDisallowBehGraphChange()
 	{
 		allowBehGraphChange = false;
@@ -3709,10 +3544,10 @@ statemachine import class CNewNPC extends CActor
 		}
 		
 		ent = component.GetEntity();
-		//this.SignalGameplayEvent('CollisionWithObstacle');
+		
 		if ( (CActor)ent != this )
 		{
-			//FIXME URGENT - THIS WILL ALSO GET CALLED IF ENT IS NOT AN ACTOR - INTENDED?
+			
 			this.SignalGameplayEventParamObject('CollisionWithObstacle',ent);
 		}
 	}
@@ -3732,7 +3567,7 @@ statemachine import class CNewNPC extends CActor
 		{
 			this.SignalGameplayEventParamObject('CollisionWithActor', ent );
 			
-			// horse charge
+			
 			if( horseComponent )
 			{
 				horseComponent.OnCharacterCollision( ent );
@@ -3756,7 +3591,7 @@ statemachine import class CNewNPC extends CActor
 		{
 			this.SignalGameplayEventParamObject('CollisionWithActor', ent );
 			
-			// horse charge
+			
 			if( horseComponent )
 			{
 				horseComponent.OnCharacterSideCollision( ent );
@@ -3786,9 +3621,9 @@ statemachine import class CNewNPC extends CActor
 		}
 	}
 	
-	////////////////
-	// water
-	////////////////
+	
+	
+	
 	
 	public function IsUnderwater() : bool { return isUnderwater; }
 	public function ToggleIsUnderwater ( toggle : bool ) { isUnderwater = toggle; }
@@ -3803,20 +3638,15 @@ statemachine import class CNewNPC extends CActor
 		SignalGameplayEvent('LeaveWater');
 	}
 	
-	////////////////
-	// ragdoll triggering
-	////////////////
+	
+	
+	
 		
 	var isRagdollOn : bool; default isRagdollOn = false;
 	
 	event OnInAirStarted()
 	{		
-		/*if( !isInAir && !IsSwimming() && !IsUnderwater() && GetCurrentStance() != NS_Fly )
-		{
-			isInAir = true;
-			isRagdollOn = false;
-			AddTimer( 'DelayRagdollSwitch', 0.25 );
-		}*/
+		
 	}
 	
 	event OnRagdollOnGround()
@@ -3846,7 +3676,7 @@ statemachine import class CNewNPC extends CActor
 	{
 		var currentPri : EInteractionPriority;
 	
-		// store interaction priority when actor is alive and set unpushable
+		
 		currentPri = GetInteractionPriority();
 		if ( currentPri != IP_Max_Unpushable && IsAlive() )
 		{
@@ -3859,7 +3689,7 @@ statemachine import class CNewNPC extends CActor
 	{
 		aardedFlight = false;
 		
-		// restore interaction priority when ragdoll is finished
+		
 		if ( m_storedInteractionPri != IP_NotSet && IsAlive() )
 		{
 			SetInteractionPriority( m_storedInteractionPri );
@@ -3905,7 +3735,7 @@ statemachine import class CNewNPC extends CActor
 
 		super.OnTakeDamage(action);
 		
-		//player's mutagen 10 (dmg bonus for each successfull sword attack)
+		
 		if(action.IsActionMelee() && action.DealsAnyDamage())
 		{
 			witcher = (W3PlayerWitcher)action.attacker;

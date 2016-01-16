@@ -1,24 +1,27 @@
 ﻿/***********************************************************************/
-/** Copyright © 2012-2015
-/** Author : Rafal Jarczewski, Tomek Kozera
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
 
-// Class added to each actor to manage actor's buffs/debuffs/effects
+
+
+
 class W3EffectManager
 {
-	private var owner : CActor;											//this won't get saved if we use the 'saved' keyword
-	private saved var effects : array< CBaseGameplayEffect >;			//list of applied (working) effects
-	private saved var statDeltas : array<float>;						//array of cached stat updates to perform (regenerations)
-	private saved var cachedDamages : array<SEffectCachedDamage>;		//array of cached damages to deal
-	private var isReady : bool;											//set to true when object is initialized
-	private saved var currentlyAnimatedCS : CBaseGameplayEffect;		//currently animated critical state on target
-	private var currentlyPlayedFX : array<SCurrentBuffFX>;				//list of currently played FXs to avoid displaying the same effect more than once or stopping from one source while others need it
-	private saved var pausedEffects : array<STemporarilyPausedEffect>;	//array of temporarily paused buffs
-	private saved var pausedNotAppliedAutoBuffs : array<SPausedAutoEffect>;	//array of autobuffs to pause once they get added to character
-	private var ownerIsWitcher : bool;									//set to true if owner is witcher
-	private var isInitializingAutobuffs : bool;							//set for duration of initialization of autobuffs
-	private var hasCriticalStateSaveLock : bool;						//true if there's currently a SaveLock in effect
-	private var criticalStateSaveLockId : int;							//SaveLock id from critical states if any
+	private var owner : CActor;											
+	private saved var effects : array< CBaseGameplayEffect >;			
+	private saved var statDeltas : array<float>;						
+	private saved var cachedDamages : array<SEffectCachedDamage>;		
+	private var isReady : bool;											
+	private saved var currentlyAnimatedCS : CBaseGameplayEffect;		
+	private var currentlyPlayedFX : array<SCurrentBuffFX>;				
+	private saved var pausedEffects : array<STemporarilyPausedEffect>;	
+	private saved var pausedNotAppliedAutoBuffs : array<SPausedAutoEffect>;	
+	private var ownerIsWitcher : bool;									
+	private var isInitializingAutobuffs : bool;							
+	private var hasCriticalStateSaveLock : bool;						
+	private var criticalStateSaveLockId : int;							
 	
 	private var vitalityAutoRegenOn 		: bool;		default vitalityAutoRegenOn 		= false;
 	private var essenceAutoRegenOn 			: bool;		default essenceAutoRegenOn 			= false;
@@ -33,7 +36,7 @@ class W3EffectManager
 		default isInitializingAutobuffs = false;
 		
 	
-	//Applies autobuffs to owner and initializes this object	
+	
 	public final function Initialize( actor : CActor )
 	{
 		var i : int;
@@ -51,7 +54,7 @@ class W3EffectManager
 		for(i=0; i<statDeltas.Size(); i+=1)
 			statDeltas[i] = 0;
 		
-		//get autobuffs
+		
 		npc = (CNewNPC)actor;
 		if( npc )
 		{
@@ -72,7 +75,7 @@ class W3EffectManager
 		FilterOutExactly( autoEffects, EET_AutoSwimmingStaminaRegen );
 		FilterOutExactly( autoEffects, EET_AdrenalineDrain );
 		
-		//HACK: sometimes actor OnSpawn event is called before Game's OnGameStarting() and thus we have no GameEffectManager!
+		
 		if(autoEffects.Size() > 0 && !theGame.IsEffectManagerInitialized())
 			theGame.InitializeEffectManager();
 		
@@ -87,7 +90,7 @@ class W3EffectManager
 		isReady = true;
 	}
 	
-	// Updates all effects
+	
 	public final function PerformUpdate(deltaTime : float)
 	{
 		var i, size : int;
@@ -97,11 +100,11 @@ class W3EffectManager
 		var carrier, pausedBuff : CBaseGameplayEffect;
 		var cachedDeltaRemoved : bool;
 			
-		//update time and remove if timed-out
+		
 		size = effects.Size();		
 		for(i=size-1; i>=0; i -= 1 )
 		{
-			//check pause flags status
+			
 			if( effects[ i ].IsPausedDuringDialogAndCutscene() )
 			{
 				if( theGame.IsDialogOrCutscenePlaying() && !effects[i].IsPaused('dialogOrCutscene'))
@@ -117,16 +120,23 @@ class W3EffectManager
 				}
 			}
 		
-			//skip paused effects
+			
 			if( effects[i].IsPaused() )
 			{
 				continue;
 			}
 				
-			//update or finish
+			
 			if(effects[i].IsActive())
 			{
-				effects[i].OnTimeUpdated(deltaTime);		
+				if ( effects[i].UsesCustomCounter() )
+				{
+					effects[i].CheckCustomCounter();
+				}
+				else
+				{
+					effects[i].OnTimeUpdated(deltaTime);		
+				}
 			}
 			else
 			{
@@ -134,14 +144,14 @@ class W3EffectManager
 			}
 		}
 
-		//Now perform cached stat updates. Stat changes are cached when processing effects, not applied on the fly. This is to prevent situations where
-		//you would have 2 hp left, and one buff that restores 10 hp and another that drains 5 hp. If the latter would be processed first then you would
-		//die although the delta hp update is +5 so you should not die.
-		//
-		//We cannot simply process positive buffs before negative ones because a buff might give two effects at the same time e.g. -hp per sec and +stamina per sec 
-		//-> a positive buff that additionally drains stat what in this case could kill the owner
 		
-		//update stats (gains and drains)
+		
+		
+		
+		
+		
+		
+		
 		size = statDeltas.Size();
 		cachedDeltaRemoved = false;
 		for(i=0; i<size; i+=1)
@@ -154,7 +164,7 @@ class W3EffectManager
 			else
 			{
 				UpdateStatValueChange(i, delta);				
-				statDeltas[i] = 0;	//clear
+				statDeltas[i] = 0;	
 				cachedDeltaRemoved = true;
 				
 				if(i == BCS_Vitality || i == BCS_Essence)
@@ -162,7 +172,7 @@ class W3EffectManager
 			}
 		}
 				
-		//update damages
+		
 		size = cachedDamages.Size();
 		if( size > 0 )
 		{
@@ -186,20 +196,20 @@ class W3EffectManager
 				
 				theGame.damageMgr.ProcessAction(action);
 
-				//custom - shut down bleeding particle if no damage dealt
+				
 				carrier = cachedDamages[i].carrier;
 				if(carrier && carrier.GetEffectType() == EET_Bleeding)
 				{
-					((W3Effect_Bleeding)carrier).OnDamageDealt( action.DealsAnyDamage() );	//inform the buff (carrier) that damage was not dealt
+					((W3Effect_Bleeding)carrier).OnDamageDealt( action.DealsAnyDamage() );	
 				}
 			}
 
 			delete action;
 			cachedDamages.Clear();
-			owner.SetEffectsUpdateTicking( false ); // conditions checked internally
+			owner.SetEffectsUpdateTicking( false ); 
 		}
 		
-		//process existing paused effects
+		
 		for(i=pausedEffects.Size()-1; i>=0; i-=1)
 		{
 			if(pausedEffects[i].timeLeft > -1)
@@ -213,7 +223,7 @@ class W3EffectManager
 			}
 		}
 		
-		//process non-existing autobuff pauses
+		
 		for(i=pausedNotAppliedAutoBuffs.Size()-1; i>=0; i-=1)
 		{
 			if(pausedNotAppliedAutoBuffs[i].timeLeft > -1)
@@ -226,20 +236,20 @@ class W3EffectManager
 			}
 		}
 		
-		//check if can be removed - this internally checks if all conditions for removing are fullfiled.
+		
 		owner.SetEffectsUpdateTicking( false );
 	}
 	
-	//prepares array of autobuffs to add on owner
+	
 	private final function PrepareAutoBuffs() : array<name>
 	{
 		var autoEffects : array<name>;
 		
-		//autobuffs from template
+		
 		owner.GetAutoEffects(autoEffects);
 		
-		//all npcs get all auto-regens
-		//also check if its value is set in XML - remove if not
+		
+		
 		FilterAutoBuff(autoEffects, CRS_Vitality, EET_AutoVitalityRegen);
 		FilterAutoBuff(autoEffects, CRS_Essence, EET_AutoEssenceRegen);
 		FilterAutoBuff(autoEffects, CRS_Stamina, EET_AutoStaminaRegen);
@@ -248,8 +258,8 @@ class W3EffectManager
 		return autoEffects;
 	}
 	
-	//If given autobuff is not in array it gets added if it's regen value is >0.
-	//If autobuff is in array but it's regen value is == 0 it is removed from array
+	
+	
 	private final function FilterAutoBuff(out autoEffects : array<name>, regenStat : ECharacterRegenStats, effectType : EEffectType)
 	{
 		var autoName : name;
@@ -498,7 +508,7 @@ class W3EffectManager
 		return false;
 	}
 	
-	// Called on game load
+	
 	public final function OnLoad(own : CActor)
 	{
 		var i : int;
@@ -509,7 +519,7 @@ class W3EffectManager
 		for(i=0; i<effects.Size(); i+=1)
 			effects[i].OnLoad(owner, this);
 			
-		//save hack - these should be false!
+		
 		staminaAutoRegenOn = false;		
 		essenceAutoRegenOn = false;		
 		staminaAutoRegenOn = false;		
@@ -519,7 +529,7 @@ class W3EffectManager
 		swimmingStaminaAutoRegenOn = false;		
 		adrenalineAutoRegenOn = false;		
 				
-		//call timer - if there are no buffs it will turn off after 1 tick. It's the safest way to make sure effect manager restores in weird cases (e.g. having pauses for non-existing buffs etc)
+		
 		owner.SetEffectsUpdateTicking(true);
 		isReady = true;
 	}
@@ -537,7 +547,7 @@ class W3EffectManager
 		currentlyAnimatedCS = buff;
 	}
 	
-	//If partialSourceNameSearch is set then instead of matching exact sourceName, it checks if provided sourcename is a substring of buff's sourceName
+	
 	public final function GetCurrentEffects(optional type : EEffectType, optional sourceName : string, optional partialSourceNameSearch : bool) : array< CBaseGameplayEffect >
 	{
 		var i : int;
@@ -551,12 +561,12 @@ class W3EffectManager
 		
 		for(i=0; i<effects.Size(); i+=1)
 		{
-			//if not NULL
+			
 			if(effects[i])
 			{
 				buffOk = true;
 				
-				//if type passed then check type first
+				
 				if(type != EET_Undefined)
 				{
 					if(type != effects[i].GetEffectType())
@@ -590,40 +600,32 @@ class W3EffectManager
 		return ret;
 	}
 			
-	/*
-		Applies given effect on actor		
-		
-		effect - effect to apply
-		overridenEffectsIdxs - array of indexes of effects which are overriden by this effect (those effect will be removed) (provide if applicable)
-		cumulateIdx - index of the effect with which this effect should cumulate (if applicable)
-		
-		@returns - effect interaction type to know what actually happened (if the effect was added, denied, cumulated etc.)
-	*/
+	
 	private final function ApplyEffect( effect : CBaseGameplayEffect, overridenEffectsIdxs : array<int>, cumulateIdx : int, customParams : W3BuffCustomParams) : EEffectInteract
 	{
 		var i, size : int;		
 		var effectType : EEffectType;
 		
-		//remove overriden effects
+		
 		size = overridenEffectsIdxs.Size();
 		for(i=size-1; i>=0; i-=1)
 		{
 			RemoveEffectOnIndex( overridenEffectsIdxs[ i ], true );
 		}
 		
-		//cumulate with old effect, if anything to cumulate with
+		
 		if(cumulateIdx >= 0)
 		{
 			effects[cumulateIdx].CumulateWith(effect);
 			delete effect;
 			return EI_Cumulate;
 		}
-		//otherwise add new effect
+		
 		else
 		{
 			effect.OnEffectAdded(customParams);
 						
-			//check if effect is added properly
+			
 			if(!effect.IsActive())
 			{
 				LogAssert(false, "W3EffectManager.ApplyEffect: effect <<" + effect + ">> did not add properly (is inactive just after added) to <<" + owner + ">> and is removed!");
@@ -631,7 +633,7 @@ class W3EffectManager
 				return EI_Undefined;
 			}
 			
-			//pause if autobuff and it's supposed to be paused
+			
 			effectType = effect.GetEffectType();
 			if(pausedNotAppliedAutoBuffs.Size() > 0 && IsBuffAutoBuff(effectType))
 			{			
@@ -651,7 +653,7 @@ class W3EffectManager
 			
 			effect.OnEffectAddedPost();
 			
-			//if here then either we added the effect or overriden some effect
+			
 			if(size > 0)
 				return EI_Override;
 			else
@@ -659,7 +661,7 @@ class W3EffectManager
 		}
 	}
 	
-	//called after buff was removed
+	
 	private final function OnBuffRemoved()
 	{
 		if(hasCriticalStateSaveLock && GetCriticalBuffsCount() == 0)
@@ -669,7 +671,7 @@ class W3EffectManager
 		}
 	}
 	
-	//called after buff was successfully added
+	
 	private final function OnBuffAdded(effect : CBaseGameplayEffect)
 	{
 		var signEffects : array < CBaseGameplayEffect >;
@@ -686,7 +688,7 @@ class W3EffectManager
 			 hasCriticalStateSaveLock = true;
 		}
 		
-		//achievement for bleeding, poison and burning
+		
 		npcOwner = (CNewNPC)owner;
 		if(npcOwner && (effectType == EET_Burning || effectType == EET_Bleeding || effectType == EET_Poison || effectType == EET_PoisonCritical) && !npcOwner.WasBurnedBleedingPoisoned())
 		{
@@ -697,13 +699,13 @@ class W3EffectManager
 			}
 		}
 		
-		//achievement for all minor places of power
+		
 		if(owner == thePlayer && IsBuffShrine(effectType) && HasAllShrineBuffs())
 		{
 			theGame.GetGamerProfile().AddAchievement(EA_PowerOverwhelming);
 		}
 		
-		//mutagen 13 - decrease control impairing effects duration
+		
 		mutagen = (W3Mutagen13_Effect)owner.GetBuff(EET_Mutagen13);
 		if(mutagen && mutagen.IsEffectTypeAffected(effectType))
 		{					
@@ -711,7 +713,7 @@ class W3EffectManager
 		}		
 	}
 	
-	//runs through all effects from provided array and removes the ones that don't exist anymore
+	
 	public final function UpdateLocalBuffsArray(out localArray : array<CBaseGameplayEffect>)
 	{
 		var i : int;
@@ -739,15 +741,7 @@ class W3EffectManager
 		);
 	}
 	
-	/*
-		Adds effect with default parameters
-		
-		effectType - effect to add
-		creat - entity that creted the effect
-		srcName - name of the source (needed for cumulation/overrides)
-		
-		@returns - interaction result
-	*/
+	
 	public final function AddEffectDefault(effectType : EEffectType, creat : CGameplayEntity, optional srcName : string, optional signEffect : bool) : EEffectInteract
 	{
 		var none : SAbilityAttributeValue;
@@ -756,7 +750,7 @@ class W3EffectManager
 		return InternalAddEffect(effectType, creat, srcName, 0, none, '', '', signEffect, none, noneParams);
 	}
 	
-	// Internal function that adds effect to the owner. Is encapsulated by AddEffect* functions to provide proper parameters.
+	
 	private final function InternalAddEffect(effectType : EEffectType, creat : CGameplayEntity, srcName : string, optional inDuration : float, optional customVal : SAbilityAttributeValue, optional customAbilityName : name, optional customFXName : name, optional signEffect : bool, optional powerStatValue : SAbilityAttributeValue, optional customParams : W3BuffCustomParams, optional vibratePadLowFreq : float, optional vibratePadHighFreq : float) : EEffectInteract
 	{
 		var effect : CBaseGameplayEffect;
@@ -774,7 +768,7 @@ class W3EffectManager
 			return EI_Undefined;
 		}
 		
-		//if burning then don't do it if target is underwater
+		
 		if(effectType == EET_Burning)
 		{
 			if( ((CMovingPhysicalAgentComponent)owner.GetMovingAgentComponent()).GetSubmergeDepth() <= -1)
@@ -783,7 +777,7 @@ class W3EffectManager
 				return EI_Deny;
 			}
 		}		
-		//if freeze and flying enemy - disable
+		
 		else if(effectType == EET_Frozen)
 		{
 			npc = (CNewNPC)owner;
@@ -794,7 +788,22 @@ class W3EffectManager
 			}
 		}
 		
-		//if stagger and has quen then break quen and don't stagger		
+		
+		if( owner == thePlayer && thePlayer.HasBuff( EET_Mutagen08 ) )
+		{
+			if( effectType == EET_Knockdown )
+			{
+				LogEffects( "EffectManager.InternalAddEffect: changing EET_Knockdown to EET_Stagger due to Mutagen 8 in effect" );
+				effectType = EET_Stagger;
+			}
+			else if( effectType == EET_LongStagger || effectType == EET_Stagger )
+			{
+				LogEffects( "EffectManager.InternalAddEffect: denying " + effectType + " due to Mutagen 8 in effect" );
+				return EI_Deny;
+			}
+		}
+		
+		
 		if( ((W3PlayerWitcher)owner) && GetWitcherPlayer().IsAnyQuenActive())
 		{
 			hasQuen = true;
@@ -805,55 +814,47 @@ class W3EffectManager
 				LogEffects("EffectManager.InternalAddEffect: Geralt has active quen so it breaks and we don't stagger.");
 				return EI_Deny;
 			}
-		}
+		}		
 		
-		//default srouce name if not provided
+		
 		if(srcName == "" && creat)
 			srcName = creat.GetName();
 		
-		//knockdown HACK
-		//if target is knocked down and we knock him down, instead we apply ragdoll
-		//this is to avoid badly looking animation blends
-		// -turned off as for now we don't want to be able to knockdown knocked-down opponents
-		/*
-		if(effectType == EET_Knockdown || effectType == EET_HeavyKnockdown || effectType == EET_KnockdownTypeApplicator)
-		{
-			if(owner.HasBuff(EET_Knockdown) || owner.HasBuff(EET_HeavyKnockdown) || owner.HasBuff(EET_KnockdownTypeApplicator) || owner.HasBuff(EET_Ragdoll))
-			{
-				effectType = EET_Ragdoll;
-			}
-		}
-		*/
 		
-		// Discard effect before creating it if possible
-		//------------------------------------------------------------------------------------------------------------
 		
-		//applying on dead target
+		
+		
+		
+		
+		
+		
+		
+		
 		if(!owner.IsAlive() && !effect.CanBeAppliedOnDeadTarget())
 			return EI_Deny;
 			
 		actorCreator = (CActor)creat;
 		
-		//buff immunity
+		
 		if(owner.IsImmuneToBuff(effectType) && (!actorCreator.HasAbility('ForceCriticalEffects') || IsCriticalEffectType(effectType)) )
 		{
 			LogEffects("EffectManager.InternalAddEffect: unit <<" + owner + ">> is immune to effect of this type (" + effectType + ")");
 			return EI_Deny;
 		}		
 		
-		//friendlies don't give negative buffs (mind the hacks over here)
+		
 		if( actorCreator && GetAttitudeBetween( actorCreator, owner ) == AIA_Friendly && creat != owner && IsNegativeEffectType( effectType ) && effectType != EET_Confusion && effectType != EET_AxiiGuardMe )
 		{
 			LogAssert(false, "EffectManager.InternalAddEffect: unit <<" + owner + ">> is friendly to buff creator: <<" + creat + ">> negative buff cannot be added");
 			return EI_Deny;
 		}
 		
-		// Create the effect
+		
 		effect = theGame.effectMgr.MakeNewEffect(effectType, creat, owner, this, inDuration, srcName, powerStatValue, customVal, customAbilityName, customFXName, signEffect, vibratePadLowFreq, vibratePadHighFreq);
 		
 		if(effect)
 		{
-			//quen absorbs some damage and denies DoT
+			
 			if( (hasQuen || (((W3PlayerWitcher)owner) && FactsQuerySum("player_had_quen") > 0)) && IsDoTEffect(effect))
 			{
 				FactsRemove("player_had_quen");
@@ -869,7 +870,7 @@ class W3EffectManager
 				
 				for(i=0; i<damages.Size(); i+=1)
 				{
-					//#Quen hack
+					
 					action.AddDamage(damages[i].dmgType, damages[i].dmgVal);
 				}
 				
@@ -883,7 +884,7 @@ class W3EffectManager
 				return EI_Deny;
 			}
 			
-			//buff custom fail on add or duration resistance reduced duration to 0
+			
 			if(effect.GetDurationLeft() == 0)
 			{
 				LogEffects("EffectManager.InternalAddEffect: unit <<" + owner + ">>: effect <<" + effectType + ">> cannot be added as its final duration is 0.");
@@ -891,14 +892,14 @@ class W3EffectManager
 				return EI_Deny;
 			}
 
-			//if effect of Axii from player and player has S_Magic_s17 at level 3 and buff duration is less than stagger then deny - this will force stagger later through S_Magic_s17 skill							
+			
 			if(signEffect && (effectType == EET_Confusion || effectType == EET_Hypnotized) && creat == thePlayer && thePlayer.CanUseSkill(S_Magic_s17) && thePlayer.GetSkillLevel(S_Magic_s17) == 3 && effect.GetDurationLeft() < CalculateAttributeValue(thePlayer.GetSkillAttributeValue(S_Magic_s17, 'duration_to_force_stagger', false, true)) )
 			{				
 				LogEffects("EffectManager.InternalAddEffect: Axii effect is blocked, will be stagger from S_Magic_s17 skill");
 				return EI_Deny;
 			}
 		
-			//check if any current buffs don't allow this buff to be applied
+			
 			if( theGame.effectMgr.CheckInteractionWith(this, effect, effects, overridenEffectsIdxs, cumulateIdx) )
 				return ApplyEffect(effect, overridenEffectsIdxs, cumulateIdx, customParams);
 			else
@@ -952,7 +953,7 @@ class W3EffectManager
 		return cnt;
 	}	
 	
-	// Returns first found buff object of given type
+	
 	public final function GetEffect(effectType : EEffectType, optional sourceName : string) : CBaseGameplayEffect
 	{
 		var i,size : int;
@@ -970,7 +971,7 @@ class W3EffectManager
 		return NULL;
 	}
 	
-	//function to remove given effect
+	
 	public final function RemoveEffect(effect : CBaseGameplayEffect, optional csForcedRemove : bool)
 	{
 		var witcher : W3PlayerWitcher;
@@ -990,13 +991,13 @@ class W3EffectManager
 		{				
 			if(effect.IsActive())
 			{
-				//request anim stop
+				
 				effect.SetTimeLeft(0);
 				return;
 			}
 		}
 		
-		//removed effect is a CS that was about to be animated on owner
+		
 		if(isCritical && effect == owner.GetNewRequestedCS())
 			owner.SetNewRequestedCS(NULL);
 		
@@ -1020,11 +1021,11 @@ class W3EffectManager
 		if(isCritical && currentlyAnimatedCS == effect)
 		{
 			owner.RaiseEvent( 'CriticalStateEnded' );
-//			owner.SetBehaviorVariable( 'CriticalStateType', (int)ECST_None );
+
 			SetCurrentlyAnimatedCS(NULL);
 		}	
 		
-		//remove pauses
+		
 		for(i=pausedEffects.Size()-1; i>=0; i-=1)
 		{
 			if(pausedEffects[i].buff != effect)
@@ -1032,7 +1033,7 @@ class W3EffectManager
 				
 			if(IsBuffAutoBuff(pausedEffects[i].buff.GetEffectType()))
 			{
-				//add lock to autobuff paused array so that buff would be paused again when added for the second time
+				
 				autoBuffPause.effectType = effect.GetEffectType();
 				autoBuffPause.duration = pausedEffects[i].duration;
 				autoBuffPause.timeLeft = pausedEffects[i].timeLeft;
@@ -1043,7 +1044,7 @@ class W3EffectManager
 				pausedNotAppliedAutoBuffs.PushBack(autoBuffPause);
 			}
 			
-			//remove effect from currently paused effects array
+			
 			pausedEffects.EraseFast(i);
 			break;
 		}
@@ -1056,7 +1057,7 @@ class W3EffectManager
 		RemoveEffect(effects[index], csForcedRemove);
 	}
 		
-	// Removes all potion effects except provided effect
+	
 	public final function RemoveAllPotionEffects(optional skip : array<CBaseGameplayEffect>)
 	{
 		var size,i : int;
@@ -1071,7 +1072,7 @@ class W3EffectManager
 		}
 	}
 	
-	//removes all buffs of given type
+	
 	public final function RemoveAllEffectsOfType(type : EEffectType, optional forced : bool)
 	{
 		var i : int;
@@ -1085,7 +1086,7 @@ class W3EffectManager
 		}
 	}
 	
-	//removes all effects EXCEPT autobuffs
+	
 	public final function RemoveAllNonAutoEffects()
 	{
 		var autoEffects : array<name>;
@@ -1094,7 +1095,7 @@ class W3EffectManager
 		var tmpName : name;
 		var autos : array<EEffectType>;
 				
-		//get autobuffs
+		
 		owner.GetAutoEffects(autoEffects);
 		for(i=0; i<autoEffects.Size(); i+=1)		
 		{
@@ -1102,7 +1103,7 @@ class W3EffectManager
 			autos.PushBack(type);
 		}
 		
-		//added by default to all
+		
 		if(!autos.Contains(EET_AutoVitalityRegen))
 			autos.PushBack(EET_AutoVitalityRegen);
 		if(!autos.Contains(EET_AutoStaminaRegen))
@@ -1112,7 +1113,7 @@ class W3EffectManager
 		if(!autos.Contains(EET_AutoMoraleRegen))
 			autos.PushBack(EET_AutoMoraleRegen);
 		
-		//remove
+		
 		for(i=effects.Size()-1; i>=0; i-=1)
 		{
 			type = effects[i].GetEffectType();
@@ -1123,7 +1124,7 @@ class W3EffectManager
 		}
 	}
 	
-	// Called when the owner has died
+	
 	public final function OwnerHasDied()
 	{
 		var i : int;
@@ -1153,7 +1154,7 @@ class W3EffectManager
 		
 		ResumeAllBuffsForced();
 		
-		//HANDS ON HACKFIX
+		
 		vitalityAutoRegenOn = false;
 		essenceAutoRegenOn 			= false;
 		staminaAutoRegenOn 			= false;
@@ -1172,7 +1173,7 @@ class W3EffectManager
 		StartSwimmingStaminaRegen();
 	}
 	
-	// Called when the owner has finished playing its death animation
+	
 	public final function OwnerHasFinishedDeathAnim()
 	{
 		var i : int;
@@ -1277,7 +1278,7 @@ class W3EffectManager
 		return 0;
 	}
 
-	// Adds buffs form given DamageAction. Returns true if there was at least one valid effect (might not got applied but it was valid)
+	
 	public final function AddEffectsFromAction( action : W3DamageAction ) : bool
 	{
 		var i, size : int;
@@ -1295,7 +1296,7 @@ class W3EffectManager
 		attackerPowerStatValue = action.GetPowerStatValue();
 		retB = true;
 		
-		//get signEntity if valid
+		
 		signEntity = (W3SignEntity)action.causer;
 		if(!signEntity && signProjectile)
 			signEntity = signProjectile.GetSignEntity();
@@ -1307,7 +1308,7 @@ class W3EffectManager
 				LogDMHits("Trying to add buff <<" + effectInfos[i].effectType + ">> on target...", action);
 			}
 			
-			//chance to apply buff
+			
 			if(signEntity)
 			{
 				applyBuff = GetSignApplyBuffTest(signEntity.GetSignType(), effectInfos[i].effectType, attackerPowerStatValue, signEntity.IsAlternateCast(), (CActor)action.attacker);
@@ -1319,15 +1320,15 @@ class W3EffectManager
 			
 			if(applyBuff)
 			{
-				//apply buff
+				
 				ret = InternalAddEffect(effectInfos[i].effectType, action.attacker, action.GetBuffSourceName(), effectInfos[i].effectDuration, effectInfos[i].effectCustomValue, effectInfos[i].effectAbilityName, effectInfos[i].customFXName, signEntity, attackerPowerStatValue, effectInfos[i].effectCustomParam );
 			}
 			else
 			{
-				//from sign and failed chance test
+				
 				if(signEntity.GetSignType() == ST_Aard)
 				{
-					//aard always gives stagger at least
+					
 					ret = InternalAddEffect(EET_Stagger, action.attacker, action.GetBuffSourceName(), effectInfos[i].effectDuration, effectInfos[i].effectCustomValue, effectInfos[i].customFXName, effectInfos[i].effectAbilityName, signEntity, attackerPowerStatValue, effectInfos[i].effectCustomParam );
 				}
 			}
@@ -1363,25 +1364,25 @@ class W3EffectManager
 		return retB;
 	}
 	
-	//Does a test whether non-sign source will apply the buff or not
+	
 	private final function GetNonSignApplyBuffTest(applyChance : float) : bool
 	{
 		return RandF() < applyChance;
 	}
 	
-	//Does a test whether sign will apply the buff or not
+	
 	private final function GetSignApplyBuffTest(signType : ESignType, effectType : EEffectType, powerStatValue : SAbilityAttributeValue, isAlternate : bool, caster : CActor) : bool
 	{
 		var sp, res, chance, tempF : float;
 		var chanceBonus : SAbilityAttributeValue;
 		var witcher : W3PlayerWitcher;
 
-		//level 3 petri philtre gives 100% chance
+		
 		witcher = (W3PlayerWitcher)caster;
 		if(witcher && witcher.GetPotionBuffLevel(EET_PetriPhiltre) == 3)
 			return true;
 	
-		//calculate chance to apply buff		
+		
 		sp = powerStatValue.valueMultiplicative;
 		owner.GetResistValue(theGame.effectMgr.GetBuffResistStat(effectType), tempF, res);
 		chance = sp / theGame.params.MAX_SPELLPOWER_ASSUMED - res;
@@ -1440,7 +1441,7 @@ class W3EffectManager
 		return true;
 	}
 	
-	// Processes OnHit Applicator buffs (called from Damage Manager)
+	
 	public final function ProcessOnHitEffects(victim : CActor, silverSword : bool, steelSword : bool, sign : bool)
 	{
 		var i : int;
@@ -1456,20 +1457,20 @@ class W3EffectManager
 		}
 	}
 	
-	// Pauses all effects of given type.
-	// singleLock - lock can be either on or off, there is no counter
-	// useMaxDuration - if set then reapplying the lock will set the duration to the greater of current duration and provided duration
+	
+	
+	
 	public final function PauseEffects(effectType : EEffectType, sourceName : name, optional singleLock : bool, optional duration : float, optional useMaxDuration : bool)
 	{
 		var i : int;
 		var pausedAnyBuff : bool;
 		var pause : SPausedAutoEffect;
 	
-		//inf duration by default
+		
 		if(duration == 0)
 			duration = -1;
 			
-		//buffs we already have on character
+		
 		for(i=0; i<effects.Size(); i+=1)
 		{
 			if(effects[i].GetEffectType() == effectType)
@@ -1479,7 +1480,7 @@ class W3EffectManager
 			}
 		}
 		
-		//we might also have to pause an autobuff that is not yet applied on character
+		
 		if(!pausedAnyBuff && IsBuffAutoBuff(effectType))
 		{
 			pause.effectType = effectType;
@@ -1493,8 +1494,8 @@ class W3EffectManager
 		}
 	}
 	
-	// singleLock - lock can be either on or off, there is no counter
-	// useMaxDuration - if set then reapplying the lock will set the duration to the greater of current duration and provided duration
+	
+	
 	private final function PauseEffect(buff : CBaseGameplayEffect, sourceName : name, optional singleLock : bool, optional duration : float, optional useMaxDuration : bool)
 	{
 		var tpe : STemporarilyPausedEffect;
@@ -1503,23 +1504,23 @@ class W3EffectManager
 		
 		processed = false;
 		
-		//check if buff is already paused - if so then update pause counter
+		
 		for(j=0; j<pausedEffects.Size(); j+=1)
 		{
 			if(pausedEffects[j].buff == buff && pausedEffects[j].source == sourceName)
 			{
-				//if finite duration
+				
 				if(duration > 0)
 				{
-					//if has duration lock and now gets new one then refresh the value
+					
 					if(useMaxDuration)
 						pausedEffects[j].timeLeft = MaxF(pausedEffects[j].timeLeft, duration);
-					else //else override with new value
+					else 
 						pausedEffects[j].timeLeft = duration;
 				}
 				else if(pausedEffects[j].timeLeft >= 0)
 				{
-					//if has duration lock and now gets infinite duration lock
+					
 					pausedEffects[j].timeLeft = -1;
 				}
 				
@@ -1529,7 +1530,7 @@ class W3EffectManager
 			}
 		}
 		
-		//if buff is not already paused then add it to paused array
+		
 		if(!processed)
 		{
 			tpe.buff = buff;	
@@ -1571,7 +1572,7 @@ class W3EffectManager
 		}
 	}
 	
-	//Forcefully resumes all buffs REGARDLESS of source locks, lock counters and lock durations. Conscious use only.
+	
 	private final function ResumeAllBuffsForced()
 	{
 		var i : int;
@@ -1654,13 +1655,13 @@ class W3EffectManager
 		}
 	}
 	
-	// Resumes given effect
+	
 	public final function ResumeEffects(effectType : EEffectType, sourceName : name)
 	{
 		ResumeEffectsInternal(effectType, sourceName);
 	}
 	
-	// Resumes given effect
+	
 	private final function ResumeEffectsInternal(effectType : EEffectType, optional sourceName : name, optional forced : bool)
 	{
 		var i, j : int;
@@ -1675,7 +1676,7 @@ class W3EffectManager
 				else
 					effects[i].Resume(sourceName);
 				
-				//remove from paused buffs 
+				
 				for(j=0; j<pausedEffects.Size(); j+=1)
 				{
 					if(pausedEffects[j].buff == effects[i] && (forced || sourceName == pausedEffects[j].source) )
@@ -1686,19 +1687,19 @@ class W3EffectManager
 			}
 		}
 				
-		//process non-existing autobuff pauses
+		
 		removedOneLock = false;
 		for(i=pausedNotAppliedAutoBuffs.Size()-1; i>=0; i-=1)
 		{
 			if(pausedNotAppliedAutoBuffs[i].effectType == effectType && (forced || pausedNotAppliedAutoBuffs[i].sourceName == sourceName) )
 			{
-				//if single lock then remove all
+				
 				if(pausedNotAppliedAutoBuffs[i].singleLock)
 				{
 					pausedNotAppliedAutoBuffs.Erase(i);
 					continue;
 				}
-				//if not single lock then remove only one
+				
 				else if(!removedOneLock)
 				{
 					pausedNotAppliedAutoBuffs.Erase(i);
@@ -1709,7 +1710,7 @@ class W3EffectManager
 		}
 	}
 		
-	// Returns the amount of critical effects applied on owner
+	
 	public final function GetCriticalBuffsCount() : int
 	{
 		var i, cnt : int;
@@ -1745,7 +1746,7 @@ class W3EffectManager
 		return false;
 	}
 	
-	// Caches stat update (value) of given stat
+	
 	public final function CacheStatUpdate(stat : EBaseCharacterStats, value : float)
 	{
 		if(value == 0)
@@ -1758,17 +1759,7 @@ class W3EffectManager
 		owner.SetEffectsUpdateTicking( true );
 	}
 	
-	/*
-		Caches damage to be dealt in the next update call
-		
-		damageTypeName - damage type
-		val - damage value
-		attacker - attacker entity
-		carrier - carrier entity (buff)
-		isDoTDamage - set to true if this is a Damage over Time type of damage
-		dontShowHitParticle - if set then hit particle will not be shown
-		pwrStatType - type of power stat to use when dealing damage
-	*/
+	
 	public final function CacheDamage(damageTypeName : name, val : float, attacker : CGameplayEntity, carrier : CBaseGameplayEffect, DoTdt : float, dontShowHitParticle : bool, pwrStatType : ECharacterPowerStats, isEnvironment : bool)
 	{
 		var dmg : SEffectCachedDamage;
@@ -1798,7 +1789,7 @@ class W3EffectManager
 		owner.SetEffectsUpdateTicking( true );
 	}
 	
-	// Called when resistances change to update buff durations
+	
 	public final function RecalcEffectDurations()
 	{
 		var i : int;
@@ -1807,7 +1798,7 @@ class W3EffectManager
 			effects[i].RecalcDuration();
 	}
 	
-	// Updates aplicator type buffs
+	
 	public final function UpdateApplicatorBuffs()
 	{
 		var i : int;
@@ -1821,7 +1812,7 @@ class W3EffectManager
 		}
 	}
 	
-	//returns potion buff's level or 0 if no such potion active
+	
 	public final function GetPotionBuffLevel(effectType : EEffectType) : int
 	{
 		var buff : CBaseGameplayEffect;
@@ -1840,30 +1831,30 @@ class W3EffectManager
 		
 		if( effects.Size() > 0 )
 		{
-			return false; // some effects left
+			return false; 
 		}
 	
 		if( cachedDamages.Size() > 0 )
 		{
-			return false; // some cached damages left
+			return false; 
 		}
 	
 		for( i = 0; i < statDeltas.Size(); i += 1 )
 		{
 			if( statDeltas[ i ] != 0 )
 			{
-				return false; // some deltas left
+				return false; 
 			}
 		}
 		
-		//some non-infinite pauses ticking
+		
 		for(i=0; i<pausedEffects.Size(); i+=1)
 		{
 			if(pausedEffects[i].duration != -1)
 				return false;
 		}
 		
-		//some non-infinite autobuff pauses ticking
+		
 		for(i=0; i<pausedNotAppliedAutoBuffs.Size(); i+=1)
 		{
 			if(pausedNotAppliedAutoBuffs[i].duration != -1)
@@ -1880,10 +1871,10 @@ class W3EffectManager
 		for(i=0; i<currentlyPlayedFX.Size(); i+=1)
 		{
 			if(currentlyPlayedFX[i].fx == fx)
-				return currentlyPlayedFX[i].sources.Size() == 1;	//only one source is currently playing fx - can stop
+				return currentlyPlayedFX[i].sources.Size() == 1;	
 		}
 		
-		//fx not played
+		
 		return false;
 	}
 	
@@ -1916,7 +1907,7 @@ class W3EffectManager
 			}
 		}
 
-		//not in array
+		
 		f.fx = fx;
 		f.sources.PushBack(sourceName);
 		
@@ -1941,14 +1932,14 @@ class W3EffectManager
 		}
 	}
 	
-	//Right now we don't simulate time - just remove everything that's not infinite
+	
 	public final function SimulateBuffTimePassing(simulatedTime : float)
 	{
 		var i : int;
 		
 		for(i=effects.Size()-1; i>=0; i-=1)
 		{
-			//repair buffs don't expire when we have runeword 5 active
+			
 			if(owner == GetWitcherPlayer() && (W3RepairObjectEnhancement)effects[i] && GetWitcherPlayer().HasRunewordActive('Runeword 5 _Stats'))
 			{
 				effects[i].OnTimeUpdated(simulatedTime);

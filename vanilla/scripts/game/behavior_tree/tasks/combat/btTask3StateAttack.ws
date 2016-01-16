@@ -1,9 +1,11 @@
 ﻿/***********************************************************************/
-/** 
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
-/** Copyright © 2012
-/** Author : Patryk Fiutowski, Andrzej Kwiatkowski
-/***********************************************************************/
+
+
+
 
 class CBTTask3StateAttack extends CBTTaskAttack
 {
@@ -44,7 +46,7 @@ class CBTTask3StateAttack extends CBTTaskAttack
 		if ( IsNameValid( playFXOnLoopStart ) && playLoopFXInterval <= 0 )
 			npc.PlayEffect( playFXOnLoopStart );
 		
-		//Sleep(loopTime);
+		
 		loopRes = Loop();
 		if ( loopRes )
 		{
@@ -152,7 +154,7 @@ class CBTTask3StateAttack extends CBTTaskAttack
 		}
 		
 		
-		//GetNPC().WaitForBehaviorNodeDeactivation('AttackLoopEnd',loopTime);
+		
 		return 0;
 	}
 	
@@ -163,11 +165,11 @@ class CBTTask3StateAttack extends CBTTaskAttack
 	
 	function OnGameplayEvent( eventName : name ) : bool
 	{
-		if ( stopRotatingWhenTargetIsBehind && eventName == 'RotateEventSync' )// smart charge; do not rotate when target is behind you
+		if ( stopRotatingWhenTargetIsBehind && eventName == 'RotateEventSync' )
 		{
 			if ( AbsF(NodeToNodeAngleDistance(GetCombatTarget(),GetActor())) < 90 )
 			{
-				return super.OnGameplayEvent( 'RotateEventStart' );// just as we would start
+				return super.OnGameplayEvent( 'RotateEventStart' );
 			}
 			else
 			{
@@ -198,9 +200,8 @@ class CBTTask3StateAttackDef extends CBTTaskAttackDef
 	default stopRotatingWhenTargetIsBehind = false;
 }
 
-/**************************************************/
-/** 3StateAttackWithRotationAtTheEnd
-/**************************************************/
+
+
 class CBTTask3StateWithRot extends CBTTask3StateAttack
 {
 	var endLeft		: EAttackType;
@@ -234,9 +235,8 @@ class CBTTask3StateWithRotDef extends CBTTask3StateAttackDef
 	default endRight = EAT_Attack5;
 }
 
-/**************************************************/
-/** 3StateAttackWithDistanceDecisionAtTheEnd
-/**************************************************/
+
+
 class CBTTask3StateWithDist extends CBTTask3StateAttack
 {
 	var distance	: float;
@@ -273,9 +273,8 @@ class CBTTask3StateWithDistDef extends CBTTask3StateAttackDef
 	default endMore = EAT_Attack5;
 }
 
-/**************************************************/
-/** 3StateAttackWithDistanceAnRotationDecisionAtTheEnd
-/**************************************************/
+
+
 class CBTTask3StateWithDistAndRot extends CBTTask3StateAttack
 {
 	var distance	: float;
@@ -318,9 +317,8 @@ class CBTTask3StateWithDistAndRotDef extends CBTTask3StateAttackDef
 	hint distance = "if ( distToTarget >= distance ) then perform Rot attack";
 }
 
-/**************************************************/
-/** CBTTask3StateAddEffectAttack
-/**************************************************/
+
+
 class CBTTask3StateAddEffectAttack extends CBTTask3StateAttack
 {
 	public var applyEffectInRange	: float;
@@ -384,22 +382,7 @@ class CBTTask3StateAddEffectAttack extends CBTTask3StateAttack
 		
 		super.OnDeactivate();
 	}
-	/*
-	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo ) : bool
-	{
-		if ( IsNameValid( activateOnEvent ) && animEventName == activateOnEvent && animEventType == AET_DurationStart )
-		{
-			activated = true;
-			return true;
-		}
-		else if ( IsNameValid( activateOnEvent ) && animEventName == activateOnEvent && animEventType == AET_DurationEnd )
-		{
-			activated = false;
-			return true;
-		}
-		return false;
-	}
-	*/
+	
 	function ApplyEffect( b : bool )
 	{
 		var actor		: CActor = GetActor();

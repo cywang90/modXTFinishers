@@ -1,11 +1,13 @@
 ﻿/***********************************************************************/
-/** Witcher Script file
-/***********************************************************************/
-/** IAIActions
-/** Copyright © 2013
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
 
-////////////////////////////////////////////////////////////
+
+
+
+
 abstract class IAIBaseAction extends IAIActionTree 
 {
 	editable var enterExplorationOnStart : bool;
@@ -13,7 +15,7 @@ abstract class IAIBaseAction extends IAIActionTree
 	default enterExplorationOnStart = true;
 };
 
-////////////////////////////////////////////////////////////
+
 class CAIFollowAction extends IAIBaseAction
 {
 	editable inlined var params : CAIFollowParams;
@@ -29,9 +31,9 @@ class CAIFollowAction extends IAIBaseAction
 
 class CAIFollowParams extends IAIActionParameters
 {
-	// !!! Warning !!!
-	// If you consider making changes to CAIFollowParams
-	// please consider updating CAIRiderFollowActionParams  
+	
+	
+	
 	editable var targetTag 				: CName;
 	editable var moveType 				: EMoveType;
 	editable var keepDistance 			: bool;
@@ -61,8 +63,8 @@ class CAIFollowParams extends IAIActionParameters
 	}
 };
 
-////////////////////////////////////////////////////////////
-// CAIFollowSideBySideAction
+
+
 class CAIFollowSideBySideAction extends CAIFollowAction
 {
 	function Init()
@@ -79,8 +81,8 @@ class CAIFollowSideBySideAction extends CAIFollowAction
 	default useCustomSteering 	= true;
 };
 
-////////////////////////////////////////////////////////////
-// CAIRiderFollowAction
+
+
 class CAIRiderFollowAction extends IRiderActionTree
 {
 	editable inlined var params 		: CAIRiderFollowActionParams;
@@ -93,8 +95,8 @@ class CAIRiderFollowAction extends IRiderActionTree
 		params.OnCreated();
 	}
 };
-////////////////////////////////////////////////////////////
-// CAIRiderFollowActionParams
+
+
 class CAIRiderFollowActionParams extends IRiderActionParameters
 {
 	editable var targetTag 				: CName;
@@ -113,16 +115,16 @@ class CAIRiderFollowActionParams extends IRiderActionParameters
 	default followTargetSelection 	= true;
 	default matchRiderMountStatus	= true;
 	
-	//editable var horseActionTree		: IAIActionTree;
+	
 	function Init()
 	{
 		super.Init();
 		followTargetSelection 	= false;		
 	}
 	
-	// Using copy to because:
-	// It is not possible to put all params in a common class because it 
-	// would reset all existing move to in the world
+	
+	
+	
 	function CopyTo( followParams : CAIFollowParams )
 	{
 		followParams.targetTag 				= targetTag;
@@ -130,13 +132,13 @@ class CAIRiderFollowActionParams extends IRiderActionParameters
 		followParams.keepDistance 			= keepDistance;
 		followParams.followDistance 		= followDistance;
 		followParams.moveSpeed 				= moveSpeed;
-		// not followTargetSelection because it is different for horse
+		
 	}
 };
 
 
-////////////////////////////////////////////////////////////
-// CAIRiderFollowSideBySideAction
+
+
 class CAIRiderFollowSideBySideAction extends IRiderActionTree
 {
 
@@ -152,8 +154,8 @@ class CAIRiderFollowSideBySideAction extends IRiderActionTree
 	}
 };
 
-////////////////////////////////////////////////////////////
-// CAIRiderFollowSideBySideActionParams
+
+
 class CAIRiderFollowSideBySideActionParams extends CAIRiderFollowActionParams
 {		
 	editable var useCustomSteering			: bool;
@@ -172,33 +174,33 @@ class CAIRiderFollowSideBySideActionParams extends CAIRiderFollowActionParams
 		super.Init();	
 	}
 	
-	// Using copy to because:
-	// It is not possible to put all params in a common class because it 
-	// would reset all existing move to in the world
+	
+	
+	
 	function CopyTo_SideBySide( followSideBySideAction : CAIFollowSideBySideAction )
 	{
 		super.CopyTo( followSideBySideAction.params );
-		// Disable target selection and set the target manually
+		
 		followSideBySideAction.useCustomSteering 		= true;
 		followSideBySideAction.customSteeringGraph 		= horseCustomSteeringGraph;
 	}
 };
 
 
-////////////////////////////////////////////////////////////
+
 class CAIHorseDoNothingAction extends IAIActionTree
 {
 	default aiTreeName = "resdef:ai\scripted_actions/horse_do_nothing";
 };
 
-////////////////////////////////////////////////////////////
+
 class CAIDoNothingAction extends IAIActionTree
 {
 	default aiTreeName = "resdef:ai\scripted_actions/horse_do_nothing";
 };
 
-////////////////////////////////////////////////////////////
-// CAIMoveAlongPathAction
+
+
 class CAIMoveAlongPathAction extends IAIBaseAction
 {	
 	editable inlined var params : CAIMoveAlongPathParams;
@@ -220,13 +222,13 @@ class CAIMoveAlongPathAction extends IAIBaseAction
 		return false;
 	}
 };
-////////////////////////////////////////////////////////////
-// CAIMoveAlongPathParams
+
+
 class CAIMoveAlongPathParams extends IAIActionParameters
 {
-	// !!! Warning !!!
-	// If you consider making changes to CAIMoveAlongPathParams
-	// please consider updating CAIRiderMoveAlongPathActionParams  
+	
+	
+	
 	editable var pathTag 				: CName;
 	editable var upThePath 				: bool;
 	editable var fromBeginning 			: bool;
@@ -261,7 +263,7 @@ class CAIMoveAlongPathParams extends IAIActionParameters
 	}
 };
 
-////////////////////////////////////////////////////////////
+
 class CAIMoveAlongPathWithCompanionAction extends CAIMoveAlongPathAction
 {
 	default aiTreeName = "resdef:ai\scripted_actions/move_along_path_companion";
@@ -292,7 +294,7 @@ class CAIMoveAlongPathWithCompanionParams extends CAIMoveAlongPathParams
 	default progressOnlyWhenCompanionIsAhead = false;
 };
 
-////////////////////////////////////////////////////////////
+
 class CAIMoveAlongPathAwareOfTailAction extends CAIMoveAlongPathAction
 {
 	default aiTreeName = "resdef:ai\scripted_actions/move_along_path_tail";
@@ -315,8 +317,8 @@ class CAIMoveAlongPathAwareOfTailParams extends CAIMoveAlongPathParams
 	default stopDistance 			= 10.0f;
 };
 
-////////////////////////////////////////////////////////////
-// CAIRaceAlongPathAction
+
+
 class CAIRaceAlongPathAction extends CAIMoveAlongPathAction
 {	
 	default aiTreeName = "resdef:ai\scripted_actions/race_along_path";
@@ -327,8 +329,8 @@ class CAIRaceAlongPathAction extends CAIMoveAlongPathAction
 		params.OnCreated();
 	}
 };
-////////////////////////////////////////////////////////////
-// CAIRaceAlongPathParams
+
+
 class CAIRaceAlongPathParams extends CAIMoveAlongPathParams
 {
 	function Init()
@@ -339,8 +341,8 @@ class CAIRaceAlongPathParams extends CAIMoveAlongPathParams
 	}
 };
 
-////////////////////////////////////////////////////////////
-// CAIRiderMoveAlongPathAction
+
+
 class CAIRiderMoveAlongPathAction extends IRiderActionTree
 {	
 	default aiTreeName = "resdef:ai\scripted_actions/rider_move_along_path";
@@ -353,8 +355,8 @@ class CAIRiderMoveAlongPathAction extends IRiderActionTree
 		params.OnCreated();
 	}
 };
-////////////////////////////////////////////////////////////
-// CAIRiderMoveAlongPathActionParams
+
+
 class CAIRiderMoveAlongPathActionParams extends IRiderActionParameters
 {
 	editable var pathTag 				: CName;
@@ -389,9 +391,9 @@ class CAIRiderMoveAlongPathActionParams extends IRiderActionParameters
 	{		
 		steeringGraph = LoadSteeringGraph( "gameplay/behaviors/npc/steering/action/manual_pathfollow/manual_pathfollow.w2steer" );
 	}
-	// Using copy to because:
-	// It is not possible to put all params in a common class because it 
-	// would reset all existing move to in the world
+	
+	
+	
 	function CopyTo( moveAlongPathParams : CAIMoveAlongPathParams )
 	{
 		moveAlongPathParams.pathTag 				= pathTag;
@@ -410,7 +412,7 @@ class CAIRiderMoveAlongPathActionParams extends IRiderActionParameters
 	}
 };
 
-////////////////////////////////////////////////////////////
+
 class CAIRiderMoveAlongPathWithCompanionAction extends CAIRiderMoveAlongPathAction
 {
 	default aiTreeName = "resdef:ai\scripted_actions/rider_move_along_path_companion";
@@ -440,9 +442,9 @@ class CAIRiderMoveAlongPathWithCompanionActionParams extends CAIRiderMoveAlongPa
 	default progressWhenCompanionIsAhead 	= false;
 	default progressOnlyWhenCompanionIsAhead = false;
 	
-	// Using copy to because:
-	// It is not possible to put all params in a common class because it 
-	// would reset all existing move to in the world
+	
+	
+	
 	function CopyTo_2( moveAlongPathParams : CAIMoveAlongPathWithCompanionParams )
 	{
 		super.CopyTo( moveAlongPathParams );
@@ -456,8 +458,8 @@ class CAIRiderMoveAlongPathWithCompanionActionParams extends CAIRiderMoveAlongPa
 	}
 };
 
-////////////////////////////////////////////////////////////
-// CAIRiderRaceAlongPathAction
+
+
 class CAIRiderRaceAlongPathAction extends IRiderActionTree
 {
 	default aiTreeName = "resdef:ai\scripted_actions/rider_race_along_path";
@@ -470,8 +472,8 @@ class CAIRiderRaceAlongPathAction extends IRiderActionTree
 	}
 };
 
-////////////////////////////////////////////////////////////
-// CAIRiderRaceAlongPathActionParams
+
+
 class CAIRiderRaceAlongPathActionParams extends IRiderActionParameters
 {	
 	editable var pathTag 				: CName;
@@ -480,7 +482,7 @@ class CAIRiderRaceAlongPathActionParams extends IRiderActionParameters
 	editable var pathMargin				: float;
 	editable var tolerance				: float;
 	editable var moveTypeBeforePath		: EMoveType;
-	editable var moveType 				: EMoveType; // move type is controlled by path
+	editable var moveType 				: EMoveType; 
 	editable var moveSpeed				: float;
 	editable var steeringGraph			: CMoveSteeringBehavior;
 	editable var arrivalDistance		: Float;
@@ -503,9 +505,9 @@ class CAIRiderRaceAlongPathActionParams extends IRiderActionParameters
 		super.Init();
 		steeringGraph = LoadSteeringGraph( "gameplay/behaviors/npc/steering/action/manual_pathfollow/manual_pathfollow_racing.w2steer" );
 	}
-	// Using copy to because:
-	// It is not possible to put all params in a common class because it 
-	// would reset all existing move to in the world
+	
+	
+	
 	function CopyTo( raceAlongPathParams : CAIRaceAlongPathParams )
 	{
 		raceAlongPathParams.pathTag 				= pathTag;
@@ -525,8 +527,8 @@ class CAIRiderRaceAlongPathActionParams extends IRiderActionParameters
 };
 
 
-////////////////////////////////////////////////////////////
-// CAIRiderRideHorseAction
+
+
 class CAIRiderRideHorseAction extends IRiderActionTree
 {
 	default aiTreeName = "resdef:ai\scripted_actions/rider_ride_horse";
@@ -537,7 +539,7 @@ class CAIRiderRideHorseAction extends IRiderActionTree
 	
 	function CopyTo( horseDoNothingAction : CAIHorseDoNothingAction )
 	{
-		// no params
+		
 	}
 };
 abstract class ISailorActionTree extends IAIActionTree
@@ -547,8 +549,8 @@ abstract class ISailorActionParameters extends IAIActionParameters
 {
 };
 
-////////////////////////////////////////////////////////////
-// CAISailorMountBoatAction
+
+
 class CAISailorMountBoatAction extends ISailorActionTree
 {
 	default aiTreeName = "resdef:ai\scripted_actions/sailor_mount_boat";
@@ -562,8 +564,8 @@ class CAISailorMountBoatAction extends ISailorActionTree
 	}
 };
 
-////////////////////////////////////////////////////////////
-// CAISailorMountBoatActionParams
+
+
 class CAISailorMountBoatActionParams extends ISailorActionParameters
 {
 	editable var boatTag 			: CName;
@@ -573,8 +575,8 @@ class CAISailorMountBoatActionParams extends ISailorActionParameters
 	}
 };
 
-////////////////////////////////////////////////////////////
-// CAISailorDismountBoatAction
+
+
 class CAISailorDismountBoatAction extends ISailorActionTree
 {
 	default aiTreeName = "resdef:ai\scripted_actions/sailor_dismount_boat";
@@ -582,8 +584,8 @@ class CAISailorDismountBoatAction extends ISailorActionTree
 	editable var teleportHere		: CName;
 };
 
-////////////////////////////////////////////////////////////
-// CAISailorMoveToAction
+
+
 class CAISailorMoveToAction extends ISailorActionTree
 {
 	default aiTreeName = "resdef:ai\scripted_actions/sailor_move_to";
@@ -597,8 +599,8 @@ class CAISailorMoveToAction extends ISailorActionTree
 	}
 };
 
-////////////////////////////////////////////////////////////
-// CAISailorMoveToActionParams
+
+
 class CAISailorMoveToActionParams extends ISailorActionParameters
 {
 	editable var boatTag 			: CName;
@@ -609,8 +611,8 @@ class CAISailorMoveToActionParams extends ISailorActionParameters
 		super.Init();
 	}
 };
-////////////////////////////////////////////////////////////
-// CAISailorMoveAlongPathAction
+
+
 class CAISailorMoveAlongPathAction extends ISailorActionTree
 {
 	default aiTreeName = "resdef:ai\scripted_actions/sailor_move_along_path";
@@ -624,8 +626,8 @@ class CAISailorMoveAlongPathAction extends ISailorActionTree
 	}
 };
 
-////////////////////////////////////////////////////////////
-// CAISailorMoveAlongPathActionParams
+
+
 class CAISailorMoveAlongPathActionParams extends ISailorActionParameters
 {
 	editable var boatTag 			: CName;
@@ -640,8 +642,8 @@ class CAISailorMoveAlongPathActionParams extends ISailorActionParameters
 		super.Init();
 	}
 };
-////////////////////////////////////////////////////////////
-// CAISailorRaceAlongPathAction
+
+
 class CAISailorRaceAlongPathAction extends ISailorActionTree
 {	
 	default aiTreeName = "resdef:ai\scripted_actions/sailor_race_along_path";
@@ -655,8 +657,8 @@ class CAISailorRaceAlongPathAction extends ISailorActionTree
 	}
 };
 
-////////////////////////////////////////////////////////////
-// CAISailorRaceAlongPathActionParams
+
+
 class CAISailorRaceAlongPathActionParams extends ISailorActionParameters
 {
 	editable var boatTag 			: CName;
@@ -672,8 +674,8 @@ class CAISailorRaceAlongPathActionParams extends ISailorActionParameters
 	}
 };
 
-////////////////////////////////////////////////////////////
-// CAIMoveToAction
+
+
 class CAIMoveToPoint extends IAIBaseAction
 {
 	default aiTreeName = "resdef:ai\scripted_actions/move_to_point";
@@ -686,8 +688,8 @@ class CAIMoveToPoint extends IAIBaseAction
 		params.OnCreated();
 	}
 };
-////////////////////////////////////////////////////////////
-// CAIMoveToParams
+
+
 class CAIMoveToPointParams extends IAIActionParameters
 {
 	editable var maxDistance 			: float;
@@ -705,8 +707,8 @@ class CAIMoveToPointParams extends IAIActionParameters
 	default maxIterationsNumber = 1;
 };
 
-////////////////////////////////////////////////////////////
-// CAIMoveToAction
+
+
 class CAIMoveToAction extends IAIBaseAction
 {
 	default aiTreeName = "resdef:ai\scripted_actions/move_to";
@@ -719,13 +721,13 @@ class CAIMoveToAction extends IAIBaseAction
 		params.OnCreated();
 	}
 };
-////////////////////////////////////////////////////////////
-// CAIMoveToParams
+
+
 class CAIMoveToParams extends IAIActionParameters
 {
-	// !!! Warning !!!
-	// If you consider making changes to CAIMoveToParams
-	// please consider updating CAIRiderMoveToActionParams  
+	
+	
+	
 	editable var maxDistance 		: float;
 	editable var moveSpeed 			: float;
 	editable var moveType 			: EMoveType;
@@ -764,8 +766,8 @@ class CAIMoveToActionAwareOfTailParams extends CAIMoveToParams
 	default stopDistance 			= 10.0f;
 };
 
-////////////////////////////////////////////////////////////
-// CAIRiderMoveToAction
+
+
 class CAIRiderMoveToAction extends IRiderActionTree
 {
 	default aiTreeName = "resdef:ai\scripted_actions/rider_move_to";
@@ -778,8 +780,8 @@ class CAIRiderMoveToAction extends IRiderActionTree
 		params.OnCreated();
 	}
 };
-////////////////////////////////////////////////////////////
-// CAIRiderMoveToActionParams
+
+
 class CAIRiderMoveToActionParams extends IRiderActionParameters
 {
 	editable var maxDistance 		: float;
@@ -793,9 +795,9 @@ class CAIRiderMoveToActionParams extends IRiderActionParameters
 	default moveType 			= MT_Walk;
 	default rotateAfterwards 	= true;
 	
-	// Using copy to because:
-	// It is not possible to put all params in a common class because it 
-	// would reset all existing move to in the world
+	
+	
+	
 	function CopyTo( moveToParams : CAIMoveToParams )
 	{
 		moveToParams.maxDistance 		= maxDistance;
@@ -806,7 +808,7 @@ class CAIRiderMoveToActionParams extends IRiderActionParameters
 	}
 };
 
-////////////////////////////////////////////////////////////
+
 class CAIPlayAnimationStateAction extends IAIActionTree
 {
 	default aiTreeName = "resdef:ai\scripted_actions/play_animation";
@@ -819,7 +821,7 @@ class CAIPlayAnimationStateParams extends IAIActionParameters
 	editable var eventStateName: CName;
 };
 
-////////////////////////////////////////////////////////////
+
 class CAIPlayAnimationSlotAction extends IAIActionTree
 {
 	default aiTreeName = "resdef:ai\scripted_actions/play_animation_slot";
@@ -837,8 +839,8 @@ class CAIPlayAnimationSlotAction extends IAIActionTree
 
 
 
-/////////////////////////////////////////////////////////
-// Formations
+
+
 abstract class IAIFormationActionTree extends IAIBaseAction
 {
 	editable var formation : CFormation;
@@ -866,19 +868,19 @@ class CAIFormationLeadActionTree extends IAIFormationActionTree
 	}
 };
 
-////////////////////////////////////////////////////////////
+
 class CAIFinishAnimationsAction extends IAIActionTree
 {
 	default aiTreeName = "resdef:ai\scripted_actions/finish_slot_animations";
 };
 
-////////////////////////////////////////////////////////////
+
 class CAIBreakAnimationsAction extends IAIActionTree
 {
 	default aiTreeName = "resdef:ai\scripted_actions/break_slot_animations";
 };
 
-////////////////////////////////////////////////////////////
+
 class CAIPlayVoiceSetAction extends IAIActionTree
 {
 	default aiTreeName = "resdef:ai\scripted_actions/play_voice_set";
@@ -893,7 +895,7 @@ class CAIPlayVoiceSetParams extends IAIActionParameters
 	editable var priority : int;
 };
 
-////////////////////////////////////////////////////////////
+
 class CAIRotateToAction extends IAIActionTree
 {
 	default aiTreeName = "resdef:ai\scripted_actions/rotate_towards";
@@ -902,7 +904,7 @@ class CAIRotateToAction extends IAIActionTree
 	editable var keepRotating : bool;
 };
 
-////////////////////////////////////////////////////////////
+
 class CAIWalkToTargetWaitAction extends IAIActionTree
 {
 	default aiTreeName = "resdef:ai\scripted_actions/walk_to_target";
@@ -935,7 +937,7 @@ class CAIWalkToTargetWaitParams extends IAIActionParameters
 	default testDistance = 10.0;
 };
 
-////////////////////////////////////////////////////////////
+
 import class CAIActionSequence extends IAIActionTree
 {
 	default aiTreeName = "resdef:ai\scripted_actions/action_sequence";
@@ -946,7 +948,7 @@ class CAIActionSequenceParams extends IAIActionParameters
 	editable inlined var actions : array<IAIActionTree>;
 };
 
-////////////////////////////////////////////////////////////
+
 class CAIActionLoop extends IAIActionTree
 {
 	default aiTreeName = "resdef:ai\scripted_actions/loop";
@@ -959,8 +961,8 @@ class CAIActionLoop extends IAIActionTree
 
 
 
-////////////////////////////////////////////////////////////
-// CAIActionPoke
+
+
 class CAIActionPoke extends IAIActionTree
 {
 	default aiTreeName = "resdef:ai\scripted_actions/action_poke";
@@ -968,15 +970,15 @@ class CAIActionPoke extends IAIActionTree
 	editable var pokeEvent 						: name;
 	editable inlined var pokableScriptedAction 	: IAIActionTree;
 };
-////////////////////////////////////////////////////////////
-// CAIRiderActionSequence
+
+
 class CAIRiderActionSequence extends IRiderActionTree
 {	
 	default aiTreeName = "resdef:ai\scripted_actions/action_sequence";
 	editable inlined var actions : array<IRiderActionTree>;
 };
-////////////////////////////////////////////////////////////
-// CAIRiderActionPoke
+
+
 class CAIRiderActionPoke extends IRiderActionTree
 {	
 	default aiTreeName = "resdef:ai\scripted_actions/action_poke";
@@ -984,8 +986,8 @@ class CAIRiderActionPoke extends IRiderActionTree
 	editable inlined var pokableScriptedAction 	: IRiderActionTree;
 };
 
-////////////////////////////////////////////////////////////
-// CAIWalkToTargetWaitingForActorAction
+
+
 class CAIWalkToTargetWaitingForActorAction extends IAIActionTree
 {
 	default aiTreeName = "resdef:ai\scripted_actions/walk_to_target_wait";
@@ -1006,23 +1008,23 @@ class CAIWalkToTargetWaitingForActorAction extends IAIActionTree
 	default testDistance = 10.0;
 };
 
-////////////////////////////////////////////////////////////
-// CAIPlayEffectAction
+
+
 class CAIPlayEffectAction extends IAIActionTree
 {
 	default aiTreeName = "resdef:ai\scripted_actions/play_effect";
 
 	editable var effectName : CName;
 };
-////////////////////////////////////////////////////////////
-// CAIPlayEffectParams
+
+
 class CAIPlayEffectParams extends IAIActionParameters
 {
 	editable var effectName : CName;
 };
 
-////////////////////////////////////////////////////////////
-// CAIExecuteAttackAction
+
+
 class CAIExecuteAttackAction extends IAIActionTree
 {
 	editable var attackParameter : EAttackType;
@@ -1030,8 +1032,8 @@ class CAIExecuteAttackAction extends IAIActionTree
 	default aiTreeName = "resdef:ai\scripted_actions/action_attack";
 };
 
-////////////////////////////////////////////////////////////
-// CAIExecuteRangeAttackAction
+
+
 class CAIExecuteRangeAttackAction extends IAIActionTree
 {
 	editable var attackParameter 	: EAttackType;
@@ -1045,23 +1047,23 @@ class CAIExecuteRangeAttackAction extends IAIActionTree
 
 
 
-////////////////////////////////////////////////////////////
-// CAIDrawTorchAction
+
+
 class CAIDrawTorchAction extends IAIActionTree
 {
 	default aiTreeName = "resdef:ai\scripted_actions/draw_torch";
 };
 
-////////////////////////////////////////////////////////////
-// CAIHideTorchAction
+
+
 class CAIHideTorchAction extends IAIActionTree
 {
 	default aiTreeName = "resdef:ai\scripted_actions/hide_torch";
 };
 
 
-////////////////////////////////////////////////////////////
-// CAIAttachToCurve
+
+
 class CAIAttachToCurve extends IAIActionTree
 {
 	default aiTreeName = "resdef:ai\scripted_actions/attach_to_curve";
@@ -1076,8 +1078,8 @@ class CAIAttachToCurve extends IAIActionTree
 	default blendInTime				= 2.0; 
 };
 
-////////////////////////////////////////////////////////////
-// CAIWaitForChangingWeaponEndAction
+
+
 class CAIWaitForChangingWeaponEndAction extends IAIActionTree
 {
 	default aiTreeName = "resdef:ai\scripted_actions/wait_for_changing_weapon_end";
@@ -1088,8 +1090,8 @@ abstract class IActionDecorator extends IAIActionTree
 	editable inlined var scriptedAction 		: IAIActionTree;
 };
 
-////////////////////////////////////////////////////////////
-// CAIGoToExplorationActionDecorator
+
+
 class CAIGoToExplorationActionDecorator extends IActionDecorator
 {
 	default aiTreeName = "resdef:ai\scripted_actions\go_to_exploration_action_decorator";
@@ -1099,8 +1101,8 @@ class CAIGoToExplorationActionDecorator extends IActionDecorator
 	default sheathWeaponsOnStart = true;
 };
 
-////////////////////////////////////////////////////////////
-// CAIPlayAnimationUpperBodySlotAction
+
+
 class CAIPlayAnimationUpperBodySlotAction extends IActionDecorator
 {
 	default aiTreeName = "resdef:ai\scripted_actions\play_animation_upper_body_slot";
@@ -1110,8 +1112,8 @@ class CAIPlayAnimationUpperBodySlotAction extends IActionDecorator
 	
 };
 
-////////////////////////////////////////////////////////////
-// CAIHandsBehindBackOverlayActionTree
+
+
 class CAIHandsBehindBackOverlayActionTree extends IActionDecorator
 {
 	default aiTreeName = "resdef:ai\scripted_actions\hands_behind_back_overlay";
@@ -1120,8 +1122,8 @@ class CAIHandsBehindBackOverlayActionTree extends IActionDecorator
 	editable var interruptScriptedActionOnDurationEnd : bool;
 };
 
-////////////////////////////////////////////////////////////
-// CAICombatModeActionDecorator
+
+
 class CAICombatModeActionDecorator extends IActionDecorator
 {
 	default aiTreeName = "resdef:ai\scripted_actions\combat_mode_action_decorator";
@@ -1143,8 +1145,8 @@ class CAICombatModeActionDecorator extends IActionDecorator
 	hint behGraph 					= "only available when <changeBehaviorGraphOnStart> is TRUE";
 };
 
-////////////////////////////////////////////////////////////
-// CAIInterruptableByHitAction
+
+
 class CAIInterruptableByHitAction extends IActionDecorator
 {
 	default aiTreeName = "resdef:ai\scripted_actions/hit_interruptable_action";
@@ -1160,8 +1162,8 @@ class CAIInterruptableByHitAction extends IActionDecorator
 	
 }
 
-////////////////////////////////////////////////////////////
-// CAIInterruptOnHitOrOnCriticalEffect
+
+
 class CAIInterruptOnHitOrOnCriticalEffect extends IActionDecorator
 {
 	default aiTreeName = "resdef:ai\scripted_actions\decorator_interrupt_on_hit_or_on_critical_effect";
@@ -1173,8 +1175,8 @@ class CAIInterruptOnHitOrOnCriticalEffect extends IActionDecorator
 	default completeOnCriticalEffect = true;
 }
 
-////////////////////////////////////////////////////////////
-// CAIkLookAtActionDecorator
+
+
 class CAIkLookAtActionDecorator extends IActionDecorator
 {
 	default aiTreeName = "resdef:ai\scripted_actions\lookat_action_decorator";
@@ -1182,8 +1184,8 @@ class CAIkLookAtActionDecorator extends IActionDecorator
 	editable var lookAtNodeTag : name;
 };
 
-////////////////////////////////////////////////////////////
-// CAIChangeBehaviorGraphDecorator
+
+
 class CAIChangeBehaviorGraphDecorator extends IActionDecorator
 {
 	default aiTreeName = "resdef:ai\scripted_actions\change_behavior_graph";
@@ -1192,16 +1194,16 @@ class CAIChangeBehaviorGraphDecorator extends IActionDecorator
 	editable var graphWhenDeactivate 	: name;
 }
 
-////////////////////////////////////////////////////////////
-// CAIScaredActionDecorator
+
+
 class CAIScaredActionDecorator extends IActionDecorator
 {
 	default aiTreeName = "resdef:ai\scripted_actions\scared_action_decorator.w2behtree";
 }
 
-////////////////////////////////////////////////////////////
-// PLAYER ACTION DECORATORS
-////////////////////////////////////////////////////////////
+
+
+
 
 abstract class IPlayerActionDecorator extends IAIActionTree
 {

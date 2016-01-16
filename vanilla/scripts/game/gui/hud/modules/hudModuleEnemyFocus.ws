@@ -1,4 +1,9 @@
-﻿enum EFloatingValueType
+﻿/***********************************************************************/
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/***********************************************************************/
+enum EFloatingValueType
 {
 	EFVT_None,
 	EFVT_Critical,
@@ -11,9 +16,9 @@
 
 class CR4HudModuleEnemyFocus extends CR4HudModuleBase
 {	
-	//>-----------------------------------------------------------------------------------------------------------------	
-	// VARIABLES
-	//------------------------------------------------------------------------------------------------------------------
+	
+	
+	
 	
 	private	var m_fxSetEnemyName			: CScriptedFlashFunction;
 	private	var m_fxSetEnemyHealth			: CScriptedFlashFunction;
@@ -42,9 +47,9 @@ class CR4HudModuleEnemyFocus extends CR4HudModuleBase
 	private var m_lastEnemyLevelString		: string;
 	private var m_lastDodgeFeedbackTarget	: CActor;
 	
-	//>-----------------------------------------------------------------------------------------------------------------	
-	//------------------------------------------------------------------------------------------------------------------
-	event /* flash */ OnConfigUI()
+	
+	
+	event  OnConfigUI()
 	{
 		var flashModule : CScriptedFlashSprite;
 		var hud : CR4ScriptedHud;
@@ -72,8 +77,9 @@ class CR4HudModuleEnemyFocus extends CR4HudModuleBase
 		
 		super.OnConfigUI();
 		
+		m_fxSetEnemyName.InvokeSelfOneArg( FlashArgString( "" ) );
 		m_fxSetEnemyStamina.InvokeSelfOneArg(FlashArgInt(0));
-		// ShowElement( false );
+		
 		
 		hud = (CR4ScriptedHud)theGame.GetHud();
 						
@@ -82,8 +88,8 @@ class CR4HudModuleEnemyFocus extends CR4HudModuleBase
 			hud.UpdateHudConfig('EnemyFocusModule', true);
 		}
 	}
-	//>-----------------------------------------------------------------------------------------------------------------
-	//------------------------------------------------------------------------------------------------------------------
+	
+	
 	
 	private function GetAttitudeOfTargetActor( target : CGameplayEntity ) : EAIAttitude
 	{
@@ -97,7 +103,7 @@ class CR4HudModuleEnemyFocus extends CR4HudModuleBase
 		return AIA_Neutral;
 	}
 	
-	//---------------------------------------------------------------------------------------------------//SetDodgeFeedback
+	
 	public function SetDodgeFeedback( target : CActor ) :void 
 	{
 		m_fxSetDodgeFeedback.InvokeSelfOneArg( FlashArgBool( !( !target ) ) );
@@ -109,14 +115,14 @@ class CR4HudModuleEnemyFocus extends CR4HudModuleBase
 		m_fxSetGeneralVisibility.InvokeSelfTwoArgs( FlashArgBool( showEnemyFocus ), FlashArgBool( showName ) );
 	}
 	
-	// ShowDamageType(EDT_Critical), ShowDamageType(EDT_InstantDeath)
+	
 	public function ShowDamageType(valueType : EFloatingValueType, value : float, optional stringParam : string)
 	{
 		var label:string;
 		var color:float;
 		var hud:CR4ScriptedHud;
 		
-		//only >0 damage
+		
 		if(valueType != EFVT_InstantDeath && valueType != EFVT_Buff && value == 0.f)
 			return;
 
@@ -159,7 +165,7 @@ class CR4HudModuleEnemyFocus extends CR4HudModuleBase
 		}
 		SetDamageText(label, CeilF(value), color);
 	}
-	//---------------------------------------------------------------------------------------------------//
+	
 	
 		
 	private function SetDamageText(label:string, value:int, color:float) : void
@@ -171,9 +177,9 @@ class CR4HudModuleEnemyFocus extends CR4HudModuleBase
 		m_fxHideDamageText.InvokeSelf();
 	}
 	
-	//
-	// THIS FUNCTION IS SHIT, IT NEEDS TO BE REWRITTEN
-	// 
+	
+	
+	
 	event OnTick( timeDelta : float )
 	{
 		var l_target 					: CNewNPC;
@@ -194,25 +200,25 @@ class CR4HudModuleEnemyFocus extends CR4HudModuleBase
 		var marginRightBottom : Vector;
 		var hud : CR4ScriptedHud;
 		
-		// initial stuff
+		
 		l_targetNonActor = thePlayer.GetDisplayTarget();
 		l_target = (CNewNPC)l_targetNonActor;
 		l_dodgeFeedbackTarget = thePlayer.GetDodgeFeedbackTarget();
 		
 		hud = (CR4ScriptedHud)theGame.GetHud();
 		
-		//
-		//
-		//
-		// I DARE YOU
-		// I DOUBLE DARE YOU
-		// USE return IN THIS FUNCTION AGAIN AND
-		// I'LL SEND HARPIES TO YOUR HOME IN THE NIGHT
-		//
-		// YOU'VE BEEN WARNED
-		//
-		//
-		//
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 		if ( l_target )
 		{
 			if ( !l_target.IsUsingTooltip())
@@ -222,11 +228,11 @@ class CR4HudModuleEnemyFocus extends CR4HudModuleBase
 		}
 		if ( l_target )
 		{
-			//this INCREDIBLE hack brought to you by Bartek's absolutely lovely work of treating any npc that has the tag 'HideHealthBarModule'
-			//as a boss (because that makes perfect sense in Stupid Town).
+			
+			
 			if ( l_target.HasTag( 'HideHealthBarModule' ) )
 			{
-				if ( l_target.HasTag( 'NotBoss' ) ) //so if the designer used the Hide quest block, AND added the NotBoss tag => we don't wanna see anything
+				if ( l_target.HasTag( 'NotBoss' ) ) 
 				{
 					l_target = NULL;
 				}
@@ -241,51 +247,51 @@ class CR4HudModuleEnemyFocus extends CR4HudModuleBase
  
 		if ( l_target )
 		{
-			//check to see if the target is a boss (right now we only have one boss type) and DO NOT display or update this indicator
+			
 			if ( (CHeartMiniboss)l_target )
 			{
-				ShowElement( false );  //#B OnDemand
+				ShowElement( false );  
 				return false;
 			}
 
-			// some initial stuff
+			
 			l_isHuman = l_target.IsHuman();
 			l_isDifferentTarget = ( l_target != m_lastTarget );
 			l_wasAxiied = ( l_target.GetAttitudeGroup() == 'npc_charmed' );
 			
-			//autogen level is not updated when player levels up so we need to check it when we target new enemy which is not in combat
-			//apart from that we do similar recalc when enemies enter combat
-			//cannot do this on player level up as actors are not streamed and it generates 1s+ freeze due to few thousands actors checked
+			
+			
+			
 			if(l_isDifferentTarget && l_target && !l_target.IsInCombat() && IsRequiredAttitudeBetween(thePlayer, l_target, true))
 			{
 				l_target.RecalcLevel();
 			}
 			
-			// JUST DIFFERENT TARGET THAN BEFORE
+			
 			if ( l_isDifferentTarget )
 			{
 				m_fxSetBossOrDead.InvokeSelfOneArg( FlashArgBool( l_isBoss || !l_target.IsAlive() ) );
 				
-				//rrrr2 HIDE 
+				
 				HideDamageText();
 				
-				// rest of the things to call just once per target
+				
 				m_fxIsHuman.InvokeSelfOneArg( FlashArgBool( l_isHuman ) ); 
 				m_fxSetEssenceDamage.InvokeSelfOneArg( FlashArgBool( l_target.UsesEssence()) );
 				UpdateQuestIcon( l_target );
 				SetDodgeFeedback( NULL );
 				
-				ShowElement( true ); //#B OnDemand
+				ShowElement( true ); 
 				
 				m_lastTarget = l_target;
 			}
 			
-			// ATTITUDE (OR DIFFERENT TARGET)
+			
 
 			l_currentTargetAttitude = l_target.GetAttitude( thePlayer );
 			if ( l_currentTargetAttitude != AIA_Hostile )
 			{
-				//figure out whether our npc is a VIP first (special color)
+				
 				if ( l_target.IsVIP() )
 				{
 					l_currentTargetAttitude = 4;
@@ -297,7 +303,7 @@ class CR4HudModuleEnemyFocus extends CR4HudModuleBase
 				m_wasAxiied = l_wasAxiied;
 				if( m_wasAxiied )
 				{
-					m_fxSetAttitude.InvokeSelfOneArg( FlashArgInt( 3 ) ); // #B Axii
+					m_fxSetAttitude.InvokeSelfOneArg( FlashArgInt( 3 ) ); 
 				}
 				else
 				{
@@ -306,7 +312,7 @@ class CR4HudModuleEnemyFocus extends CR4HudModuleBase
 				m_lastTargetAttitude = l_currentTargetAttitude;
 			}
 
-			// DODGE FEEDBACK
+			
 			if ( m_lastDodgeFeedbackTarget != l_dodgeFeedbackTarget )
 			{
 				if ( l_currentTargetAttitude == AIA_Hostile )
@@ -320,20 +326,20 @@ class CR4HudModuleEnemyFocus extends CR4HudModuleBase
 				m_lastDodgeFeedbackTarget = l_dodgeFeedbackTarget;
 			}
 			
-			// DISPLAY NAME (OR DIFFERENT TARGET)
-			// getting display name is a bit tricky, because:
-			// - it's loaded asynchronously ale we can't just rely on GetDisplayName() (at least in non-cooked version)
-			// - it may change due to using alternative name
-			// so we force to update the name when there's different actor than previous one or the update interval passed
+			
+			
+			
+			
+			
 			m_nameInterval -= timeDelta;
 			if ( l_isDifferentTarget || m_nameInterval < 0  )
 			{
-				m_nameInterval = 0.25; // update name 4 times per second
+				m_nameInterval = 0.25; 
 				m_fxSetEnemyName.InvokeSelfOneArg( FlashArgString( l_target.GetDisplayName() ) );
 			}
 
-			// HEALTH
-			l_currentHealthPercentage = CeilF( 100 * l_target.GetHealthPercents() );	//ceiling so that if he has 0.2% it won't show as 0 while he'll be alive
+			
+			l_currentHealthPercentage = CeilF( 100 * l_target.GetHealthPercents() );	
 			if ( m_lastHealthPercentage != l_currentHealthPercentage )
 			{
 				m_fxSetEnemyHealth.InvokeSelfOneArg( FlashArgInt( l_currentHealthPercentage ) );
@@ -341,18 +347,18 @@ class CR4HudModuleEnemyFocus extends CR4HudModuleBase
 				
 			}			
 			
-			// STAMINA
-			//if ( l_isHuman )
-			//{
+			
+			
+			
 				l_currentStaminaPercentage = CeilF( 100 * l_target.GetStaminaPercents() );
 				if ( m_lastStaminaPercentage != l_currentStaminaPercentage )
 				{
 					m_fxSetEnemyStamina.InvokeSelfOneArg( FlashArgInt( l_currentStaminaPercentage ) );
 					m_lastStaminaPercentage = l_currentStaminaPercentage;
 				}			
-			//}
 			
-			// ENEMY LEVEL
+			
+			
 			l_currentEnemyDifferenceLevel = l_target.GetExperienceDifferenceLevelName( l_currentEnemyLevelString );
 			if ( l_isDifferentTarget || 
 				m_lastEnemyDifferenceLevel != l_currentEnemyDifferenceLevel ||
@@ -363,7 +369,7 @@ class CR4HudModuleEnemyFocus extends CR4HudModuleBase
 				m_lastEnemyLevelString     = l_currentEnemyLevelString;
 			}
 			
-			// SCREEN POSITION
+			
 			if ( GetBaseScreenPosition( l_targetScreenPos, l_target ) )
 			{
 				l_targetScreenPos.Y -= 45;
@@ -399,25 +405,25 @@ class CR4HudModuleEnemyFocus extends CR4HudModuleBase
 		}
 		else if ( l_targetNonActor )
 		{
-			// some initial stuff
+			
 			l_isDifferentTarget = ( l_targetNonActor != m_lastTarget );
 
-			// JUST DIFFERENT TARGET THEN BEFORE
+			
 			if ( l_isDifferentTarget )
 			{
-				//rrrr1 HIDE
+				
 				m_fxIsHuman.InvokeSelfOneArg( FlashArgBool( false ) );
 				m_fxSetEssenceDamage.InvokeSelfOneArg( FlashArgBool( false ) );
 				UpdateQuestIcon( (CNewNPC)l_targetNonActor );
 				SetDodgeFeedback( NULL );
 				
-				ShowElement( true ); //#B OnDemand				
+				ShowElement( true ); 
 				
 				m_fxSetEnemyName.InvokeSelfOneArg( FlashArgString( "" ) );
 				m_fxSetAttitude.InvokeSelfOneArg( FlashArgInt( 0 ) );
 				m_fxSetEnemyLevel.InvokeSelfTwoArgs( FlashArgString( "none" ), FlashArgString( "" ) );
 
-				// for consistency
+				
 				m_lastTarget				= l_targetNonActor;
 				m_lastTargetAttitude		= GetAttitudeOfTargetActor( m_lastTarget );
 				m_lastHealthPercentage		= -1;
@@ -426,7 +432,7 @@ class CR4HudModuleEnemyFocus extends CR4HudModuleBase
 				m_lastEnemyLevelString		= "";
 			}		
 		
-			// SCREEN POSITION
+			
 			if ( GetBaseScreenPosition( l_targetScreenPos, l_targetNonActor ) )
 			{
 				l_targetScreenPos.Y -= 10;
@@ -465,11 +471,11 @@ class CR4HudModuleEnemyFocus extends CR4HudModuleBase
 			m_lastTarget = NULL;
 			m_mcNPCFocus.SetVisible( false );
 			SetDodgeFeedback( NULL );
-			ShowElement( false ); //#B OnDemand
+			ShowElement( false ); 
 		}
 		else
 		{
-			// specific case - name sometimes stayed at the screen after fast travel or cutscene
+			
 			if ( m_mcNPCFocus.GetVisible() )
 			{
 				m_mcNPCFocus.SetVisible( false );
@@ -488,7 +494,7 @@ class CR4HudModuleEnemyFocus extends CR4HudModuleBase
 		m_fxSetShowHardLock.InvokeSelfOneArg( FlashArgBool( set ) );
 	}
 	
-	protected function UpdateScale( scale : float, flashModule : CScriptedFlashSprite ) : bool // #B should be scaling ?
+	protected function UpdateScale( scale : float, flashModule : CScriptedFlashSprite ) : bool 
 	{
 		return false;
 	}
@@ -512,7 +518,7 @@ class CR4HudModuleEnemyFocus extends CR4HudModuleBase
 			{
 				commonMapManager = theGame.GetCommonMapManager();
 
-				// PMTODO only quest pins
+				
 				mapPinInstances = commonMapManager.GetMapPinInstances( theGame.GetWorld().GetDepotPath() );
 			
 				for( i = 0; i < mapPinInstances.Size(); i += 1 )
@@ -535,6 +541,7 @@ class CR4HudModuleEnemyFocus extends CR4HudModuleBase
 							case 'QuestGiverSide':
 							case 'QuestAvailable':
 							case 'QuestAvailableHoS':
+							case 'QuestAvailableBaW':
 								questIcon = "QuestGiverSide";
 								break;
 							case 'MonsterQuest':
@@ -549,7 +556,7 @@ class CR4HudModuleEnemyFocus extends CR4HudModuleBase
 			}
 		}
 
-		// if we reach here, its because no matching map pin found!
+		
 		m_fxSetNPCQuestIcon.InvokeSelfOneArg( FlashArgString( questIcon ) );
 	}
 }
@@ -584,15 +591,4 @@ exec function hardlock( set : bool )
 	module = (CR4HudModuleEnemyFocus)hud.GetHudModule("EnemyFocusModule");
 	module.SetShowHardLock( set );
 }
-/*
-//test for dodge feedback
-exec function showdodge( set:bool )
-{
-	var hud : CR4ScriptedHud;
-	var module : CR4HudModuleEnemyFocus;
 
-	hud = (CR4ScriptedHud)theGame.GetHud();
-	module = (CR4HudModuleEnemyFocus)hud.GetHudModule("EnemyFocusModule");
-	module.SetDodgeFeedback( set );
-}
-*/

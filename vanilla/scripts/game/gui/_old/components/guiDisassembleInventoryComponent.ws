@@ -1,8 +1,13 @@
-﻿class W3GuiDisassembleInventoryComponent extends W3GuiPlayerInventoryComponent
+﻿/***********************************************************************/
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/***********************************************************************/
+class W3GuiDisassembleInventoryComponent extends W3GuiPlayerInventoryComponent
 {
 	public var merchantInv : CInventoryComponent;
 	
-	public /* override */ function SetInventoryFlashObjectForItem( item : SItemUniqueId, out flashObject : CScriptedFlashObject) : void
+	public  function SetInventoryFlashObjectForItem( item : SItemUniqueId, out flashObject : CScriptedFlashObject) : void
 	{
 		super.SetInventoryFlashObjectForItem( item, flashObject );
 		addRecyclingPartsList( item, flashObject );
@@ -11,13 +16,13 @@
 		flashObject.SetMemberFlashInt( "gridPosition", -1 );
 	}
 	
-	protected /* override */ function ShouldShowItem( item : SItemUniqueId ):bool
+	protected  function ShouldShowItem( item : SItemUniqueId ):bool
 	{
 		var itemTags : array<name>;
 		var parts : array<SItemParts>;
 		var showItem : bool;
 		
-		//don't show equipped items (requested)
+		
 		if(GetWitcherPlayer().IsItemEquipped(item))
 			return false;
 		
@@ -50,8 +55,8 @@
 			curPartData.SetMemberFlashString("name", GetLocStringByKeyExt(_inv.GetItemLocalizedNameByName(curPart.itemName)));
 			curPartData.SetMemberFlashString("iconPath", _inv.GetItemIconPathByName(curPart.itemName));
 			
-			// #Y we get random amount of parts after disassemble, so we don't show exact quantity to player
-			//curPartData.SetMemberFlashInt("quantity", curPart.quantity);
+			
+			
 			curPartData.SetMemberFlashInt("quantity", 1);
 			
 			partDataList.PushBackFlashObject(curPartData);

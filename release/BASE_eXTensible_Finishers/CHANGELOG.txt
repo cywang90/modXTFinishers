@@ -3,6 +3,14 @@ BASE eXTensible Finishers Changelog
 ===================================
 
 -----------------
+v4.3.0 (16/01/16)
+-----------------
+
+Compatibility
+-------------
+- Now requires The Witcher 3: Wild Hunt Patch 1.12.
+
+-----------------
 v4.2.1 (16/01/10)
 -----------------
 

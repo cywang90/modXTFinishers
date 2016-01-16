@@ -1,10 +1,15 @@
-﻿class CR4PosterMenu extends CR4MenuBase
+﻿/***********************************************************************/
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/***********************************************************************/
+class CR4PosterMenu extends CR4MenuBase
 {
 	private var	m_posterEntity : W3Poster;
 
 	private var m_fxSetDescriptionSFF			: CScriptedFlashFunction;
 
-	event /*flash*/ OnConfigUI()
+	event  OnConfigUI()
 	{	
 		var flashModule : CScriptedFlashSprite;
 		var description : string;
@@ -29,7 +34,7 @@
 		theInput.StoreContext( 'EMPTY_CONTEXT' );
 	}
 	
-	event /*C++*/ OnClosingMenu()
+	event  OnClosingMenu()
 	{
 		super.OnClosingMenu();
 		theInput.RestoreContext( 'EMPTY_CONTEXT', true );
@@ -39,7 +44,7 @@
 		OnPlaySoundEvent( "gui_noticeboard_close" );
 	}
 
-	event /*flash*/ OnCloseMenu()
+	event  OnCloseMenu()
 	{
 		CloseMenu();
 	}

@@ -1,4 +1,9 @@
-﻿import class CWitcherSword extends CItemEntity
+﻿/***********************************************************************/
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/***********************************************************************/
+import class CWitcherSword extends CItemEntity
 {
 	var runeCount : int;
 	editable var padBacklightColor : Vector;
@@ -403,7 +408,7 @@
 
 		invComp.GetItemEnhancementItems( itemId, enhancements );
 
-		// Disable existing rune effect using member var runeCount
+		
 		if ( runeCount > 0 && ( ( runeCount - 1 ) < enhancements.Size() ) )
 		{
 			StopEffect( GetRuneLevel( runeCount ) );
@@ -415,7 +420,7 @@
 			StopEffect( GetEnchantmentFxName( enhancements[ 0 ] ) );
 		}
 		
-		// Get the new rune count and store from deactivation
+		
 		runeCount = invComp.GetItemEnhancementCount( itemId );
 
 		if ( runeCount > 0 && ( ( runeCount - 1 ) < enhancements.Size() ) )

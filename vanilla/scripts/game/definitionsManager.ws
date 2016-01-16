@@ -1,10 +1,11 @@
 ﻿/***********************************************************************/
-/** Witcher Script file
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
-/** Exports for CDefinitionsManagerAccessor
-/** Copyright © 2012-2014
-/** Authors : Tomek Kozera
-/***********************************************************************/
+
+
+
 
 import struct SCustomNodeAttribute
 {
@@ -21,12 +22,12 @@ import struct SCustomNode
 
 import class CDefinitionsManagerAccessor extends CObject
 {
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////////////////  @ITEMS  /////////////////////////////////////////////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	
+	
 
-	// Gets base abilities from item definition by definition name
-	// if ability is always added weight == -1
+	
+	
 	import final function GetItemAbilitiesWithWeights( itemName : name, playerItem : bool, out abilities : array< name >, out weights : array< float >, out minAbilities : int, out maxAbilities : int );
 	import final function GetItemHoldSlot( itemName : name, playerItem : bool ) : name ;
 	import final function GetItemCategory( itemName : name ) : name ;
@@ -46,7 +47,7 @@ import class CDefinitionsManagerAccessor extends CObject
 	import final function ValidateRecyclingParts( listAllItemDefs : bool );
 	import final function ValidateCraftingDefinitions( listAllItemDefs : bool );
 
-	//Gets item attribute value assuming no ability randomization is done
+	
 	public function GetItemAttributeValueNoRandom(itemName : name, playerItem : bool, attributeName : name, out min : SAbilityAttributeValue, out max : SAbilityAttributeValue)
 	{
 		var abs : array<name>;
@@ -120,7 +121,7 @@ import class CDefinitionsManagerAccessor extends CObject
 		{
 			if(GetCustomNodeAttributeValueName(main.subNodes[i], 'name_name', checkedRecipeName) && checkedRecipeName == recipeName)
 			{
-				//get next recipe definition's cooked item type
+				
 				if(GetCustomNodeAttributeValueName(main.subNodes[i], 'cookedItem_name', cookedItemName))
 				{
 					if(ItemHasTag(cookedItemName, 'Mutagen') && GetItemCategory(cookedItemName) == 'potion')
@@ -133,9 +134,9 @@ import class CDefinitionsManagerAccessor extends CObject
 		return false;
 	}
 	
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////////////////  @ABILITIES  /////////////////////////////////////////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	
+	
 	
 	import final function GetAbilityAttributeValue( abilityName : name, attributeName : name, out valMin : SAbilityAttributeValue, out valMax : SAbilityAttributeValue );
 	import final function GetAbilitiesAttributeValue( abilitiesNames : array<name>, attributeName : name, out valMin : SAbilityAttributeValue, out valMax : SAbilityAttributeValue, optional tags : array<name> );
@@ -156,7 +157,7 @@ import class CDefinitionsManagerAccessor extends CObject
 		return atts.Contains(attribute);
 	}
 	
-	//returns array of attributes names from given abilities names
+	
 	public final function GetAbilitiesAttributes(abilities : array<name>) : array<name>
 	{
 		var i, k : int;
@@ -178,7 +179,7 @@ import class CDefinitionsManagerAccessor extends CObject
 		return atts;
 	}
 		
-	//Gets damages info from ability definition (types and values). Returns amount of damage definitions found
+	
 	public function GetAbilityDamages(abilityName : name, out damages : array<SRawDamage>) : int
 	{
 		var i : int;
@@ -283,30 +284,30 @@ import class CDefinitionsManagerAccessor extends CObject
 		return level;
 	}    
 	
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////////////  CUSTOM XMLS  ///////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	
+	
 	
 	import final function GetCustomDefinition( definition : name ) : SCustomNode;
 	
-	// returns true if value was succesfully parsed
+	
 	import final function GetAttributeValueAsInt( out node : SCustomNodeAttribute, out val : int ) : bool;
 	
-	// returns true if value was succesfully parsed
+	
 	import final function GetAttributeValueAsFloat( out node : SCustomNodeAttribute, out val : float ) : bool;
 	
-	// returns true if value was succesfully parsed
+	
 	import final function GetAttributeValueAsBool( out node : SCustomNodeAttribute, out val : bool ) : bool;
 	
-	// returns string value of attribute if it's not a name type attribute
+	
 	import final function GetAttributeValueAsString( out node : SCustomNodeAttribute ) : string;
 	
 	import final function GetAttributeName( out node : SCustomNodeAttribute ) : name;
 	
-	// returns string value of attribute if it's a name type attribute
+	
 	import final function GetAttributeValueAsCName( out node : SCustomNodeAttribute ) : name;
 	
-	// returns index of subnode with specified attribute name and value
+	
 	import final function GetSubNodeByAttributeValueAsCName( out node : SCustomNode, rootNodeName : name, attributeName : name, attributeValue : name ) : bool;
 	
 	import final function GetCustomDefinitionSubNode( out node : SCustomNode, subnode : name) : SCustomNode;

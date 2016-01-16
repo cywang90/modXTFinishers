@@ -1,4 +1,9 @@
-﻿class CR4HudModuleBuffs extends CR4HudModuleBase
+﻿/***********************************************************************/
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/***********************************************************************/
+class CR4HudModuleBuffs extends CR4HudModuleBase
 {
 	private var _currentEffects : array <CBaseGameplayEffect>;
 	private var _previousEffects : array <CBaseGameplayEffect>;
@@ -12,10 +17,10 @@
 	
 	private var m_runword5Applied : bool; default m_runword5Applied = false;
 	
-	//private var _inv : CInventoryComponent;
-	//private var iCurrentOilBuff : int;		default iCurrentOilBuff = -1;
+	
+	
 
-	event /* flash */ OnConfigUI()
+	event  OnConfigUI()
 	{
 		var flashModule : CScriptedFlashSprite;
 		var hud : CR4ScriptedHud;
@@ -44,6 +49,7 @@
 		var duration : float;
 		var initialDuration : float;
 		var hasRunword5 : bool;
+		var oilEffect : W3Effect_Oil;
 
 		if ( !CanTick( timeDelta ) )
 			return true;
@@ -87,7 +93,17 @@
 					{
 						duration = effectArray[i].GetDurationLeft();
 						if(duration < 0.f)
-							duration = 0.f;		//e.g. due to S_Alchemy_s03 skill
+							duration = 0.f;		
+					}
+					
+					if ( effectArray[i].GetEffectType() == EET_Oil )
+					{
+						oilEffect = (W3Effect_Oil)effectArray[ i ];
+						if ( oilEffect )
+						{
+							initialDuration = oilEffect.GetAmmoInitialCount();
+							duration		= oilEffect.GetAmmoCurrentCount();
+						}
 					}
 					
 					if(_currentEffects.Size() < i+1-offset)
@@ -107,7 +123,7 @@
 				else
 				{
 					offset += 1;
-					//LogChannel('HUDBuffsOff'," offset incremented to "+offset+" by effec "+effectArray[i].effectName);
+					
 				}
 			}
 			
@@ -118,7 +134,7 @@
 			}
 		}
 
-		//we have no buffs whatsoever to display or update
+		
 		if ( _currentEffects.Size() == 0 && _previousEffects.Size() == 0 )
 			return true;
 
@@ -128,26 +144,26 @@
 
 	}
 
-	//compare list of effects from this tick with the previous one and return TRUE if we need to update
+	
 	private function buffListHasChanged( currentEffects : array<CBaseGameplayEffect>, previousEffects : array<CBaseGameplayEffect> ) : bool
 	{
 		var i : int;
 		var currentSize : int = currentEffects.Size();
 		var previousSize : int = previousEffects.Size();
 
-		//1st off, if sizes are different then we know we have a change
+		
 		if( currentSize != previousSize )
 			return true;
 		else 
 		{
-			//we should check element by element and return false only if both arrays are exactly the same
+			
 			for( i = 0; i < currentSize; i+=1 )
 			{
 				if ( currentEffects[i] != previousEffects[i] )
 					return true;
 			}
 
-			//at this point, we have 2 identical arrays
+			
 			return false;
 		}
 	}
@@ -157,9 +173,10 @@
 		var l_flashObject			: CScriptedFlashObject;
 		var l_flashArray			: CScriptedFlashArray;
 		var i 						: int;
+		var oilEffect				: W3Effect_Oil;
 
 		l_flashArray = GetModuleFlashValueStorage()().CreateTempFlashArray();
-		for(i = 0; i < Min(12,_currentEffects.Size()); i += 1) // #B only first 12 buffs is displayed, probably for remove
+		for(i = 0; i < Min(12,_currentEffects.Size()); i += 1) 
 		{
 			if(_currentEffects[i].ShowOnHUD() && _currentEffects[i].GetEffectNameLocalisationKey() != "MISSING_LOCALISATION_KEY_NAME" )
 			{
@@ -169,8 +186,18 @@
 				l_flashObject.SetMemberFlashString("title",GetLocStringByKeyExt(_currentEffects[i].GetEffectNameLocalisationKey()));
 				l_flashObject.SetMemberFlashBool("IsPotion",_currentEffects[i].IsPotionEffect());
 				l_flashObject.SetMemberFlashBool("isPositive", !_currentEffects[i].IsNegative());
+				l_flashObject.SetMemberFlashBool("usesCustomCounter", _currentEffects[i].UsesCustomCounter());
 				
-				if ( (W3RepairObjectEnhancement)_currentEffects[i] && GetWitcherPlayer().HasRunewordActive('Runeword 5 _Stats') )
+				if ( _currentEffects[i].GetEffectType() == EET_Oil )
+				{	
+					oilEffect = (W3Effect_Oil)_currentEffects[i];
+					if ( oilEffect )
+					{
+						l_flashObject.SetMemberFlashNumber("duration",        oilEffect.GetAmmoCurrentCount() * 1.0 );
+						l_flashObject.SetMemberFlashNumber("initialDuration", oilEffect.GetAmmoInitialCount() * 1.0 );
+					}
+				}
+				else if ( (W3RepairObjectEnhancement)_currentEffects[i] && GetWitcherPlayer().HasRunewordActive('Runeword 5 _Stats') )
 				{
 					l_flashObject.SetMemberFlashNumber("duration", -1 );
 					l_flashObject.SetMemberFlashNumber("initialDuration", -1 );
@@ -199,10 +226,10 @@
 		var tempY				: float;
 		
 		l_flashModule 	= GetModuleFlash();
-		//theGame.GetUIHorizontalFrameScale()
-		//theGame.GetUIVerticalFrameScale()
 		
-		// #J SUPER LAME
+		
+		
+		
 		tempX = anchorX + (660.0 * (1.0 - theGame.GetUIHorizontalFrameScale()));
 		tempY = anchorY + (645.0 * (1.0 - theGame.GetUIVerticalFrameScale())); 
 		
@@ -210,7 +237,7 @@
 		l_flashModule.SetY( tempY );	
 	}
 	
-	event /* flash */ OnBuffsDisplay( value : bool )
+	event  OnBuffsDisplay( value : bool )
 	{
 		bDisplayBuffs = value;
 	}

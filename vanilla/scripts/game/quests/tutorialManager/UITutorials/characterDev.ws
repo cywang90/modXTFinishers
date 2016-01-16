@@ -1,7 +1,10 @@
 ﻿/***********************************************************************/
-/** Copyright © 2014
-/** Author : Tomek Kozera
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
+
+
 
 state CharacterDevelopment in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
@@ -26,7 +29,7 @@ state CharacterDevelopment in W3TutorialManagerUIHandler extends TutHandlerBaseS
 		CloseHint(OPEN_CHAR_DEV);
 		ShowHint(LEVELING, theGame.params.TUT_POS_CHAR_DEV_X, theGame.params.TUT_POS_CHAR_DEV_Y);
 		
-		//unregister fast menu hint
+		
 		theGame.GetTutorialSystem().uiHandler.UnregisterUIHint('CharacterDevelopmentFastMenu');
 	}
 			
@@ -70,12 +73,7 @@ state CharacterDevelopment in W3TutorialManagerUIHandler extends TutHandlerBaseS
 		{
 			highlights.Resize(1);
 			
-			/*
-			highlights[0].x = 0.43;
-			highlights[0].y = 0.143;
-			highlights[0].width = 0.08;
-			highlights[0].height = 0.3;
-			*/		
+					
 			highlights[0].x = 0.085;
 			highlights[0].y = 0.13;
 			highlights[0].width = 0.155;
@@ -149,7 +147,7 @@ state CharacterDevelopment in W3TutorialManagerUIHandler extends TutHandlerBaseS
 		theGame.GetTutorialSystem().MarkMessageAsSeen(EQUIP_SKILL);
 		ShowHint(SKILL_UNEQUIPPING, theGame.params.TUT_POS_CHAR_DEV_X, theGame.params.TUT_POS_CHAR_DEV_Y);
 		
-		//release all locks
+		
 		size = EnumGetMax('EInputActionBlock')+1;
 		for(i=0; i<size; i+=1)
 		{

@@ -1,9 +1,11 @@
 ﻿/***********************************************************************/
-/** Witcher Script file - inventory
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
-/** Copyright © 2013 CDProjektRed
-/** Author : Bartosz Bigaj
-/***********************************************************************/
+
+
+
 
 class CR4BlacksmithMenu extends CR4MenuBase
 {
@@ -34,7 +36,7 @@ class CR4BlacksmithMenu extends CR4MenuBase
 	private var m_fxSetPlayerMoney		: CScriptedFlashFunction;
 	private var m_fxSetXActionLabel 	: CScriptedFlashFunction;
 	
-	event /*flash*/ OnConfigUI()
+	event  OnConfigUI()
 	{	
 		var l_flashPaperdoll		: CScriptedFlashSprite;
 		var l_flashInventory		: CScriptedFlashSprite;
@@ -80,29 +82,29 @@ class CR4BlacksmithMenu extends CR4MenuBase
 		_tooltipDataProvider.initialize(_inv, m_flashValueStorage);
 		_tooltipDataProvider.setCurrentInventory(_inv);
 		
-		// repair inv:
+		
 		_repairInv = new W3GuiRepairInventoryComponent in this;
 		_repairInv.Initialize( _inv );
 		_repairInv.merchantInv = _fixerInventory;
 		
-		// #Y can do everything
+		
 		_repairInv.repairArmors = true;
 		_repairInv.repairSwords = true;
 		_repairInv.masteryLevel = 5;
 		
-		// sockets inv:
+		
 		_socketInv = new W3GuiSocketsInventoryComponent in this;
 		_socketInv.Initialize( _inv );
 		_socketInv.SetSocketsFilter(true);
 		_socketInv.merchantInv = _fixerInventory;
 		
-		// add sockets inv:
+		
 		_addSocketInv = new W3GuiAddSocketsInventoryComponent in this;
 		_addSocketInv.Initialize( _inv );
 		_addSocketInv.merchantInv = _fixerInventory;
 		_addSocketInv.ignorePosition = true;
 		
-		// disassemble inv:
+		
 		_disassembleInv = new W3GuiDisassembleInventoryComponent in this;
 		_disassembleInv.Initialize( _inv );
 		_disassembleInv.merchantInv = _fixerInventory;
@@ -110,11 +112,11 @@ class CR4BlacksmithMenu extends CR4MenuBase
 		m_menuInited = true;
 		ApplyMenuState(m_menuState);
 		
-		//UpdateData();
+		
 		m_flashValueStorage.SetFlashString("repair.grid.player.name", GetLocStringByKeyExt("panel_inventory_grid_name"));
 	}
 	
-	public /* override */ function SetMenuState(newState : name) : void
+	public  function SetMenuState(newState : name) : void
 	{
 		var i : int;
 		var hasUpgrades : bool;
@@ -138,11 +140,11 @@ class CR4BlacksmithMenu extends CR4MenuBase
 			thePlayer.inv.GetAllItems(items);
 			hasUpgrades = false;
 			
-			// Search for non-enchantment ( upgrade ) enhancements.
+			
 			for(i=0; i<items.Size(); i+=1)
 			{
 				hasEnchantment = thePlayer.inv.GetEnchantment( items[ i ] ) != '';
-				numEnhancements = thePlayer.inv.GetItemEnhancementCount( items[ i ] ); // Returns '3' when using Rune/glyphwords
+				numEnhancements = thePlayer.inv.GetItemEnhancementCount( items[ i ] ); 
 				if( numEnhancements > 0 && !hasEnchantment )
 				{
 					hasUpgrades = true;
@@ -160,7 +162,7 @@ class CR4BlacksmithMenu extends CR4MenuBase
 			{
 				if(_curInv.ShouldShowItem(items[i]))
 				{
-					//has something to show on the grid
+					
 					GameplayFactsSet("tut_dismantle_cond", 1);				
 					theGame.GetTutorialSystem().uiHandler.OnOpeningMenu(GetMenuName());
 				
@@ -214,12 +216,12 @@ class CR4BlacksmithMenu extends CR4MenuBase
 		m_fxSetXActionLabel.InvokeSelfOneArg(FlashArgString(repairString));
 	}
 	
-	event /*flash*/ OnClearSlotNewFlag(item : SItemUniqueId)
+	event  OnClearSlotNewFlag(item : SItemUniqueId)
 	{
 		RemoveNewItemMark(item);
 	}
 	
-	event /*flash*/ OnPlayDeniedSound()
+	event  OnPlayDeniedSound()
 	{
 		OnPlaySoundEvent( "gui_global_denied" );
 	}
@@ -237,11 +239,11 @@ class CR4BlacksmithMenu extends CR4MenuBase
 		m_fxConfirmAction.InvokeSelfOneArg(FlashArgBool(value));
 	}
 	
-	event /*flash*/ OnRequestConfirmation( itemId : SItemUniqueId, price : int )
+	event  OnRequestConfirmation( itemId : SItemUniqueId, price : int )
 	{
 		if ( m_menuState == 'Disassemble' && _inv.GetItemQuantity(itemId) > 1 )
 		{
-			if (_inv.GetMoney() < price) // #J if you can't even afford one stack, don't bother opening quantity popup
+			if (_inv.GetMoney() < price) 
 			{
 				showNotification( GetLocStringByKeyExt( "panel_shop_notification_not_enough_money" ) );
 				HandleActionConfirmation(false);
@@ -373,7 +375,7 @@ class CR4BlacksmithMenu extends CR4MenuBase
 		RequestSubMenu( 'PopupMenu', quantityPopupData );
 	}
 	
-	event /*flash*/ OnRemoveImprovements(item : SItemUniqueId, price : int)
+	event  OnRemoveImprovements(item : SItemUniqueId, price : int)
 	{
 		var socketItems	  : array<name>;
 		var itemsListText : string;
@@ -405,7 +407,7 @@ class CR4BlacksmithMenu extends CR4MenuBase
 		theSound.SoundEvent( 'gui_inventory_buy' );		
 	}
 	
-	event /*flash*/ OnDisassembleItem( item : SItemUniqueId, price : int)
+	event  OnDisassembleItem( item : SItemUniqueId, price : int)
 	{
 		var partList	  		: array<SItemParts>;
 		var currentPartList 	: array<SItemParts>;
@@ -421,6 +423,12 @@ class CR4BlacksmithMenu extends CR4MenuBase
 		var itemsToUpdate		: array<SItemUniqueId>;
 		var curPart				: SItemUniqueId;
 		
+		if (m_lastConfirmedDisassembleQuantity < 1)
+		{
+			OnPlaySoundEvent( "gui_global_denied" );
+			return 0;
+		}
+		
 		itemsListText = "<font face=\"$BoldFont\">" + GetLocStringByKeyExt("panel_blacksmith_items_removed") + ": </font>";
 		itemsListText += "<br/>" + (GetLocStringByKeyExt(_inv.GetItemLocalizedNameByUniqueID(item)) + " x" + m_lastConfirmedDisassembleQuantity);
 		
@@ -431,7 +439,9 @@ class CR4BlacksmithMenu extends CR4MenuBase
 			partList[idx].quantity = _inv.GetItemQuantityByName(partList[idx].itemName);
 		}
 		
-		itemsListText += "<br/>" + "<font face=\"$BoldFont\">" + GetLocStringByKeyExt("panel_blacksmith_items_added") + ": </font>";		
+		itemsListText += "<br/>" + "<font face=\"$BoldFont\">" + GetLocStringByKeyExt("panel_blacksmith_items_added") + ": </font>";
+		
+		GetWitcherPlayer().StartInvUpdateTransaction();
 		
 		_fixerInventory.AddMoney(price * m_lastConfirmedDisassembleQuantity);
 		_inv.RemoveMoney(price * m_lastConfirmedDisassembleQuantity);
@@ -505,18 +515,21 @@ class CR4BlacksmithMenu extends CR4MenuBase
 			UpdateItemsList(itemsToUpdate);
 		}
 		
+		GetWitcherPlayer().FinishInvUpdateTransaction();
+		
 		UpdatePlayerMoney();
 		UpdateMerchantData();
+		UpdateItemsCounter();
 		
 		theSound.SoundEvent( 'gui_inventory_buy' );
 	}
 	
-	event /*flash*/ OnStartCrafting()
+	event  OnStartCrafting()
 	{
 		OnPlaySoundEvent("gui_crafting_craft_item");
 	}
 	
-	event /*flash*/ OnRepairItem( item : SItemUniqueId, price : int )
+	event  OnRepairItem( item : SItemUniqueId, price : int )
 	{
 		_repairInv.RepairItem( item, 1 );
 		_fixerInventory.AddMoney(price);
@@ -540,7 +553,7 @@ class CR4BlacksmithMenu extends CR4MenuBase
 		UpdateRepairAllInputFeedback('Repair');
 	}
 	
-	event /*flash*/ OnAddSocket( item : SItemUniqueId, price : int)
+	event  OnAddSocket( item : SItemUniqueId, price : int)
 	{
 		_addSocketInv.AddSocket( item );
 		
@@ -555,13 +568,13 @@ class CR4BlacksmithMenu extends CR4MenuBase
 		theSound.SoundEvent( 'gui_enchanting_socket_add' );
 	}
 	
-	event /*flash*/ OnRepairAllItems()
+	event  OnRepairAllItems()
 	{
 		var totalRepairCost : int;
 		
 		totalRepairCost = _repairInv.GetTotalRepairCost();
 		
-		if (_inv.GetMoney() < totalRepairCost) // #J if you can't even afford one stack, don't bother opening quantity popup
+		if (_inv.GetMoney() < totalRepairCost) 
 		{
 			showNotification( GetLocStringByKeyExt( "panel_shop_notification_not_enough_money" ) );
 			HandleActionConfirmation(false);
@@ -602,27 +615,25 @@ class CR4BlacksmithMenu extends CR4MenuBase
 		m_fxSetXActionLabel.InvokeSelfOneArg(FlashArgString(emptyString));
 	}
 	
-	event /* flash */ OnGetItemData(item : SItemUniqueId, compareItemType : int)
+	event  OnGetItemData(item : SItemUniqueId, compareItemType : int)
 	{
 		ShowItemTooltip(item, compareItemType);
 	}
 	
-	event /*flash*/ OnGlobalUpdate()
+	event  OnGlobalUpdate()
 	{
 		UpdateData();
 	}
 		
-	event /*flash*/ OnSaveItemGridPosition( item : SItemUniqueId, gridPos : int )
+	event  OnSaveItemGridPosition( item : SItemUniqueId, gridPos : int )
 	{
 		var UIData : SInventoryItemUIData;
 		UIData = _inv.GetInventoryItemUIData( item );
 		UIData.gridPosition = gridPos;
-		//_inv.SetInventoryItemUIData( item , UIData );
+		
 	}
 	
-	/*
-		--- UPDATE DATA ---
-	*/
+	
 	
 	function UpdateData()
 	{
@@ -739,7 +750,7 @@ class CR4BlacksmithMenu extends CR4MenuBase
 		if( itemsNr >= MAX_ITEM_NR && currentItemsNr != itemsNr )
 		{
 			currentItemsNr = itemsNr;
-			//OnPlaySoundEvent("gui_inventory_overweighted");
+			
 		}
 	}
 	
@@ -761,7 +772,7 @@ class CR4BlacksmithMenu extends CR4MenuBase
 		return IAT_Repair;
 	}
 	
-	event /*flash*/ OnCloseMenu()
+	event  OnCloseMenu()
 	{
 		CloseMenu();
 		
@@ -771,7 +782,7 @@ class CR4BlacksmithMenu extends CR4MenuBase
 		}
 	}
 	
-	event /* C++ */ OnClosingMenu()
+	event  OnClosingMenu()
 	{
 		if (_repairInv)
 		{
@@ -798,37 +809,35 @@ class CR4BlacksmithMenu extends CR4MenuBase
 		super.OnClosingMenu();		
 	}
 
-	// Stub
-	event /*flash*/ OnMoveItem( item : SItemUniqueId, moveToIndex : int )
+	
+	event  OnMoveItem( item : SItemUniqueId, moveToIndex : int )
 	{
 	}
 
-	// Stub
-	event /*flash*/ OnMoveItems( item : SItemUniqueId, moveToIndex : int, itemSecond : SItemUniqueId, moveToSecondIndex : int )
+	
+	event  OnMoveItems( item : SItemUniqueId, moveToIndex : int, itemSecond : SItemUniqueId, moveToSecondIndex : int )
 	{
 	}
 	
-	event /*flash*/ OnPlaySound( soundKey : string )
+	event  OnPlaySound( soundKey : string )
 	{
 		theSound.SoundEvent( soundKey );
 	}
 	
-	// Stub, remove?
-	event /*flash*/ OnSetCurrentPlayerGrid( value : string )
-	{
-		// TODO:
-	}
 	
-	// Stub, remove?
-	event /*flash*/ OnEquipItem( item : SItemUniqueId, slot : int, quantity : int )
+	event  OnSetCurrentPlayerGrid( value : string )
 	{
-		// TODO:
+		
 	}
 	
 	
-	/*
-		TOOLTIP
-	*/
+	event  OnEquipItem( item : SItemUniqueId, slot : int, quantity : int )
+	{
+		
+	}
+	
+	
+	
 
 	public function ShowItemTooltip(item : SItemUniqueId, compareItemType : int)
 	{
@@ -837,7 +846,7 @@ class CR4BlacksmithMenu extends CR4MenuBase
 		m_flashValueStorage.SetFlashObject("context.tooltip.data", tooltipData);
 	}
 	
-	event /*flash*/ OnShowItemPopup( item : SItemUniqueId )
+	event  OnShowItemPopup( item : SItemUniqueId )
 	{
 		var initData : ItemInfoPopupData;
 		
@@ -849,11 +858,11 @@ class CR4BlacksmithMenu extends CR4MenuBase
 	
 	function PlayOpenSoundEvent()
 	{
-		// Common Menu takes care of this for us
-		//OnPlaySoundEvent("gui_global_panel_open");	
+		
+		
 	}
 	
-	event /*flash*/ OnAppendGFxButton(actionId:int, gamepadNavCode:String, keyboardKeyCode:int, label:String, holdPrefix:bool)
+	event  OnAppendGFxButton(actionId:int, gamepadNavCode:String, keyboardKeyCode:int, label:String, holdPrefix:bool)
 	{
 		var newButtonDef:SKeyBinding;
 		
@@ -882,16 +891,14 @@ class CR4BlacksmithMenu extends CR4MenuBase
 }
 
 
-/*
-	Price confirmation popup
-*/
+
 
 class PriceConfirmationPopupData extends ConfirmationPopupData
 {
 	private var m_Price : float;
 	public var menuRef : CR4BlacksmithMenu; 
 
-	public /* override */ function GetGFxData(parentFlashValueStorage : CScriptedFlashValueStorage) : CScriptedFlashObject
+	public  function GetGFxData(parentFlashValueStorage : CScriptedFlashValueStorage) : CScriptedFlashObject
 	{
 		var l_flashObject : CScriptedFlashObject;
 		
@@ -931,7 +938,7 @@ class RepairAllPopupData extends ConfirmationPopupData
 	private var m_Price : float;
 	public var menuRef : CR4BlacksmithMenu; 
 
-	public /* override */ function GetGFxData(parentFlashValueStorage : CScriptedFlashValueStorage) : CScriptedFlashObject
+	public  function GetGFxData(parentFlashValueStorage : CScriptedFlashValueStorage) : CScriptedFlashObject
 	{
 		var l_flashObject : CScriptedFlashObject;
 		
@@ -965,7 +972,7 @@ class RepairAllPopupData extends ConfirmationPopupData
 	}
 }
 
-// DEBUG
+
 exec function repairmenu()
 {
 	theGame.RequestMenuWithBackground( 'BlacksmithMenu', 'CommonMenu' );

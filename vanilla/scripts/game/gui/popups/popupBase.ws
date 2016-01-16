@@ -1,9 +1,11 @@
 ﻿/***********************************************************************/
-/** Witcher Script file - Base popup class 
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
-/** Copyright © 2014 CDProjektRed
-/** Author : Yaroslav Getsevich
-/***********************************************************************/
+
+
+
 
 class CR4PopupBase extends CR4Popup
 {
@@ -19,7 +21,7 @@ class CR4PopupBase extends CR4Popup
 	
 	protected var m_guiManager : CR4GuiManager;	
 	
-	event /*flash*/ OnConfigUI() 
+	event  OnConfigUI() 
 	{	
 		m_guiManager = theGame.GetGuiManager();
 	
@@ -39,9 +41,12 @@ class CR4PopupBase extends CR4Popup
 		setArabicAligmentMode();
 		UpdateAcceptCancelSwaping();
 		//SetPlatformType(Platform_PS4);
+		
+		UpdateInputDeviceType();
+		//SetPlatformType(Platform_PS4);
 	}
 	
-	event /* C++ */ OnClosingPopup()
+	event  OnClosingPopup()
 	{
 		var initData:IScriptable;
 		initData = GetPopupInitData();
@@ -61,6 +66,17 @@ class CR4PopupBase extends CR4Popup
 			inGameConfigWrapper = (CInGameConfigWrapper)theGame.GetInGameConfigWrapper();
 			configValue = inGameConfigWrapper.GetVarValue('Controls', 'SwapAcceptCancel');
 			m_fxSwapAcceptCancel.InvokeSelfOneArg( FlashArgBool(configValue) );
+		}
+	}
+	
+	protected function UpdateInputDeviceType():void
+	{
+		var deviceType : EInputDeviceType;
+		
+		if (m_fxSetGamepadType)
+		{
+			deviceType = theInput.GetLastUsedGamepadType();
+			m_fxSetGamepadType.InvokeSelfOneArg( FlashArgUInt(deviceType) );
 		}
 	}
 	
@@ -92,6 +108,7 @@ class CR4PopupBase extends CR4Popup
 	{
 		var language : string;
 		var audioLanguage : string;
+		
 		theGame.GetGameLanguageName(audioLanguage,language);
 		if (m_fxSetArabicAligmentMode)
 		{
@@ -99,7 +116,7 @@ class CR4PopupBase extends CR4Popup
 		}
 	}
 	
-	event /*flash*/ OnPlaySoundEvent( soundName : string )
+	event  OnPlaySoundEvent( soundName : string )
 	{
 		theSound.SoundEvent( soundName );
 	}

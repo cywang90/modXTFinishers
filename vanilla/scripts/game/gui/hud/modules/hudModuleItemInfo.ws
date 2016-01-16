@@ -1,4 +1,9 @@
-﻿
+﻿/***********************************************************************/
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/***********************************************************************/
+
 enum HudItemInfoBinding
 {
 	HudItemInfoBinding_item1 = 0,
@@ -6,6 +11,16 @@ enum HudItemInfoBinding
 	HudItemInfoBinding_potion2 = 2,
 	HudItemInfoBinding_potion3 = 3,
 	HudItemInfoBinding_potion4 = 4
+};
+
+struct SHudItemInfo
+{
+	var m_icon		: string;
+	var m_category	: string;
+	var m_itemName	: string;
+	var m_ammoStr	: string;
+	var m_btn		: int;
+	var m_pcBtn		: int;
 };
 
 class CR4HudModuleItemInfo extends CR4HudModuleBase
@@ -35,11 +50,12 @@ class CR4HudModuleItemInfo extends CR4HudModuleBase
 	private var m_IsPlayerCiri					: bool;
 	default m_IsPlayerCiri = false;
 	
-	private var cached_item0, cached_item1, cached_item2 : SItemUniqueId;
-	
 	private var m_runword6Applied : bool;
 	
-	event /* flash */ OnConfigUI()
+	private var m_previousShowButtonHints		: int;						default m_previousShowButtonHints    = -1;
+	private var m_previousSetItemInfo			: array< SHudItemInfo >;
+	
+	event  OnConfigUI()
 	{
 		var flashModule : CScriptedFlashSprite;
 		var hud : CR4ScriptedHud;
@@ -56,6 +72,8 @@ class CR4HudModuleItemInfo extends CR4HudModuleBase
 		m_fxSetItemInfo 		= flashModule.GetMemberFlashFunction( "setItemInfo" );
 		m_fxSwitchAnimation		= flashModule.GetMemberFlashFunction( "animatePotionSwitch" );
 		m_fxShowButtonHints		= flashModule.GetMemberFlashFunction( "showButtonHints" );
+
+		m_previousSetItemInfo.Resize( EnumGetMax( 'HudItemInfoBinding' ) + 1 );
 		
 		ClearItems();
 		
@@ -77,6 +95,7 @@ class CR4HudModuleItemInfo extends CR4HudModuleBase
 		var alterItem1, alterItem2 : SItemUniqueId;
 		var switchAnimation : int;
 		var playerInv : CInventoryComponent;
+		var witcherPlayer : W3PlayerWitcher;
 		
 		var runword6Applied  : bool;
 		var forcedIconUpdate : bool;
@@ -85,6 +104,8 @@ class CR4HudModuleItemInfo extends CR4HudModuleBase
 		{
 			return true;
 		}
+		
+		witcherPlayer = GetWitcherPlayer();
 		
 		if( m_IsPlayerCiri != thePlayer.IsCiri() )
 		{
@@ -103,48 +124,46 @@ class CR4HudModuleItemInfo extends CR4HudModuleBase
 		}
 		else
 		{
-			item0 = GetWitcherPlayer().GetSelectedItemId();
+			item0 = witcherPlayer.GetSelectedItemId();
 			
 			if ( theInput.LastUsedGamepad() )
 			{
-				GetWitcherPlayer().GetItemEquippedOnSlot( GetWitcherPlayer().GetSelectedPotionSlotUpper(), item1 );
-				GetWitcherPlayer().GetItemEquippedOnSlot( GetWitcherPlayer().GetSelectedPotionSlotLower(), item2 );
+				witcherPlayer.GetItemEquippedOnSlot( witcherPlayer.GetSelectedPotionSlotUpper(), item1 );
+				witcherPlayer.GetItemEquippedOnSlot( witcherPlayer.GetSelectedPotionSlotLower(), item2 );
 				
-				if (GetWitcherPlayer().GetSelectedPotionSlotUpper() == EES_Potion1)
+				if ( witcherPlayer.GetSelectedPotionSlotUpper() == EES_Potion1)
 				{
-					GetWitcherPlayer().GetItemEquippedOnSlot( EES_Potion3, alterItem1 );
+					witcherPlayer.GetItemEquippedOnSlot( EES_Potion3, alterItem1 );
 				}
 				else
 				{
-					GetWitcherPlayer().GetItemEquippedOnSlot( EES_Potion1, alterItem1 );
+					witcherPlayer.GetItemEquippedOnSlot( EES_Potion1, alterItem1 );
 				}
 				
-				if (GetWitcherPlayer().GetSelectedPotionSlotLower() == EES_Potion2)
+				if ( witcherPlayer.GetSelectedPotionSlotLower() == EES_Potion2)
 				{
-					GetWitcherPlayer().GetItemEquippedOnSlot( EES_Potion4, alterItem2 );
+					witcherPlayer.GetItemEquippedOnSlot( EES_Potion4, alterItem2 );
 				}
 				else
 				{
-					GetWitcherPlayer().GetItemEquippedOnSlot( EES_Potion2, alterItem2 );
+					witcherPlayer.GetItemEquippedOnSlot( EES_Potion2, alterItem2 );
 				}
 				
 				playerInv = thePlayer.GetInventory();
 				
-				if (!playerInv.IsIdValid(item1) && playerInv.IsIdValid(alterItem1))
+				if ( !playerInv.IsIdValid(item1) && playerInv.IsIdValid( alterItem1 ) )
 				{
-					GetWitcherPlayer().FlipSelectedPotion(true);
+					witcherPlayer.FlipSelectedPotion( true );
 				}
-				else if (!playerInv.IsIdValid(item1) && playerInv.IsIdValid(alterItem1))
+				else if ( !playerInv.IsIdValid(item2) && playerInv.IsIdValid( alterItem2 ) )
 				{
-					GetWitcherPlayer().FlipSelectedPotion(false);
+					witcherPlayer.FlipSelectedPotion( false );
 				}
-				else
-				if (m_currentItemOnSlot1 == alterItem1)
+				else if ( m_currentItemOnSlot1 == alterItem1 )
 				{
 					switchAnimation = 1;
 				}
-				else
-				if (m_currentItemOnSlot2 == alterItem2)
+				else if ( m_currentItemOnSlot2 == alterItem2 )
 				{
 					switchAnimation = 2;
 				}
@@ -156,14 +175,13 @@ class CR4HudModuleItemInfo extends CR4HudModuleBase
 			else
 			{
 				switchAnimation = -1;
-				GetWitcherPlayer().GetItemEquippedOnSlot( EES_Potion1, item1 );
-				GetWitcherPlayer().GetItemEquippedOnSlot( EES_Potion2, item2 );	
-				GetWitcherPlayer().GetItemEquippedOnSlot( EES_Potion3, alterItem1 );	
-				GetWitcherPlayer().GetItemEquippedOnSlot( EES_Potion4, alterItem2 );
+				witcherPlayer.GetItemEquippedOnSlot( EES_Potion1, item1 );
+				witcherPlayer.GetItemEquippedOnSlot( EES_Potion2, item2 );	
+				witcherPlayer.GetItemEquippedOnSlot( EES_Potion3, alterItem1 );	
+				witcherPlayer.GetItemEquippedOnSlot( EES_Potion4, alterItem2 );
 			}
 			
-			
-			runword6Applied = GetWitcherPlayer().HasRunewordActive('Runeword 6 _Stats');
+			runword6Applied = witcherPlayer.HasRunewordActive('Runeword 6 _Stats');
 			
 			if (m_runword6Applied != runword6Applied)
 			{
@@ -175,19 +193,19 @@ class CR4HudModuleItemInfo extends CR4HudModuleBase
 				forcedIconUpdate = false;
 			}
 			
-			UpdateItem( item0, m_currentItemSelected, m_currentItemSelectedAmmo, HudItemInfoBinding_item1, 0, forcedIconUpdate );
-			UpdateItem( item1, m_currentItemOnSlot1,  m_currentItemOnSlot1Ammo, HudItemInfoBinding_potion1, 1, forcedIconUpdate );
-			UpdateItem( item2, m_currentItemOnSlot2,  m_currentItemOnSlot2Ammo, HudItemInfoBinding_potion2, 2, forcedIconUpdate );
-			UpdateItem( alterItem1, m_currentItemOnSlot3, m_currentItemOnSlot3Ammo, HudItemInfoBinding_potion3, 3, forcedIconUpdate );
-			UpdateItem( alterItem2, m_currentItemOnSlot4, m_currentItemOnSlot4Ammo, HudItemInfoBinding_potion4, 4, forcedIconUpdate );
+			UpdateItem( item0,      m_currentItemSelected, m_currentItemSelectedAmmo, HudItemInfoBinding_item1,   0, forcedIconUpdate );
+			UpdateItem( item1,      m_currentItemOnSlot1,  m_currentItemOnSlot1Ammo,  HudItemInfoBinding_potion1, 1, forcedIconUpdate );
+			UpdateItem( item2,      m_currentItemOnSlot2,  m_currentItemOnSlot2Ammo,  HudItemInfoBinding_potion2, 2, forcedIconUpdate );
+			UpdateItem( alterItem1, m_currentItemOnSlot3,  m_currentItemOnSlot3Ammo,  HudItemInfoBinding_potion3, 3, forcedIconUpdate );
+			UpdateItem( alterItem2, m_currentItemOnSlot4,  m_currentItemOnSlot4Ammo,  HudItemInfoBinding_potion4, 4, forcedIconUpdate );
 			
-			if (switchAnimation != -1)
+			if ( switchAnimation != -1 )
 			{
-				m_fxSwitchAnimation.InvokeSelfOneArg(FlashArgInt(switchAnimation));
+				m_fxSwitchAnimation.InvokeSelfOneArg( FlashArgInt( switchAnimation ) );
 			}
 		}
 		
-		//always display quickslots when the player is not at full health
+		
 		if ( thePlayer.IsCombatMusicEnabled() || thePlayer.GetHealthPercents() < 1.f )
 			SetAlwaysDisplayed( true );
 		else
@@ -196,22 +214,27 @@ class CR4HudModuleItemInfo extends CR4HudModuleBase
 	
 	function GetCiriItem() : SItemUniqueId
 	{
+		var dummy : SItemUniqueId;
 		var ret : array<SItemUniqueId>;
 		
 		ret = thePlayer.GetInventory().GetItemsByName('q403_ciri_meteor');
 		
-		return ret[0];
+		if ( ret.Size() )
+		{
+			return ret[0];
+		}
+		return dummy;
 	}
 	
 	public function ResetItems()
 	{
-		var invalidGUID 	: SItemUniqueId;
+		var dummy : SItemUniqueId;
 		
-		m_currentItemSelected = invalidGUID;
-		m_currentItemOnSlot1 = invalidGUID;
-		m_currentItemOnSlot2 = invalidGUID;
-		m_currentItemOnSlot3 = invalidGUID;
-		m_currentItemOnSlot4 = invalidGUID;
+		m_currentItemSelected = dummy;
+		m_currentItemOnSlot1  = dummy;
+		m_currentItemOnSlot2  = dummy;
+		m_currentItemOnSlot3  = dummy;
+		m_currentItemOnSlot4  = dummy;
 	}
 	
 	public function UpdateItem( out currItem : SItemUniqueId, out prevItem : SItemUniqueId, out prevItemAmmo : int, bindingID : HudItemInfoBinding, slotId : int, optional forceUpdate:bool )
@@ -306,6 +329,7 @@ class CR4HudModuleItemInfo extends CR4HudModuleBase
 	
 	public function UpdateItemData(item : SItemUniqueId, bindingID : HudItemInfoBinding)
 	{
+		var maxAmmo  : int;
 		var ammo : int;
 		var ammoStr : string;
 		var itemName : string;
@@ -315,6 +339,8 @@ class CR4HudModuleItemInfo extends CR4HudModuleBase
 		var btn:int;
 		var pcBtn : int;
 		var inventory : CInventoryComponent;
+		var currentShowButtonHints : bool;
+		var itemInfo : SHudItemInfo;
 		
 		if( !thePlayer.GetInventory().IsIdValid( item ) )
 		{
@@ -355,17 +381,26 @@ class CR4HudModuleItemInfo extends CR4HudModuleBase
 			}
 			else if( inventory.IsItemSingletonItem(item) )
 			{
+				maxAmmo = thePlayer.inv.SingletonItemGetMaxAmmo(item);
 				ammo = thePlayer.inv.SingletonItemGetAmmo(item);
-				if( ammo == 0 )
+				
+				if (maxAmmo > 0)
 				{
-					fontColor = "<font color=\"#FF0000\">";
+					if( ammo == 0 )
+					{
+						fontColor = "<font color=\"#FF0000\">";
+					}				
+					ammoStr = fontColor + ammo + "/" + maxAmmo + "</font>";
 				}
-				ammoStr = fontColor+ammo+"/"+thePlayer.inv.SingletonItemGetMaxAmmo(item)+"</font>";
+				else
+				{
+					ammoStr = "";
+				}
 			}
 			else
 			{
 				if( inventory.IsItemCrossbow(item) )
-				{				
+				{
 					GetWitcherPlayer().GetItemEquippedOnSlot(EES_Bolt, item);
 					ammo = inventory.GetItemQuantity( item );
 					
@@ -394,10 +429,31 @@ class CR4HudModuleItemInfo extends CR4HudModuleBase
 			pcBtn = GetPCKeyByBinding( bindingID );
 			btn = GetKeyByBinding( bindingID );
 			
-			m_fxShowButtonHints.InvokeSelfOneArg( FlashArgBool( theInput.GetContext() == 'RadialMenu' ) );
+			currentShowButtonHints = ( theInput.GetContext() == 'RadialMenu' );
+			if ( m_previousShowButtonHints != (int)currentShowButtonHints )
+			{
+				m_previousShowButtonHints = (int)currentShowButtonHints;
+				m_fxShowButtonHints.InvokeSelfOneArg( FlashArgBool( currentShowButtonHints ) );
+			}
 		}
 		
-		m_fxSetItemInfo.InvokeSelfSevenArgs(FlashArgInt(bindingID), FlashArgString(icon), FlashArgString(category), FlashArgString(itemName), FlashArgString(ammoStr), FlashArgInt(btn), FlashArgInt(pcBtn));
+		itemInfo = m_previousSetItemInfo[ bindingID ];
+		if ( itemInfo.m_icon     != icon ||
+			 itemInfo.m_category != category ||
+			 itemInfo.m_itemName != itemName ||
+			 itemInfo.m_ammoStr  != ammoStr ||
+			 itemInfo.m_btn      != btn ||
+			 itemInfo.m_pcBtn    != pcBtn )
+		{
+			m_previousSetItemInfo[ bindingID ].m_icon     = icon;
+			m_previousSetItemInfo[ bindingID ].m_category = category;
+			m_previousSetItemInfo[ bindingID ].m_itemName = itemName;
+			m_previousSetItemInfo[ bindingID ].m_ammoStr  = ammoStr;
+			m_previousSetItemInfo[ bindingID ].m_btn      = btn;
+			m_previousSetItemInfo[ bindingID ].m_pcBtn    = pcBtn;
+			
+			m_fxSetItemInfo.InvokeSelfSevenArgs(FlashArgInt(bindingID), FlashArgString(icon), FlashArgString(category), FlashArgString(itemName), FlashArgString(ammoStr), FlashArgInt(btn), FlashArgInt(pcBtn));
+		}
 	}
 	
 	private function GetKeyByBinding(bindingName : HudItemInfoBinding) : int
@@ -407,15 +463,15 @@ class CR4HudModuleItemInfo extends CR4HudModuleBase
 		{
 			case HudItemInfoBinding_item1 :
 				theInput.GetPadKeysForAction('ThrowItem',outKeys);
-				//theInput.GetCurrentKeysForAction('ThrowItem',outKeys);
+				
 				break;
 			case HudItemInfoBinding_potion1 :
 				theInput.GetPadKeysForAction('DrinkPotion1',outKeys);
-				//theInput.GetCurrentKeysForAction('DrinkPotion1',outKeys);
+				
 				break;
 			case HudItemInfoBinding_potion2 :
 				theInput.GetPadKeysForAction('DrinkPotion2',outKeys);
-				//theInput.GetCurrentKeysForAction('DrinkPotion2',outKeys);
+				
 				break;
 			default:
 				return -1;
@@ -445,22 +501,7 @@ class CR4HudModuleItemInfo extends CR4HudModuleBase
 				theInput.GetPCKeysForAction('DrinkPotion4',outKeys);
 				break;
 			
-			/*
-			case HudItemInfoBinding_potion1 :
-				if(GetWitcherPlayer().GetSelectedPotionSlotUpper() == EES_Potion1)
-					theInput.GetPCKeysForAction('DrinkPotion1',outKeys);
-				else
-					theInput.GetPCKeysForAction('DrinkPotion3',outKeys);
-				break;
-				
-			case HudItemInfoBinding_potion2 :
-				
-				if(GetWitcherPlayer().GetSelectedPotionSlotLower() == EES_Potion2)
-					theInput.GetPCKeysForAction('DrinkPotion2',outKeys);
-				else
-					theInput.GetPCKeysForAction('DrinkPotion4',outKeys);
-				break;
-			*/
+			
 				
 			default:
 				return -1;
@@ -475,10 +516,10 @@ class CR4HudModuleItemInfo extends CR4HudModuleBase
 		var tempY				: float;
 		
 		l_flashModule 	= GetModuleFlash();
-		//theGame.GetUIHorizontalFrameScale()
-		//theGame.GetUIVerticalFrameScale()
 		
-		// #J SUPER LAME
+		
+		
+		
 		tempX = anchorX + (300.0 * (1.0 - theGame.GetUIHorizontalFrameScale()));
 		tempY = anchorY - (200.0 * (1.0 - theGame.GetUIVerticalFrameScale())); 
 		
@@ -493,7 +534,7 @@ class CR4HudModuleItemInfo extends CR4HudModuleBase
 	
 	public function EnableElement( enable : bool ) : void
 	{
-		//m_fxEnableSFF.InvokeSelfOneArg( FlashArgBool( enable ) ); 
+		
 	}	
 	
 	public function ShowElementIgnoreState( show : bool, optional bImmediately : bool ) : void

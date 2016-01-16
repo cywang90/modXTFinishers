@@ -1,4 +1,9 @@
-﻿
+﻿/***********************************************************************/
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/***********************************************************************/
+
 abstract class CBTTaskShouldBeScaredOnOverlay extends IBehTreeTask
 {
 	protected var infantInHand : bool;
@@ -30,17 +35,7 @@ abstract class CBTTaskShouldBeScaredOnOverlay extends IBehTreeTask
 		return false;
 	}
 	
-	/*function HasItemInHand() : bool
-	{
-		var inv : CInventoryComponent;
-		
-		inv = GetNPC().GetInventory();
-		
-		if ( inv.IsIdValid(inv.GetItemFromSlot('r_weapon')) || inv.IsIdValid(inv.GetItemFromSlot('l_weapon')) )
-			return true;
-		
-		return false;
-	}*/
+	
 }
 
 class CBTTaskScaredWhileSitting extends CBTTaskShouldBeScaredOnOverlay
@@ -125,7 +120,7 @@ class CBTTaskScaredWhileSittingDef extends IBehTreeReactionTaskDefinition
 }
 
 
-//------------------------------------------------------------------------
+
 class CBTCondIsSittingInInterior extends CBTTaskShouldBeScaredOnOverlay
 {
 	function IsAvailable() : bool

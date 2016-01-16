@@ -1,4 +1,9 @@
-﻿class CBTTaskCombatStorage extends IBehTreeTask
+﻿/***********************************************************************/
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/***********************************************************************/
+class CBTTaskCombatStorage extends IBehTreeTask
 {
 	protected var storageHandler 	: CAIStorageHandler;
 	protected var combatDataStorage : CBaseAICombatStorage;
@@ -48,8 +53,8 @@ class CBTTaskCombatStorageDef extends IBehTreeTaskDefinition
 	editable var setIsAiming 	: bool;
 }
 
-/////////////////////////////////////////////////////////
-// CBehTreeTaskCombatStorageCleanup
+
+
 class CBehTreeTaskCombatStorageCleanup extends IBehTreeTask
 {
 	private var storageHandler : CAIStorageHandler;
@@ -57,7 +62,7 @@ class CBehTreeTaskCombatStorageCleanup extends IBehTreeTask
 	
 	function OnActivate() : EBTNodeStatus
 	{
-		//disables dynamicLookAt
+		
 		GetNPC().DisableLookAt();
 		return BTNS_Active;
 	}
@@ -95,7 +100,7 @@ class CBehTreeTaskCombatStorageCleanupDef extends IBehTreeTaskDefinition
 	default instanceClass = 'CBehTreeTaskCombatStorageCleanup';
 }
 
-/////////////////////////////////////////////////////////
+
 
 class CBTTaskPreCombatWarning extends IBehTreeTask
 {
@@ -154,7 +159,7 @@ class CBTTaskPreCombatWarningDef extends IBehTreeTaskDefinition
 
 
 
-/////////////////////////////////////////////////////////
+
 
 class CBTTaskGetPreCombatWarning extends IBehTreeTask
 {

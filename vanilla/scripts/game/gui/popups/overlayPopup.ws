@@ -1,9 +1,11 @@
 ﻿/***********************************************************************/
-/** Witcher Script file - Notifications, cursor, load/save indicator, etc
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
 /***********************************************************************/
-/** Copyright © 2014 CDProjektRed
-/** Author : Yaroslav Getsevich
-/***********************************************************************/
+
+
+
 
 class W3NotificationData extends CObject
 {
@@ -36,7 +38,7 @@ class CR4OverlayPopup extends CR4PopupBase
 	private var m_cursorRequested		   : int;
 	private var m_cursorHidden			   : bool;
 	
-	event /*flash*/ OnConfigUI()
+	event  OnConfigUI()
 	{
 		super.OnConfigUI();
 		
@@ -74,7 +76,7 @@ class CR4OverlayPopup extends CR4PopupBase
 	
 	event OnInputHandled(NavCode:string, KeyCode:int, ActionId:int)
 	{
-		// I don't know what it is for and why it's called, but I don't want to see log spammed with missing event messages
+		
 	}
 	
 	public function RequestMouseCursor(value:bool):void
@@ -96,6 +98,12 @@ class CR4OverlayPopup extends CR4PopupBase
 	{
 		m_cursorHidden = value;
 		UpdateCursorVisibility();
+	}
+	
+	public function UpdateGamepadType():void
+	{
+		UpdateInputDeviceType();
+		UpdateInputDevice();
 	}
 	
 	public function UpdateInputDevice():void
@@ -190,7 +198,7 @@ class CR4OverlayPopup extends CR4PopupBase
 		m_fxShowLoadingIndicator.InvokeSelf();
 	}
 	
-	// immediateHide - without hidding animation
+	
 	public function HideLoadingIndicator(optional immediateHide : bool):void
 	{
 		m_fxHideLoadingIndicator.InvokeSelfOneArg(FlashArgBool(immediateHide));
@@ -201,7 +209,7 @@ class CR4OverlayPopup extends CR4PopupBase
 		m_fxShowSavingIndicator.InvokeSelf();
 	}
 	
-	// immediateHide - without hidding animation
+	
 	public function HideSavingIndicator(optional immediateHide : bool):void
 	{
 		m_fxHideSavingIndicator.InvokeSelfOneArg(FlashArgBool(immediateHide));
