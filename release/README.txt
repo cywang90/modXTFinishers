@@ -8,9 +8,9 @@ Author: aznricepuff
 VERSION
 -------
 
-This README is for Release 10.1, which includes the following components:
+This README is for Release 11, which includes the following components:
 
-BASE		eXTensible Finishers 		v4.2.1
+BASE		eXTensible Finishers 		v4.3.0
 MODULE		finisher_default 			v2.2.1
 MODULE		dismember_default 			v2.2.1
 MODULE		slowdown_default 			v2.3.1
@@ -21,8 +21,8 @@ MODULE		slowdown_tailoredfinishers	v2.0.1
 REQUIREMENTS
 ------------
 
-- The Witcher 3: Wild Hunt Patch 1.11
-	- (Patch 1.10 users can choose to install using the compatibility files, which may not contain the latest features and bug fixes.)
+- The Witcher 3: Wild Hunt Patch 1.12
+	- (Patch 1.10/1.11 users can choose to install using the compatibility files, which may not contain the latest features and bug fixes.)
 
 ------------
 INSTALLATION
