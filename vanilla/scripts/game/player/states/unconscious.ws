@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-state Unconscious in CR4Player extends ExtendedMovable
+﻿state Unconscious in CR4Player extends ExtendedMovable
 {
 	private const var duration : float;
 	default duration = 4.0;
@@ -73,9 +68,9 @@ state Unconscious in CR4Player extends ExtendedMovable
 			theGame.FadeOutAsync( 1.5 );
 			Sleep( 1.5 );
 			HideWeapon();
-			
+			//TeleportPlayerToNewPosition();
 			TakeMoneyFromPlayer();
-			
+			//RemoveArmor();
 			TimeFlow();
 			RestoreSword();
 			theGame.FadeIn( 1.5 );
@@ -166,7 +161,7 @@ state Unconscious in CR4Player extends ExtendedMovable
 			case EDM_Easy:		amount *= 0.25; break;
 			case EDM_Medium:	amount *= 0.50; break;
 			case EDM_Hard:		amount *= 0.75; break;
-			case EDM_Hardcore:	 break;
+			case EDM_Hardcore:	/* amount	 */ break;
 			default : 			amount *= 0; 	break;
 		}
 		
@@ -311,7 +306,7 @@ state Unconscious in CR4Player extends ExtendedMovable
 	{
 		isUnconscious = flag;
 		if ( isUnconscious )
-			theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( thePlayer, 'PlayerUnconsciousAction', -1.f, 60.0f, -1, -1, true ); 
+			theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( thePlayer, 'PlayerUnconsciousAction', -1.f, 60.0f, -1, -1, true ); //reactionSystemSearch
 	}
 	
 	event OnCheckUnconscious()

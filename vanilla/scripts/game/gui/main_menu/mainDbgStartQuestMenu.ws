@@ -1,18 +1,16 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file - Main Menu Mouse Options
 /***********************************************************************/
-
-
-
+/** Copyright © 2014 CDProjektRed
+/** Author : Bartosz Bigaj
+/***********************************************************************/
 
 class CR4MainDbgStartQuestMenu extends CR4MenuBase
 {
 	private var m_optionsNames : array< name >;
 	private var m_gameResources : array< string >;
 	
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{
 		super.OnConfigUI();
 		MakeModal(true);
@@ -43,11 +41,11 @@ class CR4MainDbgStartQuestMenu extends CR4MenuBase
 		m_flashValueStorage.SetFlashArray( "mainmenu.quests.entries", l_DataFlashArray );
 	}
 
-	event  OnItemChosen( optionName : name )
+	event /*flash*/ OnItemChosen( optionName : name )
 	{
 	}
 	
-	event  OnStartQuest( optionName : string )
+	event /*flash*/ OnStartQuest( optionName : string )
 	{
 		if ( theGame.RequestNewGame( optionName ) )
 		{
@@ -55,7 +53,7 @@ class CR4MainDbgStartQuestMenu extends CR4MenuBase
 		}
 	}	
 	
-	event  OnBack()
+	event /*flash*/ OnBack()
 	{
 		CloseMenu();
 	}

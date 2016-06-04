@@ -1,13 +1,11 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file - quest hunting journal
+/***********************************************************************/
+/** Copyright © 2013 CDProjektRed
+/** Author : Bartosz Bigaj
 /***********************************************************************/
 
-
-
-
-class CR4JournalBaseMenu extends CR4Menu 
+class CR4JournalBaseMenu extends CR4Menu // NOT READY YET #B
 {	
 	private const var REWARDS_SIZE		:int; 			
 	default REWARDS_SIZE 			= 4;
@@ -17,7 +15,7 @@ class CR4JournalBaseMenu extends CR4Menu
 	var allQuests						: array<CJournalBase>;
 	var _currentQuestID					: int;
 	
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{	
 		var tempQuests	: array<CJournalBase>;
 		var tempQuest	: CJournalQuest;
@@ -50,21 +48,21 @@ class CR4JournalBaseMenu extends CR4Menu
 		_currentQuestID = _QuestID;
 		UpdateRewards();
 	}
-	
-	
+	//>--------------------------------------------------------------------------------
+	//---------------------------------------------------------------------------------	
 	event OnJournalTabSelected( ID : int )
 	{
 		LogChannel('JournalQuest',"OnJournalTabSelected "+ID);
 	}	
 
-	event  OnUpdateTooltipCompareData( item : SItemUniqueId, compareItemType : int, tooltipName : string )
+	event /*flash*/ OnUpdateTooltipCompareData( item : SItemUniqueId, compareItemType : int, tooltipName : string )
 	{
 		var itemName : string;
 		var compareItem : SItemUniqueId;
 		var tooltipInv : CInventoryComponent;
 		
 		itemName = GetWitcherPlayer().GetInventory().GetItemName(item);
-		if( tooltipName == "" ) 
+		if( tooltipName == "" ) // #B a little haxy
 		{
 			tooltipName= "tooltip";
 		}
@@ -72,8 +70,8 @@ class CR4JournalBaseMenu extends CR4Menu
 		
 		UpdateTooltipCompareData(item,compareItem,tooltipInv,tooltipName);
 	}	
-	
-	
+	//>--------------------------------------------------------------------------------
+	//---------------------------------------------------------------------------------
 	private function PopulateData()
 	{
 		var l_questsFlashArray				: CScriptedFlashArray;
@@ -97,7 +95,7 @@ class CR4JournalBaseMenu extends CR4Menu
 			
 			l_questTitle 			= GetLocStringById( l_quest.GetTitleStringId()  );			
 			l_questIsTracked 		= ( m_journalManager.GetTrackedQuest().guid == l_quest.guid );
-			l_questIsStory			= (l_quest.GetType() == 0);	
+			l_questIsStory			= (l_quest.GetType() == 0);	// means story
 			l_questIsNew			= m_journalManager.IsEntryUnread( l_quest );
 			
 			l_questArea				= " ";
@@ -115,12 +113,48 @@ class CR4JournalBaseMenu extends CR4Menu
 			l_questsFlashArray.PushBackFlashObject(l_questsDataFlashObject);
 		}
 		
-		
+		//m_flashValueStorage.SetFlashArray( KEY_QUEST_LIST, l_questsFlashArray );
 	}
 	
 	function UpdateRewards()
 	{
+		/*var l_flashObject			: CScriptedFlashObject;
+		var l_flashArray			: CScriptedFlashArray;
+		var rewardItems				: array<SItemUniqueId>;
+		var item 					: SItemUniqueId;
+		var i 						: int;
+		var _inv					: CInventoryComponent;
 		
+		
+		l_flashArray = m_flashValueStorage.CreateTempFlashArray();
+		_inv = GetWitcherPlayer().GetInventory();
+				
+		for(i = EES_Quickslot2; i < EES_Quickslot5 + 1; i += 1 ) // @TODO BIDON - find an load rewards here
+		{
+			GetWitcherPlayer().GetItemEquippedOnSlot(i, item);
+			rewardItems.PushBack(item);
+		}
+		
+		for( i = 0; i < REWARDS_SIZE; i += 1 )
+		{
+			item = rewardItems[i];
+			l_flashObject = m_flashValueStorage.CreateTempFlashObject("red.game.witcher3.menus.common.ItemDataStub");
+			l_flashObject.SetMemberFlashInt( "id", ItemToFlashUInt(item) );
+			l_flashObject.SetMemberFlashInt( "quantity", _inv.GetItemQuantity( item ) );
+			l_flashObject.SetMemberFlashString( "iconPath",  _inv.GetItemIconPathByUniqueID(item) );
+			l_flashObject.SetMemberFlashInt( "gridPosition", i );
+			l_flashObject.SetMemberFlashInt( "gridSize", 1 );
+			l_flashObject.SetMemberFlashInt( "slotType", 1 );	
+			l_flashObject.SetMemberFlashBool( "isNew", false );
+			l_flashObject.SetMemberFlashBool( "needRepair", false );
+			l_flashObject.SetMemberFlashInt( "actionType", IAT_None );
+			l_flashObject.SetMemberFlashInt( "price", 0 ); 		
+			l_flashObject.SetMemberFlashString( "userData", "");//GetTooltipText(item) );
+			l_flashObject.SetMemberFlashString( "category", "" );
+			l_flashArray.PushBackFlashObject(l_flashObject);
+		}
+				
+		m_flashValueStorage.SetFlashArray( "journal.objectives.reward.items", l_flashArray );*/
 	}
 	
 	function UpdateTooltipCompareData( item : SItemUniqueId, compareItem : SItemUniqueId, tooltipInv : CInventoryComponent , tooltipName : string )
@@ -201,7 +235,7 @@ class CR4JournalBaseMenu extends CR4Menu
 		itemWeight = GetWitcherPlayer().GetInventory().GetItemWeight( item );
 
 		m_flashValueStorage.SetFlashString(tooltipName+".weight", itemWeight, -1  );
-		m_flashValueStorage.SetFlashString(tooltipName+".description", GetLocStringByKeyExt("panel_inventory_tooltip_description_selected"), -1 ); 
+		m_flashValueStorage.SetFlashString(tooltipName+".description", GetLocStringByKeyExt("panel_inventory_tooltip_description_selected"), -1 ); // #B equiped/selected
 		m_flashValueStorage.SetFlashBool(tooltipName+".display", true, -1 );
 		if( theGame.IsPadConnected() )
 		{
@@ -231,7 +265,7 @@ class CR4JournalBaseMenu extends CR4Menu
 				l_questArea = GetLocStringByKeyExt("panel_journal_filters_area_prolgue_village");
 				break;
 
-			
+			// TODO
 			case AN_Wyzima:
 				break;
 			case AN_Island_of_Myst:
@@ -288,7 +322,7 @@ class CR4JournalBaseMenu extends CR4Menu
 		
 		l_quest = (CJournalQuest ) allQuests[currentQuestID];
 		description = GetDescription( l_quest );
-		title = GetLocStringByKeyExt("panel_journal_quest_description");
+		title = GetLocStringByKeyExt("panel_journal_quest_description");//GetLocStringById( l_quest.GetTitleStringId()  );		
 		
 		m_flashValueStorage.SetFlashString("journal.quest.description.title",title,-1);
 		m_flashValueStorage.SetFlashString("journal.quest.description.text",description,-1);	

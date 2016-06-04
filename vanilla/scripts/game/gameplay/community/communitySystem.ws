@@ -1,11 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file
 /***********************************************************************/
-
-
-
+/** Exports for Community System
+/** Copyright © 2012-2013
+/***********************************************************************/
 
 import class CCommunitySystem extends IGameSystem
 {
@@ -18,7 +16,7 @@ import class CCommunitySystem extends IGameSystem
 	}
 };
 
-
+// Debug stuff
 
 import function DumpCommunityAgentsCPP();
 exec function DumpCommunityAgents()

@@ -1,11 +1,10 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file - glossary tutorials
 /***********************************************************************/
-
-
-
+/** Copyright © 2014 CDProjektRed
+/** Author :		 Jason Slama
+/** Merge of glossary menus into one with tabs
+/***********************************************************************/
 
 
 class CR4GlossaryEncyclopediaMenu extends CR4ListBaseMenu
@@ -14,12 +13,12 @@ class CR4GlossaryEncyclopediaMenu extends CR4ListBaseMenu
 	private var m_fxUpdateEntryImage	: CScriptedFlashFunction;
 	private var m_fxSetMovieData 		: CScriptedFlashFunction;
 
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{	
 		var flashModule : CScriptedFlashSprite;
 		
 		super.OnConfigUI();
-		
+		//theInput.StoreContext( 'EMPTY_CONTEXT' );
 		
 		flashModule = GetMenuFlash();
 		
@@ -32,13 +31,13 @@ class CR4GlossaryEncyclopediaMenu extends CR4ListBaseMenu
 		PopulateData();
 	}
 	
-	event  OnClosingMenu()
+	event /* C++ */ OnClosingMenu()
 	{
-		
+		//theInput.RestoreContext( 'EMPTY_CONTEXT', true );
 		super.OnClosingMenu();
 	}
 	
-	event  OnCloseMenu()
+	event /*flash*/ OnCloseMenu()
 	{	
 		super.OnCloseMenu();
 		
@@ -55,8 +54,8 @@ class CR4GlossaryEncyclopediaMenu extends CR4ListBaseMenu
 		flashArray = m_flashValueStorage.CreateTempFlashArray();
 		
 		PopulateDataCharacters(flashArray);
-		
-		
+		//PopulateDataLocations(flashArray);
+		//PopulateDataEvents(flashArray);
 		
 		m_flashValueStorage.SetFlashArray( "glossary.encyclopedia.list", flashArray );
 		if( flashArray.GetLength() > 0 )
@@ -69,9 +68,9 @@ class CR4GlossaryEncyclopediaMenu extends CR4ListBaseMenu
 		}
 	}
 	
+	// ===================================================================================
 	
-	
-	
+	// -------------------------------------- Characters --------------------------------------
 	private function PopulateDataCharacters(flashArray:CScriptedFlashArray):void
 	{
 		var i:int;
@@ -130,7 +129,7 @@ class CR4GlossaryEncyclopediaMenu extends CR4ListBaseMenu
 		flashArray.PushBackFlashObject(l_DataFlashObject);
 	}
 	
-	function GetCharacterDescription( currentCharacter : CJournalCharacter ) : string 
+	function GetCharacterDescription( currentCharacter : CJournalCharacter ) : string // #B todo
 	{
 		var i : int;
 		var str : string;
@@ -148,7 +147,7 @@ class CR4GlossaryEncyclopediaMenu extends CR4ListBaseMenu
 			description = (CJournalCharacterDescription)(currentCharacter.GetChild(i));
 			if( m_journalManager.GetEntryStatus(description) == JS_Active )
 			{
-			
+			// Fun sorting ensues
 			currentJournalDescriptionText.stringKey = description.GetDescriptionStringId();
 			currentJournalDescriptionText.order = description.GetOrder();
 			currentJournalDescriptionText.groupOrder = 1;
@@ -198,14 +197,20 @@ class CR4GlossaryEncyclopediaMenu extends CR4ListBaseMenu
 		var entityFilename : string;
 		entityFilename = character.GetEntityTemplateFilename();
 		
-		
+		/*if (entityFilename != "")
+		{
+			ShowRenderToTexture(entityFilename);
+			return "";
+		}
+		else
+		{*/
 			return "img://textures/journal/characters/" + thePlayer.ProcessGlossaryImageOverride( character.GetImagePath(), character.GetUniqueScriptTag() );
-		
+		//}
 	}
 	
+	// ===================================================================================
 	
-	
-	
+	// ------------------------------------ Locations ------------------------------------
 	
 	private function PopulateDataLocations(flashArray:CScriptedFlashArray):void
 	{
@@ -311,9 +316,9 @@ class CR4GlossaryEncyclopediaMenu extends CR4ListBaseMenu
 		return "img://textures/journal/places/" + place.GetImage();
 	}
 	
+	// ===================================================================================
 	
-	
-	
+	// ------------------------------------ Events ------------------------------------
 	
 	private function PopulateDataEvents(flashArray:CScriptedFlashArray):void
 	{
@@ -371,7 +376,7 @@ class CR4GlossaryEncyclopediaMenu extends CR4ListBaseMenu
 				
 			l_DataFlashObject.SetMemberFlashUInt(  "tag", NameToFlashUInt(l_Tag) );
 			l_DataFlashObject.SetMemberFlashString(  "dropDownLabel", l_GroupTitle );
-			l_DataFlashObject.SetMemberFlashString(  "dropDownIcon", "icons/monsters/ICO_MonsterDefault.png" ); 
+			l_DataFlashObject.SetMemberFlashString(  "dropDownIcon", "icons/monsters/ICO_MonsterDefault.png" ); // #B to kill
 								
 			l_DataFlashObject.SetMemberFlashBool( "isNew", l_IsNew );
 			l_DataFlashObject.SetMemberFlashBool( "selected", (currentTag == l_Tag) );			
@@ -413,7 +418,7 @@ class CR4GlossaryEncyclopediaMenu extends CR4ListBaseMenu
 		return "img://textures/journal/events/" + jEvent.GetImagePath();
 	}
 	
-	
+	// ===================================================================================
 	
 	private function GetGlossaryLocalizedStringById( id : int ) : string
 	{
@@ -488,7 +493,7 @@ class CR4GlossaryEncyclopediaMenu extends CR4ListBaseMenu
 			imgLoc = getEventImage(eventEntry);
 		}
 		
-		
+		// #J If we have an image location, hide the render to texture.
 		if (imgLoc != "")
 		{
 			m_flashValueStorage.SetFlashBool( "render.to.texture.texture.visible", false);
@@ -499,8 +504,8 @@ class CR4GlossaryEncyclopediaMenu extends CR4ListBaseMenu
 	
 	function PlayOpenSoundEvent()
 	{
-		
-		
+		// Common Menu takes care of this for us
+		//OnPlaySoundEvent("gui_global_panel_open");	
 	}
 }
 

@@ -1,15 +1,12 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2012-2014
+/** Author : Rafal Jarczewski, Tomek Kozera
 /***********************************************************************/
 
-
-
-
+// Automatic vitality regeneration - set this up in entity template
 class W3Effect_AutoVitalityRegen extends W3AutoRegenEffect
 {
-	private var regenModeIsCombat : bool;		
+	private var regenModeIsCombat : bool;		//set to true if we're in combat regen mode
 	private var cachedPlayer : CR4Player;
 
 		default regenStat = CRS_Vitality;	
@@ -32,10 +29,10 @@ class W3Effect_AutoVitalityRegen extends W3AutoRegenEffect
 	
 	event OnUpdate(deltaTime : float)
 	{
-		
+		//if(isOnPlayer && regenModeIsCombat != cachedPlayer.IsInCombat())
 		if(isOnPlayer)
 		{
-			
+			//regenModeIsCombat = !regenModeIsCombat;
 			regenModeIsCombat = cachedPlayer.IsInCombat();
 			if(regenModeIsCombat)
 				attributeName = 'vitalityCombatRegen';

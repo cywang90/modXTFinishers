@@ -1,10 +1,5 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
+﻿// copyrajt orajt
+// W. Żerek
 
 class CBTTaskCheckAttitudes extends IBehTreeTask
 {
@@ -23,7 +18,6 @@ class CBTTaskCheckAttitudes extends IBehTreeTask
 	
 	private var actorToChangeAttitude : CActor;
 	
-	protected var storageHandler 		: CAIStorageHandler;
 	protected var reactionDataStorage 	: CAIStorageReactionData;
 	
 	function IsAvailable() : bool
@@ -42,7 +36,7 @@ class CBTTaskCheckAttitudes extends IBehTreeTask
 		if ( !sender || !sender.IsAlive() || !sendersTarget || !sendersTarget.IsAlive() )
 			return false;
 		
-		
+		// it won't happen for npcs but it can happen for player
 		if ( sender.GetAttitude( sendersTarget ) != AIA_Hostile )
 			return false;
 		
@@ -79,7 +73,7 @@ class CBTTaskCheckAttitudes extends IBehTreeTask
 			{
 				actorToChangeAttitude = sendersTarget;
 				if ( actorToChangeAttitude == thePlayer )
-					return true; 
+					return true; //for breakpoint
 				return true;
 			}
 			
@@ -89,7 +83,7 @@ class CBTTaskCheckAttitudes extends IBehTreeTask
 			{	
 				actorToChangeAttitude = sender;
 				if ( actorToChangeAttitude == thePlayer )
-					return true; 
+					return true; //for breakpoint
 				return true;
 			}
 		}
@@ -98,14 +92,14 @@ class CBTTaskCheckAttitudes extends IBehTreeTask
 		{
 			actorToChangeAttitude = sender;
 			if ( actorToChangeAttitude == thePlayer )
-					return true; 
+					return true; //for breakpoint
 			return true;
 		}
 		else if( attitudeToSender == AIA_Friendly && sendersTargetAttitudeGroup != ownerAttitudeGroup && senderAttitudeGroup == ownerAttitudeGroup)
 		{
 			actorToChangeAttitude = sendersTarget;
 			if ( actorToChangeAttitude == thePlayer )
-					return true; 
+					return true; //for breakpoint
 			return true;
 		}
 		
@@ -131,9 +125,7 @@ class CBTTaskCheckAttitudes extends IBehTreeTask
 	{
 		if ( !reactionDataStorage )
 		{
-			storageHandler = new CAIStorageHandler in this;
-			storageHandler.Initialize( 'ReactionData', '*CAIStorageReactionData', this );
-			reactionDataStorage = (CAIStorageReactionData)storageHandler.Get();
+			reactionDataStorage = (CAIStorageReactionData)RequestStorageItem( 'ReactionData', 'CAIStorageReactionData' );
 		}
 	}
 }

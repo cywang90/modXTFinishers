@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-class CR4HudModuleAreaInfo extends CR4HudModuleBase 
+﻿class CR4HudModuleAreaInfo extends CR4HudModuleBase // #B deprecated
 {	
 	private var m_fxSetTextSFF	: CScriptedFlashFunction;
 	private var dt	: float;
@@ -11,7 +6,7 @@ class CR4HudModuleAreaInfo extends CR4HudModuleBase
 	private var bShow	: bool;
 	
 
-	event  OnConfigUI()
+	event /* flash */ OnConfigUI()
 	{		
 		var flashModule : CScriptedFlashSprite;
 		m_anchorName = "mcAnchorAreaInfo";
@@ -33,7 +28,7 @@ class CR4HudModuleAreaInfo extends CR4HudModuleBase
 		bShow = true;
 	}
 
-	event  OnTick( timeDelta : float )
+	event /* C++ */ OnTick( timeDelta : float )
 	{
 		if( bShow )
 		{

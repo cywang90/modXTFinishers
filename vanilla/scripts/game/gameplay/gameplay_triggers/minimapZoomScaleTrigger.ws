@@ -1,13 +1,11 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file - Trigger for setting minimap scale
+/***********************************************************************/
+/** Copyright © 2013
+/** Author : Bartosz Bigaj
 /***********************************************************************/
 
-
-
-
-class W3MinimapZoomScaleTrigger extends CGameplayEntity 
+class W3MinimapZoomScaleTrigger extends CGameplayEntity //#B for now it can block only meditation
 {
 	private editable var zoomScale : float;
 	default zoomScale = 1.0f;
@@ -16,13 +14,30 @@ class W3MinimapZoomScaleTrigger extends CGameplayEntity
 
 	event OnAreaEnter( area : CTriggerAreaComponent, activator : CComponent )
 	{
+		// TO BE INCLUDED IN INTERIOR TRIGGER
+		/*
+		var hud : CR4ScriptedHud;
 		
-		
+		hud = (CR4ScriptedHud)theGame.GetHud();
+		if ( hud )
+		{
+			previousZoomScale = hud.GetMinimapZoom();
+			hud.SetMinimapZoom( zoomScale );
+		}
+		*/
 	}
 	
 	event OnAreaExit( area : CTriggerAreaComponent, activator : CComponent )
 	{
+		// TO BE INCLUDED IN INTERIOR TRIGGER
+		/*
+		var hud : CR4ScriptedHud;
 		
-		
+		hud = (CR4ScriptedHud)theGame.GetHud();
+		if ( hud )
+		{
+			hud.SetMinimapZoom( previousZoomScale );
+		}
+		*/
 	}
 }

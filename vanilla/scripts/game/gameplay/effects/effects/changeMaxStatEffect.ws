@@ -1,19 +1,18 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2012
+/** Author : Tomasz Kozera
 /***********************************************************************/
 
-
-
-
+/*
+	Effect that raises max value of one of the stats (e.g. vitality).
+*/
 abstract class W3ChangeMaxStatEffect extends CBaseGameplayEffect
 {
-	protected saved var stat : EBaseCharacterStats;			
+	protected saved var stat : EBaseCharacterStats;			//stat to be raised
 	
 		default isPositive = true;
 	
-	
+	// We need to get a proper attribute name based on the stat type, before calling super's constructor
 	public function Init(params : SEffectInitInfo)
 	{
 		attributeName = StatEnumToName(stat);

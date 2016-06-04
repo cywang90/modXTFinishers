@@ -1,20 +1,11 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
+﻿/////////////////////////////////////////////////////////////////////
+// CBTTaskRidingManagerHorseMount
 abstract class CBTTaskRidingManagerHorseMount extends CBTTaskRidingManagerVehicleMount
 {
-	
-	
 	default attachSlot = '';
 	
 	function GetVehicleComponent() : CVehicleComponent
 	{
-		var riderData       : CAIStorageRiderData;
-        riderData        	= (CAIStorageRiderData)aiStorageHandler.Get();
 		return (CVehicleComponent)riderData.sharedParams.GetHorse().GetComponentByClassName('CVehicleComponent');
 	}
 	
@@ -40,8 +31,8 @@ abstract class CBTTaskRidingManagerHorseMount extends CBTTaskRidingManagerVehicl
 
 		vehicleActor      	= (CActor)vehicleComponent.GetEntity();
 		player				= (CR4Player)riderActor;
-		
-		
+		// This one second offset will make sure the actor doesn't teleport on its attachement
+		// Do not apply when instant mount
 		if ( riderData.ridingManagerInstantMount == false )
 		{
 			riderActor.GetMovingAgentComponent().SetAdditionalOffsetWhenAttachingToEntity( vehicleActor, 1.0f );
@@ -49,14 +40,14 @@ abstract class CBTTaskRidingManagerHorseMount extends CBTTaskRidingManagerVehicl
 
 		if ( player )
 		{
-			riderActor.EnableCollisions( false ); 
+			riderActor.EnableCollisions( false ); // needed because rider disapears after finish mounting
 		}
 
 		riderActor.SetBehaviorVariable( 'rider', 1.0f );
 		vehicleActor.SignalGameplayEvent( 'HorseMountEnd' );
 		riderActor.SignalGameplayEvent( 'HorseMountEnd' );
 		
-		
+		// do that only if mounting succeeds
 		if ( riderActor.CanStealOtherActor( vehicleActor ) )
 		{
 			theGame.ConvertToStrayActor( vehicleActor );
@@ -84,7 +75,7 @@ abstract class CBTTaskRidingManagerHorseMount extends CBTTaskRidingManagerVehicl
 		var vehicleEntity 		: CEntity;
 		var vehicleComponent  	: W3HorseComponent;
 
-		
+		//super.OnListenedGameplayEvent( eventName );
 		
 		if( eventName == 'OnPoolRequest' || eventName == 'RequestInstantDismount' )
 		{
@@ -109,15 +100,15 @@ abstract class CBTTaskRidingManagerHorseMount extends CBTTaskRidingManagerVehicl
 	}   
 }
 
-
+// CBTTaskRidingManagerHorseMountDef
 abstract class CBTTaskRidingManagerHorseMountDef extends CBTTaskRidingManagerVehicleMountDef
 {
 }
 
 
 
-
-
+////////////////////////////////////////////////////////////////////
+// CBTTaskRidingManagerNPCHorseMount
 class CBTTaskRidingManagerNPCHorseMount extends CBTTaskRidingManagerHorseMount
 {    
 	latent function OnMountStarted( riderData : CAIStorageRiderData, behGraphName: name, vehicleComponent : CVehicleComponent ) 
@@ -125,7 +116,7 @@ class CBTTaskRidingManagerNPCHorseMount extends CBTTaskRidingManagerHorseMount
 		var riderActor             : CActor = GetActor();
 		super.OnMountStarted( riderData, behGraphName, vehicleComponent );
 
-		
+		// [ Step ] Flags
 		riderActor.EnableCharacterCollisions( false );
 		riderActor.EnablePhysicalMovement( false );
 		((CMovingPhysicalAgentComponent)riderActor.GetMovingAgentComponent()).SetAnimatedMovement( true );
@@ -134,17 +125,17 @@ class CBTTaskRidingManagerNPCHorseMount extends CBTTaskRidingManagerHorseMount
 	latent function OnMountFinishedSuccessfully( riderData : CAIStorageRiderData, behGraphName: name, vehicleComponent : CVehicleComponent )
 	{
 		var riderActor             : CActor = GetActor();
-		
+		// [ Step ] Flags
 		riderActor.GetRootAnimatedComponent().SetUseExtractedMotion( true);
-        riderActor.EnableCollisions( false ); 
+        riderActor.EnableCollisions( false ); // needed because rider disapears after finish mounting
 		
-        
+        // [ Step ] InitBehGraph
 		riderActor.GetMovingAgentComponent().ResetMoveRequests();
         riderActor.SetBehaviorVariable( 'direction', 0.0f );
         riderData.sharedParams.GetHorse().GetMovingAgentComponent().ResetMoveRequests();
         riderData.sharedParams.GetHorse().SetBehaviorVariable( 'direction', 0.0f );
         
-        
+        // [ Step ] setting voiceovers for npc on the horse
         riderActor.SoundSwitch( "vo_3d", 'vo_3d_long_on_horse', 'head' );
         
         super.OnMountFinishedSuccessfully( riderData, behGraphName, vehicleComponent );
@@ -163,43 +154,41 @@ class CBTTaskRidingManagerNPCHorseMount extends CBTTaskRidingManagerHorseMount
     latent function Main() : EBTNodeStatus
     {
         var npc             	: CNewNPC = GetNPC();
-        var riderData       	: CAIStorageRiderData;
         var stupidArray 		: array< name >;
         var vehicleEntity		: CEntity;
 		var vehicleComponent	: CVehicleComponent;
 
-        riderData        					= (CAIStorageRiderData)aiStorageHandler.Get();
         riderData.ridingManagerMountError   = false;
 
-        
-        
+        // [ HACK ] We are in a branch that asks for mounting so a horse will appear sooner or later
+        // instant mount without horse and so we must wait for the streaming to load it 
         while ( !riderData.sharedParams.GetHorse() )
         {
 			SleepOneFrame();
         }      
 
-		
+		// [Hack] Makeing sure the NPC is in exploration ( not in combat )
         stupidArray.PushBack( 'Exploration' );
 		GetActor().ActivateBehaviors( stupidArray ); 
 		
 		vehicleEntity      = riderData.sharedParams.GetHorse();
         vehicleComponent   = ((CNewNPC)vehicleEntity).GetHorseComponent();  
 
-        
+        // [ Step ] Play anim and wait for it to finish
 		MountActor( riderData, 'VehicleHorse', vehicleComponent );
 
         return BTNS_Completed;
     }
 }
 
-
+// CBTTaskRidingManagerNPCHorseMounttDef
 class CBTTaskRidingManagerNPCHorseMountDef extends CBTTaskRidingManagerHorseMountDef
 {
 	default instanceClass = 'CBTTaskRidingManagerNPCHorseMount';
 }
 
-
-
+////////////////////////////////////////////////////////////////////
+// CBTTaskRidingManagerPlayerHorseMount
 class CBTTaskRidingManagerPlayerHorseMount extends CBTTaskRidingManagerHorseMount
 {
 	latent function OnMountStarted( riderData : CAIStorageRiderData, behGraphName: name, vehicleComponent : CVehicleComponent ) 
@@ -235,33 +224,31 @@ class CBTTaskRidingManagerPlayerHorseMount extends CBTTaskRidingManagerHorseMoun
 
     latent function Main() : EBTNodeStatus
     {
-        var riderData       	: CAIStorageRiderData;
         var vehicleEntity		: CEntity;
 		var vehicleComponent	: CVehicleComponent;
     
-        riderData        					= (CAIStorageRiderData)aiStorageHandler.Get();
         riderData.ridingManagerMountError   = false; 
 
         vehicleEntity      = riderData.sharedParams.GetHorse();
         vehicleComponent   = ((CNewNPC)vehicleEntity).GetHorseComponent(); 
 
-        
+        // [ Step ] Play anim and wait for it to finish
 		MountActor( riderData, 'VehicleHorse', vehicleComponent );
         return BTNS_Completed;
     }
 }
 
-
+// CBTTaskRidingManagerPlayerHorseMountDef
 class CBTTaskRidingManagerPlayerHorseMountDef extends CBTTaskRidingManagerHorseMountDef
 {
 	default instanceClass = 'CBTTaskRidingManagerPlayerHorseMount';
 }
+////////////////////////////////////////////////////////////////////
+// DISMOUNT !
+////////////////////////////////////////////////////////////////////
 
-
-
-
-
-
+////////////////////////////////////////////////////////////////////
+// CBTTaskRidingManagerHorseDismount
 abstract class CBTTaskRidingManagerHorseDismount extends CBTTaskRidingManagerVehicleDismount
 {
 	function OnDismountStarted( riderData : CAIStorageRiderData, vehicleComponent : CVehicleComponent )
@@ -281,10 +268,10 @@ abstract class CBTTaskRidingManagerHorseDismount extends CBTTaskRidingManagerVeh
     {
 		var riderActor			: CActor 	= GetActor();
 		var vehicleActor 		: CActor;
-		
+		// Rider
 		riderActor.SignalGameplayEvent( 'HorseDismountEnd' );
 
-		
+		// Vehicle
 		vehicleActor      = (CActor)vehicleComponent.GetEntity();
 		if ( vehicleActor )
 		{
@@ -300,10 +287,8 @@ abstract class CBTTaskRidingManagerHorseDismount extends CBTTaskRidingManagerVeh
 
     latent function Main() : EBTNodeStatus
     {
-        var riderData       	: CAIStorageRiderData; 
 		var vehicleEntity		: CEntity;
 		var vehicleComponent	: CVehicleComponent;    
-		riderData           = (CAIStorageRiderData)aiStorageHandler.Get();
 		vehicleEntity      	= riderData.sharedParams.GetHorse();
         vehicleComponent   	= ((CNewNPC)vehicleEntity).GetHorseComponent(); 
 		DismountActor( riderData, vehicleComponent );		
@@ -313,13 +298,11 @@ abstract class CBTTaskRidingManagerHorseDismount extends CBTTaskRidingManagerVeh
     function OnListenedGameplayEvent( eventName : CName ) : bool
 	{
 		var riderActor			: CActor 	= GetActor();
-		var riderData       	: CAIStorageRiderData;
 		var vehicleEntity 		: CEntity;
 		var vehicleComponent  	: W3HorseComponent;
 		
 		if ( eventName == 'OnPoolRequest' || eventName == 'RequestInstantDismount' )
 		{
-			riderData           = (CAIStorageRiderData)aiStorageHandler.Get();
 			vehicleEntity      	= riderData.sharedParams.GetHorse();
 			if ( vehicleEntity )
 			{
@@ -329,8 +312,8 @@ abstract class CBTTaskRidingManagerHorseDismount extends CBTTaskRidingManagerVeh
 			{	
 				
 				DismountActor_NonLatent( riderData, vehicleComponent );
-				
-				
+				// Hack to force behaviour graph
+				// RiderActor needs to passed here because riderData.sharedParams.RiderActor is not garantied to be valid
 				riderData.OnInstantDismount( riderActor );
 			}
 		}
@@ -338,7 +321,7 @@ abstract class CBTTaskRidingManagerHorseDismount extends CBTTaskRidingManagerVeh
 	}
 }
 
-
+// CBTTaskRidingManagerHorseDismountDef
 abstract class CBTTaskRidingManagerHorseDismountDef extends CBTTaskRidingManagerVehicleDismountDef
 {
 	function InitializeEvents()
@@ -349,8 +332,8 @@ abstract class CBTTaskRidingManagerHorseDismountDef extends CBTTaskRidingManager
 	}
 }
 
-
-
+////////////////////////////////////////////////////////////////////
+// CBTTaskRidingManagerNPCHorseDismount
 class CBTTaskRidingManagerNPCHorseDismount extends CBTTaskRidingManagerHorseDismount
 {    
 	function OnDismountStarted( riderData : CAIStorageRiderData, vehicleComponent : CVehicleComponent )
@@ -360,6 +343,8 @@ class CBTTaskRidingManagerNPCHorseDismount extends CBTTaskRidingManagerHorseDism
 		riderActor.GetRootAnimatedComponent().SetUseExtractedMotion( true ); 
 		riderActor.EnablePhysicalMovement(false);
 		((CMovingPhysicalAgentComponent)riderActor.GetMovingAgentComponent()).SetAnimatedMovement( false );
+		
+		riderActor.AddBuffImmunity( EET_Frozen, 'HorseDismount', true );
     }   
 
     function OnDismountFinishedA( riderData : CAIStorageRiderData, vehicleComponent : CVehicleComponent )
@@ -388,7 +373,7 @@ class CBTTaskRidingManagerNPCHorseDismount extends CBTTaskRidingManagerHorseDism
 			riderActor.EnableCollisions( true );	
 		}
 		
-		
+		// [ Step ] setting voiceovers for npc on foot again
         riderActor.SoundSwitch( "vo_3d", 'vo_3d_long', 'head' );
 		
 		super.OnDismountFinishedA( riderData, vehicleComponent );
@@ -413,7 +398,7 @@ class CBTTaskRidingManagerNPCHorseDismount extends CBTTaskRidingManagerHorseDism
 		
 		if ( riderData.ridingManagerDismountType == DT_ragdoll || riderData.ridingManagerDismountType == DT_shakeOff )
 		{
-			GetNPC().SetIsFallingFromHorse( true ); 
+			GetNPC().SetIsFallingFromHorse( true ); // this needs to be called before applying ragdoll - adding HeavyKnockdown immunity inside so only ragdoll is applied
 			
 			params.effectType = EET_Ragdoll;
 			params.creator = (CGameplayEntity)vehicleComponent.GetEntity();
@@ -422,19 +407,21 @@ class CBTTaskRidingManagerNPCHorseDismount extends CBTTaskRidingManagerHorseDism
 			riderActor.AddEffectCustom(params);
 		}
 		
+		riderActor.RemoveBuffImmunity( EET_Frozen, 'HorseDismount' );
+		
 		super.OnDismountFinishedB_Latent( riderData, vehicleComponent );
     }
 }
 
-
+// CBTTaskRidingManagerNPCHorseDismountDef
 class CBTTaskRidingManagerNPCHorseDismountDef extends CBTTaskRidingManagerHorseDismountDef
 {
 	default instanceClass = 'CBTTaskRidingManagerNPCHorseDismount';
 }
 
 
-
-
+////////////////////////////////////////////////////////////////////
+// CBTTaskRidingManagerPlayerHorseDismount
 class CBTTaskRidingManagerPlayerHorseDismount extends CBTTaskRidingManagerHorseDismount
 {    
 	function OnDismountStarted( riderData : CAIStorageRiderData, vehicleComponent : CVehicleComponent )
@@ -461,7 +448,7 @@ class CBTTaskRidingManagerPlayerHorseDismount extends CBTTaskRidingManagerHorseD
 				collisionGroupsNames.PushBack('Terrain');
 				collisionGroupsNames.PushBack('Destructible');
 				
-				
+				// we need to make sure new point has Line of Sight with Previous Point
 				pointA = riderActor.GetWorldPosition();
 				pointB = newRiderPosition;
 				pointA.Z += 1.f;
@@ -480,8 +467,8 @@ class CBTTaskRidingManagerPlayerHorseDismount extends CBTTaskRidingManagerHorseD
     {
 		var riderActor			: CActor 	= GetActor();		
 
-		
-		
+		// freeing the horse for other NPC's to use
+		// unless this the main horse in this case we need to be able to wistle him
 		if ( vehicleComponent.GetEntity() != thePlayer.GetHorseWithInventory() )
 		{
 			((W3HorseComponent)vehicleComponent).Unpair(); 
@@ -491,7 +478,7 @@ class CBTTaskRidingManagerPlayerHorseDismount extends CBTTaskRidingManagerHorseD
     }	
 }
 
-
+// CBTTaskRidingManagerPlayerHorseDismountDef
 class CBTTaskRidingManagerPlayerHorseDismountDef extends CBTTaskRidingManagerHorseDismountDef
 {
 	default instanceClass = 'CBTTaskRidingManagerPlayerHorseDismount';

@@ -1,20 +1,17 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2013
+/** Author : Tomasz Kozera
 /***********************************************************************/
 
-
-
-
+// Applicator which adds spawns each time the buffs target hits someone (e.g. flaming sword)
 abstract class W3Effect_ApplicatorOnHit extends W3ApplicatorEffect
 {
-	private saved var fromSilverSword : bool;		
-	private saved var fromSteelSword : bool;		
-	private saved var fromSign : bool;				
-	private saved var fromAll : bool;				
+	private saved var fromSilverSword : bool;		//fired when hitting with silver sword
+	private saved var fromSteelSword : bool;		//fired when hitting with steel sword
+	private saved var fromSign : bool;				//fired when hitting with signs
+	private saved var fromAll : bool;				//fired always
 	
-	
+	// Applies spawns on victim if flags are met
 	public function ProcessOnHit(victim : CActor, silverSword : bool, steelSword : bool, sign : bool)
 	{
 		if( fromAll || (silverSword && fromSilverSword) || (steelSword && fromSteelSword) || (sign && fromSign))
@@ -41,7 +38,7 @@ abstract class W3Effect_ApplicatorOnHit extends W3ApplicatorEffect
 			EffectNameToType(tmpApplicatorName, type, tmpName);
 			if(effectType == type)
 			{
-				
+				//applicator params
 				if(dm.GetCustomNodeAttributeValueBool(main.subNodes[i], 'fromSilverSword', tmpBool))
 					fromSilverSword = tmpBool;
 				if(dm.GetCustomNodeAttributeValueBool(main.subNodes[i], 'fromSteelSword', tmpBool))

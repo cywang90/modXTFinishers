@@ -1,11 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file
 /***********************************************************************/
-
-
-
+/** Encounter System Creature Sets
+/** Copyright © 2013
+/***********************************************************************/
 
 import class ISpawnTreeBaseNode extends CObject
 {
@@ -22,15 +20,15 @@ import class ISpawnTreeDecorator extends ISpawnTreeBranch
 
 import class ISpawnTreeScriptedDecorator extends ISpawnTreeDecorator
 {
+	// function OnActivate( encounter : CEncounter ) : IScriptable;
 	
+	// function OnDeactivate( encounter : CEncounter );
 	
+	// latent function Main( userData : IScriptable );
 	
+	// function OnFullRespawn( encounter : CEncounter );
 	
-	
-	
-	
-	
-	
+	// function GetFriendlyName() : string;
 }
 class CRatClue_SpawnTreeDecorator extends ISpawnTreeScriptedDecorator
 {
@@ -40,7 +38,7 @@ class CRatClue_SpawnTreeDecorator extends ISpawnTreeScriptedDecorator
 	}
 	
 	function OnDeactivate( encounter : CEncounter )
-	{
+	{//
 		
 	}
 
@@ -48,14 +46,14 @@ class CRatClue_SpawnTreeDecorator extends ISpawnTreeScriptedDecorator
 	{
 		return "RatClueDecorator";
 	}
-	
+	// Returns to end the fun
 	latent function Main( userData : IScriptable )
 	{
 		Swarm_DisableLair( 'lair_rats', false );
-		
+		//Swarm_DisablePOIs( 'poi_rats', false );
 		Sleep( 5.0 );
-		
-		
+		//Swarm_DisablePOIs( 'poi_rats', true );
+		//RequestAllGroupsInstantDespawn( 'lair_rats', true );
 		return;
 	}
 }
@@ -69,7 +67,7 @@ class CCrowClue_SpawnTreeDecorator extends ISpawnTreeScriptedDecorator
 	}
 	
 	function OnDeactivate( encounter : CEncounter )
-	{
+	{//
 		
 	}
 
@@ -77,19 +75,19 @@ class CCrowClue_SpawnTreeDecorator extends ISpawnTreeScriptedDecorator
 	{
 		return "CrowClueDecorator";
 	}
-	
+	// Returns to end the fun
 	latent function Main( userData : IScriptable )
 	{
 		Swarm_DisableLair( 'lair_crows', false );
-		
-		
+		//FlyingSwarm_RequestCreateGroup( 'lair_crows', 50, 'FlyingSpawn1' );
+		//FlyingSwarm_RequestCreateGroup( 'lair_crows', 50, 'FlyingSpawn2' );
 		Sleep( 10.0 );
 		FlyingSwarm_RequestAllGroupsInstantDespawn( 'lair_crows' );
-		
-		
-		
-		
-		
+		//Swarm_DisablePOIs_Quest( 'poi_crows', false );
+		//Sleep( 6.0 );
+		//Swarm_DisablePOIs_Quest( 'poi_crows', true );
+		//Sleep( 6.0 );
+		//Swarm_DisableLair( 'lair_crows', true );
 		return;
 	}
 }

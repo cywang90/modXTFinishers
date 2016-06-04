@@ -1,10 +1,5 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-class CFocusModeCombatCamera_CurveDamp_MC 
+﻿
+class CFocusModeCombatCamera_CurveDamp_MC //extends CCombatCameraScriptedCurveSetMovementController
 {
 	editable var distanceCurveName : name;
 	editable var yawCurveName : name;
@@ -33,7 +28,12 @@ class CFocusModeCombatCamera_CurveDamp_MC
 	default autoTimeUpdate = true;
 	default timeScale = 1.f;
 	
-	
+	/*protected function ControllerActivate( data : SCombatCameraMoveCtrlActivationData )
+	{
+		CheckDampers();
+		
+		super.ControllerActivate( data );
+	}*/
 	
 	protected function ControllerUpdate( timeDelta : float ) 
 	{
@@ -103,7 +103,7 @@ class CFocusModeCombatCamera_CurveDamp_MC
 		}
 		else
 		{
-			
+			//super.ControllerSetFov( inFov );
 		}
 	}
 	
@@ -115,11 +115,11 @@ class CFocusModeCombatCamera_CurveDamp_MC
 		}
 		else
 		{
-			
+			//outFov = fov;
 		}
 	}
 	
-	
+	/////////////////////////////////////////////////////////////////////////////////////////
 	
 	public function ManualUpdate( timeDelta : float )
 	{
@@ -164,7 +164,7 @@ class CFocusModeCombatCamera_CurveDamp_MC
 		distanceDamper.ResetValue( distance );
 	}
 	
-	
+	/////////////////////////////////////////////////////////////////////////////////////////
 	
 	protected function InternalUpdate( timeDelta : float )
 	{
@@ -177,7 +177,7 @@ class CFocusModeCombatCamera_CurveDamp_MC
 		
 		UpdatePositionAndRotation();
 		
-		
+		//LogChannel( 'FMC_T',"p:"+distanceDamper.GetProgress() + ", dt:" + timeDelta );
 	}
 	
 	protected function CheckDampers()
@@ -186,7 +186,7 @@ class CFocusModeCombatCamera_CurveDamp_MC
 		
 		if ( !distanceDamper )
 		{
-			
+			//curveD = FindCurve( distanceCurveName );
 		
 			distanceDamper = new CurveDamper in this;
 			distanceDamper.SetCurve( curveD );
@@ -194,7 +194,7 @@ class CFocusModeCombatCamera_CurveDamp_MC
 		
 		if ( !yawDamper )
 		{
-			
+			//curveY = FindCurve( yawCurveName );
 			
 			yawDamper = new AngleCurveDamper in this;
 			yawDamper.SetCurve( curveY );
@@ -202,7 +202,7 @@ class CFocusModeCombatCamera_CurveDamp_MC
 		
 		if ( !pitchDamper )
 		{
-			
+			//curveP = FindCurve( pitchCurveName );
 			
 			pitchDamper = new AngleCurveDamper in this;
 			pitchDamper.SetCurve( curveP );
@@ -210,7 +210,7 @@ class CFocusModeCombatCamera_CurveDamp_MC
 		
 		if ( !fovDamper )
 		{
-			
+			//curveF = FindCurve( fovCurveName );
 			
 			fovDamper = new CurveDamper in this;
 			fovDamper.SetCurve( curveF );
@@ -234,18 +234,18 @@ class CFocusModeCombatCamera_CurveDamp_MC
 		newPitch = AngleNormalize180( newPitch );
 		newYaw = AngleNormalize180( newYaw );
 			
-		
+		// Rotation
 		rotation.Pitch = newPitch;
 		rotation.Yaw = newYaw;
 		rotation.Roll = 0.f;
 			
-		
+		// Position
 		position = RotForward( rotation ) * (-newDistance);
 	}
 }
 
-
-
+/////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
 
 class CFocusModeCombatCamera_CurveDamp_Rot_MC extends CFocusModeCombatCamera_CurveDamp_MC
 {
@@ -255,11 +255,22 @@ class CFocusModeCombatCamera_CurveDamp_Rot_MC extends CFocusModeCombatCamera_Cur
 	protected var rollDamper 	: AngleCurveDamper;
 	protected var posDamper 	: CurveDamper3d;
 	
+	/////////////////////////////////////////////////////////////////////////////////////////
 	
+	/*public function SyncToAnimation( s : SCombatCameraState )
+	{
+		super.UpdatePositionAndRotation();
+		
+		pitchDamper.SetValue( s.rotation.Pitch );
+		yawDamper.SetValue( s.rotation.Yaw );
+		rollDamper.Init( 0.f, s.rotation.Roll );
+		
+		posDamper.Init( position, s.position );
+		
+		UpdatePositionAndRotation();
+	}*/
 	
-	
-	
-	
+	/////////////////////////////////////////////////////////////////////////////////////////
 	
 	protected function InternalUpdate( timeDelta : float )
 	{
@@ -277,7 +288,7 @@ class CFocusModeCombatCamera_CurveDamp_Rot_MC extends CFocusModeCombatCamera_Cur
 		
 		if ( !rollDamper )
 		{
-			
+			//curve = FindCurve( rollCurveName );
 			
 			rollDamper = new AngleCurveDamper in this;
 			rollDamper.SetCurve( curve );
@@ -285,7 +296,7 @@ class CFocusModeCombatCamera_CurveDamp_Rot_MC extends CFocusModeCombatCamera_Cur
 		
 		if ( !posDamper )
 		{
-			
+			//curve = FindCurve( posCurveName );
 			
 			posDamper = new CurveDamper3d in this;
 			posDamper.SetCurve( curve );
@@ -304,20 +315,20 @@ class CFocusModeCombatCamera_CurveDamp_Rot_MC extends CFocusModeCombatCamera_Cur
 		newYaw = AngleNormalize180( newYaw );
 		newRoll = AngleNormalize180( newRoll );
 		
-		
+		// Rotation
 		rotation.Pitch = newPitch;
 		rotation.Yaw = newYaw;
 		rotation.Roll = newRoll;
 		
-		
+		// Position
 		position = posDamper.GetValue();
 	}
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-class CFocusModeCombatCamera_CurveDamp_PC 
+class CFocusModeCombatCamera_CurveDamp_PC //extends CCombatCameraScriptedCurveSetPivotController
 {	
 	editable var pivotCurveName : name;
 	editable var autoTimeUpdate : bool;
@@ -330,7 +341,14 @@ class CFocusModeCombatCamera_CurveDamp_PC
 	default autoTimeUpdate = true;
 	default timeScale = 1.f;
 	
-	
+	/*protected function ControllerActivate( data : SCombatCameraPivotCtrlActivationData )
+	{
+		CheckDampers();
+		
+		pivotDamper.Init( data.currentPosition, data.currentDesiredPosition );
+		
+		super.ControllerActivate( data );
+	}*/
 	
 	protected function ControllerUpdate( timeDelta : float ) 
 	{
@@ -357,7 +375,7 @@ class CFocusModeCombatCamera_CurveDamp_PC
 		position = pivotDamper.GetValue();
 	}
 	
-	
+	///////////////////////////////////////////////////////////////////////
 	
 	public function ManualUpdate( timeDelta : float )
 	{
@@ -379,7 +397,7 @@ class CFocusModeCombatCamera_CurveDamp_PC
 		timeScale = scale;
 	}
 	
-	
+	///////////////////////////////////////////////////////////////////////
 	
 	private final function InternalUpdate( timeDelta : float )
 	{
@@ -392,7 +410,7 @@ class CFocusModeCombatCamera_CurveDamp_PC
 		
 		if ( !pivotDamper )
 		{
-			
+			//curveP = FindCurve( pivotCurveName );
 		
 			pivotDamper = new CurveDamper3d in this;
 			pivotDamper.SetCurve( curveP );

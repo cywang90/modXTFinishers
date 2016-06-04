@@ -1,11 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file - glossary storybook
 /***********************************************************************/
-
-
-
+/** Copyright © 2014 CDProjektRed
+/** Author :		 Bartosz Bigaj
+/***********************************************************************/
 
 class CR4GlossaryStorybookMenu extends CR4ListBaseMenu
 {	
@@ -20,7 +18,7 @@ class CR4GlossaryStorybookMenu extends CR4ListBaseMenu
 	private var m_fxSetText			: CScriptedFlashFunction;
 	private var m_fxShowModules		: CScriptedFlashFunction;
 	
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{	
 		var i							: int;
 		var tempEntries					: array<CJournalBase>;
@@ -53,7 +51,7 @@ class CR4GlossaryStorybookMenu extends CR4ListBaseMenu
 		SelectCurrentModule();
 	}
 	
-	event  OnCloseMenu()
+	event /*flash*/ OnCloseMenu()
 	{
 		if( bMovieIsPlaying )
 		{
@@ -103,9 +101,9 @@ class CR4GlossaryStorybookMenu extends CR4ListBaseMenu
 		menuSprite.SetVisible(false);
 		
 		m_fxShowModules.InvokeSelfOneArg(FlashArgBool(false));
-		
-		
-		
+		//menuSprite = this.GetMenuFlash();
+		//menuSprite.SetAlpha(0); // #B because when set visible to false it couldn't be shown again
+		//menuSprite.SetVisible(false);
 
 		bMovieIsPlaying = true;
 	}
@@ -121,9 +119,9 @@ class CR4GlossaryStorybookMenu extends CR4ListBaseMenu
 	function ShowMenuAgain()
 	{
 		m_fxShowModules.InvokeSelfOneArg(FlashArgBool(true));
-		
-		
-		
+		//var menuSprite : CScriptedFlashSprite;
+		//menuSprite = this.GetMenuFlash();
+		//menuSprite.SetAlpha(100); // #B because when set visible to false it couldn't be shown again
 	}
 		
 	function SetMovieIsPlaying( value : bool )
@@ -168,7 +166,7 @@ class CR4GlossaryStorybookMenu extends CR4ListBaseMenu
 					continue;
 				}
 				l_Title = GetLocStringById( l_entry.GetTitleStringId() );	
-				l_IconPath = "";
+				l_IconPath = "";//l_entry.GetImagePath();
 				l_IsNew	= m_journalManager.IsEntryUnread( l_entry );
 				l_Tag = l_entry.GetUniqueScriptTag();
 				

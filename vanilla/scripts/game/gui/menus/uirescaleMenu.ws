@@ -1,14 +1,9 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-class CR4UIRescaleMenu extends CR4MenuBase
+﻿class CR4UIRescaleMenu extends CR4MenuBase
 {
 	var hud : CR4ScriptedHud;
 	private var m_fxSetCurrentUsername  : CScriptedFlashFunction;
 
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{
 		var inGameConfigWrapper : CInGameConfigWrapper;
 		var username 			: string;
@@ -43,23 +38,23 @@ class CR4UIRescaleMenu extends CR4MenuBase
 		theGame.GetGuiManager().OnEnteredConfigScreen();
 	}
 	
-	event  OnClosingMenu()
+	event /* C++ */ OnClosingMenu()
 	{
 		theGame.GetGuiManager().RequestMouseCursor(false);
 	}
 
-	event  OnCloseMenu()
+	event /*flash*/ OnCloseMenu()
 	{
 		CloseMenu();
 	}	
 	
-	event  OnConfirmRescale( frameScaleX : float, frameScaleY : float )
+	event /*flash*/ OnConfirmRescale( frameScaleX : float, frameScaleY : float )
 	{
 		UpdateRescale( frameScaleX, frameScaleY, 0, 0 );
 		CloseMenu();
 	}	
 
-	event  OnUpdateRescale( frameScaleX : float, frameScaleY : float )
+	event /*flash*/ OnUpdateRescale( frameScaleX : float, frameScaleY : float )
 	{
 		UpdateRescale( frameScaleX, frameScaleY, 0, 0 );
 	}
@@ -84,16 +79,16 @@ class CR4UIRescaleMenu extends CR4MenuBase
 			inGameConfigWrapper.SetVarValue('Hidden', 'uiVerticalFrameScale', FloatToString(frameScaleY));
 			needRescale = true;
 		}		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
+		//if( theGame.GetUIScale() != scale )
+		//{
+		//	theGame.SetUIScale(scale);
+		//	needRescale = true;
+		//}	
+		//if( theGame.GetUIOpacity() != opacity )
+		//{
+		//	theGame.SetUIOpacity(opacity);
+		//	needRescale = true;
+		//}
 		
 		if( needRescale && hud ) 
 		{

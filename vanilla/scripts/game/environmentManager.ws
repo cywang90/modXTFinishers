@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-enum EMoonState
+﻿enum EMoonState
 {
 	EMS_NotFull,
 	EMS_Full,
@@ -76,13 +71,13 @@ class W3EnvironmentManager
 {
 	saved var m_envId : int;
 	var lunation : int;
-	default lunation = 24; 
+	default lunation = 24; // in moon shader its 24 days 
 	var dayStart : int;
-	default dayStart = 3; 
+	default dayStart = 3; // this is related with environment change - info from environment artists
 	var nightStart : int;
 	default nightStart = 22;
 	var redMoonPeriod : int;
-	default redMoonPeriod = 3;
+	default redMoonPeriod = 3;// every third full moon is red moon
 	var hourToSwitchEnv : int;
 	default hourToSwitchEnv = 14;
 
@@ -109,21 +104,21 @@ class W3EnvironmentManager
 		{
 			if (IsDay() && hours >= hourToSwitchEnv && IsRedMoon(true))
 			{
-				
+				// m_envId = ActivateEnvironmentDefinition();
 			}
 		}
 		else
 		{
 			if (IsDay() && hours >= hourToSwitchEnv && !IsRedMoon(true))
 			{
-				
+				// DeactivateEnvironment( m_envId );
 				m_envId = -1;
 			}
 		}
 	}
 
 
-	
+	// Check if it's night
 	final function IsNight() : bool
 	{
 		var hours: int ;
@@ -136,7 +131,7 @@ class W3EnvironmentManager
 		return false;
 	}
 
-	
+	// Check if it's day
 	final function IsDay() : bool
 	{
 		return !IsNight();
@@ -181,7 +176,7 @@ class W3EnvironmentManager
 		nightNum = GameTimeDays(currentGameTime);
 		
 		hours = GameTimeHours(currentGameTime);
-		if (hours > 12) 
+		if (hours > 12) // before midnigt
 		{
 			nightNum += 1;
 		}

@@ -1,18 +1,13 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-struct SFocusInteractionIcon
+﻿struct SFocusInteractionIcon
 {
 	var m_id				: int;
 	var m_actionName		: name;
 	var m_entity			: CEntity;
 	var m_screenPos			: Vector;
 	var m_distanceSquared	: float;
-	var m_valid				: bool;		
-	var m_canBeSeen			: bool;		
-	var m_isSeen			: bool;		
+	var m_valid				: bool;		// is visible according to focus controller in current tick
+	var m_canBeSeen			: bool;		// atm its position is on screen
+	var m_isSeen			: bool;		// it's the closest to the player, is choosen from icons that have m_canBeSeen set to true
 };
 
 class CR4HudModuleInteractions extends CR4HudModuleBase
@@ -48,12 +43,12 @@ class CR4HudModuleInteractions extends CR4HudModuleBase
 	private var m_forceUpdate					: bool;
 	private var m_currentHoldInteraction		: name;
 	
-	private const var FOCUS_INTERACION_UPDATE_INTERVAL			: float;	default FOCUS_INTERACION_UPDATE_INTERVAL			= 0.3;	
-	private const var FOCUS_INTERACION_RADIUS					: float;	default FOCUS_INTERACION_RADIUS						= 10;	
-	private const var FOCUS_INTERACTION_OPAQUE_ICON_RADIUS		: float;	default FOCUS_INTERACTION_OPAQUE_ICON_RADIUS		= 100;	
-	private const var FOCUS_INTERACTION_TRANSPARENT_ICON_RADIUS	: float;	default FOCUS_INTERACTION_TRANSPARENT_ICON_RADIUS	= 500;	
+	private const var FOCUS_INTERACION_UPDATE_INTERVAL			: float;	default FOCUS_INTERACION_UPDATE_INTERVAL			= 0.3;	// (seconds)
+	private const var FOCUS_INTERACION_RADIUS					: float;	default FOCUS_INTERACION_RADIUS						= 10;	// (meters)
+	private const var FOCUS_INTERACTION_OPAQUE_ICON_RADIUS		: float;	default FOCUS_INTERACTION_OPAQUE_ICON_RADIUS		= 100;	// (pixels)
+	private const var FOCUS_INTERACTION_TRANSPARENT_ICON_RADIUS	: float;	default FOCUS_INTERACTION_TRANSPARENT_ICON_RADIUS	= 500;	// (pixels)
  
-	event  OnConfigUI()
+	event /* flash */ OnConfigUI()
 	{		
 		var flashModule : CScriptedFlashSprite;
 		
@@ -74,32 +69,32 @@ class CR4HudModuleInteractions extends CR4HudModuleBase
 		m_fxSetVisibilityExSFF						= flashModule.GetMemberFlashFunction( "SetVisibilityEx" );
 		m_fxSetPositionsSFF							= flashModule.GetMemberFlashFunction( "SetPositions" );
 
-		
-		
-		
-		
-		
+		//m_mcIcon									= flashModule.GetChildFlashSprite( "mcIcon" );
+		//m_mcIcon_mcPicture							= m_mcIcon.GetChildFlashSprite( "mcPicture" );
+		//m_mcInteraction								= flashModule.GetChildFlashSprite( "mcInteraction" );
+		//m_mcInteraction_mcButton					= m_mcInteraction.GetChildFlashSprite( "btnInteract" );
+		//m_mcInteraction_mcActionName				= m_mcInteraction.GetChildFlashSprite( "mcActionName" );
 
 		super.OnConfigUI();
 
 		m_forceUpdate = false;
 
-		ShowElement( false ); 
+		ShowElement( false ); // #B temporary
 		
 		theGame.GetGuiManager().checkHoldIndicator();
 	}
 	
-	event  OnRequestShowHold()
+	event /* falsh */ OnRequestShowHold()
 	{
 		bShowHoldIndicator = true;
 	}
 	
-	event  OnRequestHideHold()
+	event /* falsh */ OnRequestHideHold()
 	{
 		bShowHoldIndicator = false;
 	}
 	
-	event  OnHoldInteractionCallback()
+	event /* falsh */ OnHoldInteractionCallback()
 	{
 		switch (m_currentHoldInteraction)
 		{
@@ -107,7 +102,7 @@ class CR4HudModuleInteractions extends CR4HudModuleBase
 				thePlayer.OnDismountActionScriptCallback();
 				break;
 			case 'PlaceOfPower':
-				
+				// ignore
 				break;
 			default:
 				break;
@@ -128,12 +123,12 @@ class CR4HudModuleInteractions extends CR4HudModuleBase
 		
 		var showInteractionIcon : bool;
 
-		
-		
-		
+		//
+		// IF YOU ARE GOING TO CHANGE SOMETHING HERE, BE EXTREMELY CAREFUL OR TALK TO ME (PawelM)
+		//
 		displayEntity = thePlayer.GetDisplayTarget();
 		
-		
+		// MS: If player is not holding a steel or silver sword, the Finish interaction button should not appear
 		if ( _interactionEntityComponent && _interactionEntityComponent.GetActionName() == "Finish" )
 		{
 			if ( !thePlayer.IsHoldingDeadlySword() )
@@ -143,22 +138,22 @@ class CR4HudModuleInteractions extends CR4HudModuleBase
 			}
 		}
 		
-		
+		// general visibility
 		currentlyShow = bShowInteraction || ( displayEntity ) || bShowFocusInteractions || ( bShowHoldIndicator && !thePlayer.IsInNonGameplayCutscene() );
 		if ( m_previouslyShow != currentlyShow )
 		{
 			m_previouslyShow = currentlyShow;
-			ShowElement( currentlyShow, bShowHoldIndicator ); 
+			ShowElement( currentlyShow, bShowHoldIndicator ); //#B OnDemand
 		}
 
-		
+		// changed data for displayEntity
 		displayEntityDataRet = false;
 		if ( !_interactionEntity && displayEntity )
 		{
 			displayEntityDataRet = displayEntity.GetInteractionData( actionName, actionText );
 		}
 
-		
+		// specific visibility
 		if ( m_forceUpdate ||
 			 m_previousInteractionEntity    != _interactionEntity ||
 			 m_previousDisplayEntity        != displayEntity ||
@@ -181,7 +176,7 @@ class CR4HudModuleInteractions extends CR4HudModuleBase
 					key2 = (int)keys[ 0 ];
 				}
 				
-				
+				//MS: Hack to remove the E icon for finishers when using pc controls (bug 115769)
 				showInteractionIcon = true;
 				if ( actionName == 'Finish' && theInput.LastUsedPCInput() )
 				{
@@ -227,7 +222,7 @@ class CR4HudModuleInteractions extends CR4HudModuleBase
 		UpdateFocusInteractionIcons();
 	}
 	
-	event  OnInteractionsUpdated( component : CInteractionComponent )
+	event /*C++*/ OnInteractionsUpdated( component : CInteractionComponent )
 	{
 		var inputActionName : name;
 		var actionName : string;
@@ -272,7 +267,7 @@ class CR4HudModuleInteractions extends CR4HudModuleBase
 				door.UpdateIconOffset(0,0);
 			}
 			
-			
+			// #Y We can't get info about hold duration from ini file, so it is hardcoded here
 			delay = -1;
 			switch (inputActionName)
 			{
@@ -350,7 +345,7 @@ class CR4HudModuleInteractions extends CR4HudModuleBase
 			return false;
 		}
 		
-		
+		// get normalized [0,1] screen position
 		if ( GetInteractionScreenPosition( interactionEntity, interactionComponent, screenPos, true ) )
 		{
 			return ( screenPos.X >= 0.0f && screenPos.X <= 1.0f && screenPos.Y >= 0.0f && screenPos.Y <= 1.0f );					
@@ -359,7 +354,7 @@ class CR4HudModuleInteractions extends CR4HudModuleBase
 		return false;
 	}
 	
-	protected function UpdateScale( scale : float, flashModule : CScriptedFlashSprite ) : bool 
+	protected function UpdateScale( scale : float, flashModule : CScriptedFlashSprite ) : bool // #B should be scaling ?
 	{
 		return false;
 	}
@@ -404,12 +399,12 @@ class CR4HudModuleInteractions extends CR4HudModuleBase
 
 		icon.m_id				= id;
 		
-		
-		
-		
-		
-		
-		
+		//////////////////////////////
+		//
+		// not the most beautiful solution, but there's nothing better, doors have 'Open' action name and so have containers
+		// sombody would have to rename it to something like 'OpenDoor' in all templates to make it different
+		// additionaly we need to update icon offset in interaction component because it's needed for focus icon as well
+		//
 		door = (W3NewDoor)entity;
 		if ( door )
 		{
@@ -420,15 +415,15 @@ class CR4HudModuleInteractions extends CR4HudModuleBase
 		{
 			icon.m_actionName = actionName;
 		}
-		
-		
+		//
+		///////////////////////////////
 
 		icon.m_entity			= entity;
-		
-		
+		//icon.m_screenPos			// to be determined later
+		//icon.m_distanceSquared	// to be determined later
 		icon.m_valid			= true;
-		icon.m_canBeSeen		= false; 
-		icon.m_isSeen			= false; 
+		icon.m_canBeSeen		= false; // to be determined later
+		icon.m_isSeen			= false; // to be determined later
 
 		m_focusInteractionIcons.PushBack( icon );
 	}
@@ -451,7 +446,7 @@ class CR4HudModuleInteractions extends CR4HudModuleBase
 		{
 			if ( m_focusInteractionIcons[ i ].m_isSeen )
 			{
-				
+				//m_focusInteractionIcons[ i ].m_isSeen = false;
 				m_fxRemoveFocusInteractionIconSFF.InvokeSelfOneArg( FlashArgInt( m_focusInteractionIcons[ i ].m_id ) );
 			}
 		}
@@ -469,7 +464,7 @@ class CR4HudModuleInteractions extends CR4HudModuleBase
 		
 		bShowFocusInteractions = ( m_focusInteractionIcons.Size() > 0 );
 		
-		
+		// remove invalid icons
 		for ( i = 0; i < m_focusInteractionIcons.Size(); )
 		{
 			if ( m_focusInteractionIcons[ i ].m_valid )
@@ -478,20 +473,20 @@ class CR4HudModuleInteractions extends CR4HudModuleBase
 			}
 			else
 			{
-				
+				// if seen remove also in flash
 				if ( m_focusInteractionIcons[ i ].m_isSeen )
 				{
-					
+					//m_focusInteractionIcons[ i ].m_isSeen = false;
 					m_fxRemoveFocusInteractionIconSFF.InvokeSelfOneArg( FlashArgInt( m_focusInteractionIcons[ i ].m_id ) );
 				}
 				m_focusInteractionIcons.EraseFast( i );
 			}
 		}
 
-		
+		// update visibility of icons
 		if ( bShowInteraction )
 		{
-			
+			// there is some interaction, do not show any focus icon 
 
 			for ( i = 0; i < m_focusInteractionIcons.Size(); i += 1 )
 			{
@@ -504,41 +499,41 @@ class CR4HudModuleInteractions extends CR4HudModuleBase
 		}
 		else
 		{
-			
+			// there is no interaction, update distances and visibility
 			playerPos = thePlayer.GetWorldPosition();
 			for ( i = 0; i < m_focusInteractionIcons.Size(); i += 1 )
 			{
-				
-				
+				// destructible components are a special case because they are allowed to still be around even if the visual object is gone. the following
+				// check will make sure that if the object is destroyed, it will not show the focus interaction icon
 				l_destructibleCmp = (CDestructionSystemComponent)m_focusInteractionIcons[ i ].m_entity.GetComponentByClassName('CDestructionSystemComponent');
 				if( l_destructibleCmp && l_destructibleCmp.IsObstacleDisabled() )
 				{
 					m_focusInteractionIcons[ i ].m_canBeSeen = false;
 				}
-				
+				// get screen position of icon
 				else if ( GetBaseScreenPosition( screenPos, m_focusInteractionIcons[ i ].m_entity, (CInteractionComponent)m_focusInteractionIcons[ i ].m_entity.GetComponentByClassName('CInteractionComponent') ) )
 				{
 					if ( IsPointOnScreen( screenPos ) )
 					{
-						
+						// it's on the screen, get the rest of things
 						m_focusInteractionIcons[ i ].m_screenPos = screenPos;
 						m_focusInteractionIcons[ i ].m_canBeSeen = true;
 						m_focusInteractionIcons[ i ].m_distanceSquared = VecDistanceSquared( playerPos, m_focusInteractionIcons[ i ].m_entity.GetWorldPosition() );
 					}
 					else
 					{
-						
+						// out of screen
 						m_focusInteractionIcons[ i ].m_canBeSeen = false;
 					}
 				}
 				else	
 				{
-					
+					// can't get screen coords
 					m_focusInteractionIcons[ i ].m_canBeSeen = false;
 				}
 			}
 			
-			
+			// find icon where ( m_canBeSeen == true ) and distanceSquared is smallest
 			iconIndex = -1;
 			for ( i = 0; i < m_focusInteractionIcons.Size(); i += 1 )
 			{
@@ -558,7 +553,7 @@ class CR4HudModuleInteractions extends CR4HudModuleBase
 				}
 			}
 			
-			
+			// finally update all icons, remove old one, than add new one (only one exists)
 			for ( i = 0; i < m_focusInteractionIcons.Size(); i += 1 )
 			{
 				if ( iconIndex != i )
@@ -582,7 +577,7 @@ class CR4HudModuleInteractions extends CR4HudModuleBase
 																					FlashArgNumber(	m_focusInteractionIcons[ iconIndex ].m_screenPos.X ),
 																					FlashArgNumber(	m_focusInteractionIcons[ iconIndex ].m_screenPos.Y ) );
 																					
-					
+					//destructible objects tutorial
 					if(m_focusInteractionIcons[ iconIndex ].m_actionName == 'Aard' && ShouldProcessTutorial('TutorialDestructiblesDescription'))
 					{
 						components = m_focusInteractionIcons[ iconIndex ].m_entity.GetComponentsByClassName('CDestructionSystemComponent');

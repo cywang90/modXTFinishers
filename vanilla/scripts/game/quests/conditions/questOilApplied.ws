@@ -1,10 +1,7 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2013
+/** Author : Tomasz Kozera
 /***********************************************************************/
-
-
 
 class W3QuestCond_OilApplied_Listener extends IGlobalEventScriptedListener
 {
@@ -19,7 +16,7 @@ class W3QuestCond_OilApplied_Listener extends IGlobalEventScriptedListener
 	}
 }
 
-
+// Checks if given sword type is upgraded with given oil
 class W3QuestCond_OilApplied extends CQuestScriptedCondition
 {
 	editable var swordType 		: EQuestSword;

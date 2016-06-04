@@ -1,12 +1,7 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-class CR4HudModuleStatBars extends CR4HudModuleBase 
+﻿class CR4HudModuleStatBars extends CR4HudModuleBase //#B deprecated ???
 {	
-	
-	
+	// Function closures
+	// -------------------------------------------------------------------------------
 	private var 	m_fxSetVitalitySFF							: CScriptedFlashFunction;
 	private var 	m_fxSetStaminaSFF							: CScriptedFlashFunction;
 	private var 	m_fxSetToxicitySFF							: CScriptedFlashFunction;
@@ -18,8 +13,8 @@ class CR4HudModuleStatBars extends CR4HudModuleBase
 	private var 	m_fxHideStatbarsGlowSFF						: CScriptedFlashFunction;
 	private var 	m_fxShowStaminaIndicatorSFF					: CScriptedFlashFunction;
 
-	
-	
+	// Updates
+	// -------------------------------------------------------------------------------
 	
 	private var _vitality 		: float;
 	private var _stamina 		: float;
@@ -54,16 +49,16 @@ class CR4HudModuleStatBars extends CR4HudModuleBase
 		_currentLevel = 0;
 		
 		_heavyAttackIndicatorSpeed = 1300;
-		_heavyAttackGlowDurration = 700; 
+		_heavyAttackGlowDurration = 700; // 2550 - 1630
 		_heavyAttackSecondLevelIndicatorSpeed = 600;
-		_heavyAttackSecondLevelGlowDurration = 700; 
+		_heavyAttackSecondLevelGlowDurration = 700; //2860 - 900
 		_duringHeavyAttackAnimation = false;
 		_bHeavyAttackFirstLevel = true;
 	}
 
-	
-	
-	 event OnConfigUI()
+	//>-----------------------------------------------------------------------------------------------------------------	
+	//------------------------------------------------------------------------------------------------------------------
+	/* flash */ event OnConfigUI()
 	{		
 		var flashModule : CScriptedFlashSprite;
 		
@@ -86,11 +81,11 @@ class CR4HudModuleStatBars extends CR4HudModuleBase
 
 		ShowElement( true );
 	}
-	
-	
-	
-	
-	
+	//>-----------------------------------------------------------------------------------------------------------------
+	// Events can be called from the engine
+	//------------------------------------------------------------------------------------------------------------------
+	//>-----------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------
 	
 	event OnTick( timeDelta : float )
 	{
@@ -110,7 +105,11 @@ class CR4HudModuleStatBars extends CR4HudModuleBase
 					m_fxStartHeavyAttackIndicatorAnimationSFF.InvokeSelfOneArg(FlashArgInt(_heavyAttackSecondLevelIndicatorSpeed));
 				}
 			}
-			
+			/*else
+			{
+				m_fxStopHeavyAttackIndicatorAnimationSFF.InvokeSelf();
+				m_fxHideStatbarsGlowSFF.InvokeSelf();
+			}*/
 		}
 		if( GetWitcherPlayer().GetShowToLowStaminaIndication() > 0.0f )
 		{
@@ -186,7 +185,7 @@ class CR4HudModuleStatBars extends CR4HudModuleBase
 		}
 	}
 
-	
+	// #B
 	private function UpdateExperience()
 	{
 		var levelManager : W3LevelManager;
@@ -220,12 +219,12 @@ class CR4HudModuleStatBars extends CR4HudModuleBase
 		
 		if ( levelManager )
 		{
-			
-			
-			
-			
+			//curShowLevelUp = 
+			//	levelManager.GetAvailSpendablePoints( ESkillPoint ) 	> 0	||
+			//	levelManager.GetAvailSpendablePoints( EMutationPoint )	> 0	||
+			//	levelManager.GetAvailSpendablePoints( EKnowledgePoint )	> 0;
 			curLevel = levelManager.GetLevel();
-			
+			//LogChannel('LVLUP'," _showLevelUp "+curLevel+" _currentLevel "+_currentLevel);
 			if( _currentLevel < curLevel )
 			{
 				curShowLevelUp = true;
@@ -239,7 +238,7 @@ class CR4HudModuleStatBars extends CR4HudModuleBase
 		if ( _showLevelUp != curShowLevelUp )
 		{
 			_showLevelUp = curShowLevelUp;
-			
+			//LogChannel('LVLUP'," _showLevelUp "+_showLevelUp);
 			m_fxSetLevelUpVisibleSFF.InvokeSelfOneArg( FlashArgBool( _showLevelUp ) );
 		}
 	}
@@ -247,7 +246,15 @@ class CR4HudModuleStatBars extends CR4HudModuleBase
 	public function OnHeavyAttackAnimationFinished()
 	{
 		LogChannel('HEAVYATTACKDEBUG',"OnHeavyAttackAnimationFinished");
+		/*if( GetWitcherPlayer().GetDisplayHeavyAttackFirstLevelTimer() )
+		{
+			_gfxShowStatbarsGlow.InvokeSelf(FlashArgInt(_heavyAttackGlowDurration));
+		}
+		else
+		{
+			_gfxShowStatbarsGlow.InvokeSelf(FlashArgInt(_heavyAttackSecondLevelGlowDurration));
 		
+		}*/
 		m_fxShowStatbarsGlowSFF.InvokeSelfOneArg(FlashArgInt(_heavyAttackGlowDurration));
 		_duringHeavyAttackAnimation = false;
 		GetWitcherPlayer().SetDisplayHeavyAttackIndicator( false );

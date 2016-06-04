@@ -1,13 +1,33 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file - Gwint
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author : Robert 
 /***********************************************************************/
 
+/*
 
+//////////////////////////////////////
+// C++
+//////////////////////////////////////
 
+enum EGwintDifficultyMode
+{
+	EGDM_Easy = 0,
+	EGDM_Medium,
+	EGDM_Hard,
+};
 
+enum EGwintAggressionMode
+{
+	EGAM_Defensive = 0,		//never chooses heavy tactic if defensive tactic possible to reach target. Strategy value of cards is most important for those tactics
+	EGAM_Normal,			//rarely makes heavy push. Prefers steady play	. Strategy value of cards is important for those tactics. Card power sometimes takes core priority
+	EGAM_Aggressive,		//likes to push hard. likes tactics all or nothing	. Strategy value of cards is sometimes taken into consideration. Card power is very important
+	EGAM_VeryAggressive,	//more aggressive version of above
+	EGAM_AllIHave,			//rarely falls back until player is in play. Easly bleeds out his choices. Strategy value of cards is rarely important for those tactics. Card power takes core priority
+};
 
+*/
 
 
 
@@ -22,12 +42,12 @@ import class CGwintMenuInitData extends CObject
 class CR4GwintMenu extends CR4MenuBase
 {
 
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{	
 		
 	}
 
-	event  OnClosingMenu()
+	event /* C++ */ OnClosingMenu()
 	{
 	}
 
@@ -36,32 +56,32 @@ class CR4GwintMenu extends CR4MenuBase
 		CloseMenu();
 	}
 
-	event  OnTraceMe(text : string)	
+	event /*flash*/ OnTraceMe(text : string)	
 	{	
 	}
 	
-	event  OnPlaySound(text : string)	
+	event /*flash*/ OnPlaySound(text : string)	
 	{		
 	}
 	
-	event  OnBattleResults(playerLivesLeft : int, enemyLivesLeft : int )	
+	event /*flash*/ OnBattleResults(playerLivesLeft : int, enemyLivesLeft : int )	
 	{	
 		CloseMenu();
 	}	
 	
-	event  OnGetPlayerDeck(index : int)	
+	event /*flash*/ OnGetPlayerDeck(index : int)	
 	{	
 	}
 	
-	event  OnSetPlayerDeck( factionIndex : int, cardIndex : int)	
+	event /*flash*/ OnSetPlayerDeck( factionIndex : int, cardIndex : int)	
 	{	
 	}
 	
-	event  OnNewKingChosen( factionIndex : int, kingIndex : int)	
+	event /*flash*/ OnNewKingChosen( factionIndex : int, kingIndex : int)	
 	{		
 	}
 
-	event  OnCustomPowersReques(index : int)	
+	event /*flash*/ OnCustomPowersReques(index : int)	
 	{	
 		
 	}

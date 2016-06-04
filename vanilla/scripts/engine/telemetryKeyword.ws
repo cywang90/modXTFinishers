@@ -6,7 +6,7 @@ Copyright © CD Projekt RED 2015
 
 import class CR4TelemetryScriptProxy extends CObject
 {
-	import final function Log( eventType : ER4TelemetryEvents );
+	import final function LogWithName( eventType : ER4TelemetryEvents );
 	import final function LogWithLabel( eventType : ER4TelemetryEvents, label : String );
 	import final function LogWithValue( eventType : ER4TelemetryEvents, value : int );
 	import final function LogWithValueStr( eventType : ER4TelemetryEvents, value : String );

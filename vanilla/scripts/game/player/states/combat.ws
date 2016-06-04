@@ -1,11 +1,8 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file
 /***********************************************************************/
-
-
-
+/** Copyright © 2012
+/***********************************************************************/
 
 enum ECustomCameraType
 {
@@ -35,7 +32,7 @@ struct SCustomOrientationParams
 	var customOrientationTarget	: EOrientationTarget;
 }
 
-state Combat in CR4Player extends ExtendedMovable 
+state Combat in CR4Player extends ExtendedMovable // ABSTRACT
 {
 	protected var comboDefinition	: CComboDefinition;
 	public var comboPlayer			: CComboPlayer;
@@ -76,14 +73,14 @@ state Combat in CR4Player extends ExtendedMovable
 	protected var startupBuff 	: CBaseGameplayEffect;
 	protected var isInCriticalState	: bool;
 	
-	
+	// combat stats
 	private var realCombat : bool;
 	private var lastVitality : float;
 	
 	private var	timeToCheckCombatEndCur	: float;
 	private	var	timeToCheckCombatEndMax	: float;		default	timeToCheckCombatEndMax	= 0.5f;
 	
-	
+	// Sprinting
 	private var	timeToExitCombatFromSprinting	: float;	default	timeToExitCombatFromSprinting	= 2.0f;
 	
 	public function SetupState( initialAction : EInitialAction, optional initialBuff : CBaseGameplayEffect )
@@ -92,9 +89,11 @@ state Combat in CR4Player extends ExtendedMovable
 		startupBuff	= initialBuff;
 	}	
 	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Enter/Leave events	
+	/**
 	
-	
-	
+	*/
 	event OnEnterState( prevStateName : name )
 	{
 		var i : int;
@@ -107,15 +106,15 @@ state Combat in CR4Player extends ExtendedMovable
 		
 		super.OnEnterState(prevStateName);
 			
-		
+		//LogChannel( 'States', "Changed state to: " + this + " from " + prevStateName);
 		
 		parent.AddTimer( 'CombatComboUpdate', 0, true, false,  TICK_PrePhysics );
 		parent.AddTimer( 'CombatEndCheck', 0.1f, true );
 		
-		
-		
-		
-		
+		//if ( prevStateName == 'CombatFocusMode_SelectSpot' && comboPlayer && comboPlayer.IsSliderPaused() )
+		//{
+		//	comboPlayer.UnpauseSlider();
+		//}		
 		
 		parent.SetBehaviorMimicVariable( 'gameplayMimicsMode', (float)(int)PGMM_Combat );
 		
@@ -131,26 +130,28 @@ state Combat in CR4Player extends ExtendedMovable
 		realCombat = thePlayer.IsInCombat();
 		lastVitality = thePlayer.GetStat(BCS_Vitality);
 	}
+	/**
 	
+	*/
 	event OnLeaveState( nextStateName : name )
 	{ 
 		var skillAbilityName : name;
 	
-		
+		// Pass to base class
 		super.OnLeaveState(nextStateName);
 		
 		parent.RemoveTimer( 'CombatComboUpdate' );
 		parent.RemoveTimer( 'CombatEndCheck' );
+		//parent.ProcessNavmeshSnap();
 		
-		
-		
-		
-		
+		//if ( !( nextStateName == 'CombatFists' || nextStateName == 'CombatSteel' || nextStateName == 'CombatSilver' ) )
+		//	parent.SetMoveTarget( NULL );
+		//parent.RemoveTimer( 'FindMoveTargetTimer' );
 		
 		if ( nextStateName != 'AimThrow' )
 			OnCombatActionEndComplete();
 		
-
+//		((W3PlayerWitcher)parent).CastSignAbort();
 		
 		if ( nextStateName != 'CombatFocusMode_SelectSpot' )
 		{
@@ -159,16 +160,16 @@ state Combat in CR4Player extends ExtendedMovable
 				comboPlayer.Deinit();
 			}
 		}
-		
-		
-		
-		
+		//else if ( comboPlayer )
+		//{
+		//	comboPlayer.PauseSlider();
+		//}
 		
 		parent.SetInteractionPriority( IP_Prio_0 );
 		
 		CleanUpComboStuff();
 		
-		
+		//skill cleanup
 		skillAbilityName = SkillEnumToName(S_Alchemy_s17);
 		while(thePlayer.HasAbility(skillAbilityName))
 			thePlayer.RemoveAbility(skillAbilityName);
@@ -179,38 +180,40 @@ state Combat in CR4Player extends ExtendedMovable
 		return true;
 	}
 	
+	/**
 	
+	*/
 	entry function CombatInit()
 	{
 		var camera : CCustomCamera = theGame.GetGameCamera();
 		
 		camera.ChangePivotPositionController( 'Default' );
 		
-		
+		//theSound.SoundState( "game_state", "combat" );
 		
 		parent.AddTimer( 'CombatLoop', 0, true );
-		
+		//parent.AddTimer( 'FindMoveTargetTimer', 0.2, true );		
 	}
 		
 	timer function CombatLoop( timeDelta : float , id : int)
 	{
 		ProcessPlayerOrientation();
 		ProcessPlayerCombatStance();
-		
+		//parent.ProcessNavmeshSnap();
 		parent.GetVisualDebug().AddArrow( 'heading3', parent.GetWorldPosition(), parent.GetWorldPosition() + VecFromHeading( parent.cachedRawPlayerHeading ), 1.f, 0.2f, 0.2f, true, Color(255,0,255), true );
 		
-		
+		// In air update
 		UpdateIsInAir();
 		
 		StatsUpdate();
-		
-		
-		
-		
-		
-		
-		
-		
+		// End combat from sprinting special check
+		//if( parent.GetSprintingTime() > timeToExitCombatFromSprinting )
+		//{
+		//	if( !parent.GoToCombatIfNeeded() )
+		//	{
+		//		parent.GoToExplorationIfNeeded(); 
+		//	}
+		//}
 	}
 	
 	private function UpdateIsInAir()
@@ -219,7 +222,7 @@ state Combat in CR4Player extends ExtendedMovable
 		var isInGround	: bool;
 		
 		
-		
+		// Don't update on ragdoll
 		if( thePlayer.IsRagdolled() )
 		{
 			return;
@@ -243,8 +246,8 @@ state Combat in CR4Player extends ExtendedMovable
 	
 	timer function CombatEndCheck( timeDelta : float , id : int)
 	{
-		
-		if( !parent.IsInCombat() )
+		// We have a special case for sprinting
+		if( !parent.IsInCombat() )//&& !parent.GetIsSprinting() )
 		{
 			if( timeToCheckCombatEndCur < 0.0f )
 			{
@@ -269,7 +272,7 @@ state Combat in CR4Player extends ExtendedMovable
 	event OnCombatActionEnd()
 	{
 		virtual_parent.OnCombatActionEnd();
-		
+		//updatePosition = false; //MS: Since we are not translation scaling anymore, this is useless now as we need to constantly update rotation
 	}
 	
 	
@@ -300,7 +303,10 @@ state Combat in CR4Player extends ExtendedMovable
 	
 	event OnGameCameraTick( out moveData : SCameraMovementData, dt : float )
 	{	
-		
+		/*if( thePlayer.IsPerformingPhaseChangeAnimation() )
+		{
+			return true;
+		}*/
 			
 		if( super.OnGameCameraTick( moveData, dt ) )
 		{
@@ -311,11 +317,11 @@ state Combat in CR4Player extends ExtendedMovable
 			theGame.GetGameCamera().ChangePivotRotationController( 'Exploration' );
 			theGame.GetGameCamera().ChangePivotDistanceController( 'Default' );
 			theGame.GetGameCamera().ChangePivotPositionController( 'Default' );
-			
+			// HACK
 			moveData.pivotRotationController = theGame.GetGameCamera().GetActivePivotRotationController();
 			moveData.pivotDistanceController = theGame.GetGameCamera().GetActivePivotDistanceController();
 			moveData.pivotPositionController = theGame.GetGameCamera().GetActivePivotPositionController();
-			
+			// END HACK		
 			moveData.pivotPositionController.SetDesiredPosition( thePlayer.GetWorldPosition() );
 			moveData.pivotRotationController.SetDesiredPitch( -10.0f );
 			moveData.pivotRotationController.maxPitch = 50.0;
@@ -326,19 +332,23 @@ state Combat in CR4Player extends ExtendedMovable
 			moveData.pivotRotationController.SetDesiredHeading( VecHeading( parent.GetDisplayTarget().GetWorldPosition() - parent.GetWorldPosition() ) + 60.0f, 0.5f );
 			
 			
-			
-			
-			
-			
-			
+			//DEBUG
+			//Camera Controller XYZ
+			//DampVectorSpring( moveData.cameraLocalSpaceOffset, moveData.cameraLocalSpaceOffsetVel, Vector( theGame.GetGameplayConfigFloatValue( 'debugA' ), theGame.GetGameplayConfigFloatValue( 'debugB' ), theGame.GetGameplayConfigFloatValue( 'debugC' ) ), 0.3f, dt );
+			//Camera Rotation
+			//moveData.pivotRotationController.SetDesiredHeading( VecHeading( parent.GetDisplayTarget().GetWorldPosition() - parent.GetWorldPosition() ) + theGame.GetGameplayConfigFloatValue( 'debugD' ), 0.1f );
+		}
+		else if ( thePlayer.GetFlyingBossCamera() )
+		{
+			theGame.GetGameCamera().SetManualRotationVerTimeout( 99999 );
 		}
 		
 		if ( parent.IsThreatened() || parent.GetPlayerMode().GetForceCombatMode() )
 		{
 			theGame.GetGameCamera().ChangePivotDistanceController( 'ScriptedCombat' );
-			
+			// HACK
 			moveData.pivotDistanceController = theGame.GetGameCamera().GetActivePivotDistanceController();
-			
+			// END HACK
 		}
 		
 		return false;
@@ -353,9 +363,12 @@ state Combat in CR4Player extends ExtendedMovable
 		var offset	:  float;
 		var playerToTargetVector	: Vector;
 		
+		/*if( thePlayer.IsPerformingPhaseChangeAnimation() )
+		{
+			return true;
+		}*/
 		
-		
-		if( parent.movementLockType == PMLT_NoRun )
+		if( parent.movementLockType == PMLT_NoRun && !GetWitcherPlayer().HasBuff( EET_Mutation11Immortal ) )
 		{			
 			if ( enemies.Size() == 1 )
 			{
@@ -375,7 +388,7 @@ state Combat in CR4Player extends ExtendedMovable
 		
 		buff = parent.GetCurrentlyAnimatedCS();
 		if ( ( ( parent.IsInCombatAction() || buff  ) && ( !parent.IsInCombat() || !( parent.moveTarget && parent.moveTarget.IsAlive() && parent.IsThreat( parent.moveTarget ) ) ) )
-				|| parent.GetPlayerCombatStance() == PCS_AlertFar )
+				|| ( parent.GetPlayerCombatStance() == PCS_AlertFar && !thePlayer.GetFlyingBossCamera() ) )
 			parent.UpdateCameraCombatActionButNotInCombat( moveData, dt );
 		
 		if ( !parent.IsInCombatAction() )
@@ -384,12 +397,12 @@ state Combat in CR4Player extends ExtendedMovable
 		if ( virtual_parent.UpdateCameraForSpecialAttack( moveData, dt ) )
 			return true;
 		
-		if ( ( parent.IsCameraLockedToTarget()  ) && !cameraChanneledSignEnabled )
+		if ( ( parent.IsCameraLockedToTarget() /*|| parent.IsPCModeEnabled()*/ ) && !cameraChanneledSignEnabled )
 		{
 			UpdateCameraInterior( moveData, dt );
 			return true;
 		}			
-		
+		//Add camera offset if you are one-on-one against tall enemy 
 		if ( parent.GetPlayerCombatStance() == PCS_AlertNear )
 		{
 			if ( enemies.Size() <= 1 && parent.moveTarget)
@@ -408,7 +421,9 @@ state Combat in CR4Player extends ExtendedMovable
 		super.OnGameCameraPostTick( moveData, dt );
 	}
 
-	
+	/**
+	Dynamically changes Player's orientantion and combat stance depending on his current action and the availability of his target
+	*/
 	private function ProcessPlayerOrientation()
 	{
 		var newOrientationTarget		: EOrientationTarget;
@@ -431,13 +446,13 @@ state Combat in CR4Player extends ExtendedMovable
 		}
 		else if ( parent.IsCastingSign() && !parent.IsInCombat() )
 			newOrientationTarget = OT_CameraOffset;
-		
-		
+		//else if ( parent.target && parent.IsInCombatAction() )
+		//	newOrientationTarget = OT_Actor;
 		else
 			newOrientationTarget = OT_Player;
 			
-		
-		
+		//if ( parent.GetCurrentStateName() == 'CombatFists' && !parent.moveTarget )
+		//	newOrientationTarget = OT_Player;
 
 		if ( parent.IsGuarded() )
 		{
@@ -450,8 +465,8 @@ state Combat in CR4Player extends ExtendedMovable
 				newOrientationTarget = OT_Camera;
 		}
 
-		
-		
+		//if ( parent.GetIsSprinting() && !parent.IsGuarded() )
+		//	newOrientationTarget = OT_Player;
 			
 		if ( parent.IsThrowingItemWithAim() )
 			newOrientationTarget = OT_CameraOffset;	
@@ -475,6 +490,13 @@ state Combat in CR4Player extends ExtendedMovable
 		var wasVisibleInCam 		: bool;
 		var moveTargetNPC			: CNewNPC;
 	
+		//FINAL HACK: preventing this thing from resetting pushability of player each tick while
+		//player is performing mutation11 animation
+		if( GetWitcherPlayer() && GetWitcherPlayer().HasBuff( EET_Mutation11Buff ) )
+		{
+			return;
+		}
+	
 		parent.findMoveTargetDistMin = 10.f;
 		moveTargetNPC = (CNewNPC)(parent.moveTarget);
 		if ( virtual_parent.GetPlayerCombatStance() == PCS_AlertNear || virtual_parent.GetPlayerCombatStance() == PCS_Guarded )
@@ -484,7 +506,7 @@ state Combat in CR4Player extends ExtendedMovable
 	
 		if ( parent.moveTarget 
 			&& moveTargetNPC.GetCurrentStance() != NS_Fly 
-			
+			//&& parent.moveTarget.GetGameplayVisibility()
 			&& parent.enableStrafe 
 			&& parent.IsThreat( parent.moveTarget )
 			&& parent.IsEnemyVisible( parent.moveTarget ) )
@@ -527,8 +549,8 @@ state Combat in CR4Player extends ExtendedMovable
 		else
 			stance = virtual_parent.GetPlayerCombatStance();
 
-		
-		
+		//if ( virtual_parent.GetPlayerCombatStance() == PCS_AlertNear !parent.IsEnemyVisible( parent.moveTarget ) )
+		//	stance = PCS_AlertFar;
 		
 		if ( !parent.IsEnemyVisible( parent.moveTarget ) )
 		{
@@ -536,9 +558,9 @@ state Combat in CR4Player extends ExtendedMovable
 				stance = PCS_AlertFar;
 		}
 	
-		
-		
-		
+		// Forcing Strafing onto Geralt for flying bosses
+		if ( thePlayer.GetFlyingBossCamera() )
+			stance = PCS_AlertNear;
 		
 		if ( parent.IsGuarded() )
 			stance = PCS_Guarded;
@@ -586,7 +608,7 @@ state Combat in CR4Player extends ExtendedMovable
 		parent.RemoveTimer( 'DisableCombatStanceTimer' );
 		disableCombatStanceTimer = false;	
 	
-		
+		//if ( virtual_parent.GetPlayerCombatStance() != stance )
 		virtual_parent.SetPlayerCombatStance( stance );
 
 		if ( stance == PCS_AlertNear || stance == PCS_Guarded )
@@ -601,8 +623,8 @@ state Combat in CR4Player extends ExtendedMovable
 		}
 	}
 	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Animation Events	
 	event OnAnimEvent_AllowInput( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
 		if (!parent.GetBIsCombatActionAllowed() && !parent.IsActorLockedToTarget() )
@@ -641,23 +663,25 @@ state Combat in CR4Player extends ExtendedMovable
 		}
 	}
 	
-	
+	//This event is fired each time we swing the weapon
 	event OnPreAttackEvent(animEventName : name, animEventType : EAnimationEventType, data : CPreAttackEventData, animInfo : SAnimationEventAnimInfo )
 	{
-		var res : bool;
-		var weaponEntity : CEntity;
+		var res				: bool;
+		var weaponEntity	: CItemEntity;
+		var aerondight		: W3Effect_Aerondight;
+		var weaponId		: SItemUniqueId;
 		
 		if(parent.HasAbility('Runeword 2 _Stats', true))
 		{
 			if(data.attackName == 'attack_heavy_special')
 			{
-				data.rangeName = 'runeword2_heavy';		
+				data.rangeName = 'runeword2_heavy';		//instead of slash_long
 				weaponEntity = thePlayer.inv.GetItemEntityUnsafe(thePlayer.inv.GetItemFromSlot(data.weaponSlot));
 				weaponEntity.PlayEffectSingle('heavy_trail_extended_fx');
 			}
 			else if(data.attackName == 'attack_light_special')
 			{
-				data.rangeName = 'runeword2_light';		
+				data.rangeName = 'runeword2_light';		//instead of specialattacklight
 				weaponEntity = thePlayer.inv.GetItemEntityUnsafe(thePlayer.inv.GetItemFromSlot(data.weaponSlot));
 				weaponEntity.PlayEffectSingle('light_trail_extended_fx');
 			}
@@ -666,6 +690,19 @@ state Combat in CR4Player extends ExtendedMovable
 		{
 			weaponEntity = thePlayer.inv.GetItemEntityUnsafe(thePlayer.inv.GetItemFromSlot(data.weaponSlot));
 			weaponEntity.PlayEffectSingle('runeword1_fire_trail');
+		}
+		else if( parent.HasBuff( EET_Aerondight ) )
+		{
+			weaponId = thePlayer.inv.GetCurrentlyHeldSword();
+			if( thePlayer.inv.ItemHasTag( weaponId, 'Aerondight' ) )
+			{			
+				aerondight = (W3Effect_Aerondight)thePlayer.GetBuff( EET_Aerondight );
+				
+				if( aerondight.IsFullyCharged() )
+				{
+					weaponEntity.PlayEffectSingle( 'aerondight_special_trail' );
+				}
+			}
 		}
 		
 		res = virtual_parent.OnPreAttackEvent( animEventName, animEventType, data, animInfo );
@@ -681,14 +718,14 @@ state Combat in CR4Player extends ExtendedMovable
 	{			
 		OnInterruptAttack();
 		
-		
-		
+		//parent.SetSlideTarget( NULL ); 
+		//parent.ProcessLockTarget();
 	}
 	
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Evade
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	event OnPerformEvade( playerEvadeType : EPlayerEvadeType )
 	{		
@@ -733,17 +770,18 @@ state Combat in CR4Player extends ExtendedMovable
 		var intersectPoint				: Vector;		
 		var intersectLength				: float;
 		var playerToPoint				: float;
-
+//		var isRolling					: bool;
 		var moveTargets					: array<CActor>;
 		var playerToTargetAngleDiff		: float;
 		var playerToRawAngleDiff		: float;
 		var playerToCamAngleDiff		: float;
 		
 		var targetCapsuleRadius 		: float;
+		var perkStats 					: SAbilityAttributeValue;
 		
-		
-		
-		parent.ResetUninterruptedHitsCount();		
+		//parent.AddTimer( 'SnapToNavmeshTimer', 0.05f, true );
+		//parent.SetCleanupFunction( 'UnsnapFromNavmesh' );
+		parent.ResetUninterruptedHitsCount();		//dodge resets the counter
 		parent.SetIsCurrentlyDodging(true, isRolling);
 	
 		parent.RemoveTimer( 'UpdateDodgeInfoTimer' );
@@ -756,8 +794,8 @@ state Combat in CR4Player extends ExtendedMovable
 			evadeTarget = parent.moveTarget;		
 		}
 		
-		
-			
+		//if ( theInput.IsActionPressed( 'Alternate' ) )
+			//isRolling = true;
 			
 		if ( isRolling )
 		{
@@ -773,7 +811,7 @@ state Combat in CR4Player extends ExtendedMovable
 				
 		intersectLength = dodgeLength * 0.75;
 	
-		evadeTargetPos = evadeTarget.PredictWorldPosition( 0.4f ); 
+		evadeTargetPos = evadeTarget.PredictWorldPosition( 0.4f ); //evadeTarget.GetWorldPosition();
 		
 		dodgeDirection = GetEvadeDirection( playerEvadeType );
 		rawDodgeHeading = GetRawDodgeHeading();
@@ -787,7 +825,7 @@ state Combat in CR4Player extends ExtendedMovable
 
 		turnInPlaceBeforeDodge = false;		
 		
-		
+		//Choose the dodge animation (and whether it should be the flipped version or not) to play
 		if ( evadeTarget )
 		{
 			intersectPoint = VecFromHeading( rawDodgeHeading ) * VecDot( VecFromHeading( rawDodgeHeading ), evadeTargetPos - parent.GetWorldPosition() ) + parent.GetWorldPosition();
@@ -812,10 +850,10 @@ state Combat in CR4Player extends ExtendedMovable
 			}
 			else
 			{
-				
+				// You're not facing the enemy
 				if ( playerToTargetAngleDiff > 90 )
 				{
-					
+					//Your pushing the stick towards your facing direction
 					if ( playerToRawAngleDiff < 90 )
 					{
 						dodgeDirection = PED_Forward;
@@ -823,11 +861,11 @@ state Combat in CR4Player extends ExtendedMovable
 					}
 					else
 					{
-						
+						//Your dodge is beyond the flip point
 						if ( VecLength( intersectPoint - parent.GetWorldPosition() ) < intersectLength )
 						{
 							if ( theGame.TestNoCreaturesOnLine( parent.GetWorldPosition(), predictedDodgePos, 0.1, parent, NULL, true ) )
-								
+								//&& VecDistance( evadeTargetPos, intersectPoint ) > 0.4 )
 							{
 								dodgeDirection = PED_Back;					
 							}
@@ -846,14 +884,14 @@ state Combat in CR4Player extends ExtendedMovable
 				}
 				else
 				{
-					
+					//You're pushing the stick towards your facing direction
 					if ( playerToRawAngleDiff < 90 )
 					{
-						
+						//Your dodge is beyond the flip point
 						if ( VecLength( intersectPoint - parent.GetWorldPosition() ) < intersectLength )
 						{
 							if ( theGame.TestNoCreaturesOnLine( parent.GetWorldPosition(), predictedDodgePos, 0.1, parent, NULL, true ) )
-								
+								//&& VecDistance( evadeTargetPos, intersectPoint ) > 0.4 )
 							{
 								dodgeDirection = PED_Forward;
 								turnInPlaceBeforeDodge = true;
@@ -866,11 +904,11 @@ state Combat in CR4Player extends ExtendedMovable
 					}
 					else
 					{
-						
+						//Your dodge is beyond the flip point && the intersectPoint is behind you
 						if ( VecLength( intersectPoint - parent.GetWorldPosition() ) < intersectLength && AbsF( AngleDistance( VecHeading( intersectPoint - parent.GetWorldPosition() ), rawDodgeHeading ) ) < 10.f  )
 						{
 							if ( theGame.TestNoCreaturesOnLine( parent.GetWorldPosition(), predictedDodgePos, 0.1, parent, NULL, true ) )
-								
+								//&& VecDistance( evadeTargetPos, intersectPoint ) > 0.4 )
 							{
 								dodgeDirection = PED_Back;
 							}
@@ -892,7 +930,7 @@ state Combat in CR4Player extends ExtendedMovable
 					playerToCamAngleDiff = AbsF( AngleDistance( parent.GetHeading(), VecHeading( theCamera.GetCameraDirection() ) ) );
 					if ( playerToCamAngleDiff > 0 && playerToCamAngleDiff < 110 )			
 					{
-						
+						//You're pushing the stick towards your facing direction
 						if ( playerToRawAngleDiff < 90 )
 						{
 							dodgeDirection = PED_Forward;
@@ -902,7 +940,7 @@ state Combat in CR4Player extends ExtendedMovable
 					
 					if ( playerToCamAngleDiff > 60 && playerToCamAngleDiff < 135 )
 					{
-						
+						//You're pushing the stick towards your facing direction
 						if ( playerToRawAngleDiff > 120 )
 						{					
 							dodgeDirection = PED_Back;
@@ -919,6 +957,19 @@ state Combat in CR4Player extends ExtendedMovable
 				parent.DrainStamina(ESAT_Roll);
 			else
 				parent.DrainStamina(ESAT_Dodge);
+		}
+		
+		// Perk 21 - all defensive actions generate adrenaline
+		if( parent.CanUseSkill(S_Perk_21) )
+		{
+			if( isRolling )
+			{
+				GetWitcherPlayer().GainAdrenalineFromPerk21( 'roll' );
+			}
+			else
+			{
+				GetWitcherPlayer().GainAdrenalineFromPerk21( 'dodge' );
+			}
 		}
 		
 		if ( dodgeDirection == PED_Forward )
@@ -945,7 +996,7 @@ state Combat in CR4Player extends ExtendedMovable
 		{
 			dodgeNum = 0;
 		}
-		else if ( !turnInPlaceBeforeDodge )
+		else if ( !turnInPlaceBeforeDodge )//select which back dodge animation to play yep...
 		{
 			if ( dodgeDirection == PED_Back )
 			{
@@ -968,7 +1019,7 @@ state Combat in CR4Player extends ExtendedMovable
 		}
 		
 			
-		
+		//parent.SetBehaviorVariable( 'dodgeNum', dodgeNum );//dodgePosPitch
 		parent.SetBehaviorVariable( 'combatActionType', (int)CAT_Dodge );
 		parent.SetBehaviorVariable(	'playerEvadeDirection', (int)( dodgeDirection ) ) ;
 		parent.SetBehaviorVariable(	'turnInPlaceBeforeDodge', 0.f ) ;
@@ -987,13 +1038,15 @@ state Combat in CR4Player extends ExtendedMovable
 		else
 			Sleep( 0.3f );
 
-		
+		//Bind rotation to event
 		if ( parent.bLAxisReleased )
 			cachedRawDodgeHeading = rawDodgeHeading;
 		else
 			cachedRawDodgeHeading = GetRawDodgeHeading();
 			
-		
+		/*if ( dodgeDirection == PED_Forward )
+			parent.SetCustomRotation( 'Dodge', GetDodgeHeadingForMovementHeading( cachedRawDodgeHeading ), 90.0f, 0.0f, false );
+		else*/
 			parent.SetCustomRotation( 'Dodge', GetDodgeHeadingForMovementHeading( cachedRawDodgeHeading ), 90.0f, 0.0f, false );
 		
 		parent.BindMovementAdjustmentToEvent( 'Dodge', 'Dodge' );
@@ -1002,9 +1055,9 @@ state Combat in CR4Player extends ExtendedMovable
 		parent.WaitForBehaviorNodeDeactivation( 'DodgeComplete', 0.7f );
 		parent.RemoveTimer( 'UpdateDodgeInfoTimer' );
 		
-		
+		//this is after dodge is finished
 		parent.SetIsCurrentlyDodging(false);
-		
+		//UnsnapFromNavmesh();		
 	}
 	
 
@@ -1048,12 +1101,23 @@ state Combat in CR4Player extends ExtendedMovable
 		return playList;
 	}
 	
+	/*cleanup function UnsnapFromNavmesh()
+	{
+		((CMovingAgentComponent)parent.GetMovingAgentComponent()).SnapToNavigableSpace( false );
+		//parent.RemoveTimer( 'SnapToNavmeshTimer' );
+	}*/
 	
-	
-	
+	/*timer function SnapToNavmeshTimer( dt : float , id : int)
+	{
+		if ( ((CMovingAgentComponent)parent.GetMovingAgentComponent()).IsOnNavigableSpace() )
+		{
+			((CMovingAgentComponent)parent.GetMovingAgentComponent()).SnapToNavigableSpace( true );
+			parent.RemoveTimer( 'SnapToNavmeshTimer' );
+		}
+	}*/
 
 	
-	
+	//check for skill stamina cost nullify
 	private function SkipStaminaDodgeEvadeCost() : bool
 	{
 		var targetNPC : CNewNPC;
@@ -1061,7 +1125,7 @@ state Combat in CR4Player extends ExtendedMovable
 		targetNPC = (CNewNPC)parent.GetTarget();
 		if( targetNPC )
 		{
-			
+			//if target is attacking and player has skill
 			if( targetNPC.IsAttacking() && parent.CanUseSkill(S_Sword_s09) )
 			{
 				return true;
@@ -1071,13 +1135,35 @@ state Combat in CR4Player extends ExtendedMovable
 		return false;
 	}
 	
+	/*
+	unused? commenting out
 	
+	private function PayEvadeStaminaCost()
+	{
+		var i : int;
+	
+		//-----clear dodge cost anyway
+		
+		//remove dodge pay timer
+		parent.RemoveTimer('DodgeStaminaCost');
+		
+		//clear dodge cost ids
+		for(i=parent.dodgeStaminaActionIds.Size()-1; i>=0; i-=1)
+			parent.ReleaseLockedStamina(parent.dodgeStaminaActionIds[i], false);
+		
+		parent.dodgeStaminaActionIds.Clear();
+			
+		//-----pay evade if should pay		
+		if(!SkipStaminaDodgeEvadeCost())
+			parent.DrainStamina(ESAT_Evade);
+	}
+	*/
 	
 	protected function GetEvadeDirection( playerEvadeType : EPlayerEvadeType ) : EPlayerEvadeDirection
 	{
 		var rawToHeadingAngleDiff 		: float;
 		var evadeDirection				: EPlayerEvadeDirection;
-		var unusedActor 				: CActor;	
+		var unusedActor 				: CActor;	//MS: placeholder variable to fix memory error
 		var	inputToleranceFwd			: float;
 		var	inputToleranceBck			: float;
 		var checkedHeading				: Vector;
@@ -1150,7 +1236,7 @@ state Combat in CR4Player extends ExtendedMovable
 		}
 		else
 		{
-			
+			//heading = parent.GetCombatActionHeading();
 			if ( parent.lAxisReleasedAfterCounterNoCA )
 				heading = parent.GetHeading() + 180;
 			else
@@ -1167,7 +1253,7 @@ state Combat in CR4Player extends ExtendedMovable
 
 	function GetDodgeHeading( playerEvadeType : EPlayerEvadeType ) : float
 	{
-		var unusedActor 		: CActor;	
+		var unusedActor 		: CActor;	//MS: placeholder variable to fix memory error
 		var rawDodgeHeading		: float;
 		var dodgeHeading		: float;
 		
@@ -1254,14 +1340,14 @@ state Combat in CR4Player extends ExtendedMovable
 		var currentDodgeFwdHeading		: float;
 		
 		dontChangeAngle = 180;
-		
+		//parent.EnableFindTarget( false );
 
 		playerToTargetHeading = VecHeading( evadeTargetPos - landAt );
 		currentDodgeFwdHeading = GetDodgeHeadingForMovementHeading( evadingHeading );
 		
 		headingDiff = AngleDistance( playerToTargetHeading, currentDodgeFwdHeading );
 
-		
+		// should we change left or right? or not change at all?
 		if( headingDiff >= -dontChangeAngle && headingDiff < dontChangeAngle  )
 			changeDirection = PED_Forward;
 		else if( headingDiff >= dontChangeAngle )
@@ -1273,7 +1359,7 @@ state Combat in CR4Player extends ExtendedMovable
 		{
 			return dodgeDirection;
 		}
-		
+		// we assume that dodgeDirection takes only those four values
 		if( changeDirection == PED_Right)
 		{
 			switch( dodgeDirection )
@@ -1297,9 +1383,9 @@ state Combat in CR4Player extends ExtendedMovable
 		return dodgeDirection;
 	}
 
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Combo
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	private final function CleanUpComboStuff()
 	{
 		comboAttackA_Id = -1;
@@ -1342,23 +1428,23 @@ state Combat in CR4Player extends ExtendedMovable
 	
 	private final function BuildCombo()
 	{
-		
+		// 1. Create definition
 		comboDefinition = new CComboDefinition in this;
 		
-		
+		// 2. Fill aspects
 		OnCreateAttackAspects();
 		
-		
+		// 3. Create player
 		comboPlayer = new CComboPlayer in this;
 		if ( !comboPlayer.Build( comboDefinition, parent ) )
 		{
 			LogChannel( 'ComboNode', "Error: BuildCombo" );	
 		}
 		
-		
+		// Set default blend duration between combo's animations
 		comboPlayer.SetDurationBlend( 0.2f );
 		
-		
+		// Clean up combo data
 		CleanUpComboStuff();
 	}
 	
@@ -1373,7 +1459,7 @@ state Combat in CR4Player extends ExtendedMovable
 		var aiStorageObject	: IScriptable;
 		var newTarget : CActor;
 	
-		
+		//
 		if ( parent.DisableManualCameraControlStackHasSource('Finisher') )
 			return false;
 		
@@ -1394,7 +1480,7 @@ state Combat in CR4Player extends ExtendedMovable
 			else
 				parent.SetBehaviorVariable( 'playerToTargetDistForOverlay', 50.f );
 			
-			aiStorageObject = actor.GetAIStorageObject('ReactionData');
+			aiStorageObject = actor.GetScriptStorageObject('ReactionData');
 			if ( virtual_parent.DisplayCannotAttackMessage( actor ) )
 			{
 				return false;
@@ -1511,7 +1597,8 @@ state Combat in CR4Player extends ExtendedMovable
 			}
 			
 		}
-		
+		/*else if ( parent.GetIsSprinting() )
+			ProcessAttack( playerAttackType, true );*/
 		else
 		{
 			ProcessAttack( playerAttackType, false );
@@ -1538,11 +1625,11 @@ state Combat in CR4Player extends ExtendedMovable
 		parent.SetBehaviorVariable( 'approachDirectionLS', AngleDistance( parent.GetHeading(), playerToTargetHeading )/180 );
 
 		parent.AddTimer( 'ProcessAttackTimer', 0.1f, true );
-		
+		//parent.AddTimer( 'AttackTimerEnd', 2.f );
 	}
 
 	var prevPlayerToTargetDist			: float;
-	
+	//var prevTargetPos					: Vector;
 	var wasDecreasing					: bool;
 	timer function ProcessAttackTimer( time : float , id : int)
 	{
@@ -1597,7 +1684,7 @@ state Combat in CR4Player extends ExtendedMovable
 		}
 	}
 	
-	var enableSoftLock	: bool; 
+	var enableSoftLock	: bool; //when running in combat, geralt will not rotate towards the moveTarget
 	entry function ProcessAttack( playerAttackType : name, performApproachAttack : bool )
 	{
 		var temp1 					: name;
@@ -1643,8 +1730,8 @@ state Combat in CR4Player extends ExtendedMovable
 				if ( parent.RaiseEvent( 'CombatTaunt' ) )
 					parent.PlayBattleCry( 'BattleCryTaunt', 1.f, true, true );
 	
-				
-				
+				//if ( parent.RaiseEvent( 'CombatTaunt' ) )
+				//	virtual_parent.OnCombatActionStart();
 			}
 			else if ( parent.IsWeaponHeld( 'steelsword' ) || parent.IsWeaponHeld( 'silversword' ) )
 			{
@@ -1661,14 +1748,14 @@ state Combat in CR4Player extends ExtendedMovable
 			}
 			else
 			{
-				
+				//FAILSAFE
 				parent.SetBehaviorVariable( 'combatTauntType', 0.f );
 				
 				if ( parent.RaiseEvent( 'CombatTaunt' ) )
 					parent.PlayBattleCry( 'BattleCryTaunt', 1.f, true, true );
 					
-				
-				
+				//if ( parent.RaiseEvent( 'CombatTaunt' ) )
+				//	virtual_parent.OnCombatActionStart();
 			}	
 		}
 		else
@@ -1681,8 +1768,8 @@ state Combat in CR4Player extends ExtendedMovable
 			if ( !comboPlayer )
 			{
 				BuildComboPlayer();
-				
-				
+				//BuildCombo(); 
+				//comboPlayer.Init();
 			}		
 
 			enableSoftLock = true;
@@ -1700,10 +1787,10 @@ state Combat in CR4Player extends ExtendedMovable
 			attackTarget = (CActor)parent.slideTarget;
 			npcAttackTarget = (CNewNPC)attackTarget;
 			
-			
-			
-			
-			
+			// Set unpushable target to both attacker and target
+			// Effect: None will be pushed aside by animation
+			//if( attackTarget.GetInteractionPriority() < parent.GetInteractionPriority() )
+			//{
 			if(attackTarget)
 			{
 				attackTarget.SetUnpushableTarget( parent );
@@ -1726,8 +1813,8 @@ state Combat in CR4Player extends ExtendedMovable
 			if( playerAttackType == theGame.params.ATTACK_NAME_LIGHT )
 			{
 				if (npc)
-					npc.SignalGameplayEventParamInt('Time2Dodge', (int)EDT_Attack_Light );
-			
+					npc.SignalGameplayEventParamInt('Time2DodgeFast', (int)EDT_Attack_Light );
+				
 				if ( parent.GetCurrentStateName() == 'CombatFists' )
 				{
 					if ( parent.slideTarget )
@@ -1736,7 +1823,9 @@ state Combat in CR4Player extends ExtendedMovable
 							comboPlayer.PlayAttack( 'AttackLightNoTarget' );
 						else
 						{
-							
+							/*if ( performApproachAttack )
+								comboPlayer.PlayAttack( 'AttackLightFar' );
+							else*/
 								comboPlayer.PlayAttack( 'AttackLight' );
 						}
 					}
@@ -1763,11 +1852,20 @@ state Combat in CR4Player extends ExtendedMovable
 							
 						playerToTargetRot = VecToRotation( playerToTargetVec );
 						
-						 if ( ( playerToTargetVec.Z > 0.4f && AbsF( playerToTargetRot.Pitch ) > 12.f ) || parent.IsInShallowWater() )
+						/*if ( attackTarget
+							&& npcAttackTarget
+							&& attackTarget.IsHuman()
+							&& !parent.IsThreat(attackTarget) 
+							&& VecLength( playerToTargetVec ) < parent.interactDist 
+							&& AbsF( AngleDistance( VecHeading( attackTarget.GetWorldPosition() - parent.GetWorldPosition() ), parent.GetCombatActionHeading() ) ) < 90.f 
+							) // FIXME: IsHorse check can be removed once there is no mount interaction on A button
+							comboPlayer.PlayAttack( 'AttackNeutral' );
+						else*/ if ( ( playerToTargetVec.Z > 0.4f && AbsF( playerToTargetRot.Pitch ) > 12.f ) || parent.IsInShallowWater() )
 							comboPlayer.PlayAttack( 'AttackLightSlopeUp' );						
 						else if ( playerToTargetVec.Z < -0.35f && AbsF( playerToTargetRot.Pitch ) > 12.f  )
 							comboPlayer.PlayAttack( 'AttackLightSlopeDown' );
-						
+						/*else if ( performApproachAttack && !parent.IsEnemyInCone( parent, VecFromHeading( parent.rawPlayerHeading ), 8.f, 45.f, temp ) )
+							comboPlayer.PlayAttack( 'AttackLightFar' );*/
 						else if ( !parent.slideTarget )
 							comboPlayer.PlayAttack( 'AttackLight' );
 						else if ( targetCapsuleHeight < 1.5 )
@@ -1792,7 +1890,9 @@ state Combat in CR4Player extends ExtendedMovable
 							comboPlayer.PlayAttack( 'AttackHeavyNoTarget' );
 						else
 						{
-							
+							/*if ( performApproachAttack )
+								comboPlayer.PlayAttack( 'AttackHeavyFar' );
+							else*/
 								comboPlayer.PlayAttack( 'AttackHeavy' );
 						}
 					}
@@ -1805,15 +1905,26 @@ state Combat in CR4Player extends ExtendedMovable
 						comboPlayer.PlayAttack('AttackHeavyVsRider');
 					else if ( parent.slideTarget )
 					{
-						 if(npc && ( npc.GetCurrentStance() == NS_Fly || npc.IsInAir() ) ) 
+						/*if ( attackTarget
+							&& npcAttackTarget
+							&& attackTarget.IsHuman()
+							&& !parent.IsThreat(attackTarget) 
+							&& VecLength( playerToTargetVec ) < parent.interactDist 
+							&& AbsF( AngleDistance( VecHeading( attackTarget.GetWorldPosition() - parent.GetWorldPosition() ), parent.GetCombatActionHeading() ) ) < 90.f 
+							) // FIXME: IsHorse check can be removed once there is no mount interaction on A button
+							comboPlayer.PlayAttack( 'AttackNeutral' );
+						else*/ if(npc && ( npc.GetCurrentStance() == NS_Fly || npc.IsInAir() ) ) 
 							comboPlayer.PlayAttack( 'AttackHeavyFlying' );
-						
+						/*else if ( performApproachAttack )		
+							comboPlayer.PlayAttack( 'AttackHeavyFar' );*/
 						else
 							comboPlayer.PlayAttack( 'AttackHeavy' );
 					}
 					else
 					{
-						
+						/*if ( performApproachAttack )		
+							comboPlayer.PlayAttack( 'AttackHeavyFar' );
+						else*/
 							comboPlayer.PlayAttack( 'AttackHeavy' );
 					}
 					
@@ -1844,7 +1955,7 @@ state Combat in CR4Player extends ExtendedMovable
 
 
 	var wasInCloseCombat : bool;
-	
+	// FIX THIS: REMOVE ANY FUNCTIONS BECAUSE OF MULTITHREADING!
 	function OnComboAttackCallback( out callbackInfo : SComboAttackCallbackInfo )
 	{
 		var angle 						: float;
@@ -1864,7 +1975,7 @@ state Combat in CR4Player extends ExtendedMovable
 		var attackTargetActor			: CActor; 
 		
 		LogChannel( 'ComboNode', "inGlobalAttackCounter = " + callbackInfo.inGlobalAttackCounter + ", inStringAttackCounter = " + callbackInfo.inStringAttackCounter );	
-		
+		//LogChannel('HAInd',"OnComboAttackCallback start");
 		
 		callbackInfo.outShouldRotate = true;
 		
@@ -1888,13 +1999,13 @@ state Combat in CR4Player extends ExtendedMovable
 			 enableSoftLock &&	
 			 ( !( (CNewNPC)parent.slideTarget ) 
 			 || ( ( (CActor)parent.slideTarget ).GetGameplayVisibility() 
-					
+					//&& parent.WasVisibleInScaledFrame( parent.slideTarget, 1.f, 1.f ) 
 					&& ( ( (CNewNPC)(parent.slideTarget) ).GetCurrentStance() != NS_Fly || playerToTargetVec.Z < 2.5f || parent.IsActorLockedToTarget() ) ) ) )
 		{		
 			attackTarget = parent.slideTarget;
 		
-			
-			
+			//check if the slideTarget selected in the middle of the current attack is still within the softlock distance upon arrival at the final slidePos
+			//If not, we should change target to the nearest target
 			
 			if ( parent.HasAbility('NoTransOnHitCheat') )
 			{
@@ -2022,13 +2133,13 @@ state Combat in CR4Player extends ExtendedMovable
 		
 		if ( callbackInfo.inStringAttackCounter == 0 || callbackInfo.inGlobalAttackCounter == 0 )
 			parent.SetBIsFirstAttackInCombo(true);
-		else if ( callbackInfo.inStringAttackCounter >= 2 )
+		else if ( callbackInfo.inStringAttackCounter >= 2 )//&& callbackInfo.outDirection == AD_Front )
 			parent.SetBIsFirstAttackInCombo(false);
+		//else if ( callbackInfo.outDirection != AD_Front )
+		//	parent.SetBIsFirstAttackInCombo(true);
 		
-		
-		
-		
-		
+		//if ( parent.slideTarget && playerToTargetDist < 0.5f )
+		//	callbackInfo.outDirection = AD_Front;
 			
 		if ( callbackInfo.inAspectName == 'AttackNeutral' )
 			callbackInfo.outDirection = AD_Front;
@@ -2163,7 +2274,7 @@ state Combat in CR4Player extends ExtendedMovable
 		
 		if ( comboAttackA_Target )
 		{
-			
+			//parent.GetVisualDebug().AddSphere('slideTargetPos', 1.0f, comboAttackA_Target.GetWorldPosition() + Vector(0,0,1), true, Color(128,128,128), 3.0f );
 			if ( (CActor)comboAttackA_Target )
 				playerToTargetDist =  VecDistance( parent.GetWorldPosition(), ( (CActor)comboAttackA_Target ).GetNearestPointInBothPersonalSpaces( parent.GetWorldPosition() ) );
 			else
@@ -2175,8 +2286,8 @@ state Combat in CR4Player extends ExtendedMovable
 			if ( ( parent.GetOrientationTarget() == OT_Camera || parent.GetOrientationTarget() == OT_CameraOffset ) && playerToTargetDist > 1.5f )
 				updatePosition = false;
 	
-			
-			
+			//if ( comboAspectName != 'AttackNeutral' && parent.moveTarget && !parent.IsThreat( parent.moveTarget ) && comboAttackA_Target && VecDistance( comboAttackA_Target.GetWorldPosition(), parent.GetWorldPosition() ) > parent.interactDist )
+			//	updatePosition = false;
 			
 			if ( parent.moveTarget && !parent.IsThreat( parent.moveTarget ) && comboAttackA_Target )
 			{
@@ -2209,7 +2320,7 @@ state Combat in CR4Player extends ExtendedMovable
 		else if ( comboAttackA_Id != -1 && parent.IsInCombatAction() && parent.GetBehaviorVariable( 'combatActionType' ) == 0.f )
 		{
 			comboPlayer.UpdateTarget( comboAttackA_Id, parent.GetWorldPosition() + VecFromHeading( parent.GetCombatActionHeading() ), parent.GetCombatActionHeading(), true, true );
-			
+			//parent.GetVisualDebug().AddSphere('slideTargetPos', 1.0f, parent.GetWorldPosition() + Vector(0,0,1), true, Color(128,128,128), 3.0f );
 		}
 			
 		if(comboPlayer)
@@ -2299,9 +2410,9 @@ state Combat in CR4Player extends ExtendedMovable
 		ForceTicketUpdate();
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Combat Events
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 	
 	event OnCombatActionEndComplete()
 	{

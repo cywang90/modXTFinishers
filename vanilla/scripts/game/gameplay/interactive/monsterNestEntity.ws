@@ -1,15 +1,16 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
- struct SMonsterNestUpdateDefinition
+﻿enum EMonsterNestType
 {
-	editable saved var isRebuilding					: bool; 
+	EMNT_Regular,
+	EMNT_InfestedWineyard
+};
+
+struct SMonsterNestUpdateDefinition
+{
+	editable saved var isRebuilding					: bool; //default isRebuilding = false;
 	editable saved  var defaultPhaseToActivate 		: name;
 	editable saved var bossPhaseToActivate 			: name;
-	editable var hasBoss							: bool; 
-	editable var bossSpawnDelay						: float; 
+	editable var hasBoss							: bool; //default hasBoss = false;
+	editable var bossSpawnDelay						: float; //default bossSpawnDelay = 3.0;
 	editable inlined var nestRebuildSchedule    	: GameTimeWrapper;
 	
 	default defaultPhaseToActivate = 'default';
@@ -38,6 +39,8 @@ statemachine class CMonsterNestEntity extends CInteractiveEntity
 	editable var addExpOnlyOnce								: bool; default addExpOnlyOnce = false;
 	editable saved var nestUpdateDefintion					: SMonsterNestUpdateDefinition;
 	editable var monsterNestType							: ENestType; 
+	editable var regionType									: EEP2PoiType;
+	editable var entityType									: EMonsterNestType; default entityType = EMNT_Regular;
 	
 		hint desiredPlayerToEntityDistance = "if set to < 0 player will stay in position where interaction was pressed";
 		hint setDestructionFactImmediately = "if set then destrution fact is added immediately on destruction";
@@ -116,7 +119,7 @@ statemachine class CMonsterNestEntity extends CInteractiveEntity
 		else
 		{
 			GotoStateAuto();
-			
+			//focus mode highlight
 			SetFocusModeVisibility(FMV_Interactive);
 		}
 	}
@@ -149,7 +152,14 @@ statemachine class CMonsterNestEntity extends CInteractiveEntity
 	
 	event OnInteractionActivationTest( interactionComponentName : string, activator : CEntity )
 	{
-		
+		/*var res : bool;
+		res = PlayerHasBombActivator();
+		if( !res && ( messageTimestamp + 10.0 < theGame.GetEngineTimeAsSeconds() ) )
+		{
+			GetWitcherPlayer().DisplayHudMessage( GetLocStringByKeyExt( "panel_hud_message_destroy_nest_bomb_lacking" ) );
+			messageTimestamp = theGame.GetEngineTimeAsSeconds();
+		}
+		return res;*/
 	}
 	
 	event OnInteractionActivated( interactionComponentName : string, activator : CEntity )
@@ -220,6 +230,18 @@ statemachine class CMonsterNestEntity extends CInteractiveEntity
 		}
 	}
 	
+	// called from C++, do not modify
+	public function GetRegionType() : int
+	{
+		return (int) regionType;
+	}
+
+	// called from C++, do not modify
+	public function GetEntityType() : int
+	{
+		return (int) entityType;
+	}
+
 	function CanPlayVoiceSet() : bool
 	{
 		return !thePlayer.IsSpeaking() && !thePlayer.IsInNonGameplayCutscene() && !thePlayer.IsCombatMusicEnabled() && canPlayVset && !wasExploded;
@@ -239,6 +261,9 @@ statemachine class CMonsterNestEntity extends CInteractiveEntity
 			case EN_Siren 			: return 'MonsterNestSirens';
 			case EN_Wyvern	 		: return 'MonsterNestWiwerns';
 			case EN_BlackSpider		: return 'DetectNestArachnomorphs';
+			case EN_Kikimora		: return 'MonsterNestKikimoras';
+			case EN_Archespore		: return 'MonsterNestArchespores';
+			case EN_Scolopendromorph: return 'MonsterNestScolopendromorps';
 			default					: return ''; 				
 		}
 		
@@ -265,14 +290,14 @@ statemachine class CMonsterNestEntity extends CInteractiveEntity
 		
 		for( i = 0; i < bombActivators.Size(); i += 1 )
 		{
-			
+			//check item type
 			if( playerInventory.HasItem( bombActivators[i] ))
 			{
 				items.Clear();
 				items = playerInventory.GetItemsByName(bombActivators[i]);				
 				for(j=0; j<items.Size(); j+=1)
 				{
-					
+					//check ammo
 					if( playerInventory.SingletonItemGetAmmo(items[j]) > 0 )
 					{
 						usedBomb = items[j];
@@ -364,7 +389,7 @@ statemachine class CMonsterNestEntity extends CInteractiveEntity
 			LogChannel( 'Error', "Encounter not connected with " + this.GetName() );
 	}
 	
-	
+	//Nest update 
 	
 	public function SetBossKilled ( killed : bool )
 	{
@@ -472,7 +497,11 @@ state SettingExplosives in CMonsterNestEntity
 		PlayAnimationAndSetExplosives();
 	}
 	
-	
+	/*event OnLeaveState( prevStateName : name )
+	{
+		thePlayer.RemoveAnimEventChildCallback(parent,'AttachBomb');
+		thePlayer.RemoveAnimEventChildCallback(parent,'DetachBomb');
+	}*/
 	
 	entry function PlayAnimationAndSetExplosives()
 	{	
@@ -494,7 +523,7 @@ state SettingExplosives in CMonsterNestEntity
 		
 		thePlayer.PlayerStartAction( PEA_SetBomb );
 		
-		
+		// blocking interaction with other objects and fast travel
 		parent.BlockPlayerNestInteraction();
 			
 		Sleep( parent.settingExplosivesTime );
@@ -518,7 +547,7 @@ state Explosion in CMonsterNestEntity
 	{
 		super.OnEnterState( prevStateName );
 		parent.canPlayVset = false;
-		
+		// remove save lock
 		theGame.ReleaseNoSaveLock( parent.saveLockIdx );
 		
 		Explosion();
@@ -548,37 +577,37 @@ state Explosion in CMonsterNestEntity
 			parent.container = (W3Container)theGame.CreateEntity( parent.lootOnNestDestroyed, l_pos, parent.GetWorldRotation() );
 		}
 		
-		
+		//focus mode highlight
 		parent.SetFocusModeVisibility(0);
 		
-		
+		//destruction fact - immediate
 		if(parent.IsSetDestructionFactImmediately())
 			FactsAdd( parent.factSetAfterSuccessfulDestruction, 1 );
 			
-		
+		//destruction tag
 		wasDestroyed = parent.HasTag('WasDestroyed');
 		parent.AddTag('WasDestroyed');
 			
-		
+		//achievement for destroying all nests in area
 		parentEntity = ( CR4MapPinEntity )parent;
 		if ( parentEntity )
 		{
-			
+			//fact for achievement that the nest was destroyed
 			if(FactsQuerySum(parentEntity.entityName + "_nest_destr") == 0)
 			{
 				FactsAdd(parentEntity.entityName + "_nest_destr");		
-				CheckNestDestructionAchievement();	
+				CheckNestDestructionAchievement();	//destroy all nests in any region
 			}
 		}
 		
-		
+		//achievement for destroying X nests
 		if(!wasDestroyed && !parent.HasTag('AchievementFireInTheHoleExcluded'))
 		{
 			theGame.GetGamerProfile().IncStat(ES_DestroyedNests);
 		}
 		
-		
-		
+		//remove mappin
+		//commonMapManager.SetEntityMapPinDiscovered( parent.entityName, false );
 		commonMapManager.SetEntityMapPinDisabled( parent.entityName, true );
 		parent.AddExp();
 		
@@ -590,14 +619,14 @@ state Explosion in CMonsterNestEntity
 		{
 			parent.PlayEffect( 'dust' );
 		}
-		
+		//wtf?
 		if( parent.nestBurnedAfter != 0 )
 		{
 						
 			Sleep( parent.nestBurnedAfter );
 		}
 		
-		
+		//destruction fact - not immediate
 		if(!parent.IsSetDestructionFactImmediately())
 			FactsAdd( parent.factSetAfterSuccessfulDestruction, 1 );
 		
@@ -626,7 +655,7 @@ state Explosion in CMonsterNestEntity
 			parent.PlayEffect( 'explosion' );
 		}
 		GCameraShake( 0.5, true, parent.GetWorldPosition(), 1.0f );
-		
+		//Stopping Deploy effect 
 		parent.StopEffect('deploy');
 	}
 	
@@ -642,6 +671,11 @@ state Explosion in CMonsterNestEntity
 		entitiesInRange.Remove( parent );
 		for( i = 0; i < entitiesInRange.Size(); i += 1 )
 		{
+			if( entitiesInRange[ i ] == thePlayer && thePlayer.CanUseSkill( S_Perk_16 ) )
+			{
+				continue;
+			}
+			
 			if( (CActor)entitiesInRange[i] )
 			{
 				damage = new W3DamageAction in parent;
@@ -748,7 +782,10 @@ enum ENestType
 	EN_Siren,
 	EN_Wyvern,
 	EN_None,
-	EN_BlackSpider
+	EN_BlackSpider,
+	EN_Kikimora,
+	EN_Archespore,
+	EN_Scolopendromorph
 }
 
 
@@ -758,12 +795,12 @@ function CheckNestDestructionAchievement(optional debugLog : bool)
 	var i : int;
 	var depotPath : string;
 	var missesSomeNest : bool;
-	
+	//var isNovigrad : bool;
 	
 	depotPath = theGame.GetWorld().GetDepotPath();
 	
-	
-	
+	//FINAL HACK - Due to wrong localization string, achievement is given only in Velen, Novigrad or Skellige - not in any other region!		
+	//ALSO - Velen is inside Novigrad so set "isNovigrad" here if needed
 	if(StrFindFirst(depotPath, "novigrad") < 0)
 	{
 		if(StrFindFirst(depotPath, "skellige") < 0)
@@ -771,12 +808,25 @@ function CheckNestDestructionAchievement(optional debugLog : bool)
 			return;
 		}
 	}	
-		
+		/*
+		else
+		{
+			isNovigrad = false;
+		}
+	}
+	else
+	{
+		isNovigrad = true;
+	}
+	*/
 	
-	
+	//get all map pins in region, then filter by type and check progress if monster nest
 	entityMapPins = theGame.GetCommonMapManager().GetEntityMapPins(depotPath);
 	
-	
+	/* uncomment this if Velen is to be treated as different region than Novigrad - otherwise they are considered one region
+	if(isNovigrad)
+		ProcessVelen(entityMapPins);
+	*/
 	
 	if(debugLog)
 	{
@@ -788,17 +838,17 @@ function CheckNestDestructionAchievement(optional debugLog : bool)
 	missesSomeNest = false;
 	for(i=0; i<entityMapPins.Size(); i+=1)
 	{
-		
+		//if monster nest
 		if(entityMapPins[i].entityType == 'MonsterNest')
 		{
-			
+			//if nest not destroyed
 			if(FactsQuerySum(entityMapPins[i].entityName + "_nest_destr") < 1)
 			{
 				missesSomeNest = true;
 				
 				if(!debugLog)
 				{
-					
+					//not debugging so it's a fail already - break loop
 					break;
 				}
 				else
@@ -825,21 +875,21 @@ function CheckNestDestructionAchievement(optional debugLog : bool)
 	}
 }
 
-
+//checks if you are in velen or not and removes entries from the other region
 function ProcessVelen(out entityMapPins : array<SEntityMapPinInfo>)
 {
 	var i : int;
 	var velen, isPinVelen : bool;
 	var playerPos : Vector;
 	
-	
-	
+	// we need to distinguish Novigrad and Velen
+	// player Y coord seems to be enough
 	playerPos = thePlayer.GetWorldPosition();
 	velen = (playerPos.Y < 1350 );
 	
 	for(i=entityMapPins.Size()-1; i>=0; i-=1)
 	{
-		
+		//ignore pins which are not monster nests
 		if(entityMapPins[i].entityType != 'MonsterNest')
 		{
 			entityMapPins.EraseFast(i);

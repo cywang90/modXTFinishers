@@ -1,31 +1,27 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2012-2014
+/** Author : Rafal Jarczewski, Tomek Kozera
 /***********************************************************************/
 
-
-
-
-
-
+// Base class for all buffs
+// TODO: convert this object to IScriptable (right not not possible because Clone() is used)
+// All properties with values different than it's default value are saved despite the "saved" keyword.
 class CBaseGameplayEffect extends CObject
 {
-	
-	protected var timeActive : float;							
-	protected saved var initialDuration : float;				
-	protected var duration : float;								
-	protected var timeLeft : float;								
-	protected var pauseCounters : array<SBuffPauseLock>;		
-	protected var isActive : bool;								
-	protected var usesCustomCounter : bool;						
-	private   var resistStat : ECharacterDefenseStats;			
-	protected var resistance : float;	 						
-	protected var creatorPowerStat : SAbilityAttributeValue;	
-	protected var isPausedDuringDialogAndCutscene : bool;		
-	protected var dontAddAbilityOnTarget : bool;				
-	protected var canBeAppliedOnDeadTarget : bool;				
-	protected var effectManager : W3EffectManager;				
+	// TIMING & UPDATE
+	protected var timeActive : float;							//how long it is in ragdoll
+	protected saved var initialDuration : float;				//base initial duration before power stat and resists are taken into account
+	protected var duration : float;								//calculated final duration time in realtime secs, -1 means infinite
+	protected var timeLeft : float;								//remaining duration
+	protected var pauseCounters : array<SBuffPauseLock>;		//pause/resume locks for buff
+	protected var isActive : bool;								//if the effect is active, if not then it's bound to be removed in next EffectManager's Update call
+	private   var resistStat : ECharacterDefenseStats;			//resistance stat
+	protected var resistance : float;	 						//resistance stat value in percents [0-1]
+	protected var creatorPowerStat : SAbilityAttributeValue;	//creator's power stat value, used with resists to determine final duration
+	protected var isPausedDuringDialogAndCutscene : bool;		//if true then effect is paused during cutscenes and dialogs
+	protected var dontAddAbilityOnTarget : bool;				//if set then ability won't be added on target for the duration of the buff
+	protected var canBeAppliedOnDeadTarget : bool;				//if buff can be applied if target is already dead
+	protected var effectManager : W3EffectManager;				//target's effect manager
 		
 		default isActive = false;
 		default duration = 0;
@@ -34,74 +30,74 @@ class CBaseGameplayEffect extends CObject
 		default dontAddAbilityOnTarget = false;
 		default canBeAppliedOnDeadTarget = false;
 
-	
-	protected var isPositive : bool;							
-	protected var isNeutral : bool;							
-	protected var isNegative : bool;							
+	//  STATS & CACHING	
+	protected var isPositive : bool;							//if the effect is considered positive (buff)
+	protected var isNeutral : bool;							// or neutral
+	protected var isNegative : bool;							// or negative (debuff)
 	
 		default isPositive = false;
 		default isNeutral = false;
 		default isNegative = false;
 	
-	protected var isOnPlayer : bool;								
-	protected var isSignEffect : bool;						
-	protected var isPotionEffect : bool;						
-	protected var abilityName : name;							
-	protected  var attributeName : name;						
-	protected const var effectType : EEffectType;				
-	protected var target : CActor;									
-	protected var creatorHandle : EntityHandle;					
-	protected var effectValue : SAbilityAttributeValue;		
-	protected var potionItemName : name;						
+	protected var isOnPlayer : bool;								//is this effect on player character?	
+	protected var isSignEffect : bool;						//if true then this buff is a sign effect
+	protected var isPotionEffect : bool;						//if true then this buff is a potion effect
+	protected var abilityName : name;							//name of ability added on target
+	protected  var attributeName : name;						//name of the attribute used to calculate effect value
+	protected const var effectType : EEffectType;				//effect type
+	protected var target : CActor;									//actor that has this effect applied
+	protected var creatorHandle : EntityHandle;					//entity handle of the owner #DynSave check refs to GetOwner(), much issues, e.g. quest conditions won't work with damage buffs after load, etc.
+	protected var effectValue : SAbilityAttributeValue;		//effect's strength (usage depends on buff type)
+	protected var potionItemName : name;						//name of the potion which granted the buff if it's a potion buff
 
 		default isPotionEffect = false;
 		default isSignEffect = false;
 		default abilityName = '';
 		
 
+	//  INTERACTION WITH OTHER EFFECTS
+	protected var deny : array<EEffectType>;					//list of effects that this one denies
+	protected var override : array<EEffectType>;				//list of effects that this one overrides
+	protected var sourceName : string;						//source of this buff - same sources cumulate others create new instances of the same buff on target
 	
-	protected var deny : array<EEffectType>;					
-	protected var override : array<EEffectType>;				
-	protected var sourceName : string;						
+	//  --==  UI  ==--
 	
-	
-	
-	
-	protected var cameraEffectName : name;				
-	protected var isPlayingCameraEffect : bool;			
-	protected var switchCameraEffect : bool;			
-	protected var isCameraEffectNameValid : bool;		
+	//  FULLSCREEN CAMERA EFFECT
+	protected var cameraEffectName : name;				//camera effect name
+	protected var isPlayingCameraEffect : bool;			//if the effect is currently on, don't change in child classes, see below
+	protected var switchCameraEffect : bool;			//set in child classes - if the camera effect should be switched (on -> off, off -> on)
+	protected var isCameraEffectNameValid : bool;		//if the camera effect is set at all
 	
 		default isPlayingCameraEffect 	= false;
 		default switchCameraEffect 		= true;
 		
+	//  HUD
+	protected var iconPath : string;								//path to the icon file
+	protected var showOnHUD : bool;									//if the icon should be shown on HUD
+	protected var effectNameLocalisationKey : string;				//string database key for text holding this effect's name
+	protected var effectDescriptionLocalisationKey : string;		//string database key for text holding this effect's description
 	
-	protected var iconPath : string;								
-	protected var showOnHUD : bool;									
-	protected var effectNameLocalisationKey : string;				
-	protected var effectDescriptionLocalisationKey : string;		
-	
-		default showOnHUD = true;														
-		default effectNameLocalisationKey = "MISSING_LOCALISATION_KEY_NAME";			
-		default effectDescriptionLocalisationKey = "MISSING_LOCALISATION_KEY_DESC";		
+		default showOnHUD = true;														//if we missed something in XMLs then this will help in catching it	
+		default effectNameLocalisationKey = "MISSING_LOCALISATION_KEY_NAME";			//just to catch bugs
+		default effectDescriptionLocalisationKey = "MISSING_LOCALISATION_KEY_DESC";		//just to catch bugs
 	
 	
-	
-	protected var targetEffectName : name;						
-	protected var shouldPlayTargetEffect : bool;				
+	//  FX ON ACTOR
+	protected var targetEffectName : name;						//name of the effect (particle) to attach to the target
+	protected var shouldPlayTargetEffect : bool;				//if false then the effect should not be played for some reason
 	
 		default shouldPlayTargetEffect = true;
 	
+	//	SOUNDS
+	private var onAddedSound, onRemovedSound : name;			//sounds to fire when effect is added/removed
 	
-	private var onAddedSound, onRemovedSound : name;			
-	
-	
-	protected var vibratePadLowFreq, vibratePadHighFreq : float;	
+	//  PAD RUMBLE
+	protected var vibratePadLowFreq, vibratePadHighFreq : float;	//pad vibration params
 	
 		default vibratePadLowFreq = 0;
 		default vibratePadHighFreq = 0;
 		
-	
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	public function Init(params : SEffectInitInfo)
 	{
@@ -122,7 +118,7 @@ class CBaseGameplayEffect extends CObject
 		if(params.vibratePadHighFreq > 0)
 			vibratePadHighFreq = params.vibratePadHighFreq;
 		
-		
+		//custom ability with stats
 		if(IsNameValid(params.customAbilityName))
 		{
 			abilityName = params.customAbilityName;		
@@ -132,21 +128,21 @@ class CBaseGameplayEffect extends CObject
 			durationSet = true;
 		}
 			
-		if(params.duration != 0 && (!durationSet || (durationSet && duration == 0)) )	
+		if(params.duration != 0 && (!durationSet || (durationSet && duration == 0)) )	//duration might be set from ability which is more important than from inDuration in that case
 			duration = params.duration;
 			
 		isOnPlayer = (CPlayer)target;
 		target.GetResistValue(resistStat, points, resistance);
 		
 		if(params.powerStatValue == null)
-			params.powerStatValue.valueMultiplicative = 1;					
+			params.powerStatValue.valueMultiplicative = 1;					//if not set
 		creatorPowerStat = params.powerStatValue;
 			
-		CalculateDuration(true);			
+		CalculateDuration(true);			//calculates duration based on time 'resistances' and duration bonus
 		timeLeft = duration;
 		
 		if(!IsNameValid(params.customAbilityName) && (params.customEffectValue != null))
-			effectValue = params.customEffectValue;		
+			effectValue = params.customEffectValue;		//if custom value but no custom ability
 		else
 			SetEffectValue();	
 		
@@ -154,7 +150,7 @@ class CBaseGameplayEffect extends CObject
 			targetEffectName = params.customFXName;
 	}
 		
-	
+	//called when the effect is loaded
 	public function OnLoad(t : CActor, eff : W3EffectManager)
 	{
 		target = t;
@@ -167,7 +163,7 @@ class CBaseGameplayEffect extends CObject
 		}
 	}
 	
-	
+	// Calculates and sets final effect value
 	protected function SetEffectValue()
 	{
 		var min, max : SAbilityAttributeValue;
@@ -181,7 +177,11 @@ class CBaseGameplayEffect extends CObject
 		effectValue = GetAttributeRandomizedValue(min, max);
 	}
 		
-	
+	/**
+		SHOULD NOT BE CALLED from outside of effect manager !!!!
+		
+		Caches buff data read from XML
+	*/
 	public function CacheSettings()
 	{
 		var i,size : int;
@@ -207,10 +207,10 @@ class CBaseGameplayEffect extends CObject
 				if( dm.GetCustomNodeAttributeValueBool(main.subNodes[i], 'showOnHUD', tmpBool))
 					showOnHUD = tmpBool;
 				
-				
-				
+				//duration
+				//cannot be cached since it can be random
 								
-				
+				//ability name				
 				if( dm.GetCustomNodeAttributeValueName(main.subNodes[i], 'defaultAbilityName_name', tmpName))
 					abilityName = tmpName;
 									
@@ -223,7 +223,7 @@ class CBaseGameplayEffect extends CObject
 				if( dm.GetCustomNodeAttributeValueBool(main.subNodes[i], 'isPotionEffect', tmpBool))		
 					isPotionEffect = tmpBool;
 					
-				
+				//default potion stats, if potion and hostility not set at all
 				if(isPotionEffect && !isPositive && !isNeutral && !isNegative)
 				{
 					isPositive = true;
@@ -231,19 +231,19 @@ class CBaseGameplayEffect extends CObject
 					isNegative = false;
 				}
 					
-				
+				//sounds
 				if( dm.GetCustomNodeAttributeValueName(main.subNodes[i], 'onStartSound_name', tmpName))		
 					onAddedSound = tmpName;
 				if( dm.GetCustomNodeAttributeValueName(main.subNodes[i], 'onStopSound_name', tmpName))		
 					onRemovedSound = tmpName;	
 					
-				
+				//localisation
 				if( dm.GetCustomNodeAttributeValueName(main.subNodes[i], 'effectNameLocalisationKey_name', tmpName))		
 					effectNameLocalisationKey = tmpName;
 				if( dm.GetCustomNodeAttributeValueName(main.subNodes[i], 'effectDescriptionLocalisationKey_name', tmpName))		
 					effectDescriptionLocalisationKey = tmpName;
 					
-				
+				//buff interactions
 				temp = dm.GetCustomDefinitionSubNode(main.subNodes[i],'denies');
 				if(temp.values.Size() > 0)
 				{
@@ -278,11 +278,11 @@ class CBaseGameplayEffect extends CObject
 			}			
 		}
 
-		
+		//if here, then effect definition not found
 		LogEffects("BaseEffect.Initialize: Cannot find GUI definitions in xml file for effect " + this);
 	}
 	
-	
+	//called when resists change and we need to recalc effect duration because of that
 	public function RecalcDuration()
 	{
 		var prevDuration, points : float;
@@ -290,18 +290,20 @@ class CBaseGameplayEffect extends CObject
 		if(duration == -1)
 			return;
 		
-		
+		//update resistance
 		target.GetResistValue(resistStat, points, resistance);
 		
-		
+		//update duration
 		prevDuration = duration;
 		CalculateDuration();
 		
-		
+		//update time left		
 		timeLeft = timeLeft * duration / prevDuration;
 	}
 	
-	
+	/**
+		Calculates final duration of the effect
+	*/
 	protected function CalculateDuration(optional setInitialDuration : bool)
 	{
 		var durationResistance : float;
@@ -321,10 +323,10 @@ class CBaseGameplayEffect extends CObject
 		if( duration == -1)
 			return;
 			
-		
+		//multipliers of 'attacker' and 'defender'
 		if(isNegative)
 		{
-			
+			//for purpose of duration calculation we might have to cap resistances at 99%
 			if(IsCriticalEffect(this))
 				durationResistance = MinF(0.99f, resistance);
 			else
@@ -340,7 +342,7 @@ class CBaseGameplayEffect extends CObject
 		return abilityName;
 	}
 	
-	
+	//called when effect was added on target, after making sure it added properly and EffectManger has added it to it's effects array
 	event OnEffectAddedPost()
 	{
 		var localizationKey : string;
@@ -354,7 +356,10 @@ class CBaseGameplayEffect extends CObject
 		}
 	}
 	
-	
+	/**
+		Initializes instantiated buff data so IT MUST BE CALLED AS FIRST INSTRUCTION IF OVERRIDEN
+		Called when the effect is being added to target. Actually it should be called OnEffectAdding()
+	*/
 	event OnEffectAdded(optional customParams : W3BuffCustomParams)
 	{
 		var i : int;
@@ -364,14 +369,14 @@ class CBaseGameplayEffect extends CObject
 		isActive = true;		
 		timeActive = 0.0f;
 		
-		
+		//add abilities
 		if(IsNameValid(abilityName) && !dontAddAbilityOnTarget)
 			target.AddAbility(abilityName, true);	
 				
-		
+		//character fx effect
 		PlayTargetFX();
 				
-		
+		//camera effect
 		isCameraEffectNameValid = IsNameValid(cameraEffectName);		
 		if(isOnPlayer && switchCameraEffect && isCameraEffectNameValid)
 		{
@@ -384,11 +389,11 @@ class CBaseGameplayEffect extends CObject
 			isPlayingCameraEffect = false;
 		}
 		
-		
+		//sound
 		if(isOnPlayer && IsNameValid(onAddedSound))
 			theSound.SoundEvent(onAddedSound);
 				
-		
+		//pad vibration
 		if(isOnPlayer && (vibratePadLowFreq > 0 || vibratePadHighFreq > 0) )
 		{
 			theGame.VibrateController(vibratePadLowFreq, vibratePadHighFreq, duration);
@@ -404,54 +409,62 @@ class CBaseGameplayEffect extends CObject
 		LogEffects("BaseEffect.OnEffectAdded: effect " + this + " added to " + target + ", duration="+NoTrailZeros(duration));
 	}
 	
-	
+	/*
+		Checks conditions and plays given target FX if possible. Makes sure that given FX won't be played
+		more than once on target even if it is from different effects or same effects of different source type.
+	*/
 	protected function PlayTargetFX()
 	{
 		if(IsNameValid(targetEffectName) && shouldPlayTargetEffect)
 		{				
-			
+			//play it only if not played already
 			if(!effectManager.IsPlayingFX(targetEffectName))
+			{
+				target.DestroyEffectIfActive(targetEffectName);
 				target.PlayEffect(targetEffectName);
+			}
 				
-			
+			//inform effect manager that we want to play fx
 			effectManager.AddPlayedFX(targetEffectName, sourceName);
 		}
 	}
 	
-		
+	/*
+		Stops given FX effect.
+	*/	
 	protected function StopTargetFX()
 	{
 		if(IsNameValid(targetEffectName) && !shouldPlayTargetEffect)
 		{			
-			
+			//stop it only if nothing else is playing it
 			if(effectManager.ShouldStopFx(targetEffectName))
 				target.StopEffect(targetEffectName);
 				
-			
+			//inform effect manager that we no longer need fx
 			effectManager.RemovePlayedFX(targetEffectName, sourceName);
 		}
 	}
 	
-	
+	// Called when buff is removed from target
 	event OnEffectRemoved()
 	{
 		var i : int;
 	
 		isActive = false;
 		
-		
+		//remove abilities
 		if(IsNameValid(abilityName))
 			target.RemoveAbility(abilityName);
 		
-		
+		//disable camera effect
 		if(isOnPlayer && isPlayingCameraEffect && isCameraEffectNameValid)
 			thePlayer.StopEffect(cameraEffectName);
 		
-		
+		//target fx effect
 		shouldPlayTargetEffect = false;
 		StopTargetFX();
 						
-		
+		//sound
 		if(isOnPlayer && IsNameValid(onRemovedSound))
 			theSound.SoundEvent(onRemovedSound);
 			
@@ -461,17 +474,17 @@ class CBaseGameplayEffect extends CObject
 		LogEffects("BaseEffect.OnEffectRemoved: effect <<" + this + ">> removed from <<" + target + ">>");
 	}
 	
-	
+	// Called by Effect Manager to update this buff's status
 	event OnUpdate(dt : float)
 	{
 		SwitchCameraEffect();
 		PlayTargetFX();		
 	}
 	
-	
+	// Switches camera effect (on -> off, off ->on)
 	private function SwitchCameraEffect()
 	{
-		
+		//camera effect handling
 		if(isCameraEffectNameValid && isOnPlayer && switchCameraEffect)
 		{
 			if(isPlayingCameraEffect)
@@ -496,17 +509,19 @@ class CBaseGameplayEffect extends CObject
 	
 	public function OnTargetDeathAnimFinished(){}
 	
+	//////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////  BUFF INTERACTIONS  //////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
-	
-	
+	/*
+		Gets interaction between two effects (how THIS effect reacts to the other one).
+	*/
 	public final function GetInteraction( effect : CBaseGameplayEffect) : EEffectInteract
 	{
 		var i,size : int;
 		var tmp : EEffectInteract;
 		
-		
+		//denies are strongest
 		size = deny.Size();
 		for(i=0; i<size; i+=1)
 		{
@@ -514,7 +529,7 @@ class CBaseGameplayEffect extends CObject
 				return EI_Deny;
 		}
 		
-		
+		//overrides
 		size = override.Size();
 		for(i=0; i<size; i+=1)
 		{
@@ -522,7 +537,7 @@ class CBaseGameplayEffect extends CObject
 				return EI_Override;
 		}
 		
-		
+		//interaction with the same effect
 		if(effectType == effect.effectType)
 		{
 			tmp = GetSelfInteraction(effect);
@@ -530,29 +545,41 @@ class CBaseGameplayEffect extends CObject
 				return tmp;
 		}
 				
-		
+		//pass by default
 		return EI_Pass;
 	}
 	
-	
+	// Gets interaction with another effect of the same type as this one. Decides "What will I do with the other effect?"
 	protected function GetSelfInteraction( e : CBaseGameplayEffect) : EEffectInteract
 	{
 		var thisVal, otherVal : float;
 		
+		//potion effects granted by skill need to be overriden if we drink that potion while the skill's buff is active
+		if( isPotionEffect && e.isPotionEffect && e.sourceName == "alchemy_s4" )
+		{
+			return EI_Override;
+		}
 		
+		//if different sources return to check overrides and denies, if ok then pass
 		if(sourceName != e.sourceName)
+		{
 			return EI_Undefined;
+		}
 
 		thisVal = GetEffectStrength();
 		otherVal = e.GetEffectStrength();
 		
 		if(thisVal > otherVal)
+		{
 			return EI_Override;
+		}
 		else if(thisVal < otherVal)
-			return EI_Pass;				
+		{
+			return EI_Pass;				//allow to be overriden
+		}
 		else
 		{
-			
+			//special case - if this is a critical effect with timeLeft<=0 (finishing) then don't override it - the animation stop has already begun and we cannot redraw that
 			if(timeLeft <= 0 && IsCriticalEffect(this))
 				return EI_Pass;
 		
@@ -563,14 +590,25 @@ class CBaseGameplayEffect extends CObject
 		}
 	}
 	
-	
+	/*
+		Gets how much the effect value would gain if THIS effect would be applied to target. This is called
+		when deciding if given created but not applied effect should be added to target. The effect 
+		strength depends on many things so such a function is needed. It is also needed because we need
+		the final value of the effect to e.g. decide if an effect would cumulate or override with other.
+	*/
 	protected function GetEffectStrength() : float
 	{
-		
+		//default, otherwise override
 		return CalculateAttributeValue(effectValue);
 	}
 	
-	
+	/*
+		Cumulation occurs *only* if the new effect has longer duration and *the same value and type*.
+		Practically kind of a copy constructor - we take the stats of the new effect (later that effect
+		is destroyed). This way we don't have to remove this effect and apply the new one (optimization).
+		Also doing that would cause all OnEffectAdded/Removed functions to be called and e.g. we would
+		get the start/end particles shown which is not desired.
+	*/
 	public function CumulateWith(effect: CBaseGameplayEffect)
 	{
 		timeLeft = effect.timeLeft;
@@ -585,7 +623,7 @@ class CBaseGameplayEffect extends CObject
 			target.AddAbility(effect.abilityName);
 		}
 		
-		abilityName = effect.abilityName;	
+		abilityName = effect.abilityName;	//might be different / custom from new buff
 		
 		if(isOnPlayer)
 		{
@@ -596,19 +634,19 @@ class CBaseGameplayEffect extends CObject
 				theGame.OverrideRumbleDuration(vibratePadLowFreq, vibratePadHighFreq, timeLeft);
 		}
 		
-		
+		//sound
 		if(isOnPlayer && IsNameValid(onAddedSound))
 			theSound.SoundEvent(onAddedSound);
 	}
 	
-	
-	
-	
-	
-	public function CheckCustomCounter()
-	{}
-	
-	
+	//////////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////  OTHER  ///////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////////////
+		
+	/**
+		Called to update the effect's logic. If the time runs out final update *is* performed and the
+		isActive var is set to false. On next EffectManager update the buff will be removed.
+	*/
 	public function OnTimeUpdated(dt : float)
 	{	
 		var toxicityThreshold : float;
@@ -626,7 +664,7 @@ class CBaseGameplayEffect extends CObject
 						toxicityThreshold = thePlayer.GetStatMax(BCS_Toxicity) * (1 - CalculateAttributeValue( thePlayer.GetSkillAttributeValue(S_Alchemy_s03, 'toxicity_threshold', false, true) ) * thePlayer.GetSkillLevel(S_Alchemy_s03));
 						if(thePlayer.GetStat(BCS_Toxicity, true) > toxicityThreshold)
 						{
-							
+							//keep it going for as long as there is some toxicity left
 						}
 						else
 						{
@@ -635,7 +673,7 @@ class CBaseGameplayEffect extends CObject
 					}
 					else
 					{
-						isActive = false;		
+						isActive = false;		//this will be the last call
 					}
 				}
 			}
@@ -643,7 +681,7 @@ class CBaseGameplayEffect extends CObject
 		}
 	}
 	
-	
+	// Increases the pause lock-counter. If singleLock is set then the lock does not have counter - only on/off state.
 	public function Pause( sourceName : name, optional singleLock : bool )
 	{
 		var i : int;
@@ -672,7 +710,7 @@ class CBaseGameplayEffect extends CObject
 		if(isPlayingCameraEffect)
 		{
 			switchCameraEffect = true;
-			SwitchCameraEffect();	
+			SwitchCameraEffect();	//since update will not call as effect will be paused in next tick
 		}
 		
 		OnPaused();
@@ -686,7 +724,7 @@ class CBaseGameplayEffect extends CObject
 		ResumeInternal(sourceName);
 	}
 	
-	
+	//Forcefully removes all locks from buff
 	public final function ResumeForced()
 	{
 		ResumeInternal('', true);
@@ -736,13 +774,16 @@ class CBaseGameplayEffect extends CObject
 		return false;
 	}
 		
-	
+	// Returns current remaining duration of this buff
 	public function GetDurationLeft() : float							{return timeLeft;}	
 	
+	// Returns *initial* duration of this buff (after resists)
+	public function GetInitialDurationAfterResists() : float			{return duration;}	
 	
-	public function GetInitialDuration() : float						{return duration;}	
+	// Returns initial duration of this buff without resistances taken into consideration
+	public function GetInitialDuration() : float 						{return initialDuration;}
 	
-	
+	// Returns the entity that created and applied the effect on target
 	public function GetCreator() : CGameplayEntity
 	{
 		return (CGameplayEntity)EntityHandleGet(creatorHandle);
@@ -752,9 +793,10 @@ class CBaseGameplayEffect extends CObject
 	public function IsNegative() : bool									{return isNegative;}
 	public function IsNeutral() : bool									{return isNeutral;}
 	public function ShowOnHUD() : bool									{return showOnHUD;}
+	public function SetShowOnHUD( b : bool )							{ showOnHUD = b; }
+	public function GetShowOnHUD() : bool								{return showOnHUD;}
 	public function GetIcon() : string									{return iconPath;}
 	public function IsActive() : bool									{return isActive;}	
-	public function UsesCustomCounter() : bool							{return usesCustomCounter;}
 	public function GetEffectNameLocalisationKey() : string				
 	{
 		var str: string;
@@ -873,5 +915,33 @@ class CBaseGameplayEffect extends CObject
 	public function GetEffectValue() : SAbilityAttributeValue
 	{
 		return effectValue;
+	}
+	
+	public function IsAddedByPlayer() : bool
+	{
+		var gpEnt : CGameplayEntity;
+		var sign : W3SignEntity;
+		var petard : W3Petard;
+		
+		gpEnt = GetCreator();
+		
+		if( gpEnt == thePlayer )
+		{
+			return true;
+		}
+		
+		petard = (W3Petard)gpEnt;
+		if( petard && petard.GetOwner() == thePlayer )
+		{
+			return true;
+		}
+		
+		sign = (W3SignEntity)gpEnt;
+		if( sign && sign.GetOwner() == thePlayer )
+		{
+			return true;
+		}
+		
+		return false;
 	}
 }

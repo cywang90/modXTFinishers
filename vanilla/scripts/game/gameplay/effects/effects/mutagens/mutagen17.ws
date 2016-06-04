@@ -1,10 +1,7 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2014
+/** Author : Tomek Kozera
 /***********************************************************************/
-
-
 
 class W3Mutagen17_Effect extends W3Mutagen_Effect
 {
@@ -45,7 +42,7 @@ class W3Mutagen17_Effect extends W3Mutagen_Effect
 	public function OnLoad(t : CActor, eff : W3EffectManager)
 	{
 		super.OnLoad(t, eff);
-		target.RemoveAbility(abilityName);	
+		target.RemoveAbility(abilityName);	//just to be sure, should not happen ever
 	}
 	
 	public function ClearBoost()

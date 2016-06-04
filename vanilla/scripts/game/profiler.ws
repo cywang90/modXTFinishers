@@ -1,10 +1,5 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
+﻿
+// Functions used to turn  ON/OFF new profiler
 import function PROFILER_Init( bufforSize : int );
 import function PROFILER_InitEx( bufforSize : int, bufforSignalsSize : int );
 import function PROFILER_ScriptEnable();

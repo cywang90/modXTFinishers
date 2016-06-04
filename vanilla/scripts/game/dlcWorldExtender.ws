@@ -1,11 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file
 /***********************************************************************/
-
-
-
+/** Exports for CR4WorldDLCExtender
+/** Copyright © 2015
+/***********************************************************************/
 
 import class CR4WorldDLCExtender extends CObject
 {
@@ -34,4 +32,6 @@ import class CR4WorldDLCExtender extends CObject
 	import public function GetMiniMapZoom12( areaType : int ) : float;
 	import public function GetMiniMapZoom23( areaType : int ) : float;
 	import public function GetMiniMapZoom34( areaType : int ) : float;
+	import public function GetGradientScale( areaType : int ) : float;
+	import public function GetPreviewHeight( areaType : int ) : float;
 }

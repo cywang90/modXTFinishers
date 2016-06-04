@@ -1,31 +1,26 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
-
-
-
-
-
-
-
-
+﻿//>--------------------------------------------------------------------------
+// W3FireAuraManagerComponent
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Stop the fire aura when the entity is hit by Aard, reactivate it when hit by Ignii
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// R.Pergent - 05-August-2014
+// Copyright © 2014 CD Projekt RED
+//---------------------------------------------------------------------------
 class W3FireAuraManagerComponent extends CR4Component
 {
-	
-	
-	
+	//>--------------------------------------------------------------------------
+	// VARIABLES
+	//---------------------------------------------------------------------------
 	editable var fireAuraEffect			: name;	
 	hint fireAuraEffect		= "effect to play or stop when the fire aura is activated or deactivated";
-	
+	// private
 	private var m_PostFxOnGroundCmp		: W3PostFXOnGroundComponent;
 	
 	
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	event OnComponentAttached()
 	{
 		var l_actor : CActor;
@@ -35,20 +30,20 @@ class W3FireAuraManagerComponent extends CR4Component
 		l_actor.AddAnimEventChildCallback(this,'DeactivateFireAura','OnAnimEvent_DeactivateFireAura');
 		m_PostFxOnGroundCmp = (W3PostFXOnGroundComponent) l_actor.GetComponentByClassName('W3PostFXOnGroundComponent');
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	event OnAardHit ( )
 	{
 		DeactivateAura();
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	event OnIgniHit ( )
 	{
 		ActivateAura();
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	public function DeactivateAura()
 	{
 		var l_actor : CActor;
@@ -60,8 +55,8 @@ class W3FireAuraManagerComponent extends CR4Component
 		
 		m_PostFxOnGroundCmp.StopTicking();
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	public function ActivateAura()
 	{
 		var l_actor : CActor;

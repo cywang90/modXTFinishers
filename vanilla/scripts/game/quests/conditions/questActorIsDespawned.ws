@@ -1,13 +1,15 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** 
+/***********************************************************************/
+/** Copyright © 2012
+/** Author : Tomasz Kozera
 /***********************************************************************/
 
-
-
-
-
+/**	
+	Checks if all actors are despawned BUT NOT dead
+	
+	Cannot be an actor condition because if the actor is despawned then the CActor parameter is not set and the function is not called at all.
+*/
 
 class W3QuestCond_ActorIsDespawned_Listener extends IGlobalEventScriptedListener
 {

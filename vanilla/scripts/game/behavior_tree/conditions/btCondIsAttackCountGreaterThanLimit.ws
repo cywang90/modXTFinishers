@@ -1,15 +1,12 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** 
 /***********************************************************************/
-
-
-
+/** Copyright © 2014
+/** Author : Marwin So
+/***********************************************************************/
 
 class CBTCondIsAttackCountGreaterThanLimit extends IBehTreeTask
 {
-	private var storageHandler : CAIStorageHandler;
 	protected var combatDataStorage : CExtendedAICombatStorage;
 
 	public var attackCountLimit		: int;
@@ -28,8 +25,7 @@ class CBTCondIsAttackCountGreaterThanLimit extends IBehTreeTask
 	
 	function Initialize()
 	{
-		storageHandler = InitializeCombatStorage();
-		combatDataStorage = (CExtendedAICombatStorage)storageHandler.Get();
+		combatDataStorage = (CExtendedAICombatStorage)InitializeCombatStorage();
 	}	
 };
 
@@ -47,7 +43,6 @@ class CBTCondIsAttackCountGreaterThanLimitDef extends IBehTreeConditionalTaskDef
 
 class CBTModifyAttackCount extends IBehTreeTask
 {
-	private var storageHandler : CAIStorageHandler;
 	protected var combatDataStorage : CExtendedAICombatStorage;
 	
 	public var attackName			: name;
@@ -72,8 +67,7 @@ class CBTModifyAttackCount extends IBehTreeTask
 	
 	function Initialize()
 	{
-		storageHandler = InitializeCombatStorage();
-		combatDataStorage = (CExtendedAICombatStorage)storageHandler.Get();
+		combatDataStorage = (CExtendedAICombatStorage)InitializeCombatStorage();
 	}	
 };
 

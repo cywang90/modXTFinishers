@@ -1,23 +1,18 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
-
-
-
-
-
-
-
-
+﻿//>--------------------------------------------------------------------------
+// BTCondCanLandAtPosition
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Check if there is space to land at the specified position
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// R.Pergent - 09-May-2014
+// Copyright © 2014 CD Projekt RED
+//---------------------------------------------------------------------------
 class BTCondCanLandAtPosition extends IBehTreeTask
 {
-	
-	
-	
+	//>--------------------------------------------------------------------------
+	// VARIABLES
+	//---------------------------------------------------------------------------
 	public var localOffset 				: Vector;
 	public var checkLineOfSight			: bool;
 	public var maxDistanceFromGround	: float;
@@ -25,8 +20,8 @@ class BTCondCanLandAtPosition extends IBehTreeTask
 	
 	private var m_CollisionGroupNames : array<name>;
 	private var m_ObstaclesGroupNames : array<name>;
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function Initialize()
 	{
 		m_CollisionGroupNames.PushBack('Terrain');
@@ -36,8 +31,8 @@ class BTCondCanLandAtPosition extends IBehTreeTask
 		m_ObstaclesGroupNames.PushBack('Foliage');
 		m_ObstaclesGroupNames.PushBack('Static');
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function IsAvailable() : bool
 	{
 		var l_npc 			: CNewNPC = GetNPC();
@@ -67,7 +62,7 @@ class BTCondCanLandAtPosition extends IBehTreeTask
 			return false;
 		}
 		
-		
+		// If the landing position is too low
 		if ( !theGame.GetWorld().NavigationComputeZ( l_posToTest, l_posToTest.Z - maxDistanceFromGround, l_posToTest.Z, l_groudLevel ) )
 		{
 			return false;
@@ -88,10 +83,10 @@ class BTCondCanLandAtPosition extends IBehTreeTask
 		l_npcRadius	 = l_npc.GetRadius();
 		l_landRadius = l_npcRadius * 2.0f;
 		
-		
+		// Debug
 		l_rotation = l_npc.GetWorldRotation();
 		
-		
+		// If I cannot reach landing position
 		if ( checkLineOfSight && theGame.GetWorld().SweepTest( l_pos , l_ground + Vector(0,0,1), l_landRadius, l_temp1, l_temp2, m_ObstaclesGroupNames ) )
 		{
 			l_npc.GetVisualDebug().AddText('landingAreaText', "Obstacle To landing", l_temp1, true, 14 );
@@ -99,10 +94,10 @@ class BTCondCanLandAtPosition extends IBehTreeTask
 			return false;
 		}
 		
-		
+		// If the landing position has obstacles
 		if( !theGame.GetWorld().NavigationCircleTest( l_ground, l_landRadius ) )
 		{
-			
+			// Debug
 			l_npc.GetVisualDebug().AddText('landingAreaText', "Cannot Land here", l_ground, true, 14 );
 			l_npc.GetVisualDebug().AddBox( 'landingArea', Vector( l_landRadius, l_landRadius, 20), l_ground - Vector( l_landRadius * 0.5f, l_landRadius * 0.5f, 0 ) , l_rotation, true, Color(255,0,0), 10 );
 			return false;
@@ -114,15 +109,15 @@ class BTCondCanLandAtPosition extends IBehTreeTask
 	}
 	
 }
-
-
+//>--------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 class BTCondCanLandAtPositionDef extends IBehTreeConditionalTaskDefinition
 {
 	default instanceClass = 'BTCondCanLandAtPosition';
 
-	
-	
-	
+	//>--------------------------------------------------------------------------
+	// VARIABLES
+	//---------------------------------------------------------------------------
 	editable var localOffset 			: Vector;
 	editable var checkLineOfSight		: bool;
 	editable var maxDistanceFromGround	: CBehTreeValFloat;
@@ -133,6 +128,6 @@ class BTCondCanLandAtPositionDef extends IBehTreeConditionalTaskDefinition
 	
 	hint localOffset 				= "Offset from me (in local). x is right, y is forward, the z value is not taken into consideration";
 	hint maxDistanceFromGround 		= "max distance between my current height and the ground height at the localOffset location to be able to land";
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 }

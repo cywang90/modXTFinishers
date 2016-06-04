@@ -1,22 +1,17 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
-
-
-
-
-
-
-
+﻿//>--------------------------------------------------------------------------
+// BTTaskForceFinisher
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Forces finisher on selected conditions
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Copyright © 2015 CD Projekt RED
+//---------------------------------------------------------------------------
 class BTTaskForceFinisher extends IBehTreeTask
 {
-	
-	
-	
+	//>----------------------------------------------------------------------
+	// VARIABLES
+	//-----------------------------------------------------------------------
 	private var belowHealthPercent				: float;
 	private var whenAlone						: bool;
 	private var leftStanceFinisherAnimName 		: name;
@@ -26,16 +21,16 @@ class BTTaskForceFinisher extends IBehTreeTask
 	
 	private var m_Npc							: CNewNPC;
 	
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function Initialize()
 	{
 		hasFinisherDLC = theGame.GetDLCManager().IsDLCEnabled( 'dlc_016_001' );
 		m_Npc = GetNPC();		
 	}
 	
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	latent function Main() : EBTNodeStatus
 	{
 		while(true)
@@ -53,8 +48,8 @@ class BTTaskForceFinisher extends IBehTreeTask
 		return BTNS_Active;
 	}
 	
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	private function ForceFinisher( b : bool )
 	{
 		var l_player : CR4Player = thePlayer;
@@ -82,8 +77,8 @@ class BTTaskForceFinisher extends IBehTreeTask
 		}
 	}
 	
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	private function ForceDefaultFinisher( b : bool )
 	{
 		var l_player : CR4Player = thePlayer;
@@ -106,8 +101,8 @@ class BTTaskForceFinisher extends IBehTreeTask
 		}
 	}
 	
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	private function NumberOfOpponents() : int
 	{
 		var target 				: CActor = GetCombatTarget();
@@ -123,8 +118,8 @@ class BTTaskForceFinisher extends IBehTreeTask
 			return opponentsNum;
 	}
 	
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function OnListenedGameplayEvent( eventName : name ) : bool
 	{
 		var l_player : CR4Player = thePlayer;
@@ -138,8 +133,8 @@ class BTTaskForceFinisher extends IBehTreeTask
 	}
 }
 
-
-
+//>--------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 class BTTaskForceFinisherDef extends IBehTreeTaskDefinition
 {
 	default instanceClass = 'BTTaskForceFinisher';
@@ -156,8 +151,8 @@ class BTTaskForceFinisherDef extends IBehTreeTaskDefinition
 	default leftStanceFinisherAnimName = 'man_finisher_04_lp';
 	default rightStanceFinisherAnimName = 'man_finisher_05_rp';
 	
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function InitializeEvents()
 	{
 		super.InitializeEvents();

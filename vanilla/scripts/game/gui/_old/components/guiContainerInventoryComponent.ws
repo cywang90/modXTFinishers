@@ -1,18 +1,23 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-abstract class W3CommonContainerInventoryComponent extends W3GuiBaseInventoryComponent
+﻿abstract class W3CommonContainerInventoryComponent extends W3GuiBaseInventoryComponent
 {
-	
+	//protected var _dpContainer : W3ContainerDataProvider; // #B deprecated
 
 	public function GiveAllItems( receiver : W3GuiBaseInventoryComponent )
 	{
+		// Just get an array of item ids from flash (but then flash would need to convert and send an array... on top of everything else).
+	// TBD: Consider caching the item ids after filtering, or flash giving us an array of items
 		
-	
-		
-		
+		/*
+		for ( i = 0; i < items.Size(); i += 1 )
+		{		
+			item = rawItems[i];
+			
+			if ( ShouldShowItem( item ) )
+			{
+				GiveItem( item, receiver );
+			}
+		}
+		*/
 	}
 		
 	public function GetItemActionType( item : SItemUniqueId, optional bGetDefault : bool) : EInventoryActionType
@@ -20,7 +25,7 @@ abstract class W3CommonContainerInventoryComponent extends W3GuiBaseInventoryCom
 		return IAT_Transfer;
 	}	
 
-	public function HideAllItems( ) : void 
+	public function HideAllItems( ) : void // #B
 	{
 		var i : int;
 		var item : SItemUniqueId;
@@ -48,7 +53,7 @@ abstract class W3CommonContainerInventoryComponent extends W3GuiBaseInventoryCom
 		
 		_inv.GetItemTags( item, itemTags );
 		
-		
+		// Automatically exclude
 		if ( itemTags.Contains( 'NoShowInContainer' ) )
 		{
 			return false;
@@ -62,32 +67,32 @@ class W3GuiTakeOnlyContainerInventoryComponent extends W3CommonContainerInventor
 {	
 	public function ReceiveItem( item : SItemUniqueId, giver : W3GuiBaseInventoryComponent, optional quantity : int, optional newItemID : SItemUniqueId ) : bool
 	{
-
+//		LogError( "W3GuiContainerInventoryComponent::ReceiveItem: Can't give an item to a container! Item name=" + giver._inv.GetItemName( item ) );
 		return false;
 	}
 }
 
+//--------------------------------------------------------------------------------------------------------
 
-
-class W3GuiContainerInventoryComponent extends W3CommonContainerInventoryComponent 
+class W3GuiContainerInventoryComponent extends W3CommonContainerInventoryComponent // #B deprecated
 {
 	public var dontShowEquipped:bool; default dontShowEquipped = false;
 	
-	public function ReceiveItem( item : SItemUniqueId, giver : W3GuiBaseInventoryComponent, optional quantity : int, optional newItemID : SItemUniqueId  ) : bool 
+	public function ReceiveItem( item : SItemUniqueId, giver : W3GuiBaseInventoryComponent, optional quantity : int, optional newItemID : SItemUniqueId  ) : bool //#B
 	{
 		var invalidatedItems, newIds : array< SItemUniqueId >;
 		var newItem : SItemUniqueId;
 		var success: bool;
 		var itemName : name;
-		
+		//var itemQuantity : int;
 		if( quantity  < 1 )
 		{
 			quantity = 1;
 		}
 		success = false;
 		itemName = giver._inv.GetItemName(item);
-		
-		giver._inv.RemoveItem(item,quantity); 
+		//quantity = giver._inv.GetItemQuantity(item);
+		giver._inv.RemoveItem(item,quantity); //#B FIXME - item quantity
 		newIds = _inv.AddAnItem(itemName,quantity,true,true);
 		newItem = newIds[0];
 		if ( newItem != GetInvalidUniqueId() )
@@ -127,4 +132,4 @@ class W3GuiContainerInventoryComponent extends W3CommonContainerInventoryCompone
 	}
 }
 
-
+//--------------------------------------------------------------------------------------------------------

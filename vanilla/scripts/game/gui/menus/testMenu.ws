@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-class CR4TestMenu extends CR4MenuBase
+﻿class CR4TestMenu extends CR4MenuBase
 {
 	private var entityTemplateIndex : int;			default entityTemplateIndex = 0;
 	private var appearanceIndex : int;				default appearanceIndex = 0;
@@ -14,7 +9,7 @@ class CR4TestMenu extends CR4MenuBase
 	
 	private var sunRotation : EulerAngles;
 
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{
 		super.OnConfigUI();
 		theInput.StoreContext( 'EMPTY_CONTEXT' );
@@ -37,12 +32,12 @@ class CR4TestMenu extends CR4MenuBase
 		UpdateItems();
 	}
 
-	event  OnClosingMenu()
+	event /* C++ */ OnClosingMenu()
 	{
 		theInput.RestoreContext( 'EMPTY_CONTEXT', false );
 	}
 	
-	event  OnCameraUpdate( lookAtX : float, lookAtY : float, lookAtZ : float, cameraYaw : float, cameraPitch : float, cameraDistance : float )
+	event /*flash*/ OnCameraUpdate( lookAtX : float, lookAtY : float, lookAtZ : float, cameraYaw : float, cameraPitch : float, cameraDistance : float )
 	{
 		var lookAtPos : Vector;
 		var cameraRotation : EulerAngles;
@@ -61,14 +56,14 @@ class CR4TestMenu extends CR4MenuBase
 		theGame.GetGuiManager().SetupSceneCamera( lookAtPos, cameraRotation, cameraDistance, fov );
 	}
 	
-	event  OnSunUpdate( sunYaw : float, sunPitch : float )
+	event /*flash*/ OnSunUpdate( sunYaw : float, sunPitch : float )
 	{
 		sunRotation.Yaw = sunYaw;
 		sunRotation.Pitch = sunPitch;
 		UpdateEnvironmentAndSunRotation();
 	}
 
-	event  OnNextEntityTemplate()
+	event /*flash*/ OnNextEntityTemplate()
 	{
 		entityTemplateIndex += 1;
 		entityTemplateIndex = entityTemplateIndex % entityTemplates.Size();
@@ -82,7 +77,7 @@ class CR4TestMenu extends CR4MenuBase
 		
 	}
 
-	event  OnNextAppearance()
+	event /*flash*/ OnNextAppearance()
 	{
 		appearanceIndex += 1;
 		appearanceIndex = appearanceIndex % appearances.Size();
@@ -90,7 +85,7 @@ class CR4TestMenu extends CR4MenuBase
 		UpdateApperance();
 	}
 
-	event  OnNextEnvironmentDefinition()
+	event /*flash*/ OnNextEnvironmentDefinition()
 	{
 		environmentDefinitionIndex += 1;
 		environmentDefinitionIndex = environmentDefinitionIndex % environmentDefinitions.Size();
@@ -98,12 +93,12 @@ class CR4TestMenu extends CR4MenuBase
 		UpdateEnvironmentAndSunRotation();
 	}
 
-	event  OnCloseMenu()
+	event /*flash*/ OnCloseMenu()
 	{
 		CloseMenu();
 	}
 	
-	event  OnCloseMenuTemp()
+	event /*flash*/ OnCloseMenuTemp()
 	{
 		CloseMenu();
 	}
@@ -163,7 +158,7 @@ class CR4TestMenu extends CR4MenuBase
 					enhancements.PushBack( info );
 				}
 			}
-			theGame.GetGuiManager().UpdateSceneEntityItems( items, enhancements );
+			//theGame.GetGuiManager().UpdateSceneEntityItems( items, enhancements );
 		}
 	}
 

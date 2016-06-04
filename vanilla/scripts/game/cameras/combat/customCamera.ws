@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-enum ECameraAnimPriority
+﻿enum ECameraAnimPriority
 {
 	CAP_Lowest,
 	CAP_Low,
@@ -88,7 +83,7 @@ import class CCustomCamera extends CEntity
 	
 
 	import final function SetCollisionOffset( offset : Vector );
-	
+	//import final function GetCollisionOffset() : Vector;
 	
 	function ResetCollisionOffset()
 	{
@@ -102,7 +97,7 @@ import class CCustomCamera extends CEntity
 		fov = val;
 	}
 	
-	
+	////////////////////////////////////////
 
 	timer function TimerTurnOnEffect( td : float , id : int)
 	{
@@ -111,12 +106,12 @@ import class CCustomCamera extends CEntity
 	
 	import final function GetActivePreset() : SCustomCameraPreset;
 	
+	//TODO MR:
 	
-	
-	
+	// REMOVE
 		function ChangePivotController( controllerName : name, optional blendTime : float, optional forcePosition : bool ) : bool { return false; }
 		function ChangeMovementController( controllerName : name ) : bool { return false; }
-	
+	// /REMOVE
 	
 	
 	import final function SetAllowAutoRotation( allow : bool );

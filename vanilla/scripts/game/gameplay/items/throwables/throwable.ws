@@ -1,17 +1,14 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © ?-2013
+/** Authors: ?, Tomek Kozera
 /***********************************************************************/
-
-
 
 statemachine class CThrowable extends CProjectileTrajectory
 {
 	protected var ownerHandle : EntityHandle;
-	protected var wasThrown : bool;					
+	protected var wasThrown : bool;					//set to true when the projectile has been launched
 	protected var itemId : SItemUniqueId;
-	protected var isFromAimThrow : bool;			
+	protected var isFromAimThrow : bool;			//set to true if throwable was thrown with aiming mode
 	
 	default wasThrown = false;
 	
@@ -32,7 +29,7 @@ statemachine class CThrowable extends CProjectileTrajectory
 		
 		ownerPlayer = (CR4Player)GetOwner();
 		
-		
+		//item throwing
 		if ( animEventName == 'ProjectileAttach' )
 		{		
 			if ( !CreateAttachment( GetOwner(), 'l_weapon' ) )
@@ -43,7 +40,7 @@ statemachine class CThrowable extends CProjectileTrajectory
 		}
 		else if ( animEventName == 'ProjectileThrow' )
 		{
-			
+			//if item was removed somehow (e.g. from inventory panel)
 			if( !GetOwner().GetInventory().IsIdValid( itemId ) )
 			{
 				if( (W3Petard)this )
@@ -75,8 +72,8 @@ statemachine class CThrowable extends CProjectileTrajectory
 		
 		ownerPlayer = (CR4Player)GetOwner();
 		
-		
-		
+		//ownerPlayer.AddAnimEventCallback( 'ProjectileAttach',	'OnAnimEvent_Throwable' );
+		//ownerPlayer.AddAnimEventCallback( 'ProjectileThrow',	'OnAnimEvent_Throwable' );
 		
 		if ( ownerPlayer && ownerPlayer.playerAiming.GetCurrentStateName() == 'Aiming' )
 			GotoState( 'Aiming' );		
@@ -153,7 +150,7 @@ state Aiming in CThrowable
 		super.OnLeaveState( nextStateName );
 	}
 	
-	var collisionGroupsNames 	: array<name>;			
+	var collisionGroupsNames 	: array<name>;			//copy paste collisions groups from petard entities
 	entry function AimThrowable()
 	{	
 		while( !stopAiming )

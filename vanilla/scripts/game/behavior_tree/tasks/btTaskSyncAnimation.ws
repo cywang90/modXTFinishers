@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
+﻿
 class CBTTaskPlaySyncedAnimation extends IBehTreeTask
 {
 	private var isRunning				: bool;
@@ -39,8 +34,12 @@ class CBTTaskPlaySyncedAnimation extends IBehTreeTask
 		owner.EnableCharacterCollisions( false );
 		owner.SetCanPlayHitAnim( false );
 		
-		
-		owner.SetImmortalityMode( AIM_Invulnerable, AIC_Combat );
+		// Add immortality so the monster cannot be killed while he plays the finisher death anim
+		// AK : ability check it's either here or after sync anim, both places are hacks, don't see other way
+		if( !owner.WillBeUnconscious() && !owner.HasAbility( 'mon_vampiress_base' ) )
+		{
+			owner.SetImmortalityMode( AIM_Invulnerable, AIC_Combat );
+		}
 		return BTNS_Active;
 	}
 	
@@ -72,13 +71,18 @@ class CBTTaskPlaySyncedAnimation extends IBehTreeTask
 		
 		if ( completeSuccess && finisherSyncAnim )
 		{
-			GetActor().DropItemFromSlot( 'r_weapon' );
-			GetActor().DropItemFromSlot( 'l_weapon' );
-			GetActor().BreakAttachment();
-			GetNPC().DisableDeathAndAgony();
-			owner.SetImmortalityMode( AIM_None, AIC_Combat );
-			owner.Kill(false, GetWitcherPlayer() );
-			owner.RaiseEvent('FinisherDeath');
+			if( !owner.WillBeUnconscious() )
+			{
+				owner.DropItemFromSlot( 'r_weapon' );
+				owner.DropItemFromSlot( 'l_weapon' );
+				owner.BreakAttachment();
+				((CNewNPC)owner).DisableDeathAndAgony();
+				owner.SetImmortalityMode( AIM_None, AIC_Combat );
+				owner.Kill( 'Finisher', false, GetWitcherPlayer() );
+				owner.RaiseEvent('FinisherDeath');
+				
+				thePlayer.ReduceAllOilsAmmo( thePlayer.inv.GetCurrentlyHeldSword() );
+			}
 		}
 		
 		if( syncInstance && sequenceIndex > -1 )
@@ -162,8 +166,15 @@ class CBTTaskPlaySyncedAnimation extends IBehTreeTask
 		}
 		else if ( gameEventName == 'FinisherKill' && GetActor().IsAlive() )
 		{
-			thePlayer.SpawnFinisherBlood();
-			GetActor().SetHealth(0.1f);
+			if ( !GetActor().HasAbility( 'EvadeFinisher' ) )
+			{
+				thePlayer.SpawnFinisherBlood();
+				GetActor().SetHealth(0.1f);
+			}
+			else
+			{
+				GetActor().EnableCharacterCollisions( true );
+			}
 		}
 		
 		return false;

@@ -1,30 +1,41 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-class W3GuiDisassembleInventoryComponent extends W3GuiPlayerInventoryComponent
+﻿class W3GuiDisassembleInventoryComponent extends W3GuiPlayerInventoryComponent
 {
 	public var merchantInv : CInventoryComponent;
 	
-	public  function SetInventoryFlashObjectForItem( item : SItemUniqueId, out flashObject : CScriptedFlashObject) : void
+	public /* override */ function SetInventoryFlashObjectForItem( item : SItemUniqueId, out flashObject : CScriptedFlashObject) : void
 	{
+		var targetGridSection : int;
+		
 		super.SetInventoryFlashObjectForItem( item, flashObject );
+		
 		addRecyclingPartsList( item, flashObject );
 		addSocketsListInfo( item, flashObject );
 		flashObject.SetMemberFlashBool( "enableComparison", _inv.CanBeCompared(item) );
 		flashObject.SetMemberFlashInt( "gridPosition", -1 );
+		
+		if( _inv.IsItemAnyArmor( item ) || _inv.IsItemWeapon( item ) || _inv.IsItemUpgrade( item ) || _inv.IsItemArmorReapairKit( item ) || _inv.IsItemWeaponReapairKit( item )  )
+		{
+			targetGridSection = 0;
+		}
+		else
+		{
+			targetGridSection = 1;
+		}
+		
+		flashObject.SetMemberFlashInt( "sectionId", targetGridSection );
 	}
 	
-	protected  function ShouldShowItem( item : SItemUniqueId ):bool
+	public /* override */ function ShouldShowItem( item : SItemUniqueId ):bool
 	{
 		var itemTags : array<name>;
 		var parts : array<SItemParts>;
 		var showItem : bool;
 		
-		
-		if(GetWitcherPlayer().IsItemEquipped(item))
+		//don't show equipped items and read books
+		if( GetWitcherPlayer().IsItemEquipped( item ) || ( _inv.IsItemReadable( item ) && _inv.IsBookRead( item ) ) )
+		{
 			return false;
+		}
 		
 		_inv.GetItemTags( item, itemTags );	
 		parts = _inv.GetItemRecyclingParts(item);
@@ -42,6 +53,9 @@ class W3GuiDisassembleInventoryComponent extends W3GuiPlayerInventoryComponent
 		var partDataList  : CScriptedFlashArray;
 		var curPartData	  : CScriptedFlashObject;
 		var invItem 	 : SInventoryItem;
+		var itemQuantityPrice : int;
+		var itemQuantity : int;
+		
 		
 		invItem = _inv.GetItem( item );
 		
@@ -55,8 +69,8 @@ class W3GuiDisassembleInventoryComponent extends W3GuiPlayerInventoryComponent
 			curPartData.SetMemberFlashString("name", GetLocStringByKeyExt(_inv.GetItemLocalizedNameByName(curPart.itemName)));
 			curPartData.SetMemberFlashString("iconPath", _inv.GetItemIconPathByName(curPart.itemName));
 			
-			
-			
+			// #Y we get random amount of parts after disassemble, so we don't show exact quantity to player
+			//curPartData.SetMemberFlashInt("quantity", curPart.quantity);
 			curPartData.SetMemberFlashInt("quantity", 1);
 			
 			partDataList.PushBackFlashObject(curPartData);
@@ -64,7 +78,11 @@ class W3GuiDisassembleInventoryComponent extends W3GuiPlayerInventoryComponent
 		flashObject.SetMemberFlashArray("partList", partDataList);
 		flashObject.SetMemberFlashBool("disableAction", GetWitcherPlayer().IsItemEquipped(item) );
 		
-		flashObject.SetMemberFlashInt("actionPrice", merchantInv.GetItemPriceDisassemble( invItem ));
+		itemQuantity = _inv.GetItemQuantity( item );
+		itemQuantityPrice = merchantInv.GetItemPriceDisassemble( invItem );
+		
+		flashObject.SetMemberFlashInt("actionPrice", itemQuantityPrice);
+		flashObject.SetMemberFlashInt("actionPriceTotal", itemQuantity * itemQuantityPrice);
 	}
 	
 	private function addSocketsListInfo(item : SItemUniqueId, out flashObject : CScriptedFlashObject) : void

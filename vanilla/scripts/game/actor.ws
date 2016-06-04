@@ -1,22 +1,41 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file
+/***********************************************************************/
+/** Copyright © 2009-2013
+/** Author : the collective mind of CDP
 /***********************************************************************/
 
+// Actor interaction priority
 
+/*
+enum EInteractionPriority
+{
+	IP_Prio_0,
+	IP_Prio_1,
+	IP_Prio_2,
+	IP_Prio_3,
+	IP_Prio_4,
+	IP_Prio_5,
+    IP_Prio_6,
+    IP_Prio_7,
+    IP_Prio_8,
+    IP_Prio_9,
+    IP_Prio_10,
+    IP_Prio_11,
+    IP_Prio_12,
+    IP_Prio_13,
+    IP_Prio_14,
+	IP_Max_Unpushable,
+    IP_NotSet
+}
+*/
 
-
-
-
-
-
-
-
-
+/////////////////////////////////////////////
+// Actor class
+/////////////////////////////////////////////
 import abstract class CActor extends CGameplayEntity
 {
-	
+	// combat mechanics
 	import 				var isAttackableByPlayer 		: bool;
 	editable saved		var isTargatebleByPlayer		: bool; default isTargatebleByPlayer = true;
 	editable saved		var isUsingTooltip				: bool; default isUsingTooltip 		= true;
@@ -32,51 +51,59 @@ import abstract class CActor extends CGameplayEntity
 	private				var oneTimeAdditiveHit			: bool;
 	private				var useAdditiveCriticalStateAnim: bool;
 	private 			var criticalCancelAdditiveHit	: bool;
-	private				var lastAttackRangeName			: name;						
-	protected 			var attackActionName			: name;						
-	protected 			var hitTargets 					: array<CGameplayEntity>;	
-	private 			var droppedItems				: array<SDroppedItem>;		
-	private 			var wasDefeatedFromFistFight	: bool;						
-	protected			var isCurrentlyDodging			: bool;						
-	private				var combatStartTime				: float;					
-	private				var combatPartStartTime			: float;					
-	private				var collisionDamageTimestamp  	: float;					
+	private				var lastAttackRangeName			: name;						//last used attack range name - used to get data from CAIAttackRange
+	protected 			var attackActionName			: name;						//name of the attack action used e.g. attack_light or active skill name
+	protected 			var hitTargets 					: array<CGameplayEntity>;	//current attack's hit targets
+	private 			var droppedItems				: array<SDroppedItem>;		//array of items this actor has dropped on ground on animation events (used to remove them once they get looted)
+	private 			var wasDefeatedFromFistFight	: bool;						// true if the actor was defeated from fist fight minigame
+	protected			var isCurrentlyDodging			: bool;						//set to true while the actor is performing dodge
+	private				var combatStartTime				: float;					// combat start timestamp
+	private				var combatPartStartTime			: float;					// combat part start timestamp
+	private				var collisionDamageTimestamp  	: float;					// timestamp for taking damage from physical objects - to avoid repeatable actions from the same object
 	private				var	lastWasAttackedTime			: float;
 	private				var lastWasHitTime				: float;
 	private				var lowerGuardTime				: float;
 	private 			var knockedUncounscious			: bool;
 	private 			var isGameplayVisible			: bool;
 	private				var lastBreathTime				: float;
+	protected 			var isRecoveringFromKnockdown   : bool;
+	
+	private 			var hitCounter 					: int;		default hitCounter = 0;
+	private 			var totalHitCounter 			: int;		default totalHitCounter = 0;
+	public 				var customHits 					: bool;		default customHits = false;
+	
+	private 			var defendCounter 				: int;		default defendCounter = 0;
+	private 			var totalDefendCounter 			: int;		default totalDefendCounter = 0;
 	
 	default bIsGuarded 							= false;
 	default bParryEnabled 						= false;
 	default collisionDamageTimestamp			= 0.0;
 
-	
+	// target selection
 	private var		bIsPlayerCurrentTarget				: bool;
 	
-	
-	protected saved var buffImmunities : array<SBuffImmunity>;			
-	protected saved var buffRemovedImmunities : array<SBuffImmunity>;		
-	protected saved var newRequestedCS : CBaseGameplayEffect;			
+	//buffs
+	protected saved var buffImmunities : array<SBuffImmunity>;			//buff immunities, local for each actor
+	protected saved var buffRemovedImmunities : array<SBuffImmunity>;		//removed global buff immunities (from entity template)
+	protected saved var newRequestedCS : CBaseGameplayEffect;			//critical state buff requested to be animated as next
 	
 	private var criticalStateCounter 					: int;
 	private var	totalCriticalStateCounter 				: int;
 
-	
+	// to not play death anim after loading a save
 	public saved var isDead				: bool;
 	
-	
+	// for damage
 	protected var		canPlayHitAnim 				: bool;			default canPlayHitAnim 				= true;
 
+	// Fall damage
+	private editable var damageDistanceNotReducing	: float;		default	damageDistanceNotReducing	= 5.0f; //= 2.0f;
+	private editable var deathDistNotReducing		: float;		default	deathDistNotReducing		= 7.0f; //= 6.0f;
+	private editable var damageDistanceReducing		: float;		default	damageDistanceReducing		= 9.0f;	//= 5.0f;
+	private editable var deathDistanceReducing		: float; 		default	deathDistanceReducing		= 9.0f;	//= 7.0f;
+	private editable var fallDamageMinHealthPerc	: float; 		default	fallDamageMinHealthPerc		= 0.05f;	//= 0.5f;
 	
-	private editable var damageDistanceNotReducing	: float;		default	damageDistanceNotReducing	= 5.0f; 
-	private editable var deathDistNotReducing		: float;		default	deathDistNotReducing		= 7.0f; 
-	private editable var damageDistanceReducing		: float;		default	damageDistanceReducing		= 9.0f;	
-	private editable var deathDistanceReducing		: float; 		default	deathDistanceReducing		= 9.0f;	
-	private editable var fallDamageMinHealthPerc	: float; 		default	fallDamageMinHealthPerc		= 0.05f;	
-	
-	
+	// Followers
 	public var isPlayerFollower : bool;
 	
 	private var MAC : CMovingPhysicalAgentComponent;
@@ -90,11 +117,11 @@ import abstract class CActor extends CGameplayEntity
 	
 	public function GetIgnoreImmortalDodge() : bool
 	{
-		
+		// we can return HasAbility('IgnoreImmortalDodge');
 		return false;
 	}	
 
-	
+	// enabling targeting
 	
 	public function SetTatgetableByPlayer(isTargetAble : bool)
 	{
@@ -120,9 +147,9 @@ import abstract class CActor extends CGameplayEntity
 	{
 		isUsingTooltip = hasTooltip;
 	}
-	
-	
-	
+	//Gets total attribute value minus values of all other held weapons (all are added by default on character).
+	//E.g. when actor has sword and shield and can attack with both, they both add their start to character params (since both are held). When attacking with shield
+	//we need to filter out the damage from sword (held but not used in this attack). This function does that.
 	public function GetTotalWeaponDamage(weaponId : SItemUniqueId, damageTypeName : name, crossbowId : SItemUniqueId) : float
 	{
 		var excessiveDamage : SAbilityAttributeValue;
@@ -139,25 +166,25 @@ import abstract class CActor extends CGameplayEntity
 		for(i=0; i<weapons.Size(); i+=1)
 		{
 			n = inv.GetItemName(weapons[i]);		
-			
+			//if it's not held then stats were not added so we don't remove them
 			if(!inv.IsItemHeld(weapons[i]))
 				continue;
 				
-			
+			//if it's used weapon then we don't remove it as we WANT it's stats
 			if(weapons[i] == weaponId)
 				continue;
 				
-			
+			//also if used weapon is bolt then we don't remove crossbow stats
 			if(inv.IsItemBolt(weaponId) && weapons[i] == crossbowId)
 				continue;
 			
 			excessiveDamage -= inv.GetItemAttributeValue(weapons[i], damageTypeName);
 		}
 		
-		
-		
-		
-		
+		//if item is not held then SINCE RECENTLY it does NOT add it's stats - we need to add them manually
+		//eg when checking damage in geekpage and the sword is mounted but not held it does not add stats anymore so we need to add it manually
+		//except for bolts which are never held and were already processed in the loop above
+		//it's a good place to stress once more that I hate the ability system...
 		if(!inv.IsItemHeld(weaponId) && !inv.IsItemBolt(weaponId))
 		{
 			excessiveDamage += inv.GetItemAttributeValue(weaponId, damageTypeName);
@@ -195,7 +222,7 @@ import abstract class CActor extends CGameplayEntity
 		return null;
 	}
 
-	
+	// Keep it compatible with GetListOfCannotAddAtttributes.
 	function CanAddAttribute( attributeName : name, abilityName : name ) : bool
 	{
 		if ( attributeName == 'vitality' && UsesEssence())
@@ -210,9 +237,9 @@ import abstract class CActor extends CGameplayEntity
 		return true;
 	}
 	
-	
-	
-	
+	// This function returns a list of attributes for which CanAddAttribute returns false.
+	// For performance resons it is better to use this one.
+	// Keep the both compatible.
 	function GetListOfCannotAddAttributes( out attributes : array< CName > )
 	{
 		if ( UsesEssence() )
@@ -237,8 +264,8 @@ import abstract class CActor extends CGameplayEntity
 			abilityManager.OnAbilityRemoved(abilityName);
 	}
 
-	public function IsAbilityBlocked(abilityName : name) : bool											{return abilityManager.IsAbilityBlocked(abilityName);}
-	public function BlockAbility(abilityName : name, block : bool, optional cooldown : float) : bool	{return abilityManager.BlockAbility(abilityName, block, cooldown);}
+	public final function IsAbilityBlocked(abilityName : name) : bool											{return abilityManager.IsAbilityBlocked(abilityName);}
+	public final function BlockAbility(abilityName : name, block : bool, optional cooldown : float) : bool		{return abilityManager.BlockAbility(abilityName, block, cooldown);}
 	
 	public function GetAbilities(includeAbilitiesFromItems : bool) : array<name>		
 	{
@@ -251,27 +278,30 @@ import abstract class CActor extends CGameplayEntity
 	import public function CanPush( canPush: bool );
 
 
-	
+	// applies item abilities to actor
 	import public function ApplyItemAbilities( itemId : SItemUniqueId ) : bool;
 
-	
+	// removes item abilities from actor
 	import public function RemoveItemAbilities( itemId : SItemUniqueId ) : bool;
 
-	
+	//returns array of abilities from gameplay params
 	import public function GetCharacterStatsParam(abilities : array<name>);
 	
-	
+	// Call this when the actor dies and other systems need to be notified
 	import public function ReportDeathToSpawnSystems();
+	
+	//Call this to update audio when equipment is changed
+	import public function ForceSoundAppearanceUpdate();
 
 	saved var immortalityFlagsCopy : int;
 	default immortalityFlagsCopy = 0;
 
-	
+	//FIXME URGENT - burn with napalm
 	private function GetPureImmortalityFlags() : int
 	{
 		var mask : int;
 		
-		
+		// ignore 'lock flags' - corresponding bits from 24 to 32; ( 2 ^ 24 - 1 ) is a mask for clearing those bits
 		mask = 16777215;
 		
 		return ( immortalityFlags & mask );
@@ -362,10 +392,10 @@ import abstract class CActor extends CGameplayEntity
 		var channel : int;
 		var _shift8, _shift16 : int;
 		
-		_shift8 = 256; 			
-		_shift16 = 65536;		
+		_shift8 = 256; 			// bit shifting by 8 bit
+		_shift16 = 65536;		// bit shifting by 16 bit
 		
-		modeOffset = 1; 
+		modeOffset = 1; // AIM_Unconscious
 		if ( mode == AIM_Immortal )
 		{
 			modeOffset = _shift8;
@@ -393,9 +423,9 @@ import abstract class CActor extends CGameplayEntity
 			for( i = 0; i < numImmortalityChannels; i += 1 )
 			{
 				channel = (int) PowF( 2, i );
-				if( ( channel & immortalityFlags ) == 0 &&					
-					( ( channel * _shift8 ) & immortalityFlags ) == 0 &&	
-					( ( channel * _shift16 ) & immortalityFlags ) == 0 )	
+				if( ( channel & immortalityFlags ) == 0 &&					// AIM_Unconscious
+					( ( channel * _shift8 ) & immortalityFlags ) == 0 &&	// AIM_Immortal
+					( ( channel * _shift16 ) & immortalityFlags ) == 0 )	// AIM_Invulnerable
 				{
 					result.PushBack( channel );
 				}
@@ -413,11 +443,11 @@ import abstract class CActor extends CGameplayEntity
 		
 		channelInt = channel;
 		
-		
+		// bit shifting by 8 bit
 		_shift8 = 256;
-		
+		// bit shifting by 16 bit
 		_shift16 = 65536;
-		
+		// bit shifting by 24 bit
 		_shift24 = 16777216;
 		
 		if ( !lockMode && ( ( immortalityFlags & ( channelInt * _shift24 ) ) != 0 ) )
@@ -427,31 +457,31 @@ import abstract class CActor extends CGameplayEntity
 		
 		if ( mode == AIM_Unconscious )
 		{
-			immortalityFlags = immortalityFlags | ( channelInt );					
-			immortalityFlags = immortalityFlags & ( ~( channelInt *  _shift8 ) );  	
-			immortalityFlags = immortalityFlags & ( ~( channelInt *  _shift16 ) );  
+			immortalityFlags = immortalityFlags | ( channelInt );					// set unconscious
+			immortalityFlags = immortalityFlags & ( ~( channelInt *  _shift8 ) );  	// reset immortal
+			immortalityFlags = immortalityFlags & ( ~( channelInt *  _shift16 ) );  // reset invulnerable
 		}
 		else if ( mode == AIM_Immortal )
 		{
-			immortalityFlags = immortalityFlags | ( channelInt *  _shift8 ); 		
-			immortalityFlags = immortalityFlags & ( ~channelInt ); 					
-			immortalityFlags = immortalityFlags & ( ~( channelInt *  _shift16 ) );  
+			immortalityFlags = immortalityFlags | ( channelInt *  _shift8 ); 		// set immortal
+			immortalityFlags = immortalityFlags & ( ~channelInt ); 					// reset unconscious
+			immortalityFlags = immortalityFlags & ( ~( channelInt *  _shift16 ) );  // reset invulnerable
 		}
 		else if ( mode == AIM_Invulnerable)
 		{			
-			immortalityFlags = immortalityFlags | ( channelInt *  _shift16 );		
-			immortalityFlags = immortalityFlags & ( ~channelInt ); 					
-			immortalityFlags = immortalityFlags & ( ~( channelInt *  _shift8 ) );  	
+			immortalityFlags = immortalityFlags | ( channelInt *  _shift16 );		// set invulnerable
+			immortalityFlags = immortalityFlags & ( ~channelInt ); 					// reset unconscious
+			immortalityFlags = immortalityFlags & ( ~( channelInt *  _shift8 ) );  	// reset immortal
 		}
 		else if ( mode == AIM_None )
 		{
-			immortalityFlags = immortalityFlags & ( ~channelInt ); 					
-			immortalityFlags = immortalityFlags & ( ~( channelInt *  _shift8 ) );  	
-			immortalityFlags = immortalityFlags & ( ~( channelInt *  _shift16 ) );  
+			immortalityFlags = immortalityFlags & ( ~channelInt ); 					// reset unconscious
+			immortalityFlags = immortalityFlags & ( ~( channelInt *  _shift8 ) );  	// reset immortal
+			immortalityFlags = immortalityFlags & ( ~( channelInt *  _shift16 ) );  // reset invulnerable
 		}
 		if ( lockMode )
 		{
-			immortalityFlags = immortalityFlags | ( channelInt *  _shift24 );  		
+			immortalityFlags = immortalityFlags | ( channelInt *  _shift24 );  		// set flag for locking
 		}
 		
 		if ( oldMode == mode )
@@ -461,14 +491,14 @@ import abstract class CActor extends CGameplayEntity
 	}
 	
 
-	
+	// SWIMMING
 	protected			var isSwimming : bool;
 	
-	
+	// currently mounted vehicle (horse, boat)
 	protected saved var usedVehicleHandle			: EntityHandle ;
 	protected var usedVehicle						: CGameplayEntity;
 	
-	
+	// Managers	
 	protected saved var effectManager				: W3EffectManager;
 	
 	private var traverser : CScriptedExplorationTraverser;
@@ -483,8 +513,8 @@ import abstract class CActor extends CGameplayEntity
 			traverser.Update( time );
 		}
 	}
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Exploration Events	
 	event OnStartTraversingExploration( t : CScriptedExplorationTraverser )
 	{
 		SetInteractionPriority(IP_Max_Unpushable);
@@ -499,11 +529,11 @@ import abstract class CActor extends CGameplayEntity
 		return true;
 	}
 				
-	
-	private saved var nextFreeAnimMultCauserId : int;							
+	//animation speed control
+	private saved var nextFreeAnimMultCauserId : int;							//we use causer IDs to define which effect to remove, here we store next free id to use
 		default nextFreeAnimMultCauserId = 0;
 	
-	private var animationMultiplierCausers : array< SAnimMultiplyCauser >;		
+	private var animationMultiplierCausers : array< SAnimMultiplyCauser >;		//list of current causers that affect animation speed
 				
 	import final function GetAutoEffects( out effects : array< name > );
 	
@@ -520,26 +550,26 @@ import abstract class CActor extends CGameplayEntity
 	
 	import final function SignalGameplayDamageEvent( eventName : CName, data : CDamageData );
 	
-	import final function GetAIStorageObject( storageItemName : CName ) : IScriptable;
+	import final function GetScriptStorageObject( storageItemName : CName ) : IScriptable;
 	
 	import final function ForceAIUpdate();
 	
-	
+	// Get current target
 	import final function GetTarget() : CActor;
 	
+	//////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
+	// Is dangerous
 	import final function IsDangerous( actor : CActor ) : bool;
 	
-	
+	// Attitude toward other actor
 	import final function GetAttitude( actor : CActor ) : EAIAttitude;
 	import final function SetAttitude( actor : CActor , attitude : EAIAttitude );
 	import final function ResetAttitude( actor : CActor );
 	import final function HasAttitudeTowards( actor : CActor ) : bool;
 	import final function ClearAttitudes( hostile, neutral, friendly : bool );
 
-	
+	// Attitude group
 	import final function GetAttitudeGroup() : CName;
 	import final function GetBaseAttitudeGroup() : CName;
 	import final function SetBaseAttitudeGroup( groupName : CName );
@@ -547,11 +577,11 @@ import abstract class CActor extends CGameplayEntity
 	import final function SetTemporaryAttitudeGroup( groupName : CName, priority : EAttitudeGroupPriority );
 	import final function ResetTemporaryAttitudeGroup( priority : EAttitudeGroupPriority );
 	
-	
-	
+	//IsThreatened means there are hostile enemies/threats in the area. Does not care whether you can pathfind to them or not. Combat music and interactions are toggled with this
+	//IsInCombat means that you can pathfind to a hostile enemy/threat.
 	import final function IsInCombat() : bool;
 	
-	
+	// combat timestamp setters and getters
 	public function SetCombatStartTime()
 	{
 		combatStartTime = theGame.GetEngineTimeAsSeconds();
@@ -607,7 +637,7 @@ import abstract class CActor extends CGameplayEntity
 		}
 	}
 	
-	
+	// Set whether actor is in combat 
 	protected function OnCombatModeSet( toggle : bool )
 	{
 		var movingAgent : CMovingAgentComponent = GetMovingAgentComponent();
@@ -633,7 +663,10 @@ import abstract class CActor extends CGameplayEntity
 		return hitTargets.Size() != 0;
 	}
 	
-	
+	/*public function IsUnconsciousEnabled() : bool
+	{
+		return WillBeUnconscious();//this.enableUnconscious;
+	}*/
 
 	public function WasDefeatedFromFistFight() : bool
 	{
@@ -660,7 +693,7 @@ import abstract class CActor extends CGameplayEntity
 		return false;
 	}
 	
-	private var isInFFMiniGame : bool;
+	import private var isInFFMiniGame : bool;
 	
 	event OnStartFistfightMinigame()
 	{
@@ -682,10 +715,10 @@ import abstract class CActor extends CGameplayEntity
 	import final function SetDebugAttackRange(rangeName : name);
 	import final function EnableDebugARTraceDraw( enable : bool );
 	
-	
+	// Is actor ready for new action
 	import final function IsReadyForNewAction() : bool;
 	
-	
+	// Cancel all actions in progress
 	import final function ActionCancelAll();
 	
 	import final function IsCurrentActionInProgress() : bool;
@@ -697,11 +730,11 @@ import abstract class CActor extends CGameplayEntity
 	
 	import final function PlayScene( input : string ) : bool;
 	import final function StopAllScenes();
-	
+	// Get current action priority
 	import final function GetCurrentActionPriority() : int;
 
 	import final function GetCurrentActionType() : EActorActionType;
-	
+	// Is actor doing something more important?
 	import final function IsDoingSomethingMoreImportant( priority : int ) : bool;
 
 	import final function CanPlayQuestScene() : bool;
@@ -710,10 +743,10 @@ import abstract class CActor extends CGameplayEntity
 	
 	import final function GetActorAnimState() : int;
 	
-	
+	// Is actor in camera view?
 	import final function IsInView() : bool;
 	
-	
+	// Is actor using exploration
 	import final function IsUsingExploration() : bool;
 	
 	import final function GetAnimCombatSlots( animSlotName : name, out outSlots : array< Matrix >,
@@ -745,94 +778,107 @@ import abstract class CActor extends CGameplayEntity
 		}
 	}
 	
+	public var ragdollPullingStartPosition : Vector;
+	// ragdoll position variable is updated on event, not on tick, make sure that what you get is up to date
+	public function GetRagdollPullingStartPosition() : Vector
+	{
+		return ragdollPullingStartPosition;
+	}
 	
+	event OnRagdollPullingStarts( ragdollPos, entityPos : Vector )
+	{
+		ragdollPullingStartPosition = ragdollPos;
+		SignalGameplayEvent( 'OnRagdollPullingStart' );
+	}
 	
+	//////////////////////////////////////////////////////////////////////////////////////////
 	
+	// Move to target, returns true if movement succeeded. Default moveType is MT_Walk.
 	import final latent function ActionMoveToNode( target : CNode, optional moveType : EMoveType, optional absSpeed : float, optional radius : float, optional failureAction : EMoveFailureAction ) : bool;	
-	
+	// Move to target, returns true if movement succeeded, don't wait till finishing the action. Default moveType is MT_Walk.
 	import final function ActionMoveToNodeAsync( target : CNode, optional moveType : EMoveType, optional absSpeed : float, optional radius : float, optional failureAction : EMoveFailureAction ) : bool;	
 	
-	
+	// Move to target, returns true if movement succeeded. Default moveType is MT_Walk.
 	import final latent function ActionMoveToNodeWithHeading( target : CNode, optional moveType : EMoveType, optional absSpeed : float, optional radius : float, optional failureAction : EMoveFailureAction ) : bool;	
-	
+	// Move to target, returns true if movement succeeded, don't wait till finishing the action. Default moveType is MT_Walk.
 	import final function ActionMoveToNodeWithHeadingAsync( target : CNode, optional moveType : EMoveType, optional absSpeed : float, optional radius : float, optional failureAction : EMoveFailureAction ) : bool;	
 	
-	
+	// Move to target, returns true if movement succeeded. Default moveType is MT_Walk.
 	import final latent function ActionMoveTo( target : Vector, optional moveType : EMoveType, optional absSpeed : float, optional radius : float, optional failureAction : EMoveFailureAction ) : bool;	
-	
+	// Move to target, returns true if movement succeeded, don't wait till finishing the action. Default moveType is MT_Walk.
 	import final function ActionMoveToAsync( target : Vector, optional moveType : EMoveType, optional absSpeed : float, optional radius : float, optional failureAction : EMoveFailureAction ) : bool;	
 
-	
+	// Move to target and face given heading, returns true if movement succeeded. Default moveType is MT_Walk.
 	import final latent function ActionMoveToWithHeading( target : Vector, heading : float, optional moveType : EMoveType, optional absSpeed : float, optional radius : float, optional failureAction : EMoveFailureAction ) : bool;	
-	
+	// Move to target and face given heading, returns true if movement succeeded, don't wait till finishing the action. Default moveType is MT_Walk.
 	import final function ActionMoveToWithHeadingAsync( target : Vector, heading : float, optional moveType : EMoveType, optional absSpeed : float, optional radius : float, optional failureAction : EMoveFailureAction ) : bool;	
 	
-	
+	// Move towards a dynamic node.
 	import final latent function ActionMoveToDynamicNode( target : CNode, moveType : EMoveType, absSpeed : float, range : float, optional keepDistance : bool, optional failureAction : EMoveFailureAction ) : bool;	
-	
+	// Move towards a dynamic node (asynchronous version ).
 	import final function ActionMoveToDynamicNodeAsync( target : CNode, moveType : EMoveType, absSpeed : float, range : float, optional keepDistance : bool, optional failureAction : EMoveFailureAction ) : bool;	
 	
-	
+	// Move using a custom locomotion targeter.
 	import final latent function ActionMoveCustom( targeter : CMoveTRGScript ) : bool;	
-	
+	// Asynchronous version of the move function using a custom locomotion targeter.
 	import final function ActionMoveCustomAsync( targeter : CMoveTRGScript ) : bool;	
 	
-	
+	// Slides through an action area, returns true when movement was successfull
 	import final latent function ActionSlideThrough( explorationAreaToUse : CActionAreaComponent ) : bool;	
-	
+	// Slides through an action area
 	import final function ActionSlideThroughAsync( explorationAreaToUse : CActionAreaComponent ) : bool;	
 	
-	
+	// Slide to target, returns true if movement succeeded
 	import final latent function ActionSlideTo( target : Vector, duration : float ) : bool;	
-	
+	// Slide to target, returns true if movement succeeded, don't wait till finishing the action
 	import final function ActionSlideToAsync( target : Vector, duration : float ) : bool;	
 	
-	
+	// Move on curve to target, returns true if movement succeeded
 	import final latent function ActionMoveOnCurveTo( target : Vector, duration : float, rightShift : bool ) : bool;	
-	
+	// Move on curve to target, returns true if movement succeeded, don't wait till finishing the action
 	import final function ActionMoveOnCurveToAsync( target : Vector, duration : float, rightShift : bool ) : bool;	
 
+	// Slide to target and face given heading, returns true if movement succeeded
+	import final latent function ActionSlideToWithHeading( target : Vector, heading : float, duration : float, optional rotation : ESlideRotation /* = SR_Nearest */ ) : bool;	
+	// Slide to target and face given heading, returns true if movement succeeded, don't wait till finishing the action
+	import final function ActionSlideToWithHeadingAsync( target : Vector, heading : float, duration : float, optional rotation : ESlideRotation /* = SR_Nearest */ ) : bool;
 	
-	import final latent function ActionSlideToWithHeading( target : Vector, heading : float, duration : float, optional rotation : ESlideRotation  ) : bool;	
-	
-	import final function ActionSlideToWithHeadingAsync( target : Vector, heading : float, duration : float, optional rotation : ESlideRotation  ) : bool;
-	
-	
+	// Move away from position, returns true if movement succeeded. Default moveType is MT_Walk.
 	import final latent function ActionMoveAwayFromNode( position : CNode, distance : float, optional moveType : EMoveType, optional absSpeed : float, optional radius : float, optional failureAction : EMoveFailureAction ) : bool;	
-	
+	// Move away from position, returns true if movement succeeded, don't wait till finishing the action
 	import final function ActionMoveAwayFromNodeAsync( position : CNode, distance : float, optional moveType : EMoveType, optional absSpeed : float, optional radius : float, optional failureAction : EMoveFailureAction ) : bool;	
 	
-	
-	
+	// Move away from line segment, returns true if movement succeeded. Default moveType is MT_Walk.
+	// makeMinimalMovement - try to make minimal movement aside from line (distance may be smaller than passed in the argument)
 	import final latent function ActionMoveAwayFromLine( positionA : Vector, positionB : Vector, distance : float, makeMinimalMovement : bool, optional moveType : EMoveType, optional absSpeed : float, optional radius : float, optional failureAction : EMoveFailureAction ) : bool;	
-	
-	
+	// Move away from line segment, returns true if movement succeeded, don't wait till finishing the action. Default moveType is MT_Walk.
+	// makeMinimalMovement - try to make minimal movement aside from line (distance may be smaller than passed in the argument)	
 	import final function ActionMoveAwayFromLineAsync( positionA : Vector, positionB : Vector, distance : float, makeMinimalMovement : bool, optional moveType : EMoveType, optional absSpeed : float, optional radius : float, optional failureAction : EMoveFailureAction ) : bool;	
 	
-	
+	// Rotate to face given target, returns true if movement succeeded
 	import final latent function ActionRotateTo( target : Vector ) : bool;	
-	
+	// Rotate to face given target, returns true if movement succeeded, don't wait till finishing the action
 	import final function ActionRotateToAsync( target : Vector ) : bool;
 	
-	
+	// Rotate to match the specified orientation, returns true if movement succeeded
 	import final latent function ActionSetOrientation( orientation : float ) : bool;	
 
-	
+	// Play animation on slot, returns true if animation was played, default: blendIn 0.2s, blendOut 0.2s, continuePlaying false
 	import final latent function ActionPlaySlotAnimation( slotName : name, animationName : name, optional blendIn : float, optional blendOut : float, optional continuePlaying : bool ) : bool;
 	import final function ActionPlaySlotAnimationAsync( slotName : name, animationName : name, optional blendIn : float, optional blendOut : float, optional continuePlaying : bool ) : bool;
 	
-	
+	// Exit working in given AP, returns false if wasn't working anyway
 	import final latent function ActionExitWork( optional fast : bool ) : bool;
-	
+	// Exit working in given AP, returns false if wasn't working anyway, don't wait till end
 	import final function ActionExitWorkAsync( optional fast : bool ) : bool;
 	
-	
-	
-	
-	
-	
-	
-	
+	// Traverse through exploration
+	// Events for listener:
+	//		event OnExplorationStarted( entity : CEntity )
+	//		event OnExplorationFinished( entity : CEntity )
+	//		event OnAnimationStarted( entity : CEntity, animation : name )
+	//		event OnExplorationEvent( entity : CEntity, event : name )
+	//		event OnSlideFinished( entity : CEntity )
 	import final latent function ActionExploration( exploration : SExplorationQueryToken, optional listener : IScriptable, optional steeringGraphTargetNode : CNode ) : bool;
 	
 	import final latent function ActionAnimatedSlideToStatic( settings : SAnimatedSlideSettings, target : Vector, heading : float, translation : bool, rotation : bool ) : bool;
@@ -847,13 +893,16 @@ import abstract class CActor extends CGameplayEntity
 	import final function ActionMatchToAsync( settings : SActionMatchToSettings, target : SActionMatchToTarget ) : bool;	
 	import final function ActionMatchToAsync_P( settings : SActionMatchToSettings, target : SActionMatchToTarget, out animProxy : CActionMoveAnimationProxy ) : bool;
 	
-	
+	/*
+	import final function SetMovementType( type : EExplorationState ) : bool;
+	import final function GetMovementType() : EExplorationState;  WRONG RETURN TYPE OF THE FUNCTION
+	*/
 	
 	import final function GetSkeletonType() : ESkeletonType;
 	
 	import final function GetFallTauntEvent() : string;
 	
-	
+	// Rotate towards given position
 	latent function RotateTo( target : Vector, optional duration : float ) : bool
 	{
 		var vec, pos : Vector;
@@ -870,52 +919,54 @@ import abstract class CActor extends CGameplayEntity
 		return res;
 	}
 	
-	
+	// Rotate towards given node
 	latent function RotateToNode( node : CNode, optional duration : float ) : bool
 	{
 		var res : bool;
 		res = RotateTo( node.GetWorldPosition(), duration );
 		return res;
 	}
+	//////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
+	// Set actor error state
 	import final function SetErrorState( description : string );
 	
-	
+	// Get moving agent radius
 	import final function GetRadius() : float;
 	
-	
+	// Get visual debug (can be NULL)
 	import final function GetVisualDebug() : CVisualDebug;
 	
-	
+	// Behavior tree execution has ended (for tree started with oneExecution=true)
 	event OnBehTreeEnded(){}
 
-	
+	// Play given voiceset of this actor. Voiceset is the input name
 	import final function PlayVoiceset( priority : int, voiceset : string, optional breakCurrentSpeach : bool ) : bool;
 	
-	
+	// Stops all voicesets on given actor
 	import final function StopAllVoicesets( optional cleanupQueue : bool );
 	
 	import final function HasVoiceset( voiceset : string ) : EAsyncCheckResult;
 	
+	// Check if NPC is rotated towards given entity
+	import final function IsRotatedTowards( node : CNode, optional maxAngle : float /* 10.0f */ ) : bool;
 	
-	import final function IsRotatedTowards( node : CNode, optional maxAngle : float  ) : bool;
-	
-	
-	import final function IsRotatedTowardsPoint( point : Vector, optional maxAngle : float  ) : bool;
+	// Check if NPC is rotated towards given point
+	import final function IsRotatedTowardsPoint( point : Vector, optional maxAngle : float /* 10.0f */ ) : bool;
 	
 
-	
+	// Is actor alive (not dead and not unconscious)
 	import protected final function GetAliveFlag() : bool;
-	
+	//we need to override the code function!
 	public final function IsAlive() : bool
 	{
-		
+		/*if(!abilityManager || !abilityManager.IsInitialized())
+			return true;
+		*/
 		return GetAliveFlag();
 	}
 	
-	
+	// Heals actor by given amount of points
 	public function Heal(amount : float)
 	{
 		if(amount <= 0)
@@ -959,36 +1010,36 @@ import abstract class CActor extends CGameplayEntity
 		ForceSetStat( stat, amount );
 	}
 	
-	
+	// Set actor alive 
 	import final function SetAlive( flag : bool );
 	
-	
+	// Is externaly controlled
 	import final function IsExternalyControlled() : bool;
 	
-	
+	// Is actor moving (by Action...)
 	import final function IsMoving() : bool;
 	
-	
+	// Get actor's move destination
 	import final function GetMoveDestination() : Vector;
 	
-	
+	// Get actor current position or move destination if moving
 	import final function GetPositionOrMoveDestination() : Vector;
 	
 	import final function GetVoicetag() : name;
 	
-	
+	// enables/disables actor's physical representation
 	import final function EnableCollisions( val : bool );
 	
-	
-	
+	// enables/disables collisions with statics
+	//import final function EnableStaticCollisions( val : bool );
 
-	
+	// Predict location of agent basing on currently used animations
 	import final function PredictWorldPosition( inTime : float ) : Vector;
 	
-	
+	// Get head horizontal angle
 	import final function GetHeadAngleHorizontal() : float;
 	
-	
+	// Get head vertical angle
 	import final function GetHeadAngleVertical() : float;
 	
 	import final function GetMovingAgentComponent() : CMovingAgentComponent;
@@ -1011,7 +1062,7 @@ import abstract class CActor extends CGameplayEntity
 	
 	import final function PushAway( pusher : CMovingAgentComponent, optional strength : float, optional speed : float );
 	
-	
+	// Returns true if actor radgall is an obstacle
 	import final function IsRagdollObstacle() : bool;
 	
 	import final function ForceAIBehavior( tree : IAITree, forceLevel : EArbitratorPriorities, optional forceEventName : name ) : int;
@@ -1022,19 +1073,19 @@ import abstract class CActor extends CGameplayEntity
 		return HasBuff( EET_Frozen );
 	}
 	
+	//import final function SetDynamicBehavior( tree : IAITree, eventName : name, interrupt : bool ) : bool;
 	
 	
+	//////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
-	
+	// Clear rotation target
 	import final function ClearRotationTarget();
 	
+	// Set entity as rotation target
+	import final function SetRotationTarget( node : CNode, optional clamping : bool /* =true */ );
 	
-	import final function SetRotationTarget( node : CNode, optional clamping : bool  );
-	
-	
-	import final function SetRotationTargetPos( position : Vector, optional clamping : bool  );
+	// Set position as rotation target
+	import final function SetRotationTargetPos( position : Vector, optional clamping : bool /* =true */ );
 	
 	final function SetRotationTargetWithTimeout( node : CNode, clamping : bool, optional timeout : float )
 	{
@@ -1058,21 +1109,21 @@ import abstract class CActor extends CGameplayEntity
 		ClearRotationTarget();
 	}
 
+	//////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
+	// Checks if the specified target actor is in the attack range.
 	import final function InAttackRange( target : CGameplayEntity, optional rangeName : name ) : bool;
 	
-	
+	// Get nearest point in personal space
 	import final function GetNearestPointInPersonalSpace( position : Vector ) : Vector;
 	
-	
+	// Get nearest point in personal space (assuming given position)
 	import final function GetNearestPointInPersonalSpaceAt( myPosition : Vector, otherPosition : Vector ) : Vector;
 	
-	
+	// Gather entities within an attack range
 	import final function GatherEntitiesInAttackRange( out entities : array< CGameplayEntity >, optional rangeName : name );
 	
-	
+	// Get nearest point
 	function GetNearestPoint( position : Vector, distance : float ) : Vector
 	{
 		var vec : Vector;
@@ -1080,13 +1131,13 @@ import abstract class CActor extends CGameplayEntity
 		return position + ( VecNormalize2D( vec ) ) * distance; 
 	}
 	
-	
+	// Get the nearest point i
 	function GetNearestPointInBothPersonalSpaces( position : Vector ) : Vector
 	{
 		return GetNearestPointInBothPersonalSpacesAt( this.GetWorldPosition(), position );
 	}
 	
-	
+	// Get the nearest point i ? (assuming given position)
 	function GetNearestPointInBothPersonalSpacesAt( myPosition : Vector, otherPosition : Vector ) : Vector
 	{
 		var pos 			: Vector;
@@ -1159,7 +1210,7 @@ import abstract class CActor extends CGameplayEntity
 		
 		l_pos = GetWorldPosition();
 		
-		
+		//if ( theGame.GetWorld().StaticTrace( l_pos + Vector(0, 0, _MaxTestDistance) , l_pos - Vector( 0, 0, _MaxTestDistance ), l_ground, l_normal, _CollisionGroupNames ) )
 		if ( theGame.GetWorld().NavigationComputeZ( l_pos, l_pos.Z - _MaxTestDistance, l_pos.Z + _MaxTestDistance, l_groundZ ) )
 		{
 			l_distance = l_pos.Z - l_groundZ;
@@ -1169,20 +1220,20 @@ import abstract class CActor extends CGameplayEntity
 		return _MaxTestDistance;
 	}
 
+	//////////////////////////////////////////////////////////////////////////////////////////s
 	
-	
-	
+	// Is attackable by player
 	import final function IsAttackableByPlayer() : bool;
 	
-	
+	// Set attackable by player persistent (savable)
 	import final function SetAttackableByPlayerPersistent( flag : bool );
 	
+	// Set attackable by player runtime (not savable, with timeout)
+	import final function SetAttackableByPlayerRuntime( flag : bool, optional timeout : float /*= 10.0f */ );
 	
-	import final function SetAttackableByPlayerRuntime( flag : bool, optional timeout : float  );
+	//////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
-	
+	// Set actor visibility
 	import final function SetVisibility( isVisible : bool );
 	import final function GetVisibility() : bool;
 	
@@ -1195,25 +1246,25 @@ import abstract class CActor extends CGameplayEntity
 			return isGameplayVisible; 
 	}
 	
-	
+	// Sets actor appearance
 	import final function SetAppearance( appearanceName : CName );
 	
-	
+	// Gets current appearance
 	import final function GetAppearance() : name;
 
-	
+	// Get animation time multiplier of this actor
 	import final function GetAnimationTimeMultiplier() : float;
 	
 	import final function CanStealOtherActor( actor : CActor) : bool;
 	import final function ResetClothAndDangleSimulation();
 	
-	
-	
-	
-	
+	//NOT SAFE WHEN MORE THAN 1 EFFECT
+	//
+	//
+	// Set animation time multiplier of this actor
 	import final function SetAnimationTimeMultiplier( mult : float );
 		
-	
+	//Adds new 'causer' of animation multiplier and sets the final animation multiplier. Returns assigned causer's id.
 	public function SetAnimationSpeedMultiplier( mul : float, optional overrideExistingId : int ) : int
 	{
 		var causer : SAnimMultiplyCauser;
@@ -1235,7 +1286,7 @@ import abstract class CActor extends CGameplayEntity
 			}
 		}
 			
-		
+		//add new causer		
 		causer.mul = mul;
 		causer.id = nextFreeAnimMultCauserId;
 		
@@ -1243,13 +1294,13 @@ import abstract class CActor extends CGameplayEntity
 		
 		animationMultiplierCausers.PushBack( causer );
 				
-		
+		//calculate output multiplier
 		SetAnimationTimeMultiplier( CalculateFinalAnimationSpeedMultiplier() );
 		
 		return causer.id;
 	}
 	
-	
+	//Calculates final animation multiplier based on working causers
 	private function CalculateFinalAnimationSpeedMultiplier() : float
 	{
 		if(animationMultiplierCausers.Size() > 0)
@@ -1258,14 +1309,14 @@ import abstract class CActor extends CGameplayEntity
 		return 1;
 	}
 	
-	
+	//Removes animation multiplier causer and sets final animation multiplier.
 	public function ResetAnimationSpeedMultiplier(id : int)
 	{
 		var i,size : int;
 		
 		size = animationMultiplierCausers.Size();
 		if(size == 0)
-			return;	
+			return;	//yeah, right
 		
 		for(i=0; i<size; i+=1)
 			if(animationMultiplierCausers[i].id == id)
@@ -1286,16 +1337,16 @@ import abstract class CActor extends CGameplayEntity
 		SetAnimationTimeMultiplier( 1.0f );
 	}
 	
-	
+	// Calculate height over the terrain / static meshes
 	import final function CalculateHeight() : float;
 	
-	
+	// Set behavior mimic float variable
 	import final function SetBehaviorMimicVariable( varName : name, varValue : float ) : bool;
 	
+	//////////////////////////////////////////////////////////////////////////////////////////
+	// Items and weapons
 	
-	
-	
-	
+	//import final latent function HolsterItems( bool :  )
 	
 	import final function 			DrawItems   ( instant : bool, itemId : SItemUniqueId, optional itemId2 : SItemUniqueId, optional itemId3 : SItemUniqueId ) : bool;
 	import final function 			HolsterItems( instant : bool, itemId : SItemUniqueId, optional itemId2 : SItemUniqueId, optional itemId3 : SItemUniqueId ) : bool;
@@ -1307,7 +1358,7 @@ import abstract class CActor extends CGameplayEntity
 
 	import latent function 			WaitForFinishedAllLatentItemActions() : bool;
 	
-	
+	//marks required item as random item from inventory with this category, tag or item name (checks categories then checks tags then checks item names)
 	import final function			IssueRequiredItems( leftItem : name, rightItem : name );
 	import final function			SetRequiredItems( leftItem : name, rightItem : name );
 	
@@ -1319,13 +1370,13 @@ import abstract class CActor extends CGameplayEntity
 	import final latent function 	ActivateAndSyncBehaviorWithItemsParallel( names : name, optional timeout : float ) : bool;
 	import final latent function 	ActivateAndSyncBehaviorWithItemsSequence( names : name, optional timeout : float ) : bool;
 	
-	
+	// Use inventory item
 	import final function UseItem( itemId : SItemUniqueId ) : bool;
 	
-	
+	// Put out anything
 	import final function EmptyHands();
 	
-	
+	//////////////////////////////////////////////////////////////////////////////////////////
 	
 	import final function PlayLine( stringId : int, subtitle : bool );
 	
@@ -1347,31 +1398,34 @@ import abstract class CActor extends CGameplayEntity
 		}
 	}
 	
-	
+	// Plays a push animation on an NPC
 	import final function PlayPushAnimation( pushDirection : EPushingDirection );
 
-	
+	// Set new interaction priority
 	import final function SetInteractionPriority( priority : EInteractionPriority );
 	
-	
+	// Get interaction priority
 	import final function GetInteractionPriority() : EInteractionPriority;
 	
-	
+	// Special unpushable target ( returns prevoiusly set target )
 	import final function SetUnpushableTarget( target : CActor ) : CActor;
 	
-	
+	// Set the original, defautl push priority
 	import final function SetOriginalInteractionPriority( priority : EInteractionPriority );
 	
-	
+	// Set the original priority as current
 	import final function RestoreOriginalInteractionPriority();
 	
-	
+	// Gets the original priority
 	import final function GetOriginalInteractionPriority() : EInteractionPriority;
 	
+	// use false flag to disable shadows
+	import final function SetGroupShadows( flag : bool );
 	
 	
-	
-	
+	//////////////////////////////////////////////////////////////////////////////////////////
+	// Actor storage
+	//////////////////////////////////////////////////////////////////////////////////////////
 	
 	public function GetAttackableNPCsAndPlayersInRange(range : float, optional maxResults : int, optional tag : name) : array <CActor>
 	{
@@ -1388,18 +1442,18 @@ import abstract class CActor extends CGameplayEntity
 		var entities : array<CGameplayEntity>;
 		var actorEnt : CActor;
 	
-		
+		//by default take all actors
 		if((queryFlags & FLAG_Attitude_Neutral) == 0 && (queryFlags & FLAG_Attitude_Hostile) == 0 && (queryFlags & FLAG_Attitude_Friendly) == 0)
 			queryFlags = queryFlags | FLAG_Attitude_Neutral | FLAG_Attitude_Hostile | FLAG_Attitude_Friendly;
 
-		
+		//handle optionality
 		if(maxResults <= 0)
 			maxResults = 1000000;
 			
-		
+		// we need to pass 'this' as 'target' param since FindGameplayEntities use target to check attitude towards it
 		FindGameplayEntitiesInSphere(entities, GetWorldPosition(), range, maxResults, tag, queryFlags, this);
 		
-		
+		//only actors
 		for(i=0; i<entities.Size(); i+=1)
 		{
 			actorEnt = (CActor)entities[i];
@@ -1425,15 +1479,15 @@ import abstract class CActor extends CGameplayEntity
 		var entities : array<CGameplayEntity>;
 		var actor : CActor;
 		
-		
+		//by default take all actors
 		if((queryFlags & FLAG_Attitude_Neutral) == 0 && (queryFlags & FLAG_Attitude_Hostile) == 0 && (queryFlags & FLAG_Attitude_Friendly) == 0)
 			queryFlags = queryFlags | FLAG_Attitude_Neutral | FLAG_Attitude_Hostile | FLAG_Attitude_Friendly;
 
-		
+		//handle optionality
 		if(maxResults <= 0)
 			maxResults = 1000000;
 
-		
+		// we need to pass 'this' as 'target' param since FindGameplayEntities use target to check attitude towards it
 		FindGameplayEntitiesInCone(entities, GetWorldPosition(), coneDir, coneAngle, range, maxResults, tag, queryFlags, this);
 				
 		for(i=0; i<entities.Size(); i+=1)
@@ -1445,18 +1499,18 @@ import abstract class CActor extends CGameplayEntity
 		
 		return actors;
 	}
+	//////////////////////////////////////////////////////////////////////////////////////////
+	// OnSpawned
+	//////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
-	
-	
+	// ACHTUNG - REMEMBER ABOUT THE REVIVE() FUNCTION ! ! !
 	event OnSpawned( spawnData : SEntitySpawnData )
 	{	
 		super.OnSpawned(spawnData);
 		
 		AddAnimEventCallback( 'RotateEvent',		'OnAnimEvent_RotateEvent' );
 		AddAnimEventCallback( 'RotateAwayEvent',	'OnAnimEvent_RotateAwayEvent' );
-		
+		//AddAnimEventCallback( 'DeathHitGround',		'OnAnimEvent_DeathHitGround' );
 		AddAnimEventCallback( 'Shake0',				'OnAnimEvent_Shake0' );
 		AddAnimEventCallback( 'Shake1',				'OnAnimEvent_Shake1' );
 		AddAnimEventCallback( 'Shake2',				'OnAnimEvent_Shake2' );
@@ -1467,14 +1521,16 @@ import abstract class CActor extends CGameplayEntity
 		AddAnimEventCallback( 'OnGround',			'OnAnimEvent_OnGround' );
 		AddAnimEventCallback( 'Death',				'OnAnimEvent_Death' );
 		AddAnimEventCallback( 'MountHorseType',		'OnAnimEvent_MountHorseType' );
-		AddAnimEventCallback( 'HorseRidingOn',		'OnAnimEvent_HorseRidingOn' ); 
-		
+		AddAnimEventCallback( 'HorseRidingOn',		'OnAnimEvent_HorseRidingOn' ); // turns on Exploration (riding) state on horse
+		AddAnimEventCallback( 'item_track_hack_reading_book', 'OnAnimEvent_item_track_hack_reading_book' );
+		AddAnimEventCallback( 'item_track_hack_reading_book_unmount', 'OnAnimEvent_item_track_hack_reading_book_unmount' );
+	
 		effectsUpdateTicking = false;
-		SetBehaviorVariable( 'CriticalStateType', (int)ECST_None );		
+		SetBehaviorVariable( 'CriticalStateType', (int)ECST_None );		//can get overriden by effect manager, so it needs to be first
 			
 		if(!spawnData.restored)
 		{
-			SetAbilityManager();		
+			SetAbilityManager();		//defined in inheriting classes but must be called before setting any other managers - sets skills and stats
 			if(abilityManager)
 				abilityManager.Init(this, GetCharacterStats(), spawnData.restored, theGame.GetSpawnDifficultyMode());
 			
@@ -1488,20 +1544,20 @@ import abstract class CActor extends CGameplayEntity
 			if(effectManager)
 				effectManager.OnLoad(this);
 			else
-				SetEffectManager();		
+				SetEffectManager();		// ugly fix for corrupted save
 		}
 		
 		if(abilityManager)
-			abilityManager.PostInit();						
+			abilityManager.PostInit();						//called after other managers are ready
 		
 		ClearAnimationSpeedMultipliers();
 		SetGameplayVisibility( true );
 		
 		MountHorseIfNeeded();
 		
-		
+		//release stamina lock from casting sign - if savegame was done while casting sign!
 		if(effectManager)
-			ResumeEffects( EET_AutoStaminaRegen, 'SignCast' );
+			ResumeStaminaRegen( 'SignCast' );
 	}
 	
 	protected function SetEffectManager()
@@ -1522,7 +1578,7 @@ import abstract class CActor extends CGameplayEntity
 			
 		if( usedVehicle )
 		{
-			
+			// hackfix: don't mount to vehicles far away from spawn point (probably player wasn't properly dismounted)
 			if ( VecDistance2D( usedVehicle.GetWorldPosition(), this.GetWorldPosition() ) > 100 )
 			{
 				usedVehicle = NULL;
@@ -1564,6 +1620,11 @@ import abstract class CActor extends CGameplayEntity
 		UpdateSoundInfo();
 	}
 	
+	event OnForceUpdateSoundInfo()
+	{
+		UpdateSoundInfo();
+	}
+	
 	event OnAppearanceChanged()
 	{		
 		AddTimer('DelaySoundInfoUpdate', 1);
@@ -1574,7 +1635,7 @@ import abstract class CActor extends CGameplayEntity
 		RestoreOriginalInteractionPriority();
 	}
 	
-	
+	// returns true if monster has the ability to teleport
 	public function CanBeTeleporting() : bool
 	{
 		var temp : EMonsterCategory;
@@ -1632,7 +1693,7 @@ import abstract class CActor extends CGameplayEntity
 		if ( cachedIsWoman != -1 )
 			return cachedIsWoman > 0;
 			
-		if ( GetMovingAgentComponent().GetName() == "woman_base" )
+		if ( GetMovingAgentComponent().GetName() == "woman_base" || GetMovingAgentComponent().GetName() == "noble_woman_base" )
 			cachedIsWoman = 1;
 		else
 			cachedIsWoman = 0;
@@ -1694,19 +1755,39 @@ import abstract class CActor extends CGameplayEntity
 		return cachedIsAnimal;
 	}
 	
+	private var cachedIsVampire : int;	default cachedIsVampire = -1;
+	public function IsVampire() : bool
+	{
+		var monsterCategory : EMonsterCategory;
+		var tmpName : name;
+		var tmpBool : bool;
+		
+		if ( cachedIsVampire != -1 )
+			return cachedIsVampire > 0;
+		
+		theGame.GetMonsterParamsForActor(this, monsterCategory, tmpName, tmpBool, tmpBool, tmpBool);
+		
+		if ( monsterCategory == MC_Vampire )
+			cachedIsVampire = 1;
+		else
+			cachedIsVampire = 0;
+		
+		return cachedIsVampire;
+	}
+	
 	protected function SetAbilityManager();
 	
 	timer function CheckBlockedAbilities(dt : float, id : int)
 	{
 		var nextCallTime : float;
 		
-		nextCallTime = abilityManager.CheckBlockedAbilities(dt);		
+		nextCallTime = abilityManager.CheckBlockedAbilities(dt);		//since only an entity can have a timer
 		
 		if(nextCallTime != -1)
 			AddTimer('CheckBlockedAbilities', nextCallTime, , , , true);
 	}
 	
-	protected function GetKillAction(optional ignoreImmortalityMode : bool, optional attacker : CGameplayEntity, optional source : name) : W3DamageAction
+	protected function GetKillAction( source : name, optional ignoreImmortalityMode : bool, optional attacker : CGameplayEntity ) : W3DamageAction
 	{
 		var vit, ess : float;
 		var action : W3DamageAction;
@@ -1727,48 +1808,48 @@ import abstract class CActor extends CGameplayEntity
 		return action;
 	}
 	
-	function Kill(optional ignoreImmortalityMode : bool, optional attacker : CGameplayEntity, optional source : name )
+	function Kill(source : name, optional ignoreImmortalityMode : bool, optional attacker : CGameplayEntity)
 	{
 		var action : W3DamageAction;
 		
 		if ( theGame.CanLog() )
 		{
-			LogDMHits("CActor.Kill: called for actor <<" + this + ">>");
+			LogDMHits( "CActor.Kill: called for actor <<" + this + ">> with source <<" + source + ">>" );
 		}
 		
-		action = GetKillAction(ignoreImmortalityMode, attacker );		
+		action = GetKillAction( source, ignoreImmortalityMode, attacker );		
 		
-		theGame.damageMgr.ProcessAction(action);
+		theGame.damageMgr.ProcessAction( action );
 		
 		delete action;
 	}
 	
-	
+	// called from code
 	private function InterfaceKill( force : bool, attacker : CActor )
 	{
-		Kill(force);
+		Kill( 'From Code', force);
 	}
 	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//	Look At
+	//
 	
-	
-	
-	
-	
+	// enables a static LookAt
 	import function EnableStaticLookAt( point : Vector, duration : float );
 
-	
+	// enables a dynamic LookAt
 	import function EnableDynamicLookAt( node : CNode, duration : float );
 	
-	
+	// Disables a LookAt
 	import function DisableLookAt();
 	
-	
+	// Set look at mode - don't forget to call ResetLookAtMode. The best place for it is OnEnterState.
 	import function SetLookAtMode( mode : ELookAtMode );
 	
-	
+	// Reset look at mode. The best place for it is OnLeaveState.
 	import function ResetLookAtMode( mode : ELookAtMode );
 	
-	
+	//////////////////////////////////////////////////////////////////////////////////////////
 
 	public function HasStaminaToParry( attActionName : name ) : bool
 	{
@@ -1837,7 +1918,7 @@ import abstract class CActor extends CGameplayEntity
 		}
 	}
 	
-	
+	//0 == sword, 1 == fist hit reaction
 	public function ProcessSwordOrFistHitReaction( target, attacker : CActor ) : float
 	{
 		var i, j, size					: int;
@@ -1857,7 +1938,7 @@ import abstract class CActor extends CGameplayEntity
 					for ( j = 0; j < attackerFists.Size() ; j += 1 ) 
 					{
 						if ( attacker.GetInventory().IsItemHeld( attackerFists[j] ) )
-							return 1.f; 
+							return 1.f; //attacker fists target with fists
 					}
 					
 					return 0;
@@ -1865,10 +1946,10 @@ import abstract class CActor extends CGameplayEntity
 			}
 		}
 		
-		return 0.f;	
+		return 0.f;	//target has sword	
 	}
 	
-	
+	//returns true if given category weapon is held in player's hand
 	public function IsWeaponHeld( itemCategory : name ) : bool
 	{
 		var items : array <SItemUniqueId>;
@@ -1888,7 +1969,7 @@ import abstract class CActor extends CGameplayEntity
 		return false;
 	}
 	
-	
+	//returns true if any weapon is held
 	public function IsAnyWeaponHeld() : bool
 	{
 		return IsWeaponHeld('silversword') || IsWeaponHeld('steelsword') || IsWeaponHeld('fist');
@@ -1952,26 +2033,29 @@ import abstract class CActor extends CGameplayEntity
 	public function SetIsCurrentlyDodging(b : bool, optional isRolling : bool)
 	{
 		isCurrentlyDodging = b;
+		// sound generation for creatures following noise instead of just finding combat target
+		// set on start and end of dodging
+		theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( this, 'MoveNoise', -1, 30.0f, -1.f, -1, true ); 
 	}
 	
-	public function IsCurrentlyDodging() : bool				{return isCurrentlyDodging;}
+	public final function IsCurrentlyDodging() : bool				{return isCurrentlyDodging;}
 	
-	public function SetParryEnabled( flag : bool )
+	public final function SetParryEnabled( flag : bool )
 	{
 		bParryEnabled = flag;
 	}
 	
-	public function GetLastAttackRangeName() : name
+	public final function GetLastAttackRangeName() : name
 	{
 		return lastAttackRangeName;
 	}
 	
-	function CanPerformCounter() : bool
+	final function CanPerformCounter() : bool
 	{
 		return bCanPerformCounter;
 	}
 	
-	
+	// Returns true if actor is in guarded pose/stance
 	public function IsGuarded() : bool
 	{
 		return bIsGuarded;
@@ -1987,7 +2071,7 @@ import abstract class CActor extends CGameplayEntity
 		SetBehaviorVariable( 'bIsGuarded', (int)bIsGuarded);
 	}
 	
-	public function CanGuard() : bool
+	public final function CanGuard() : bool
 	{
 		var l_delayToWait   : float = CalculateAttributeValue( GetAttributeValue('delay_between_raise_guard') );		
 		var l_currentDelay	: float;
@@ -2003,17 +2087,17 @@ import abstract class CActor extends CGameplayEntity
 		return false;
 	}
 	
-	function DisableHitAnimFor( time : float )
+	final function DisableHitAnimFor( time : float )
 	{
 		this.SetCanPlayHitAnim(false);
 		AddTimer('EnableHitAnim', time, false, ,  ,true, true);
 	}
 	
-	public function UseAdditiveHit( ) : bool
+	public final function UseAdditiveHit( ) : bool
 	{
 		return useAdditiveHits;
 	}
-	public function SetUseAdditiveHit( _Flag : bool, optional _CriticalCancelAdditiveHit : bool, optional _OneTimeActivation : bool )
+	public final function SetUseAdditiveHit( _Flag : bool, optional _CriticalCancelAdditiveHit : bool, optional _OneTimeActivation : bool )
 	{
 		if ( _OneTimeActivation )
 			oneTimeAdditiveHit 		= _OneTimeActivation;
@@ -2021,11 +2105,11 @@ import abstract class CActor extends CGameplayEntity
 			useAdditiveHits 		= _Flag;
 		criticalCancelAdditiveHit 	= _CriticalCancelAdditiveHit;
 	}
-	public function UseAdditiveCriticalState() : bool
+	public final function UseAdditiveCriticalState() : bool
 	{
 		return useAdditiveCriticalStateAnim;
 	}
-	public function SetUseAdditiveCriticalStateAnim( flag : bool )
+	public final function SetUseAdditiveCriticalStateAnim( flag : bool )
 	{
 		useAdditiveCriticalStateAnim = flag;
 	}
@@ -2034,7 +2118,7 @@ import abstract class CActor extends CGameplayEntity
 		RemoveTimer('EnableHitAnim');
 		canPlayHitAnim = flag;
 	}
-	function CanPlayHitAnim() : bool
+	final function CanPlayHitAnim() : bool
 	{
 		return canPlayHitAnim;
 	}
@@ -2043,16 +2127,24 @@ import abstract class CActor extends CGameplayEntity
 		var movementAdjustor : CMovementAdjustor = GetMovingAgentComponent().GetMovementAdjustor();
 		movementAdjustor.Cancel( movementAdjustor.GetRequest( 'RotateEvent' ) );
 	}
+	public function GetCriticalCancelAdditiveHit() : bool
+	{
+		return criticalCancelAdditiveHit;
+	}
 	
+	//////////////////////////////////////////////////////////////////////////////////////////
+	// @stats
+	//////////////////////////////////////////////////////////////////////////////////////////	
+	public final function GetAbilityManager() : W3AbilityManager
+	{
+		return abilityManager;
+	}
 	
-	
-	
-	
-	
-	
-	
-	
-	
+	//action - stamina action type
+	//fixedValue - fixed value to drain, used only when ESAT_FixedValue is used
+	//abilityName - name of the ability to use when passing ESAT_Ability
+	//dt - if set then then stamina cost is treated as cost per second and thus multiplied by dt
+	//costMult - if set (other than 0 or 1) then the actual cost is multiplied by this value
 	public function DrainStamina(action : EStaminaActionType, optional fixedCost : float, optional fixedDelay : float, optional abilityName : name, optional dt : float, optional costMult : float)
 	{
 		if(abilityManager && abilityManager.IsInitialized() && IsAlive())
@@ -2095,7 +2187,6 @@ import abstract class CActor extends CGameplayEntity
 			abilityManager.AddPanic( amount );
 	}
 	
-	
 	public function GainStat( stat : EBaseCharacterStats, amount : float )
 	{
 		if(abilityManager && abilityManager.IsInitialized() && IsAlive())
@@ -2114,7 +2205,7 @@ import abstract class CActor extends CGameplayEntity
 			abilityManager.ForceSetStat(stat, val);
 	}
 	
-	
+	//if abilityName is set gets only SP for this ability
 	public function GetPowerStatValue(stat : ECharacterPowerStats, optional abilityName : name, optional ignoreDeath : bool) : SAbilityAttributeValue
 	{
 		var null : SAbilityAttributeValue;
@@ -2125,7 +2216,7 @@ import abstract class CActor extends CGameplayEntity
 		return null;
 	}
 	
-	
+	//returns point and percentage resistance
 	public function GetResistValue(stat : ECharacterDefenseStats, out points : float, out percents : float)
 	{
 		points = 0;
@@ -2141,9 +2232,9 @@ import abstract class CActor extends CGameplayEntity
 			effectManager.ResumeEffects(type, sourceName);
 	}
 	
-	
-	
-	
+	// Pauses all effects of given type.
+	// singleLock - lock can be either on or off, there is no counter
+	// useMaxDuration - if set then reapplying the lock will set the duration to the greater of current duration and provided duration
 	public function PauseEffects(type : EEffectType, sourceName : name, optional singleLock : bool, optional duration : float, optional useMaxDuration : bool)
 	{
 		if(effectManager)
@@ -2163,8 +2254,8 @@ import abstract class CActor extends CGameplayEntity
 		return true;
 	}
 	
-	
-	
+	//Returns true if actor has enough stamina to perform given action type (refer to DrainStamina for more info).
+	//If there is not enough stamina and actor is a player character then a insufficient stamina indication is shown on HUD
 	public function HasStaminaToUseAction( action : EStaminaActionType, optional abilityName : name, optional dt :float, optional multiplier : float ) : bool
 	{
 		var ret : bool;
@@ -2184,7 +2275,7 @@ import abstract class CActor extends CGameplayEntity
 		return ret;
 	}
 	
-	
+	//Gets stamina action type cost (refer to DrainStamina for more info).
 	public function GetStaminaActionCost(action : EStaminaActionType, optional abilityName : name, optional dt :float) : float
 	{
 		var cost, delay : float;
@@ -2198,7 +2289,7 @@ import abstract class CActor extends CGameplayEntity
 		return -1;
 	}
 	
-	
+	//Gets stamina action type delay (refer to DrainStamina for more info).
 	public function GetStaminaActionDelay(action : EStaminaActionType, optional abilityName : name, optional dt :float) : float
 	{
 		var cost, delay : float;
@@ -2212,7 +2303,7 @@ import abstract class CActor extends CGameplayEntity
 		return 0;
 	}
 	
-	
+	//returned as [0..1], -1 if has no health set
 	public function GetHealthPercents() : float
 	{
 		if( !abilityManager || !abilityManager.IsInitialized())
@@ -2239,7 +2330,7 @@ import abstract class CActor extends CGameplayEntity
 			return -1;
 	}
 	
-	
+	//returned as [0..1], -1 if has no health set
 	public function GetStaminaPercents() : float
 	{
 		if( !abilityManager || !abilityManager.IsInitialized())
@@ -2248,7 +2339,7 @@ import abstract class CActor extends CGameplayEntity
 		return abilityManager.GetStatPercents( BCS_Stamina );
 	}
 	
-	
+	//Gets max vitality / essence / -1 depending on which stat the actor uses
 	public function GetMaxHealth() : float
 	{
 		var vit, ess : bool;
@@ -2279,24 +2370,31 @@ import abstract class CActor extends CGameplayEntity
 			return -1;
 	}
 			
-	
-	public function UsesVitality() : bool
+	// returns true if actor uses vitality instead of essence
+	public final function UsesVitality() : bool
 	{
-		if(abilityManager && abilityManager.IsInitialized())
+		if(abilityManager )
 			return abilityManager.UsedHPType() == BCS_Vitality;
 			
 		return false;
 	}
 	
-	
+	// returns true if actor uses essence instead of vitality
 	public function UsesEssence() : bool
 	{
-		if(abilityManager && abilityManager.IsInitialized())
+		if(abilityManager )
 			return abilityManager.UsedHPType() == BCS_Essence;
 			
 		return false;
 	}
 	
+	public function GetUsedHealthType() : EBaseCharacterStats
+	{
+		if(abilityManager && abilityManager.IsInitialized())
+			return abilityManager.UsedHPType();
+			
+		return BCS_Undefined;
+	}
 	
 	public function GetStat(stat : EBaseCharacterStats, optional ignoreLock : bool) : float
 	{
@@ -2322,7 +2420,7 @@ import abstract class CActor extends CGameplayEntity
 			abilityManager.GetStats( stat, curr, max );
 	}
 	
-	
+	//as 0..1 range
 	public function GetStatPercents(stat : EBaseCharacterStats) : float
 	{
 		if(abilityManager && abilityManager.IsInitialized())
@@ -2336,7 +2434,7 @@ import abstract class CActor extends CGameplayEntity
 		return 0;
 	}
 	
-	
+	//	Deals FINAL damage to the actor (after all resists and modifiers are calculated). Also heals target for absorbed damage value
 	event OnTakeDamage( action : W3DamageAction )
 	{		
 		var playerAttacker : CPlayer;
@@ -2348,14 +2446,13 @@ import abstract class CActor extends CGameplayEntity
 		var mutagen : CBaseGameplayEffect;
 		var min, max : SAbilityAttributeValue;
 		var lifeLeech, health, stamina : float;
-		var attackAction : W3Action_Attack;
 		var wasAlive : bool;
 		var hudModuleDamageType : EFloatingValueType;
 		
 		playerAttacker = (CPlayer)action.attacker;
 		wasAlive = IsAlive();
 		
-		
+		//frozen shatter
 		buffs = GetBuffs(EET_Frozen);
 		for(i=0; i<buffs.Size(); i+=1)
 		{
@@ -2387,18 +2484,17 @@ import abstract class CActor extends CGameplayEntity
 		if(action.processedDmg.staminaDamage > 0)
 			DrainStamina(ESAT_FixedValue, action.processedDmg.staminaDamage, 0);
 			
-		
+		// do not attach arrows if no damage taken (mitigated by quen)
 		ShouldAttachArrowToPlayer( action );
 		
-		
+		//damage floaters if player or non-actor
 		if( ((action.attacker && action.attacker == thePlayer) || (CBaseGameplayEffect)action.causer) && !action.GetUnderwaterDisplayDamageHack() )
 		{
-			attackAction = (W3Action_Attack)action;
-			if(attackAction && attackAction.GetInstantKill())
+			if(action.GetInstantKillFloater())
 			{
 				hudModuleDamageType = EFVT_InstantDeath;
 			}
-			else if(attackAction && attackAction.IsCriticalHit())
+			else if(action.IsCriticalHit())
 			{
 				hudModuleDamageType = EFVT_Critical;
 			}
@@ -2414,14 +2510,14 @@ import abstract class CActor extends CGameplayEntity
 			ShowFloatingValue(hudModuleDamageType, action.GetDamageDealt(), (hudModuleDamageType == EFVT_DoT) );
 		}
 		
-		
+		//combat log - print if damage type matches used hp type
 		if(action.attacker && !action.IsDoTDamage() && wasAlive && action.GetDTCount() > 0 && !action.GetUnderwaterDisplayDamageHack())
 		{
 			theGame.witcherLog.CacheCombatDamageMessage(action.attacker, this, action.GetDamageDealt());
 			theGame.witcherLog.AddCombatDamageMessage(action.DealtDamage());
 		}
 			
-		
+		//skills
 		if(playerAttacker)
 		{
 			if (thePlayer.HasBuff(EET_Mutagen07))
@@ -2445,7 +2541,7 @@ import abstract class CActor extends CGameplayEntity
 		{
 			attackName = ((W3Action_Attack)action).GetAttackName();
 		
-			
+			// Decrease current enemy HP by 10% and set Player stamina to 0
 			if ( thePlayer.HasBuff(EET_Mutagen04) && action.DealsAnyDamage() && thePlayer.IsHeavyAttack(attackName) && thePlayer.GetStat(BCS_Stamina) > 0)
 			{
 				mutagen = thePlayer.GetBuff(EET_Mutagen04);
@@ -2475,16 +2571,16 @@ import abstract class CActor extends CGameplayEntity
 		
 		if( !IsAlive() )
 		{
-			
-			
-			
-			
-			
+			//animatedComponent = ( CAnimatedComponent )GetComponentByClassName( 'CAnimatedComponent' );
+			//if( animatedComponent && animatedComponent.HasFrozenPose() )
+			//{
+			//	animatedComponent.UnfreezePose();
+			//}
 			
 			OnDeath( action );
 		}
 		
-		
+		//signal event to receive it in AI task
 		SignalGameplayEvent('DamageTaken');
 	}
 	
@@ -2494,7 +2590,7 @@ import abstract class CActor extends CGameplayEntity
 		
 		if ( !IsAlive() || IsKnockedUnconscious() )
 		{			
-			OnRevived();				
+			OnRevived();				//sets is alive to true which is required by managers
 			
 			if(effectManager)
 				effectManager.OnOwnerRevived();
@@ -2503,7 +2599,7 @@ import abstract class CActor extends CGameplayEntity
 		}		
 	}
 	
-	
+	//returns true if tried to apply at least one valid effect
 	public function ApplyActionEffects( action : W3DamageAction ) : bool
 	{
 		if(effectManager)
@@ -2511,8 +2607,48 @@ import abstract class CActor extends CGameplayEntity
 			
 		return false;
 	}
-		
 	
+	//** hit counter - it counts hits!
+	public function GetHitCounter(optional total : bool) : int
+	{
+		if ( total )
+			return totalHitCounter;
+		return hitCounter;
+	}
+	
+	public function IncHitCounter()
+	{
+		hitCounter += 1;
+		totalHitCounter += 1;
+		AddTimer('ResetHitCounter',2.0,false);
+	}
+	
+	public timer function ResetHitCounter( deta : float , id : int)
+	{
+		hitCounter = 0;
+	}
+	
+	//** defensive actions counter - it counts defensive actions for counter attack purposes!
+	public function GetDefendCounter(optional total : bool) : int
+	{
+		if ( total )
+			return totalDefendCounter;
+		return defendCounter;
+	}
+	
+	public function IncDefendCounter()
+	{
+		defendCounter += 1;
+		totalDefendCounter += 1;
+		AddTimer('ResetDefendCounter',2.0,false);
+	}
+	
+	public timer function ResetDefendCounter( deta : float , id : int)
+	{
+		defendCounter = 0;
+	}
+	
+	//Called when the attack was reflected
 	public function ReactToReflectedAttack( target : CGameplayEntity)
 	{
 		var hp, dmg : float;
@@ -2521,41 +2657,56 @@ import abstract class CActor extends CGameplayEntity
 		action = new W3DamageAction in this;
 		action.Initialize(target,this,NULL,'',EHRT_Reflect,CPS_AttackPower,true,false,false,false);
 		action.SetHitAnimationPlayType(EAHA_ForceYes);
+		action.SetCannotReturnDamage( true );
 		
+		/*
+		There is no reason why this should be doing damage. If it does it breaks mutations, Quen and possibly more.
+		Commented it out and I see no difference gameplay-wise
 		
+		//deal some damage but don't get below 1
 		if(UsesVitality())
 			hp = GetStat(BCS_Vitality);
 		else
 			hp = GetStat(BCS_Essence);
-			
+		
 		if(hp <= 1)
 			dmg = 0.0000001;
 		else
 			dmg = 1;
 			
 		action.AddDamage(theGame.params.DAMAGE_NAME_DIRECT,dmg);
+		*/
 		
-		((CActor) target).PlayEffectOnHeldWeapon('light_block');
+		if( ((CActor) target).HasTag( 'scolopendromorph' ) )
+		{
+			((CActor) target).PlayEffect('heavy_hit_back');
+		}
+		else
+		{
+			((CActor) target).PlayEffectOnHeldWeapon('light_block');
+		}
 		
 		theGame.damageMgr.ProcessAction( action );		
 		delete action;	
 	}
 
-		
+	/**
+		Called when we want to play hit animation. Returns true if a non-additive hit anim is to be played.
+	*/	
 	public function ReactToBeingHit(damageAction : W3DamageAction, optional buffNotApplied : bool) : bool
 	{
 		var animType 				: EHitReactionType;
 		var receivedAnyDamage 		: bool;
 		var isParriedOrCountered, playHitAnim, criticalAllowsHit, immortalDebugHack	: bool;
 		var hitAnimationPlayType 	: EActionHitAnim;		
-		var animPlayed				: bool;			
+		var animPlayed				: bool;			//if a non-additive hit anim was played
 		var attackAction			: W3Action_Attack;
 		var hud : CR4ScriptedHud;
 						
-		
+		//react to hit
 		OnReactToBeingHit( damageAction );
 		
-		
+		//get data
 		hitAnimationPlayType = damageAction.GetHitAnimationPlayType();
 		receivedAnyDamage = damageAction.DealtDamage();
 		attackAction = (W3Action_Attack)damageAction;		
@@ -2565,7 +2716,7 @@ import abstract class CActor extends CGameplayEntity
 		{					
 			playHitAnim = false;
 			
-			
+			//no hits in god
 			if(GetImmortalityMode() == AIM_Invulnerable && this == thePlayer)
 			{
 				playHitAnim = false;
@@ -2595,9 +2746,9 @@ import abstract class CActor extends CGameplayEntity
 				{
 					playHitAnim = false;
 				}
-				
-				
-				
+				// R.P: Two possible ways: only ignore player's attack if he is friendly, or every friendly around
+				// Right now, ignoring only the player because it could potentially create a lot of issues with AOE attacks, etc.
+				//else if ( ((CActor)damageAction.attacker) && ((CActor)damageAction.attacker).GetAttitude( this ) == AIA_Friendly )
 				else if ( damageAction.attacker == thePlayer && thePlayer.GetAttitude( this ) == AIA_Friendly && !HasBuff(EET_AxiiGuardMe) )
 				{
 					playHitAnim = false;
@@ -2620,19 +2771,24 @@ import abstract class CActor extends CGameplayEntity
 						}
 						else if(!receivedAnyDamage && !isParriedOrCountered && criticalAllowsHit)
 						{
-							
+							//play hit even if all damage was blocked by armor/resistances
 							playHitAnim = true;
 						}
 					}
 				}
 			}
 			
-			
+			//play some hit anim
 			if(playHitAnim)
 			{
+				/*
+				if( this == thePlayer && this.GetCurrentStateName() == 'CombatFocusMode_SelectSpot' )
+				{
+					InterruptCombatFocusMode();
+				}
+				*/
 				
-				
-				if( ( useAdditiveHits || oneTimeAdditiveHit ) && !( criticalCancelAdditiveHit && attackAction.IsCriticalHit() ))
+				if( ( useAdditiveHits || oneTimeAdditiveHit ) && !( criticalCancelAdditiveHit && damageAction.IsCriticalHit() ))
 				{
 					animType = ModifyHitSeverityReaction(this, damageAction.GetHitReactionType());
 					if(animType != EHRT_None)
@@ -2655,7 +2811,7 @@ import abstract class CActor extends CGameplayEntity
 		}
 				
 		lastWasHitTime 		= theGame.GetEngineTimeAsSeconds();
-		lastWasAttackedTime = lastWasHitTime; 
+		lastWasAttackedTime = lastWasHitTime; // If hit from a projectile, the lastWastAttackedTime won't be updated. This line counters the issue.
 		
 		return animPlayed;
 	}
@@ -2666,7 +2822,7 @@ import abstract class CActor extends CGameplayEntity
 		super.OnFireHit(source);
 	}
 	
-	
+	//hit and death sounds
 	public final function ProcessHitSound(damageAction : W3DamageAction, hitAnimPlayed : bool)
 	{
 		var noHitSound : bool;
@@ -2687,13 +2843,13 @@ import abstract class CActor extends CGameplayEntity
 			return;
 		}
 	
-		
+		//set data, both for sound event fired from animation or from here
 		SetHitSoundData(damageAction);
 		
 		npcVictim = (CNewNPC) damageAction.victim;
 		
-		
-		
+		//if hit animation played
+		//or if got non-DOT, non-falling damage
 		if( !hitAnimPlayed || (npcVictim && !npcVictim.CanPlayHitAnim() ))
 		{
 			playHitReactionSfx = damageAction.DealtDamage() && !damageAction.IsDoTDamage() && damageAction.GetBuffSourceName() != "FallingDamage";
@@ -2708,7 +2864,7 @@ import abstract class CActor extends CGameplayEntity
 		}
 	}
 		
-	
+	//played & called on victim
 	public function SetHitSoundData(action : W3DamageAction)
 	{
 		var weaponMeshSoundTypeIdentification, soundMonsterName, weaponMeshSoundSizeIdentification, armourMeshSoundSizeIdentification : name;
@@ -2754,9 +2910,9 @@ import abstract class CActor extends CGameplayEntity
 					
 			if(category == 'monster_weapon')
 			{			
-				theGame.GetMonsterParamsForActor( (CActor)action.attacker, monsterCategory, soundMonsterName, isTeleporting, canBeTargeted, canBeHitByFists);		
+				theGame.GetMonsterParamsForActor( (CActor)action.attacker, monsterCategory, soundMonsterName, isTeleporting, canBeTargeted, canBeHitByFists);		//get monster sound params from entity template
 				
-				
+				//set weapon/monster data
 				SoundSwitch( "opponent_weapon_type", 'monster' );
 				SoundSwitch( "opponent_weapon_size", soundMonsterName );
 			}
@@ -2765,9 +2921,9 @@ import abstract class CActor extends CGameplayEntity
 				SoundSwitch( "opponent_weapon_type", 'fist' );
 				SoundSwitch( "opponent_weapon_size", '' );
 			}
-			else	
+			else	//not a monster - weapon edge check
 			{
-				
+				//set weapon data
 				if(isByArrow)
 				{
 					SoundSwitch( "opponent_weapon_type", "arrow" );
@@ -2809,16 +2965,24 @@ import abstract class CActor extends CGameplayEntity
 			
 			boneIndex = attackAction.GetHitBoneIndex();
 			
-			
+			//set hit bone
 			if(boneIndex == GetHeadBoneIndex())
 				SoundSwitch( "hit_location", "head" );
 			else
 				SoundSwitch( "hit_location", "body" );
 
-			
-			SoundSwitch(  "opponent_attack_type", attackAction.GetSoundAttackType() );
+			//set attack type
+			//EP2 Hack: can't change audio data so we need to manually fix it up here
+			if(StrContains(action.attacker.GetName(), "kikimore") &&  soundMonsterName == 'Endriaga' && attackAction.GetSoundAttackType() == 'monster_medium_hit_heavy')
+			{
+				SoundSwitch(  "opponent_attack_type", 'monster_medium_hit_light' );
+			}
+			else
+			{
+				SoundSwitch(  "opponent_attack_type", attackAction.GetSoundAttackType() );
+			}
 
-			
+			//set armor type
 			cr4HumanoidCombatComponent = (CR4HumanoidCombatComponent)GetComponentByClassName( 'CR4HumanoidCombatComponent' );
 			if( cr4HumanoidCombatComponent )
 			{
@@ -2829,12 +2993,12 @@ import abstract class CActor extends CGameplayEntity
 				}
 			}	
 		}		
-		
+		//set sound switch data for magic
 		else if(action.IsActionWitcherSign())
 		{
 			SetDamageActionMagicHitSound((CEntity)action.causer);
 		}
-		
+		//special override for ciri phantom
 		else if( (W3CiriPhantom)action.attacker )
 		{
 			SoundSwitch( "opponent_weapon_type", 'ciri_spec_ability' );
@@ -2877,22 +3041,23 @@ import abstract class CActor extends CGameplayEntity
 			SoundSwitch( "opponent_weapon_size", 'magic_quen' );
 	}
 		
-	
+	//Plays hit fx on target when being damaged
 	public function PlayHitEffect(damageAction : W3DamageAction)
 	{
 		var effectName : name;
 		var attackAction : W3Action_Attack;
 		var actorAttacker : CActor;
+		var fxEntity : CEntity;
 		
 		if(HasTag('NoHitFx'))
 			return;
 		
-		
+		//choose fx type
 		attackAction = (W3Action_Attack)damageAction;
 		actorAttacker = (CActor)damageAction.attacker;
 		if(attackAction && actorAttacker && actorAttacker.GetInventory().ItemHasTag(attackAction.GetWeaponId(), 'Wooden'))
 		{
-			
+			//wooden fx
 			if(actorAttacker.IsHeavyAttack(attackAction.GetAttackName()))
 			{
 				effectName = 'wood_heavy_hit';
@@ -2909,19 +3074,78 @@ import abstract class CActor extends CGameplayEntity
 		}
 		else
 		{
-			
+			//regular fx
 			effectName = damageAction.GetHitEffect(IsAttackerAtBack(damageAction.attacker), !damageAction.DealsAnyDamage());
 		}
 		
 		if(IsNameValid(effectName))
 			PlayEffect(effectName);
+			
+		//mutation 2 fx on critical
+		if( damageAction.IsCriticalHit() && damageAction.IsActionWitcherSign() && actorAttacker && IsAlive() && actorAttacker == thePlayer && GetWitcherPlayer().IsMutationActive( EPMT_Mutation2 ) )
+		{
+			fxEntity = CreateFXEntityAtPelvis( 'mutation2_critical', true );
+			if( fxEntity )
+			{
+				switch( damageAction.GetSignSkill() )
+				{
+					case S_Magic_1 :
+						fxEntity.PlayEffect( 'critical_aard' );
+						break;
+					case S_Magic_2 :
+						fxEntity.PlayEffect( 'critical_igni' );
+						break;
+					case S_Magic_3 :
+					case S_Magic_s03 :
+						fxEntity.PlayEffect( 'critical_yrden' );
+						break;
+					case S_Magic_4 :
+					case S_Magic_s04 :
+					case S_Magic_s13 :
+						fxEntity.PlayEffect( 'critical_quen' );
+						break;
+				}
+			}
+		}
+		
+		//mutation 1 hit fx
+		if( actorAttacker == thePlayer && damageAction.IsActionWitcherSign() && IsAlive() && GetWitcherPlayer().IsMutationActive( EPMT_Mutation1 ) )
+		{
+			fxEntity = CreateFXEntityAtPelvis( 'mutation1_hit', true ); 
+			if( fxEntity )
+			{
+				switch( damageAction.GetSignType() )
+				{
+					case ST_Aard:
+						effectName = 'mutation_1_hit_aard' ;
+						break;
+					case ST_Igni:
+						effectName = 'mutation_1_hit_igni' ;
+						break;
+					case ST_Yrden:
+						effectName = 'mutation_1_hit_yrden' ;
+						break;
+					case ST_Quen:
+						effectName = 'mutation_1_hit_quen' ;
+						break;
+				}
+				
+				fxEntity.PlayEffect( effectName );
+			}
+		}
 	}
 		
 	event OnReactToBeingHit( damageAction : W3DamageAction );	
 	
-	function InterruptCombatFocusMode();		
+	function InterruptCombatFocusMode();
 	
-	protected function PlayHitAnimation(damageAction : W3DamageAction, animType : EHitReactionType);
+	protected function PlayHitAnimation( damageAction : W3DamageAction, animType : EHitReactionType )
+	{
+		if ( IsNameValid( ( (CNewNPC)damageAction.attacker ).GetAbilityBuffStackedOnEnemyHitName() ) )
+		{
+			damageAction.attacker.AddAbility( ( (CNewNPC)damageAction.attacker ).GetAbilityBuffStackedOnEnemyHitName(), true );
+		}
+	}
 	
 	public function SetHitReactionDirection( attacker : CNode )
 	{
@@ -2929,24 +3153,24 @@ import abstract class CActor extends CGameplayEntity
 		
 		if( AbsF(victimToAttackerAngle) <= 90 )
 		{
-			
+			//hit from front
 			this.SetBehaviorVariable( 'HitReactionDirection',(int)EHRD_Forward);
 		}
 		else if( AbsF(victimToAttackerAngle) > 90 )
 		{
-			
+			//hit from back
 			this.SetBehaviorVariable( 'HitReactionDirection',(int)EHRD_Back);
 		}
 		
 		
 		if( victimToAttackerAngle > 45 && victimToAttackerAngle < 135 )
 		{
-			
+			//hit from right
 			this.SetBehaviorVariable( 'HitReactionSide',(int)EHRS_Right);
 		}
 		else if( victimToAttackerAngle < -45 && victimToAttackerAngle > -135 )
 		{
-			
+			//hit from rights
 			this.SetBehaviorVariable( 'HitReactionSide',(int)EHRS_Left);
 		}
 		else
@@ -2961,7 +3185,7 @@ import abstract class CActor extends CGameplayEntity
 		this.SetBehaviorVariable( 'HitSwingType',(int)type);
 	}
 	
-	
+	//Called when scene is loadingm should be cleared out by OnBlockingSceneEnded, called only for Player
 	event OnPreSceneInvulnerability( val : bool ) 
 	{
 		if( val )
@@ -2987,17 +3211,17 @@ import abstract class CActor extends CGameplayEntity
 		ResetTemporaryAttitudeGroup( AGP_Scenes );
 	}	
 	
-	
+	// Called when this actor dies. Remember to call SetAlive(false) after all your code is done ( unless the actor is unconscious )!
 	event OnDeath( damageAction : W3DamageAction  )
 	{
-		
+		// disable focus mode sounds
 		OnFocusModeSound( false, false );
 		SetFocusModeSoundEffectType( FMSET_None );
 		
-		
+		// stop all voicesets played by this actor
 		StopAllVoicesets();
 		
-		
+		//remove all effects
 		if(effectManager)
 		{
 			if ( this.WillBeUnconscious() )
@@ -3006,13 +3230,18 @@ import abstract class CActor extends CGameplayEntity
 				effectManager.OwnerHasDied();
 		}
 		
-		
+		// switch red focus mode highlighting of enemies on death to white (set in code)
 		SetFocusModeVisibility( FMV_None );
 		
-		
+		/*
+		if ( thePlayer.IsFistFightMinigameEnabled() && !thePlayer.IsFistFightMinigameToTheDeath() ) //((CActor)damageAction.attacker).IsWeaponHeld( 'fist' ) ) //TODO: if minigame is on
+		{
+			enableUnconscious 			= true;
+			wasDefeatedFromFistFight 	= true;
+		}*/
 		this.GetMovingAgentComponent().SetEnabledFeetIK(false,0.5);
 		
-		
+		// review hack
 		if( HasTag( 'etherealTest' ) )
 		{
 			HACK_ManageEtherealSkills();
@@ -3026,7 +3255,7 @@ import abstract class CActor extends CGameplayEntity
 		}
 	}
 	
-	
+	// Called when the actor gets out of unconscious state
 	function OnRevived()
 	{
 		wasDefeatedFromFistFight 	= false;
@@ -3069,13 +3298,18 @@ import abstract class CActor extends CGameplayEntity
 	{
 		var i : int;
 		var victimTags, attackerTags : array<name>;
-		
+		//tag for quest condition check
 		victimTags = GetTags();
 		attackerTags = attacker.GetTags();
 		
 		AddHitFacts( victimTags, attackerTags, "_axii_hit" );
 	}
-	
+	/*
+	// temp
+	function Interact( interactionName : name, optional master : CActor )
+	{
+		ChangeState( interactionName );
+	}*/
 	
 	public function SetEffectsUpdateTicking( on : bool, optional dontCheckEffectsManager : bool  )
 	{
@@ -3086,7 +3320,7 @@ import abstract class CActor extends CGameplayEntity
 				if( abilityManager && abilityManager.IsInitialized() && ( dontCheckEffectsManager || ( effectManager && effectManager.IsReady() ) ) )
 				{
 					effectsUpdateTicking = true;
-					AddTimer( 'EffectsUpdate', 0.001, true );		
+					AddTimer( 'EffectsUpdate', 0.001, true );		//force per tick update
 				}
 			}
 		}
@@ -3234,22 +3468,22 @@ import abstract class CActor extends CGameplayEntity
 			effectManager.PerformUpdate( deltaTime );
 	}
 	
-	
-	
-	
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// @movement
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	public function UpdateRequestedDirectionVariables( headingYawWS : float, orientationYawWS : float )
 	{
-		
+		// 0 - 360
 		SetBehaviorVariable( 'requestedMovementDirection', AngleNormalize( headingYawWS ) );
 		SetBehaviorVariable( 'requestedFacingDirection', AngleNormalize( orientationYawWS ) );
 		SetBehaviorVariable( 'requestedMovementDirectionForOverlay', AngleNormalize( headingYawWS ) );
 		SetBehaviorVariable( 'requestedFacingDirectionForOverlay', AngleNormalize( orientationYawWS ) );
 	}
 
-	
-	
-	
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// @look at
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	public function UpdateLookAtVariables( lookAtTargetActive : float, lookAtTarget : Vector )
 	{
 		var sourceToTargetVector	: Vector;
@@ -3284,17 +3518,22 @@ import abstract class CActor extends CGameplayEntity
 		SetBehaviorVariable( 'lookatToHeadingDiffPitch', pitch/90 );
 	}
 
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////  @critical states  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
-	
-	
+	// calls behavior event in a proper (player or npc) way
 	protected function CriticalBuffInformBehavior(buff : CBaseGameplayEffect);
 	
 	public function GetNewRequestedCS() : CBaseGameplayEffect			{return newRequestedCS;}
 	public function SetNewRequestedCS(buff : CBaseGameplayEffect)		{newRequestedCS = buff;}
 	
-	
+	/*
+		Called when new critical effect has started
+		This will interrupt current critical state
+		
+		returns true if the effect got fired properly
+	*/
 	public function StartCSAnim(buff : CBaseGameplayEffect) : bool
 	{		
 		LogCritical("Received request to start CS anim for <<" + GetBuffCriticalType(buff) + ">>");
@@ -3306,10 +3545,10 @@ import abstract class CActor extends CGameplayEntity
 		}
 		
 		if(newRequestedCS == buff)
-			return false;		
+			return false;		//already requested
 			
-		
-		
+		//player cannot play CS anim when mounted - it's handled by horse panic mechanics
+		//npcs however handle this themselves
 		if( this == thePlayer && IsUsingVehicle())
 			return false;		
 	
@@ -3323,10 +3562,12 @@ import abstract class CActor extends CGameplayEntity
 		return true;
 	}
 		
-	
+	/*
+		Called when we succesfully enter critical state anim block in behavior
+	*/
 	event OnCriticalStateAnimStart()
 	{
-		
+		//requested effect got removed in the meantime		
 		if(!newRequestedCS)
 		{
 			LogCritical("Aborting start of new CS - it got deleted in the meantime");
@@ -3343,7 +3584,7 @@ import abstract class CActor extends CGameplayEntity
 		return true;
 	}
 			
-	
+	//returns true if buff got interrupted 
 	public function CriticalEffectAnimationInterrupted(reason : string) : bool
 	{
 		var buff : CBaseGameplayEffect;
@@ -3353,7 +3594,7 @@ import abstract class CActor extends CGameplayEntity
 			buff = effectManager.GetCurrentlyAnimatedCS();
 			if(buff)
 			{			
-				
+				// we don't return back to some critical buffs
 				if(CriticalBuffIsDestroyedOnInterrupt(buff))
 					effectManager.RemoveEffect(effectManager.GetCurrentlyAnimatedCS(), true);
 				
@@ -3384,16 +3625,16 @@ import abstract class CActor extends CGameplayEntity
 		else
 			LogCritical("Requesting CS anim stop but there is no critical playing animation right now");
 	
-		
+		//ragdoll critical state hack - don't finish animation/ragdoll until we actually hit ground
 		if(!dontSetCriticalToStopped && IsAlive() )
-			SetBehaviorVariable( 'bCriticalStopped', 1 );			
+			SetBehaviorVariable( 'bCriticalStopped', 1 );			//if stopping current then request animation stop
 			
 		this.SignalGameplayEvent('DisableFinisher');
 			
 		this.SignalGameplayEventParamInt('StoppingEffect', (int)critType);
 	}
 	
-	
+	//called when critical buff's anim or task end
 	public function CriticalStateAnimStopped(forceRemoveBuff : bool)
 	{
 		var buffToStop : CBaseGameplayEffect;
@@ -3428,16 +3669,16 @@ import abstract class CActor extends CGameplayEntity
 		}
 		else
 		{
-			
+			//overlay or a bug
 		}
 			
-		
-		
+		//SetBehaviorVariable( 'bCriticalState', 0);				
+		//OnCombatActionEnd();					
 	}
 	
-	
-	
-	
+	// chooses second in line critical state type - picks the one with second highest priority
+	// ignores buff negative duration and isActive flag - there is no way to tell which buffs are going to be active at this particular point
+	// given all the possible special cases
 	public function ChooseNextCriticalBuffForAnim() : CBaseGameplayEffect
 	{
 		var max, val, i : int;
@@ -3453,11 +3694,11 @@ import abstract class CActor extends CGameplayEntity
 		
 		for(i=0; i<eff.Size(); i+=1)
 		{
-			
+			//not active buff
 			if(!eff[i].IsActive())
 				continue;
 				
-			
+			//if critical effect cannot play the animation anymore then continue
 			if(!CriticalEffectCanPlayAnimation(eff[i]))
 				continue;
 		
@@ -3497,14 +3738,14 @@ import abstract class CActor extends CGameplayEntity
 
 			if(eff[i].GetDurationLeft() <= 0 || !eff[i].IsActive())
 			{
-				
+				//found some outdated CS - remove it
 				effectManager.RemoveEffect(eff[i]);
-				continue;		
+				continue;		//it's ok, we're working on a local copy
 			}			
 				
 			if(tempType != ECST_None)
 			{
-				
+				//if critical effect cannot play the animation anymore then continue
 				if(!CriticalEffectCanPlayAnimation(eff[i]))
 					continue;
 			
@@ -3547,9 +3788,9 @@ import abstract class CActor extends CGameplayEntity
 		return true;
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// @Buffs @Effects
+	//
 	
 	public function RecalcEffectDurations()
 	{
@@ -3605,10 +3846,10 @@ import abstract class CActor extends CGameplayEntity
 			effectManager.RemoveEffect(effect, csForcedRemove );
 	}
 	
-	public function RemoveAllNonAutoBuffs()
+	public function RemoveAllNonAutoBuffs( optional removeOils : bool )
 	{
 		if( effectManager && effectManager.IsReady() )
-			effectManager.RemoveAllNonAutoEffects();
+			effectManager.RemoveAllNonAutoEffects( removeOils );
 	}
 	
 	public function RemoveAllBuffsOfType(effectType : EEffectType)
@@ -3616,6 +3857,13 @@ import abstract class CActor extends CGameplayEntity
 		if( effectManager && effectManager.IsReady() )
 			effectManager.RemoveAllEffectsOfType(effectType);
 	}
+	
+	public function RemoveAllBuffsWithSource( source : string )
+	{
+		if( effectManager && effectManager.IsReady() )
+			effectManager.RemoveAllBuffsWithSource( source );
+	}
+	
 	
 	public function HasBuff(effectType : EEffectType) : bool
 	{
@@ -3685,6 +3933,16 @@ import abstract class CActor extends CGameplayEntity
 		return false;
 	}
 	
+	public final function IsImmuneToInstantKill() : bool
+	{
+		if( HasAbility( 'InstantKillImmune' ) || IsImmortal() || IsInvulnerable() || WillBeUnconscious() )
+		{
+			return true;
+		}
+		
+		return false;
+	}
+	
 	public function IsImmuneToBuff(effect : EEffectType) : bool
 	{
 		var immunes : CBuffImmunity;
@@ -3695,7 +3953,7 @@ import abstract class CActor extends CGameplayEntity
 		
 		mac = GetMovingAgentComponent();
 		
-		if ( mac && mac.IsEntityRepresentationForced() == 512 && !IsUsingVehicle() ) 
+		if ( mac && mac.IsEntityRepresentationForced() == 512 && !IsUsingVehicle() ) // 512 is forcing from steering
 		{
 			if( effect != EET_Snowstorm && effect != EET_SnowstormQ403 )
 				return false;
@@ -3736,7 +3994,7 @@ import abstract class CActor extends CGameplayEntity
 			return true;
 		
 		theGame.effectMgr.GetEffectTypeFlags(effect, potion, positive, neutral, negative, immobilize, confuse, damage);
-		if( (potion && immunes.potion) || (positive && immunes.positive) || (neutral && immunes.neutral) || (negative && immunes.negative) || (immobilize && immunes.immobilize) || (confuse && immunes.confuse) || (damage && immunes.damage) )
+		if( (potion && immunes.potion) || (positive && immunes.positive) || (neutral && immunes.neutral) || (negative && ( isImmuneToNegativeBuffs || immunes.negative ) ) || (immobilize && immunes.immobilize) || (confuse && immunes.confuse) || (damage && immunes.damage) )
 			return true;
 			
 		return false;
@@ -3746,7 +4004,7 @@ import abstract class CActor extends CGameplayEntity
 	{
 		var i, size : int;
 		
-		size = EnumGetMax('EEffectType')+1;
+		size = (int)EET_EffectTypesSize;
 		
 		for( i=0; i<size; i+=1 )
 		{
@@ -3754,17 +4012,11 @@ import abstract class CActor extends CGameplayEntity
 				AddBuffImmunity(i, source, removeIfPresent);
 		}
 	}
+	
+	protected saved var isImmuneToNegativeBuffs : bool;
 	public function AddBuffImmunity_AllNegative(source : name, removeIfPresent : bool)
 	{
-		var i, size : int;
-		
-		size = EnumGetMax('EEffectType')+1;
-		
-		for( i=0; i<size; i+=1 )
-		{
-			if( IsNegativeEffectType(i) )
-				AddBuffImmunity(i, source, removeIfPresent);
-		}
+		isImmuneToNegativeBuffs = true;
 	}
 		
 	public function AddBuffImmunity(effect : EEffectType, source : name, removeBuffIfPresent : bool)
@@ -3773,7 +4025,7 @@ import abstract class CActor extends CGameplayEntity
 		var removed, immuneExists : bool;
 		var immunity : SBuffImmunity;
 	
-		
+		//check if its in removed immunes and if so then delete it
 		removed = false;
 		for(i=0; i<buffRemovedImmunities.Size(); i+=1)
 		{
@@ -3790,7 +4042,7 @@ import abstract class CActor extends CGameplayEntity
 		
 		if(!removed)
 		{
-			
+			//else add it to dynamic immunes list if not already there
 			immuneExists = false;
 			for(i=0; i<buffImmunities.Size(); i+=1)
 			{
@@ -3813,7 +4065,7 @@ import abstract class CActor extends CGameplayEntity
 			}
 		}
 		
-		
+		//finally remove the effects if actor already has it
 		if(removeBuffIfPresent && effectManager)
 			effectManager.RemoveAllEffectsOfType(effect);
 	}
@@ -3822,8 +4074,8 @@ import abstract class CActor extends CGameplayEntity
 	{
 		var i, size : int;
 	
-		
-		size = EnumGetMax('EEffectType')+1;
+		//ugly but we cannot dynamically add resistances to buff groups :(
+		size = (int)EET_EffectTypesSize;
 		for(i=0; i<size; i+=1)
 		{
 			if(IsCriticalEffectType(i))
@@ -3833,15 +4085,7 @@ import abstract class CActor extends CGameplayEntity
 	
 	public function RemoveBuffImmunity_AllNegative(optional source : name)
 	{
-		var i, size : int;
-	
-		
-		size = EnumGetMax('EEffectType')+1;
-		for(i=0; i<size; i+=1)
-		{
-			if(theGame.effectMgr.IsBuffNegative(i))
-				RemoveBuffImmunity(i, source);
-		}
+		isImmuneToNegativeBuffs = false;
 	}
 	
 	public function RemoveBuffImmunity(effect : EEffectType, optional source : name)
@@ -3850,7 +4094,7 @@ import abstract class CActor extends CGameplayEntity
 		var i : int;
 		var immunity : SBuffImmunity;
 		
-		
+		//if it's a dynamic immune then remove it
 		for(i=0; i<buffImmunities.Size(); i+=1)
 		{
 			if(buffImmunities[i].buffType == effect && buffImmunities[i].sources.Contains(source))
@@ -3862,7 +4106,7 @@ import abstract class CActor extends CGameplayEntity
 			}
 		}
 		
-		
+		//if source not set then also remove buff immunity from EntityTemplate
 		if(!IsNameValid(source))
 		{
 			immunes = theGame.GetBuffImmunitiesForActor(this);
@@ -3881,12 +4125,22 @@ import abstract class CActor extends CGameplayEntity
 					}
 				}
 				
-				
+				//if not found in buffRemovedImmunities then add
 				immunity.buffType = effect;
 				immunity.sources.PushBack(source);
 				buffRemovedImmunities.PushBack(immunity);
 			}
 		}
+	}
+	
+	public final function SetIsRecoveringFromKnockdown()
+	{
+		isRecoveringFromKnockdown = true;		
+	}
+	
+	public final function GetIsRecoveringFromKnockdown() : bool
+	{
+		return isRecoveringFromKnockdown;
 	}
 	
 	public function PauseHPRegenEffects(sourceName : name, optional duration : float)
@@ -3895,16 +4149,16 @@ import abstract class CActor extends CGameplayEntity
 			effectManager.PauseHPRegenEffects(sourceName, duration);			
 	}
 	
-	public function ResumeHPRegenEffects(sourceName : name)
+	public function ResumeHPRegenEffects( sourceName : name, optional forceAll : bool )
 	{
 		if(effectManager && effectManager.IsReady())
-			effectManager.ResumeHPRegenEffects(sourceName);			
+			effectManager.ResumeHPRegenEffects( sourceName, forceAll );			
 	}
 	
-	public function PauseStaminaRegen(sourceName : name, optional duration : float)
+	public function PauseStaminaRegen( sourceName : name, optional duration : float )
 	{
 		if(effectManager && effectManager.IsReady())
-			effectManager.PauseStaminaRegen(sourceName, duration);			
+			effectManager.PauseStaminaRegen(sourceName, duration );			
 	}
 	
 	public function ResumeStaminaRegen(sourceName : name)
@@ -3913,7 +4167,7 @@ import abstract class CActor extends CGameplayEntity
 			effectManager.ResumeStaminaRegen(sourceName);			
 	}
 	
-	
+	//** critical state counter - it counts number of suffered critical states!
 	public function GetCriticalStateCounter(optional total : bool) : int
 	{
 		if ( total )
@@ -3933,12 +4187,14 @@ import abstract class CActor extends CGameplayEntity
 		criticalStateCounter = 0;
 	}
 
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// @Combat Methods and Events
 	
 	public function GetTotalSignSpellPower(signSkill : ESkill) : SAbilityAttributeValue;
 
-	
+	/**
+		Target Selection Methods	
+	*/
 		
 	public timer function EnableHighlightTimer( time : float , id : int)
 	{
@@ -3953,11 +4209,22 @@ import abstract class CActor extends CGameplayEntity
 		bIsPlayerCurrentTarget = flag;
 	}
 	
-	
+	/**
+		Animation events	
+	*/
 	
 	event OnSlideToTargetAnimEvent( animEventName : name, properties : SSlideToTargetEventProps, animEventType : EAnimationEventType, animEventDuration : float, animInfo : SAnimationEventAnimInfo )
 	{
-		
+		/*
+		if ( animEventType == AET_DurationStart )
+		{
+			slideTarget = moveTarget; 
+		}
+		else if ( animEventType == AET_DurationEnd ) 
+		{
+			slideTarget = NULL;
+		}
+		*/
 		ProcessSlideToTarget( animEventDuration, properties );
 	}
 	
@@ -3969,7 +4236,7 @@ import abstract class CActor extends CGameplayEntity
 		}
 	}
 	
-	
+	// helper method that can be used to fill rotation info for adjustment created with 'RotateEvent'
 	public function SetRotationAdjustmentRotateTo( turnTowards : CNode, optional offsetHeading : float )
 	{
 		var movementAdjustor : CMovementAdjustor = GetMovingAgentComponent().GetMovementAdjustor();
@@ -3978,7 +4245,7 @@ import abstract class CActor extends CGameplayEntity
 		movementAdjustor.RotateTowards( ticket, turnTowards, offsetHeading );
 	}
 	
-	
+	// helper method that can be used to fill rotation info for adjustment created with 'RotateEvent'
 	public function SetRotationAdjustmentRotateToHeading( heading : float )
 	{
 		var movementAdjustor : CMovementAdjustor = GetMovingAgentComponent().GetMovementAdjustor();
@@ -4004,7 +4271,7 @@ import abstract class CActor extends CGameplayEntity
 		}
 		else if ( enumValue < 20 )
 		{			
-			
+			//rotationRate = variant.enumValue;
 			hax.PushBack(RR_0);
 			hax.PushBack(RR_30);
 			hax.PushBack(RR_60);
@@ -4014,7 +4281,7 @@ import abstract class CActor extends CGameplayEntity
 			hax.PushBack(RR_1080);
 			hax.PushBack(RR_2160);			
 			return hax[enumValue];
-			
+			//end HAX
 		}
 		else
 		{
@@ -4069,16 +4336,37 @@ import abstract class CActor extends CGameplayEntity
 		{
 			case 'RotateEvent':
 			case 'RotateAwayEvent':
-				
+				/**
+				 *	How anim event 'RotateEvent' is handled?
+				 *
+				 *		1. Start:
+				 *			- create new request for movement adjustor
+				 *			- set it up using anim parameters
+				 *	>		- signal gameplay event 'RotateEventStart'
+				 *		2. Loop:
+				 *	>		- signal gameplay event 'RotateEventSync'
+				 *		3. End:
+				 *			- cancel movement adjustor request
+				 *	>		- signal gameplay event 'RotateEventEnd'
+				 */
 				rotationRate = GetRotationRateFromAnimEvent( variant.enumValue );
 				movementAdjustor = GetMovingAgentComponent().GetMovementAdjustor();
-				
+				/* this is to restore event when interrupted or started in the middle? might be not needed ATM, that's why it is commented out
+				if ( animEventType != AET_DurationStart &&
+					 animEventType != AET_DurationEnd )
+				{
+					if (! movementAdjustor.IsRequestActive( movementAdjustor.GetRequest( 'RotateEvent' ) ) )
+					{
+						animEventType = AET_DurationStart;
+					}
+				}
+				*/
 				if ( animEventType == AET_DurationStart || animEventType == AET_DurationStartInTheMiddle )
 				{
 					movementAdjustor.Cancel( movementAdjustor.GetRequest( 'RotateEvent' ) );
-					
+					// start rotation adjustment
 					ticket = movementAdjustor.CreateNewRequest( 'RotateEvent' );
-					
+					// instead of using adjustment duration, use continuous to match desired rotation as fast as possible
 					movementAdjustor.Continuous( ticket );
 					movementAdjustor.KeepActiveFor( ticket, animEventDuration );
 					if ((int)rotationRate >= 0)
@@ -4087,8 +4375,8 @@ import abstract class CActor extends CGameplayEntity
 					}
 					movementAdjustor.MatchMoveRotation( ticket );
 					movementAdjustor.UpdateSourceAnimation( ticket, animInfo );
-					movementAdjustor.CancelIfSourceAnimationUpdateIsNotUpdated( ticket ); 
-					movementAdjustor.SteeringMayOverrideMaxRotationAdjustmentSpeed( ticket ); 
+					movementAdjustor.CancelIfSourceAnimationUpdateIsNotUpdated( ticket ); // just in any case we were interrupted
+					movementAdjustor.SteeringMayOverrideMaxRotationAdjustmentSpeed( ticket ); // steering may override this value
 					if ( (CNewNPC)this )
 					{
 						if ( animEventName == 'RotateAwayEvent' )
@@ -4099,7 +4387,7 @@ import abstract class CActor extends CGameplayEntity
 				}
 				else if ( animEventType == AET_DurationEnd )
 				{
-					
+					// dont' cancel actual rotation adjustment - (in normal case, it will end with "keep active for")
 					SignalGameplayEvent( 'RotateEventEnd');
 				}
 				else
@@ -4114,7 +4402,7 @@ import abstract class CActor extends CGameplayEntity
 				if ( animEventType == AET_DurationStart )
 				{
 					SetInteractionPriority( (EInteractionPriority) variant.enumValue );
-					
+					// The proper way to do this would be to detect if the duration event is interrupted before AET_DurationEnd and reset the Priority then;
 					RemoveTimer( 'RestoreOriginalInteractionPriorityTimer' );
 					AddTimer( 'RestoreOriginalInteractionPriorityTimer', animEventDuration, false, , , true ) ;
 				}
@@ -4153,7 +4441,7 @@ import abstract class CActor extends CGameplayEntity
 					player.loopingCameraShakeAnimName = animName;
 					thePlayer.AddTimer( 'RemoveQuestCameraShakeTimer', animEventDuration );
 				}
-				
+				// Value going from 0.1 to 1.0
 				shakeStrength  	=  (int) variant.enumValue;
 				shakeStrength	= ( shakeStrength / 10 ) * 1.9f + 0.1f ;
 				GCameraShake( shakeStrength, true, this.GetWorldPosition(), 30.0f, loopShake, animName);
@@ -4195,7 +4483,7 @@ import abstract class CActor extends CGameplayEntity
 	{
 		var variant 	: SEnumVariant;
 		variant.enumValue = -1;
-		
+		//HACK it should be enum anim event (with duration) but for backward compatibility allow this and assume veeery long animation (it will be cancelled anyway)
 		OnEnumAnimEvent( animEventName, variant, animEventType, 10.0f, animInfo );
 	}
 	
@@ -4203,15 +4491,15 @@ import abstract class CActor extends CGameplayEntity
 	{
 		var variant 	: SEnumVariant;
 		variant.enumValue = -1;
-		
+		//HACK it should be enum anim event (with duration) but for backward compatibility allow this and assume veeery long animation (it will be cancelled anyway)
 		OnEnumAnimEvent( animEventName, variant, animEventType, 10.0f, animInfo );
 	}
 	
 	event OnAnimEvent_DeathHitGround( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
 		var effectName 	: name;
-		
-		
+		//PFTODO: readme ;)
+		//FIXME: this seems not to be used at all anymore -TK
 		if(effectManager)
 		{
 			if(effectManager.HasEffect(EET_Burning))
@@ -4229,7 +4517,7 @@ import abstract class CActor extends CGameplayEntity
 		}
 	}
 	
-	
+	// AK : reduced camera shake strenght, used to be 0.1 ; 0.3 ; 0.5 ; 0.7 ; 1.0 ; 2.0
 	event OnAnimEvent_Shake0( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
 		var loopShake	: bool = ( animEventType == AET_DurationStart );
@@ -4263,8 +4551,8 @@ import abstract class CActor extends CGameplayEntity
 	
 	event OnAnimEvent_DropItem( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
-		
-		
+		//var dir 		: Vector;
+		//dir = GetWorldPosition() - thePlayer.GetWorldPosition();
 		DropItemFromSlot( 'r_weapon' );
 		DropItemFromSlot( 'l_weapon' );
 		this.BreakAttachment();
@@ -4272,7 +4560,7 @@ import abstract class CActor extends CGameplayEntity
 	
 	event OnAnimEvent_OnGround( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
-		
+		// alwaysFireEnd flag on anim event is turned off
 		if(animEventType != AET_DurationEnd )
 			SetBehaviorVariable( 'ExplorationMode', 1 );
 		else
@@ -4294,6 +4582,35 @@ import abstract class CActor extends CGameplayEntity
 	{
 		SignalGameplayEvent( 'HorseRidingOn' );
 	}
+	
+	//Hack for adding item to inventory. This is needed to prevent player from getting pop-up on HUD when item is added to inventory
+	event OnAnimEvent_item_track_hack_reading_book( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
+	{
+		var ids : array<SItemUniqueId>;
+		
+		ids = GetInventory().AddAnItem( 'bookshelf_book', 1, true, true, false );
+		if( GetInventory().IsIdValid( ids[0] ) )
+		{
+			GetInventory().MountItem( ids[0], true, true );
+		}
+	}
+	
+	//Hack for adding item to inventory. This is needed to prevent player from getting pop-up on HUD when item is added to inventory
+	event OnAnimEvent_item_track_hack_reading_book_unmount( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
+	{
+		var ids : array<SItemUniqueId>;		
+		
+		if( animEventType == AET_DurationEnd )
+		{
+			ids = GetInventory().GetItemsByName( 'bookshelf_book' );
+			if( GetInventory().IsIdValid( ids[0] ) )
+			{
+				GetInventory().UnmountItem( ids[0], true );
+				GetInventory().RemoveItemByName( 'bookshelf_book', -1 );
+			}
+		}
+	}
+	
 	
 	event OnDeathAnimFinished()
 	{
@@ -4346,8 +4663,8 @@ import abstract class CActor extends CGameplayEntity
 		theGame.CreateEntity(bloodTemplate, GetWorldPosition() + VecRingRand(0, 0.5) , EulerAngles(0, RandF() * 360, 0));
 	}
 	
-	
-	
+	//////////////////////////////////////////////////////////////////////////
+	// dropping items and equipment
 	
 	public function DropItemFromSlot( slotName : name, optional removeFromInv : bool )
 	{
@@ -4357,16 +4674,16 @@ import abstract class CActor extends CGameplayEntity
 		var itemEntity		: CItemEntity;
 	
 		inv = GetInventory();
-		itemToDrop = inv.GetItemFromSlot(slotName); 
+		itemToDrop = inv.GetItemFromSlot(slotName); // todo!!! not only items held in hand???
 		if ( inv.IsIdValid( itemToDrop ) )
 		{
 			itemEntity = inv.GetItemEntityUnsafe( itemToDrop );
 			AddDroppedItem( inv.GetItemName( itemToDrop ), itemEntity );
 			
-			
-				
-			
-				inv.DropItem( itemToDrop, removeFromInv );		
+			//if ( inv.ItemHasTag(itemToDrop,'bow') || inv.ItemHasTag(itemToDrop,'crossbow') )
+				//inv.DropItem( itemToDrop, removeFromInv, "rigid");
+			//else
+				inv.DropItem( itemToDrop, removeFromInv );		//we don't remove the item from inventory - we still want to pick it up from the loot bag
 		}
 	}
 	
@@ -4388,7 +4705,7 @@ import abstract class CActor extends CGameplayEntity
 		{
 			if ( droppedItems[i].itemName == itemName )
 			{
-				
+				//the entity might not be there anymore due to whatever
 				if ( destroy && droppedItems[i].entity )
 				{
 					droppedItems[i].entity.Destroy();
@@ -4421,19 +4738,19 @@ import abstract class CActor extends CGameplayEntity
 	
 	public function SetWound( woundName : name, optional spawnEntity : bool, optional createParticles : bool,
 										        optional dropEquipment : bool, optional playSound : bool,
-										        optional direction : Vector, optional playEffects : bool )
+										        optional direction : Vector, optional playedEffectsMask : int )
 	{
 		var dc : CDismembermentComponent;
 		dc = (CDismembermentComponent)GetComponentByClassName( 'CDismembermentComponent' );
 		if ( dc )
 		{
-			
-			
+			// HACKFIX for 1.03 -> do not spawn particles during explosions -> causes visual glitches
+			// PB: this needs to be removed in future patches once the bug will be properly fixed on the fx side
 			if ( dc.IsExplosionWound( woundName ) )
 			{
 				createParticles = false;
 			}
-			dc.SetVisibleWound( woundName, spawnEntity, createParticles, dropEquipment, playSound, direction, playEffects );
+			dc.SetVisibleWound( woundName, spawnEntity, createParticles, dropEquipment, playSound, direction, playedEffectsMask );
 		}
 	}
 	
@@ -4473,11 +4790,13 @@ import abstract class CActor extends CGameplayEntity
 	private var woundToDismember 	: name;
 	private var forwardVector		: Vector;
 	private var dismemberForceRagdoll : bool;
-	public function SetDismembermentInfo( woundName : name, vec : Vector, forceRagoll : bool ) 	
+	private var dismemberEffectsMask : int;
+	public function SetDismembermentInfo( woundName : name, vec : Vector, forceRagoll : bool, optional playedEffectsMask : int ) 	
 	{ 
 		woundToDismember = woundName; 
 		forwardVector = vec;
 		dismemberForceRagdoll = forceRagoll;
+		dismemberEffectsMask = playedEffectsMask;
 	}
 	
 	public timer function DelayedDismemberTimer( time : float , id : int)
@@ -4487,7 +4806,7 @@ import abstract class CActor extends CGameplayEntity
 
 	private function Dismember()
 	{		
-		this.SetWound( woundToDismember, true, true, true, true, forwardVector );
+		SetWound( woundToDismember, true, true, true, true, forwardVector, dismemberEffectsMask );
 		
 		if(dismemberForceRagdoll && ((CMovingPhysicalAgentComponent)GetMovingAgentComponent()).HasRagdoll() )
 		{
@@ -4500,9 +4819,16 @@ import abstract class CActor extends CGameplayEntity
 		SetBehaviorVariable( 'Ragdoll_Weight', 1.f );
 		RaiseEvent( 'Ragdoll' );
 	}
-	
+	//////////////////////////////////////////////////////////////////////////
 		
-	
+	/*
+		Returns array of attack targets for given attack. If collision entity is a valid target it is returned, otherwise a non-collision check is done.
+		Function also checks proper attitude
+		
+		contactEntity - entity with which the hit collided (can be null)
+		preAttackData - attack data to use for the non-collision check
+		
+	*/
 	private function FindAttackTargets(preAttackData : CPreAttackEventData) : array<CGameplayEntity>
 	{
 		var targets : array<CGameplayEntity>;
@@ -4526,27 +4852,32 @@ import abstract class CActor extends CGameplayEntity
 			GatherEntitiesInAttackRange(targets, preAttackData.rangeName);			
 		}
 		
-		
+		//remove unwanted entries from array
 		for(i=targets.Size()-1; i>=0; i-=1)
 		{
 			if(!targets[i] || targets[i] == this)
 			{
-				
+				//remove if NULL or self
 				targets.EraseFast(i);
 			}
 			else if( (W3SignEntity)targets[i] || (CProjectileTrajectory)targets[i] || (CDamageAreaEntity)targets[i] || (W3ToxicCloud)targets[i])
 			{
-				
+				//skip some objects we don't want to hit with melee attacks
 				targets.EraseFast(i);
 			}	
 			else if(!targets[i].IsAlive())
 			{
-				
+				//skip if target is already dead
+				targets.EraseFast(i);
+			}
+			else if( targets[i].HasTag( 'isHiddenUnderground' ) )
+			{
+				// skip targets hidden underground
 				targets.EraseFast(i);
 			}
 			else
 			{
-				
+				//skip if attitude check fails
 				attitude = IsRequiredAttitudeBetween(this, targets[i], preAttackData.Damage_Hostile, preAttackData.Damage_Neutral, preAttackData.Damage_Friendly || ((CActor)targets[i]).HasBuff(EET_AxiiGuardMe) );
 				if(!attitude)
 				{
@@ -4559,8 +4890,41 @@ import abstract class CActor extends CGameplayEntity
 			}
 		}
 		
-		
-		
+		//attack ranges debug stuff
+		/*
+		if(targets.Size() == 0)
+		{
+			LogAttackRangesDebug("");
+			LogAttackRangesDebug("No attack targets found!");
+			FindGameplayEntitiesInRange(ents, this, 10, 100);
+			
+			minDist = 100000;
+			idx = -1;
+			for(i=0; i<ents.Size(); i+=1)
+			{
+				if(!ents[i] || ents[i] == this || !IsRequiredAttitudeBetween(this, ents[i], data.Damage_Hostile, data.Damage_Neutral, data.Damage_Friendly) )
+					continue;
+			
+				dist = VecDistance(GetWorldPosition(), ents[i].GetWorldPosition());
+				angle = NodeToNodeAngleDistance(ents[i], this);
+				if(dist < minDist)
+				{
+					minDist = dist;
+					minAngle = angle;
+					idx = i;
+				}
+			}
+			
+			if(ents.Size() > 0 && idx > -1)
+			{
+				LogAttackRangesDebug("Closest entity is <<" + ents[idx] + ">> at range " + NoTrailZeros(minDist) + " and angle of " + NoTrailZeros(minAngle));
+				FindAttackTargets(data);	//call again to debug it in C++
+			}
+			else
+			{
+				LogAttackRangesDebug("Cannot find any gameplay entities in a range of 10m");
+			}
+		}*/
 							
 		return targets;
 	}
@@ -4580,7 +4944,7 @@ import abstract class CActor extends CGameplayEntity
 		return theGame.GetDefinitionsManager().AbilityHasTag(attackName, theGame.params.ATTACK_NAME_LIGHT);
 	}
 	
-	
+	//makes weapon blink
 	function BlinkWeapon(optional weaponId : SItemUniqueId) : bool
 	{
 		if ( GetInventory().IsIdValid(weaponId) )
@@ -4616,13 +4980,13 @@ import abstract class CActor extends CGameplayEntity
 		return true;
 	}
 	
-	
+	//Checks if counter can be done and if so performs it
 	protected function PerformCounterCheck(parryInfo: SParryInfo) : bool;
 	
-	
+	//Checks if parry can be done and if so performs it
 	function PerformParryCheck(parryInfo: SParryInfo) : bool;
 	
-	
+	//This event sets the attack data and fires parry/counter/attack check
 	event OnPreAttackEvent(animEventName : name, animEventType : EAnimationEventType, data : CPreAttackEventData, animInfo : SAnimationEventAnimInfo )
 	{		
 		var parriedBy : array<CActor>;
@@ -4630,22 +4994,24 @@ import abstract class CActor extends CGameplayEntity
 		var player : CR4Player = thePlayer;
 		var parried, countered : bool;
 	
+		//LogAttackEvents("PreAttack " + animEventType);
 		
-		
-		
+		//preparation, initialization of all the data
 		if(animEventType == AET_DurationStart)
 		{
 			ignoreAttack = false;
 			SetAttackData(data);
 			weaponId = GetInventory().GetItemFromSlot(data.weaponSlot);
-			
 			if ( this != thePlayer )
 				BlinkWeapon(weaponId);
 			
 			SetCurrentAttackData(data, animInfo );
-			
+			if ( data.rangeName == 'useCollisionFromItem' )
+			{
+				lastAttackRangeName = data.rangeName;
+			}
 		}
-		
+		//actual check if we parried / countered at the end of PreAttack event
 		else if(animEventType == AET_DurationEnd)
 		{
 			attackEventInProgress = false;
@@ -4657,7 +5023,7 @@ import abstract class CActor extends CGameplayEntity
 				return true;
 			}
 			
-			
+			//if AET_DurationEnd came to early ignore it
 			if ( this == thePlayer && ( GetEventEndsAtTimeFromEventAnimInfo(animInfo) - GetLocalAnimTimeFromEventAnimInfo(animInfo) > 0.06 ))
 				return true;
 			
@@ -4672,13 +5038,12 @@ import abstract class CActor extends CGameplayEntity
 				
 			hitTargets = FindAttackTargets(data);
 			parriedBy = TestParryAndCounter(data, weaponId, parried, countered);
-			
+			// ignore animation attack events for player on horse - it's being handled in vehicle logic
 			if( data.attackName == 'attack_speed_based' && this == thePlayer )
 				return false;
 			
 			lastAttackRangeName = data.rangeName;
 			DoAttack(data, weaponId, parried, countered, parriedBy, GetAnimNameFromEventAnimInfo( animInfo ), GetLocalAnimTimeFromEventAnimInfo( animInfo ));
-			
 		}
 	}
 	
@@ -4712,13 +5077,13 @@ import abstract class CActor extends CGameplayEntity
 		}
 	}
 	
-	
+	//PFTODO
 	
 	protected var attackEventInProgress : bool;
 	private var ignoreAttack : bool;
 	private var currentAttackData : CPreAttackEventData;
 	private var currentAttackAnimInfo : SAnimationEventAnimInfo;
-	private var ignoreTargetsForCurrentAttack : array<CActor>;
+	private var ignoreTargetsForCurrentAttack : array<CGameplayEntity>;
 	
 	private function SetCurrentAttackData(data : CPreAttackEventData , animInfo : SAnimationEventAnimInfo)
 	{
@@ -4750,20 +5115,118 @@ import abstract class CActor extends CGameplayEntity
 		return true;
 	}
 	
-	
-	
-	event OnCollisionFromItem( collidedActor : CActor, optional itemEntity : CItemEntity )
+	//deals damage, assumes that this type of weapon cannot be parried
+	//itemEntity is optional to leave option to call this function from outside of itemEntity class
+	event OnCollisionFromItem( collidedEntity : CGameplayEntity, optional itemEntity : CItemEntity )
 	{
-		var data : CPreAttackEventData;
-		var animInfo : SAnimationEventAnimInfo;
-		var parriedBy : array<CActor>;
-		var weaponId : SItemUniqueId;
-		var parried, countered : bool;
+		var data 				: CPreAttackEventData;
+		var animInfo 			: SAnimationEventAnimInfo;
+		var parriedBy 			: array<CActor>;
+		var weaponId 			: SItemUniqueId;
+		var parried, countered 	: bool;
 		var hasProperAttitude	: bool;
+		var npc 				: CNewNPC;
+		
+		if ( !attackEventInProgress )
+		{
+			LogItemCollision("Item " + itemEntity + " collided with " + collidedEntity + " but Attack is not in progress");
+			return false;
+		}
+		
+		npc = (CNewNPC) this;
+		if ( npc && !npc.IsAttacking() )
+		{
+			attackEventInProgress = false;
+			if ( ignoreAttack )
+			{
+				ignoreAttack = false;
+			}
+			
+			LogItemCollision("Item " + itemEntity + " collided with " + collidedEntity + " but npc is not attacking");
+			return false;
+		}
+		
+		if ( !collidedEntity )
+		{
+			LogItemCollision("Item " + itemEntity + " collided with NOT actor");
+			return false;
+		}
+		
+		if ( ignoreTargetsForCurrentAttack.Contains(collidedEntity) )
+			return false;
+		
+		GetCurrentAttackDataAndAnimInfo( data, animInfo);
+		
+		if ( data.rangeName != 'useCollisionFromItem' )
+			return false;
+			
+		hasProperAttitude = IsRequiredAttitudeBetween(this, collidedEntity, data.Damage_Hostile, data.Damage_Neutral, data.Damage_Friendly);
+		if ( !hasProperAttitude )
+		{
+			return false;
+		}
+		
+		weaponId = GetInventory().GetItemFromSlot(data.weaponSlot);
+		
+		GetInventory().GetItemEntityUnsafe(weaponId) == itemEntity;
+		
+		if(!GetInventory().IsIdValid(weaponId) || data.attackName == '' )
+		{
+			LogAttackEvents("No valid attack data set - skipping hit!");
+			LogAssert(false, "No valid attack data set - skipping hit!");
+			return false;
+		}
+		else if ( itemEntity && GetInventory().GetItemEntityUnsafe(weaponId) != itemEntity )
+		{
+			LogItemCollision("Item " + itemEntity + " collided with " + collidedEntity + " but Attack is for different item");
+			return false;
+		}
+		
+		//attack comes from collision so we know for sure that it hit
+		//if ( this.HasAbility( 'WildHunt_Imlerith' ) || this.HasAbility( 'mon_knight_giant' ) || this.HasAbility( 'mon_cloud_giant' ) )
+		if ( this.HasAbility( 'WildHunt_Imlerith' ) )
+			data.canBeDodged = false;
+		
+		hitTargets.PushBack(collidedEntity);
+		parriedBy = TestParryAndCounter(data, weaponId, parried, countered);
+		
+		DoAttack(data, weaponId, parried, countered, parriedBy, GetAnimNameFromEventAnimInfo( animInfo ), GetLocalAnimTimeFromEventAnimInfo( animInfo ));
+		
+		LogItemCollision("Item " + itemEntity + " collided with " + collidedEntity + " and Attack should deal dmg");
+		
+		ignoreTargetsForCurrentAttack.PushBack(collidedEntity);
+		ignoreAttack = true;
+		return true;
+	}
+	
+	//deals damage, assumes that this type of weapon cannot be parried
+	//itemEntity is optional to leave option to call this function from outside of itemEntity class
+	event OnCollisionFromGiantWeapon( collidedActor : CActor, optional itemEntity : CItemEntity )
+	{
+		var data 				: CPreAttackEventData;
+		var animInfo 			: SAnimationEventAnimInfo;
+		var parriedBy 			: array<CActor>;
+		var weaponId 			: SItemUniqueId;
+		var parried, countered 	: bool;
+		var hasProperAttitude	: bool;
+		var npc 				: CNewNPC;
 		
 		if ( !attackEventInProgress )
 		{
 			LogItemCollision("Item " + itemEntity + " collided with " + collidedActor + " but Attack is not in progress");
+			return false;
+		}
+		
+		npc = (CNewNPC) this;
+		if ( npc && !npc.IsAttacking() )
+		{
+			attackEventInProgress = false;
+			if ( ignoreAttack )
+			{
+				ignoreAttack = false;
+			}
+			
+			LogItemCollision("Item " + itemEntity + " collided with " + collidedActor + " but npc is not attacking");
 			return false;
 		}
 		
@@ -4784,7 +5247,7 @@ import abstract class CActor extends CGameplayEntity
 		hasProperAttitude = IsRequiredAttitudeBetween(this, collidedActor, data.Damage_Hostile, data.Damage_Neutral, data.Damage_Friendly);
 		if ( !hasProperAttitude )
 		{
-			return false;
+		//	return false;
 		}
 		
 		weaponId = GetInventory().GetItemFromSlot(data.weaponSlot);
@@ -4803,24 +5266,23 @@ import abstract class CActor extends CGameplayEntity
 			return false;
 		}
 		
+		//attack comes from collision so we know for sure that it hit
+		if ( collidedActor.HasAbility( 'CustomReactionToGiantWeapon' ) || collidedActor.HasTag( 'CustomReactionToGiantWeapon' ) )
+		{	
+			this.SignalGameplayEventParamObject( 'ReactionToGiantWeaponActor', collidedActor );
+			this.SignalGameplayEventParamObject( 'ReactionToGiantWeaponItem', itemEntity );
+		}
+		else
+		{
+			return false;
+		}
 		
-		if ( this.HasAbility( 'WildHunt_Imlerith' ) )
-			data.canBeDodged = false;
-		
-		hitTargets.PushBack(collidedActor);
-		parriedBy = TestParryAndCounter(data, weaponId, parried, countered);
-		
-		DoAttack(data, weaponId, parried, countered, parriedBy, GetAnimNameFromEventAnimInfo( animInfo ), GetLocalAnimTimeFromEventAnimInfo( animInfo ));
-		
-		LogItemCollision("Item " + itemEntity + " collided with " + collidedActor + " and Attack should deal dmg");
-		
-		ignoreTargetsForCurrentAttack.PushBack(collidedActor);
-		ignoreAttack = true;
 		return true;
 	}
 	
 	
-	
+	//called on PreAttackEvent Start to set all attack data, enable parry, dodge, counter mashing failsafe, etc. on victims
+	//i'm setting it to public, couse I need to call it on Ciri from CiriPhantom. pF
 	public function SetAttackData(data : CPreAttackEventData)
 	{
 		var i : int;
@@ -4828,7 +5290,7 @@ import abstract class CActor extends CGameplayEntity
 		var npc 	: CNewNPC;
 		var actor 	: CActor;
 		
-		
+		//------------  ATTACKER		
 		if(!GetInventory().IsIdValid(GetInventory().GetItemFromSlot(data.weaponSlot)) )
 		{
 			if ( theGame.CanLog() )
@@ -4839,31 +5301,33 @@ import abstract class CActor extends CGameplayEntity
 			return;
 		}
 		
-		
+		//visalize attackrange
 		SetDebugAttackRange(data.rangeName);
 		
-		
+		//  if not a player skill then probably basic attack
 		if(!IsNameValid(attackActionName))
 			attackActionName = data.attackName;
 			
-		
+		//set counter timeframe window to prevent player counter-button mashing
 		npc = (CNewNPC)this;
 		if(npc)
 		{
 			npc.SetCounterWindowStartTime(theGame.GetEngineTime());
+			npc.SignalGameplayEventParamInt( 'swingType', data.swingType );
+			npc.SignalGameplayEventParamInt( 'swingDir', data.swingDir );
 			
 			if((ShouldProcessTutorial('TutorialCounter') || ShouldProcessTutorial('TutorialDodge')) && GetTarget() == thePlayer && FactsQuerySum("tut_fight_use_slomo") > 0 && !thePlayer.IsCurrentlyDodging())
 			{
-				
+				//add slowmo only if tutorials are displayed on screen - otherwise we don't know what's going on
 				if(theGame.GetTutorialSystem().AreMessagesEnabled())
 					theGame.SetTimeScale(0.001, theGame.GetTimescaleSource(ETS_TutorialFight), theGame.GetTimescalePriority(ETS_TutorialFight) );
 					
-				
+				//fact is set always as it informs quest tutorial to progress
 				FactsAdd("tut_fight_slomo_ON");
 			}
 		}
 		
-		
+		//------------  VICTIMS
 		targets = FindAttackTargets(data);
 				
 		if ( targets.Size() == 0 && this == thePlayer && this.slideTarget)
@@ -4871,45 +5335,48 @@ import abstract class CActor extends CGameplayEntity
 		
 		for(i=0; i<targets.Size(); i+=1)
 		{			
-			
+			//for NPC
 			npc = (CNewNPC)targets[i];
 			if( npc )
 			{
-				if ( !this.IsUsingHorse() ) 
+				if ( !this.IsUsingHorse() ) //don't dodge attacks from horse
 				{
-					
+					//enable dodge
 					if(data.hitReactionType == EHRT_Light)
 						npc.SignalGameplayEventParamInt('Time2Dodge', (int)EDT_Attack_Light );
 					else if(data.hitReactionType == EHRT_Heavy)
 						npc.SignalGameplayEventParamInt('Time2Dodge', (int)EDT_Attack_Heavy );
+					
+					npc.SignalGameplayEventParamInt( 'swingType', data.swingType );
+					npc.SignalGameplayEventParamInt( 'swingDir', data.swingDir );
 				}
-				
+				//enable parry if guarded
 				if( ( npc.IsShielded(this) || npc.IsGuarded() ) && data.Can_Parry_Attack)
 				{
-					
+					//((CNewNPC)targets[i]).SetParryEnabled( attackActionName );
 					if(IsHeavyAttack(attackActionName))
 					{
 						npc.SignalGameplayEventParamInt('ParryStart',1);
-						
+						//npc.RaiseEvent( 'HeavyParryStart' );
 					}
 					else
 					{
 						npc.SignalGameplayEventParamInt('ParryStart',0);
-						
+						//npc.RaiseEvent( 'LightParryStart' );
 					}
 				}
 			}
-			
+			// for NPC AND Player
 			actor = (CActor) targets[i];
 			if ( actor )
 			{
-				
+				// Used to keep track of time since last attack
 				actor.IsAttacked();
 			}
 		}
 	}
 		
-	
+	//performs parry and counter tests 
 	protected function TestParryAndCounter(data : CPreAttackEventData, weaponId : SItemUniqueId, out parried : bool, out countered : bool) : array<CActor>
 	{
 		var actor : CActor;
@@ -4921,12 +5388,12 @@ import abstract class CActor extends CGameplayEntity
 		var levelDiff : int;
 		var chanceToFailParry : float;
 	
-		
-		
+		//----------------  DEBUG	
+		//draw debug AR
 		SetDebugAttackRange(data.rangeName);
-		RemoveTimer('PostAttackDebugRangeClear');		
+		RemoveTimer('PostAttackDebugRangeClear');		//disable AR clearing since we've just set a new one
 		
-		
+		//------------------  PARRY / COUNTER	
 		for(i=hitTargets.Size()-1; i>=0; i-=1)
 		{
 			actor = (CActor)hitTargets[i];
@@ -4970,18 +5437,23 @@ import abstract class CActor extends CGameplayEntity
 				theGame.GetGamerProfile().CheckLearningTheRopes();
 			}
 				
+			//disable parry for the NPC
+			/*
+			npc = (CNewNPC)actor;
+			if(npc && !parried && !countered)
+			{
+				npc.SignalGameplayEvent('ParryEnd');
+			}*/												
 			
-															
-			
-			
+			//save the result for attack event
 			if(countered || parried)
 			{
-				
+				//hit dir for parry/counter animation choice
 				actor.SetDetailedHitReaction(data.swingType, data.swingDir);
 
 				if ( theGame.CanLog() )
 				{			
-					
+					//log
 					LogAttackRangesDebug("");
 					if(countered)
 					{
@@ -5002,19 +5474,7 @@ import abstract class CActor extends CGameplayEntity
 		return parriedBy;
 	}
 
-	private function SetCounterHint( )
-	{
-		
-		var hud : CR4ScriptedHud;
-		var module : CR4HudModuleEnemyFocus;
-
-		hud = (CR4ScriptedHud)theGame.GetHud();
-		module = (CR4HudModuleEnemyFocus)hud.GetHudModule("EnemyFocusModule");
-		
-		
-	}		
-	
-	
+	//function performs attacks on all victims and cleans up
 	protected function DoAttack(animData : CPreAttackEventData, weaponId : SItemUniqueId, parried : bool, countered : bool, parriedBy : array<CActor>, attackAnimationName : name, hitTime : float)
 	{
 		var i : int;		
@@ -5023,7 +5483,7 @@ import abstract class CActor extends CGameplayEntity
 		phantomStrike = false;
 		weaponEntity = GetInventory().GetItemEntityUnsafe(weaponId);
 		
-		
+		//process hits
 		for(i=0; i<hitTargets.Size(); i+=1)
 		{				
 			Attack(hitTargets[i], animData, weaponId, parried, countered, parriedBy, attackAnimationName, hitTime, weaponEntity);
@@ -5058,12 +5518,12 @@ import abstract class CActor extends CGameplayEntity
 			attackActionName = '';
 		}
 		
-		
+		//clean up
 		hitTargets.Clear();
 		AddTimer('PostAttackDebugRangeClear', 1);		
 	}
 	
-	
+	//for phantom weapon feature
 	var phantomWeaponAnimData : CPreAttackEventData;
 	var phantomWeaponWeaponId : SItemUniqueId;
 	var phantomWeaponParried : bool;
@@ -5091,10 +5551,10 @@ import abstract class CActor extends CGameplayEntity
 			phantomStrike = true;
 		}
 		
-		
+		//process hits
 		for(i=0; i<phantomWeaponHitTargets.Size(); i+=1)
 		{	
-			
+			// dismemberment and finishers must be disabled for second attack - it might have already happened
 			phantomWeaponHitTargets[i].AddAbility( 'DisableFinishers', true );
 			phantomWeaponHitTargets[i].AddAbility( 'DisableDismemberment', true );
 			
@@ -5164,17 +5624,18 @@ import abstract class CActor extends CGameplayEntity
 			else if(countered)
 			{
 				attackAction.SetIsCountered(true);
+				SignalGameplayEvent('AttackCountered');
 			}
 		}
 		
-		
+		//attackAction.attacker := this
 		if ( attackAction.IsParried() && attackAction.attacker.HasAbility('ReflectOnBeingParried') )
 		{
 			((CActor)attackAction.attacker).SetCanPlayHitAnim( true );
 			ReactToReflectedAttack(attackAction.victim);
 		}
 		
-		
+		//olgierd sabre
 		if(phantomStrike)
 		{
 			attackAction.SetIsParried(false);
@@ -5230,9 +5691,16 @@ import abstract class CActor extends CGameplayEntity
 			animData.hitBackFX 			= 'fire_hit';
 			animData.hitBackParriedFX 	= 'fire_hit';
 		}
+		else if (  weaponName == 'fists_lightning_lynx' )
+		{
+			animData.hitFX 				= 'hit_electric_quen';
+			animData.hitParriedFX 		= 'hit_electric_quen';
+			animData.hitBackFX 			= 'hit_electric_quen';
+			animData.hitBackParriedFX 	= 'hit_electric_quen';
+		}
 	}
 	
-	public function ReduceDamage( out damageData : W3DamageAction)
+	public function ReduceDamage( out damageData : W3DamageAction )
 	{
 		var actorAttacker 			: CActor;
 		var id 						: SItemUniqueId;
@@ -5251,45 +5719,63 @@ import abstract class CActor extends CGameplayEntity
 		var minDamage				: float;
 		var i						: int;
 		var dmgTypes 				: array< SRawDamage >;
+		var hasPoisonDamage			: bool;
 		
 		canLog = theGame.CanLog();
 			
-		
-		
-		
-		if (damageData.victim == thePlayer && !damageData.IsDoTDamage())
+		//WTF? Why here instead of player class? -TK
+		// When hit Player should get at least 5% of initial damage (to minimum of 1 point). 
+		// DoTs do not count
+		if( damageData.victim == thePlayer && !damageData.IsDoTDamage() )
 		{
-			damageData.GetDTs(dmgTypes);
+			damageData.GetDTs( dmgTypes );
 			
-			
-			for (i=0; i<dmgTypes.Size(); i+=1)
+			//skip direct damage
+			for( i=0; i<dmgTypes.Size(); i+=1 )
 			{
-				if(dmgTypes[i].dmgType == theGame.params.DAMAGE_NAME_DIRECT)
+				if( dmgTypes[i].dmgType == theGame.params.DAMAGE_NAME_DIRECT )
 				{
-					dmgTypes.EraseFast(i);
+					dmgTypes.EraseFast( i );
 					break;
 				}
 			}
 			
-			if(dmgTypes.Size() > 0)
+			if( dmgTypes.Size() > 0 )
 			{
-				minDamage = 0;
-				for (i=0; i<dmgTypes.Size(); i+=1)
+				hasPoisonDamage = false;
+				for( i=0; i<dmgTypes.Size(); i+=1 )
 				{
-					if (DamageHitsVitality(dmgTypes[i].dmgType))
+					if( dmgTypes[ i ].dmgType == theGame.params.DAMAGE_NAME_POISON )
 					{
-						minDamage += dmgTypes[i].dmgVal;
+						hasPoisonDamage = true;
+						break;
 					}
 				}
-				minDamage *= 0.05;
-				if (minDamage < 1) minDamage = 1;
-					
-				if (damageData.processedDmg.vitalityDamage < minDamage)
-					damageData.processedDmg.vitalityDamage = minDamage;
+			
+				if( !( hasPoisonDamage && this == GetWitcherPlayer() && HasBuff( EET_GoldenOriole ) && GetWitcherPlayer().GetPotionBuffLevel( EET_GoldenOriole ) == 3) )
+				{
+					minDamage = 0;
+					for( i=0; i<dmgTypes.Size(); i+=1 )
+					{
+						if( DamageHitsVitality( dmgTypes[ i ].dmgType ) )
+						{
+							minDamage += dmgTypes[ i ].dmgVal;
+						}
+					}
+					minDamage *= 0.05;
+					if(minDamage < 1)
+					{
+						minDamage = 1;
+					}	
+					if( damageData.processedDmg.vitalityDamage < minDamage )
+					{
+						damageData.processedDmg.vitalityDamage = minDamage;
+					}
+				}
 			}
 		}
-			
 		
+		//crossbow hack request - always deal at least 1 pt of damage
 		if(damageData.IsActionRanged() && damageData.attacker == thePlayer && (W3BoltProjectile)(damageData.causer) )
 		{
 			if(UsesEssence() && damageData.processedDmg.essenceDamage < 1)
@@ -5312,7 +5798,7 @@ import abstract class CActor extends CGameplayEntity
 			}
 		}
 		
-		
+		//reducing damage dealt against friendly and neutral npcs
 		thisNPC = (CNewNPC)this;
 		if( thisNPC && damageData.attacker == thePlayer && !HasBuff(EET_AxiiGuardMe) &&
 			( GetAttitudeBetween( this, thePlayer ) == AIA_Friendly ||
@@ -5327,12 +5813,25 @@ import abstract class CActor extends CGameplayEntity
 			return;
 		}
 		
+		//attacker bounces of victim on melee attack
+		if(damageData.IsActionMelee() && HasAbility( 'ReflectMeleeAttacks' ) )
+		{
+			if ( canLog )
+			{
+				LogDMHits("CActor.ReduceDamage: victim is heavily armored and attacker bounces of his armor", damageData );
+			}
+			damageData.SetAllProcessedDamageAs(0);
+			((CActor)damageData.attacker).ReactToReflectedAttack( this );
+			damageData.ClearEffects();
+			return;
+		}
 		
-		if(!damageData.DealsAnyDamage())
+		//damage prevented by armor & resistances
+		if(!damageData.DealsAnyDamage() && damageData.GetBuffSourceName() != "Mutation4")
 			return;
 		
-		
-		if(attackAction && attackAction.IsActionMelee() && HasAbility( 'CannotBeAttackedFromBehind' ) && IsAttackerAtBack(damageData.attacker) )
+		//if actor does not take damage from attacks from all sides
+		if(damageData.IsActionMelee() && HasAbility( 'CannotBeAttackedFromAllSides' ) )
 		{
 			if ( canLog )
 			{
@@ -5340,8 +5839,36 @@ import abstract class CActor extends CGameplayEntity
 			}
 			damageData.SetAllProcessedDamageAs(0);
 			((CActor)damageData.attacker).ReactToReflectedAttack( this );
+			damageData.ClearEffects();
 			return;
 		}
+		
+		//if actor does not take damage from attacks from behind it
+		if(damageData.IsActionMelee() && HasAbility( 'CannotBeAttackedFromBehind' ) && IsAttackerAtBack(damageData.attacker) )
+		{
+			if ( canLog )
+			{
+				LogDMHits("CActor.ReduceDamage: victim attacked from behind and immune to this type of strike - no damage will be done", damageData );
+			}
+			damageData.SetAllProcessedDamageAs(0);
+			((CActor)damageData.attacker).ReactToReflectedAttack( this );
+			damageData.ClearEffects();
+			return;
+		}
+		
+		//if actor does not take damage from attacks from behind it
+		if(damageData.IsActionMelee() && HasAbility( 'VulnerableFromFront' ) && !IsAttackerAtBack(damageData.attacker) )
+		{
+			if ( canLog )
+			{
+				LogDMHits("CActor.ReduceDamage: victim attacked from front and vulnerable to this type of strike - attack will ignor armor", damageData );
+			}
+			damageData.SetIgnoreArmor( true );
+			damageData.SetPointResistIgnored( true );
+			return;
+		}
+		
+		
 		
 		if( this.HasAbility( 'EredinInvulnerable' ) && damageData.IsActionWitcherSign() )
 		{
@@ -5353,7 +5880,22 @@ import abstract class CActor extends CGameplayEntity
 			return;
 		}
 		
+		//dodge
+		if(this != thePlayer && IsCurrentlyDodging() && damageData.CanBeDodged() && ( VecDistanceSquared(this.GetWorldPosition(),damageData.attacker.GetWorldPosition()) > 1.7 //~1.3^2
+			|| this.HasAbility( 'IgnoreDodgeMinimumDistance' ) ))
+		{
+			if ( canLog )
+			{
+				LogDMHits("Non-player character dodge - no damage dealt", damageData);
+			}
+			damageData.SetWasDodged();
+			damageData.SetAllProcessedDamageAs(0);
+			damageData.ClearEffects();
+			damageData.SetHitAnimationPlayType(EAHA_ForceNo);
+			return;
+		}
 		
+		//"weak" cheat
 		if(this != thePlayer && FactsDoesExist("debug_fact_weak"))
 		{
 			if ( canLog )
@@ -5367,19 +5909,8 @@ import abstract class CActor extends CGameplayEntity
 		}
 		
 		
-		if(this != thePlayer && IsCurrentlyDodging() && damageData.CanBeDodged() && VecDistanceSquared(this.GetWorldPosition(),damageData.attacker.GetWorldPosition()) > 1.7 ) 
-		{
-			if ( canLog )
-			{
-				LogDMHits("Non-player character dodge - no damage dealt", damageData);
-			}
-			damageData.SetAllProcessedDamageAs(0);
-			damageData.ClearEffects();
-			damageData.SetHitAnimationPlayType(EAHA_ForceNo);
-			return;
-		}
 		
-		
+		//if staggered during parry reduce damage
 		if(damageData.IsParryStagger())
 		{
 			actorAttacker = (CActor)damageData.attacker;
@@ -5404,7 +5935,7 @@ import abstract class CActor extends CGameplayEntity
 		}
 		else
 		{
-			
+			//parry & counter
 			attackAction = (W3Action_Attack)damageData;
 			if(attackAction && damageData.IsActionMelee() && attackAction.CanBeParried() && (attackAction.IsParried() || attackAction.IsCountered()))
 			{
@@ -5433,18 +5964,18 @@ import abstract class CActor extends CGameplayEntity
 		
 		actorAttacker = (CActor)damageData.attacker;
 		
-		
+		//likeaboss cheat
 		if((CPlayer)actorAttacker && !((CPlayer)damageData.victim) && FactsQuerySum('player_is_the_boss') > 0)
 		{
 			if ( canLog )
 			{			
 				LogDMHits("Using 'like a boss' cheat - damage set to 40% of targets MAX health", damageData);
 			}
-			damageData.processedDmg.vitalityDamage = GetStatMax(BCS_Vitality) / 2.5;		
-			damageData.processedDmg.essenceDamage = GetStatMax(BCS_Essence) / 2.5;		
+			damageData.processedDmg.vitalityDamage = GetStatMax(BCS_Vitality) / 2.5;		//dies in 3 hits
+			damageData.processedDmg.essenceDamage = GetStatMax(BCS_Essence) / 2.5;		//dies in 3 hits
 		}	
 		
-		
+		//BoatBoltsAffinity - basic bolt hacked damage if sitting on boat
 		if(attackAction && actorAttacker == thePlayer && thePlayer.inv.IsItemBolt(attackAction.GetWeaponId()) )		
 		{
 			if(thePlayer.IsOnBoat())
@@ -5452,8 +5983,8 @@ import abstract class CActor extends CGameplayEntity
 				hitsToKill = GetAttributeValue('extraDamageWhenPlayerOnBoat');
 				if(hitsToKill.valueAdditive > 0)
 				{
-					damageData.processedDmg.vitalityDamage = CeilF(GetStatMax(BCS_Vitality) / hitsToKill.valueAdditive);	
-					damageData.processedDmg.essenceDamage = CeilF(GetStatMax(BCS_Essence) / hitsToKill.valueAdditive);		
+					damageData.processedDmg.vitalityDamage = CeilF(GetStatMax(BCS_Vitality) / hitsToKill.valueAdditive);	//dies in X hits
+					damageData.processedDmg.essenceDamage = CeilF(GetStatMax(BCS_Essence) / hitsToKill.valueAdditive);		//dies in X hits
 					
 					if(theGame.CanLog())
 					{
@@ -5464,8 +5995,8 @@ import abstract class CActor extends CGameplayEntity
 			}
 		}		
 		
-		
-		
+		// ShadowForm ==================================================
+		// Reduce to 10% of the damage if in ShadowForm
 		if( HasAbility( 'ShadowFormActive' ) )
 		{
 			if ( canLog )
@@ -5478,8 +6009,8 @@ import abstract class CActor extends CGameplayEntity
 			theGame.witcherLog.CombatMessageAddGlobalDamageMult(0.1f);
 		}
 
-		
-		
+		// IceArmor ==================================================
+		// Reduce to 50% of the damage if has IceArmor
 		if( actorAttacker && HasAbility( 'IceArmor' ) && !actorAttacker.HasAbility( 'Ciri_Rage' ) )
 		{
 			if ( theGame.GetDifficultyMode() == EDM_Easy )
@@ -5504,16 +6035,16 @@ import abstract class CActor extends CGameplayEntity
 			}
 		}
 
-		
-		
-		
+		// Last Breath ==================================================
+		// Instead of dying, clamp health, another hit is needed to die
+		// Used for Rotfiend as they die slowly because of the gaz bag inside				
 		if( HasAbility( 'LastBreath' ) )
 		{
 			l_threshold 	= CalculateAttributeValue( GetAttributeValue('lastbreath_threshold') );
 			if( l_threshold == 0 ) l_threshold = 0.25f;
 			l_healthPerc 	= GetHealthPercents();
 			
-			
+			// For one second after the last breath, absorb all damage
 			if( theGame.GetEngineTimeAsSeconds() - lastBreathTime < 1 )
 			{
 				if( damageData.processedDmg.vitalityDamage > 0 ) 	damageData.processedDmg.vitalityDamage 	= 0;
@@ -5533,7 +6064,7 @@ import abstract class CActor extends CGameplayEntity
 				
 				if( l_percAboutToBeRemoved > l_maxPercLossAllowed )
 				{
-					
+					// Reduce damage
 					l_maxDamageAllowed = l_maxPercLossAllowed * l_maxHealth;
 					if( damageData.processedDmg.vitalityDamage > 0 ) 	damageData.processedDmg.vitalityDamage 	= l_maxDamageAllowed;
 					if( damageData.processedDmg.essenceDamage > 0 ) 	damageData.processedDmg.essenceDamage 	= l_maxDamageAllowed;
@@ -5549,53 +6080,55 @@ import abstract class CActor extends CGameplayEntity
 			}
 		}
 		
-		
-		if(!damageData.GetIgnoreImmortalityMode())
+		if(damageData.victim != thePlayer)
 		{
-			if(!((W3PlayerWitcher)this))
-				Log("");
-		
-			
-			if( IsInvulnerable() )
+			//if we don't ignore immortality mode
+			if(!damageData.GetIgnoreImmortalityMode())
 			{
-				if ( canLog )
+				if(!((W3PlayerWitcher)this))
+					Log("");
+				
+				//immortality
+				if( IsInvulnerable() )
 				{
-					LogDMHits("CActor.ReduceDamage: victim Invulnerable - no damage will be dealt", damageData );
+					if ( canLog )
+					{
+						LogDMHits("CActor.ReduceDamage: victim Invulnerable - no damage will be dealt", damageData );
+					}
+					damageData.SetAllProcessedDamageAs(0);
+					return;
 				}
-				damageData.SetAllProcessedDamageAs(0);
-				return;
+				//inform attacker that the damage was dealt
+				if(actorAttacker && damageData.DealsAnyDamage() )
+					actorAttacker.SignalGameplayEventParamObject( 'DamageInstigated', damageData );
+				
+				//immortal
+				if( IsImmortal() )
+				{
+					if ( canLog )
+					{
+						LogDMHits("CActor.ReduceDamage: victim is Immortal, clamping damage", damageData );
+					}
+					damageData.processedDmg.vitalityDamage = ClampF(damageData.processedDmg.vitalityDamage, 0, GetStat(BCS_Vitality)-1 );
+					damageData.processedDmg.essenceDamage  = ClampF(damageData.processedDmg.essenceDamage, 0, GetStat(BCS_Essence)-1 );
+					return;
+				}
 			}
-			
-			
-			if(actorAttacker && damageData.DealsAnyDamage() )
-				actorAttacker.SignalGameplayEvent('DamageInstigated' );
-			
-			
-			if( IsImmortal() )
+			else
 			{
-				if ( canLog )
-				{
-					LogDMHits("CActor.ReduceDamage: victim is Immortal, clamping damage", damageData );
-				}
-				damageData.processedDmg.vitalityDamage = ClampF(damageData.processedDmg.vitalityDamage, 0, GetStat(BCS_Vitality)-1 );
-				damageData.processedDmg.essenceDamage  = ClampF(damageData.processedDmg.essenceDamage, 0, GetStat(BCS_Essence)-1 );
-				return;
+				//inform attacker that the damage was dealt
+				if(actorAttacker && damageData.DealsAnyDamage() )
+					actorAttacker.SignalGameplayEventParamObject( 'DamageInstigated', damageData );
 			}
-		}
-		else
-		{
-			
-			if(actorAttacker && damageData.DealsAnyDamage() )
-				actorAttacker.SignalGameplayEvent('DamageInstigated' );
 		}
 	}
 	
-	
+	// Returns when was the last thime this actor was attacked (even if the attack missed)
 	public function GetDelaySinceLastAttacked() : float
 	{
 		return theGame.GetEngineTimeAsSeconds() - lastWasAttackedTime;
 	}
-	
+	// Returns when was the last thime this actor was hit
 	public function GetDelaySinceLastHit() : float
 	{
 		return theGame.GetEngineTimeAsSeconds() - lastWasHitTime;
@@ -5612,18 +6145,20 @@ import abstract class CActor extends CGameplayEntity
 	function IsAttackerAtBack(attacker : CNode) : bool
 	{
 		var targetToSourceAngle	: float;
-
+		
 		if(!attacker)
 			return false;
-
+		
 		targetToSourceAngle = AbsF( NodeToNodeAngleDistance(attacker, this) );		
 		if( targetToSourceAngle > 90 )
 			return true;
 		
 		return false;
 	}
-		
 	
+	/**
+		Combat Slide and Rotation
+	*/
 	function ProcessSlideToTarget( duration : float, slideProperties : SSlideToTargetEventProps )
 	{
 		var attackerWorldPos, targetWorldPos, slideToWorldPos, targetNearestPointWorldPos	: Vector;
@@ -5652,7 +6187,7 @@ import abstract class CActor extends CGameplayEntity
 		if ( attackerToTargetDist > minSlideDistance && attackerToTargetDist < maxSlideDistance )
 		{
 			GetVisualDebug().AddSphere('NearestEnemyLoc', 0.2f, targetNearestPointWorldPos, true, Color(0,255,255), 0.1f );
-			ActionSlideToAsync( targetNearestPointWorldPos, slideDuration ); 
+			ActionSlideToAsync( targetNearestPointWorldPos, slideDuration ); //FIXMEFLASH this keeps getting called and therefore slide keeps getting slower and slower???
 		}
 	}
 	
@@ -5669,7 +6204,9 @@ import abstract class CActor extends CGameplayEntity
 		ActionSlideToAsync( slidePosition, duration );
 	}
 		
-	
+	/**
+	Parry System
+	*/
 	function SetDetailedHitType ( hitType : EDetailedHitType )
 	{
 		SetBehaviorVariable( 'detailedHitType',(int)hitType);
@@ -5680,14 +6217,14 @@ import abstract class CActor extends CGameplayEntity
 		switch ( parryInfo.attackSwingType )
 		{
 			case AST_Jab:
-				return EDHT_Straight; 
+				return EDHT_Straight; //1
 			case AST_Vertical:
-				return EDHT_Straight; 
+				return EDHT_Straight; //1
 			default:
 				if ( parryInfo.attackSwingDir == ASD_RightLeft )
-					return EDHT_RightLeft; 
+					return EDHT_RightLeft; //2
 				else if ( parryInfo.attackSwingDir == ASD_LeftRight )
-					return EDHT_LeftRight; 
+					return EDHT_LeftRight; //3
 				else
 					return EDHT_None;
 		}
@@ -5720,12 +6257,19 @@ import abstract class CActor extends CGameplayEntity
 		parryInfo.attackSwingDir = attackSwingDir;
 		parryInfo.canBeParried = canBeParried;
 		
+		if( attacker.HasAbility( 'UnblockableAttacks' ) )
+		{
+			parryInfo.canBeParried = false;
+		}
+		
 		target.SetDetailedHitType(ChooseDetailedHitType(parryInfo));
 		
 		return parryInfo;			
 	}
 	
-	
+	/**
+	Parry System
+	*/
 	timer function DelayDodgeProjectileEventTimer( dt : float , id : int)
 	{
 		SignalGameplayEvent( 'Time2DodgeProjectileDelayed' );
@@ -5746,17 +6290,17 @@ import abstract class CActor extends CGameplayEntity
 		SignalGameplayEvent( 'Time2RepulseBombDelayed' );
 	}
 	
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////  @ITEMS @SLOTS @EQUIP  /////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
-	
-	
+	//returns total armor
 	public function GetTotalArmor() : SAbilityAttributeValue
 	{
 		return GetAttributeValue(theGame.params.ARMOR_VALUE_NAME, , true);
 	}
 	
-	
+	//if treatFistsAsWeapon is set then if player has fists 'drawn' it's considered to have a weapon drawn
 	public function HasWeaponDrawn(treatFistsAsWeapon : bool) : bool
 	{
 		var ids : array<SItemUniqueId>;
@@ -5769,14 +6313,14 @@ import abstract class CActor extends CGameplayEntity
 		
 		if ( treatFistsAsWeapon )
 		{
-			
+			//check all weapons
 			for(i=0; i<ids.Size(); i+=1)
 				if(inv.IsItemHeld(ids[i]))
 					return true;
 		}
 		else
 		{
-			
+			//check all weapons if they're not fists
 			fistsIds = inv.GetItemsByCategory('fist');			
 			for(i=0; i<ids.Size(); i+=1)
 				if( !fistsIds.Contains(ids[i]) && inv.IsItemHeld(ids[i]) )
@@ -5837,11 +6381,11 @@ import abstract class CActor extends CGameplayEntity
 		}
 	}
 	
-	public function GetUsedVehicle() : CGameplayEntity
+	public final function GetUsedVehicle() : CGameplayEntity
 	{
 		var vehicleFromHandle : CGameplayEntity;
 
-		
+		// in some case vehicle is not persistent, so handle is always null, we use "raw" pointer then
 		vehicleFromHandle = (CGameplayEntity)EntityHandleGet( usedVehicleHandle );
 		if ( vehicleFromHandle )
 		{
@@ -5852,7 +6396,7 @@ import abstract class CActor extends CGameplayEntity
 	
 	public function IsUsingVehicle() : bool
 	{
-		
+		// in some case vehicle is not persistent, so handle is always null, we use "raw" pointer then
 		if ( EntityHandleGet( usedVehicleHandle ) )
 		{
 			return true;
@@ -5860,11 +6404,11 @@ import abstract class CActor extends CGameplayEntity
 		return usedVehicle;
 	}
 	
-	
-	public function IsUsingHorse( optional ignoreMountInProgress : bool ) : bool
-	
+	// !!!!!! this function is called by code. If you are going to change signature, ask some programmer to update CDoorAttachment_GameplayPush::Update
+	public final function IsUsingHorse( optional ignoreMountInProgress : bool ) : bool
+	// !!!!!! this function is called by code. If you are going to change signature, ask some programmer to update CDoorAttachment_GameplayPush::Update
 	{
-	
+	// !!!!!! this function is called by code. If you are going to change signature, ask some programmer to update CDoorAttachment_GameplayPush::Update
 		var horseComp 		: W3HorseComponent;
 		var mountStatus 	: EVehicleMountStatus;
 		
@@ -5909,8 +6453,8 @@ import abstract class CActor extends CGameplayEntity
 	public final function FindAndMountVehicle( optional mountType : EVehicleMountType, optional maxDistance : float ) : bool 
 	{
 		var vehicle : CVehicleComponent;
-		
-		
+		//default maxDistance = 100.0f;
+		//default mountType = VMT_MountIfPossible;
 		
 		LogChannel( 'Vehicles', "Doing mounting" );
 			
@@ -5919,8 +6463,8 @@ import abstract class CActor extends CGameplayEntity
 		if ( vehicle )
 		{
 			vehicle.StopTheVehicle();
-			
-			
+			// WTF this works only for player..
+			// Not anymore :) RG
 			vehicle.Mount( this, mountType, EVS_driver_slot );
 			return true;
 		}
@@ -5929,11 +6473,11 @@ import abstract class CActor extends CGameplayEntity
 	
 	public final function FindTheNearestVehicle( maxDistance : float, requireToBeMountable : bool ) : CVehicleComponent
 	{
-		
+		// TODO - Marek will create gameplay objects storage	//yeah, right :P
 		var vehicle : CVehicleComponent;
 		var nodes : array< CNode >;
 		var vehicleEntity : CEntity;
-		
+		//default maxDistance = 100.0f;
 		
 		theGame.GetNodesByTag('vehicle', nodes);
 		if ( nodes.Size() == 0 )
@@ -5984,7 +6528,7 @@ import abstract class CActor extends CGameplayEntity
 		return bestEnt;
 	}
 	
-	public function GetCurrentEffects() : array< CBaseGameplayEffect > 
+	public function GetCurrentEffects() : array< CBaseGameplayEffect > //#B
 	{
 		var null : array< CBaseGameplayEffect >;
 		
@@ -5994,19 +6538,33 @@ import abstract class CActor extends CGameplayEntity
 		return null;
 	}
 	
-	
+	/*
+		Damage starts at 3m. THis value should be read from somewhere better 
+		and always match the one in the function function ApplyFallingDamage( heightDiff : float, optional reducing : bool ) : float
+	*/
 	public function GetNeedsToReduceFallingDamage( heightDiff : float ) : bool
 	{
 		return heightDiff >= damageDistanceNotReducing;
 	}
 	
-	
+	/*
+		Damage reduction reduces till 6 meters, also should be read from outside
+	*/
 	public function CanReduceFallDamage( heightDiff : float ) : bool
 	{
 		return heightDiff <= damageDistanceReducing;
 	}
 	
-	
+	/*
+		Before it was:
+		< 3m = no damage
+		6m	= damage reducing
+		8m = damage reducing + perk
+		
+		9m = death
+		12m = death when reducing
+		14m	= death on reducing + perk
+	*/
 	function ApplyFallingDamage( heightDiff : float, optional reducing : bool ) : float
 	{
 		var forcedDeath		: bool;
@@ -6020,7 +6578,7 @@ import abstract class CActor extends CGameplayEntity
 		
 		forcedDeath			= !thePlayer.IsAlive();
 		
-		
+		// Get the values
 		if( reducing )
 		{
 			deathDistance	= deathDistanceReducing;
@@ -6032,29 +6590,29 @@ import abstract class CActor extends CGameplayEntity
 			damageDistance	= damageDistanceNotReducing;
 		}
 		
-		
+		// Instant death
 		if( heightDiff > deathDistance || forcedDeath )
 		{
 			dmgPerc	= 1.0f;	
 			PlayEffect( 'heavy_hit' );
 			PlayEffect( 'hit_screen' );	
 			
-			
+			// Get the real damage 
 			totalDamage	= GetMaxHealth();
 		}
 		
-		
+		// No damage
 		else if( heightDiff < damageDistance )
 		{
 			return 0.0f;		
 		}
 		
-		
+		// Some damage
 		else
 		{
 			dmgPerc	= MapF( heightDiff, damageDistance, deathDistance, 0.0f, 1.0f );
 			
-			
+			// Don't kill automatically if the height is not lethal
 			if( dmgPerc < 1.0f && dmgPerc >= GetHealthPercents() - fallDamageMinHealthPerc )
 			{
 				totalDamage	= MaxF( 0.0f, GetHealthPercents() - fallDamageMinHealthPerc ) * GetMaxHealth();
@@ -6079,8 +6637,8 @@ import abstract class CActor extends CGameplayEntity
 		return dmgPerc;
 	}
 	
-	
-	
+	//impulse = m * ( dist/t )
+	//force = m * ( dist/t^2 )
 	
 	
 		
@@ -6096,7 +6654,7 @@ import abstract class CActor extends CGameplayEntity
 
 		if( otherBody.HasCollisionType('Ragdoll', actorIndex, shapeIndex) || otherBody.HasCollisionType('Weapon', actorIndex, shapeIndex) || otherBody.HasCollisionType('Corpse', actorIndex, shapeIndex) )
 		{
-			
+			// don't react to ragdolls and corpses - otherwise we might trip over them or be killed when just going through them
 			return false;
 		}
 		
@@ -6104,9 +6662,9 @@ import abstract class CActor extends CGameplayEntity
 		velocity = VecLength( otherBody.GetPhysicalObjectLinearVelocity( actorIndex ) );
 		momentum = mass * velocity;
 		
-		
-		
-		
+		// min momentum: 50 	- 10 damage
+		// max momentum: 400 	- 100 damage
+		// damage = 0.25 * momentum;
 		
 		if( momentum < 50.0 || velocity < 3.5 )
 			return false;
@@ -6114,9 +6672,16 @@ import abstract class CActor extends CGameplayEntity
 		damageVal = 0.25 * momentum;
 		hitReaction = EHRT_Light;
 		
-		
+		/*
+		FIXME URGENT - physics is unstable and keeps us ragdolling all the time because of this
+		if( damageVal > 50.0 )
+		{
+			// ED P0 TEMP HACK ATTEMPT
+			hitReaction = EHRT_Heavy;											//FIXME if it causes ragdoll then hitReaction won't be used anyway
+			AddEffectCustomParams( EET_Ragdoll, this, this.GetName(), 5 );		//FIXME - add to damage action -TK
+		}*/
 			
-		if( damageVal > 100.0 )				
+		if( damageVal > 100.0 )				//FIXME why maxcap at 100 damage pts? -TK
 			damageVal = 100.0;
 		
 		damage = new W3DamageAction in this;
@@ -6129,7 +6694,7 @@ import abstract class CActor extends CGameplayEntity
 		delete damage;
 	}
 
-	
+	//MSTODO TEMP: For custom camera in combat ask Patryk where to put this
 	var customCameraStackIndex : int;
 	event OnCustomCamera( eventName : name, properties : SMultiValue, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{		
@@ -6164,9 +6729,9 @@ import abstract class CActor extends CGameplayEntity
 			RemoveAllBuffsOfType(EET_Burning);
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////   @SWIMMING   ////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
 	
 	public function SetIsSwimming ( toggle : bool )		{ isSwimming = toggle;	}
 	public function IsSwimming () : bool				{ return isSwimming;	}
@@ -6182,7 +6747,10 @@ import abstract class CActor extends CGameplayEntity
 		return false;
 	}
 	
-	
+	/** Calculate movement of sword tip in world space for given animation starting at "time" using delta time
+	 *	You can do this when handling event:
+	 *	swordTipMovementWS = GetSwordTipMovementFromAnimation( GetAnimNameFromEventAnimInfo( animInfo ), GetLocalAnimTimeFromEventAnimInfo( animInfo ), 0.05f );
+	 */
 	final function GetSwordTipMovementFromAnimation( animation : name, time : float, deltaTime : float, hitWeapon : CItemEntity ) : Vector
 	{
 		var handBone : name;
@@ -6198,25 +6766,25 @@ import abstract class CActor extends CGameplayEntity
 		handBone = 'r_weapon';
 		handBoneIdx = GetBoneIndex( handBone );
 
-		
+		// get location of tip of sword in hand space
 		hitWeapon.CalcEntitySlotMatrix( 'blood_fx_point', weaponSlotMatrixWS );
 		handMatrixWS = GetBoneWorldMatrixByIndex( handBoneIdx );
 
-		
+		// initialise sword tip position
 		swordTipAtTime = MatrixGetTranslation( weaponSlotMatrixWS );
 		swordTipAtTime = VecTransform( MatrixGetInverted( handMatrixWS ), swordTipAtTime );
 		swordTipWithDeltaTime = swordTipAtTime;
 
 		GetRootAnimatedComponent().GetBoneMatrixMovementModelSpaceInAnimation( handBoneIdx, animation, time, deltaTime, boneAtTimeMS, boneWithDeltaTimeMS );
-		
+		// move it to be in model space at extracted bone location
 		swordTipAtTime = VecTransform( boneAtTimeMS, swordTipAtTime );
 		swordTipWithDeltaTime = VecTransform( boneWithDeltaTimeMS, swordTipWithDeltaTime );
-		
+		// move it to be in world space
 		localToWorld = GetLocalToWorld();
 		swordTipAtTime = VecTransform( localToWorld, swordTipAtTime );
 		swordTipWithDeltaTime = VecTransform( localToWorld, swordTipWithDeltaTime );
 
-		
+		// return difference
 		return swordTipWithDeltaTime - swordTipAtTime;
 	}
 
@@ -6231,7 +6799,7 @@ import abstract class CActor extends CGameplayEntity
 		return pitch;
 	}
 	
-	
+	// Register for collision reports
 	function RegisterCollisionEventsListener()
 	{
 		var physicalComponent : CMovingPhysicalAgentComponent;
@@ -6241,24 +6809,58 @@ import abstract class CActor extends CGameplayEntity
 			physicalComponent.RegisterEventListener( this );
 		}
 	}
-
 	
+	public final function FreezeCloth( frozen : bool )
+	{
+		var comps : array< CComponent >;
+		var cloth : CClothComponent;
+		var i : int;
+		
+		comps = GetComponentsByClassName( 'CClothComponent' );
+		for( i=0; i<comps.Size(); i+=1 )
+		{
+			cloth = ( CClothComponent ) comps[ i ];
+			if( cloth )
+			{
+				cloth.SetFrozen( frozen );
+			}
+		}
+	}
 	
+	public final function SetClothSimulation( b : bool )
+	{
+		var comps : array< CComponent >;
+		var cloth : CClothComponent;
+		var i : int;
+		
+		comps = GetComponentsByClassName( 'CClothComponent' );
+		for( i=0; i<comps.Size(); i+=1 )
+		{
+			cloth = ( CClothComponent ) comps[ i ];
+			if( cloth )
+			{
+				cloth.SetSimulated( b );
+			}
+		}
+	}
 	
+	//////////////////////////////////////////////////////////////////////////////////////////
+	// Events informing wheter actor is in ragdoll or not and what ragdoll "state" it is
 	
+	// when in ragdoll and on ground
 	event OnRagdollOnGround();
 
-	
+	// when in ragdoll and in the air
 	event OnRagdollInAir();
 
-	
+	// when no longer being ragdolled
 	event OnNoLongerInRagdoll();
 
+	//////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////  @DAMAGE  //////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
-	
-	 event OnPocessActionPost(action : W3DamageAction)
+	/*script*/ event OnProcessActionPost(action : W3DamageAction)
 	{
 		var actorVictim : CActor;
 		var bloodTrailParam : CBloodTrailEffect;
@@ -6267,7 +6869,7 @@ import abstract class CActor extends CGameplayEntity
 		actorVictim = (CActor)action.victim;
 		attackAction = (W3Action_Attack)action;
 		
-		
+		//blood trail
 		if( attackAction && action.DealsAnyDamage() && actorVictim)
 		{
 			bloodTrailParam = (CBloodTrailEffect)actorVictim.GetGameplayEntityParam( 'CBloodTrailEffect' );
@@ -6278,19 +6880,32 @@ import abstract class CActor extends CGameplayEntity
 		}		
 	}
 	
+	event OnHitActionReaction( attacker : CActor, weaponName : name )
+	{
+		// playing custom hit impact sounds
+		if ( attacker.HasAbility( 'mon_cloud_giant' ) && weaponName == 'mon_q704_cloud_giant_ep2_weapon' )
+		{
+			SoundEvent( "monster_cloud_giant_cmb_weapon_hit_add", 'head' );
+		}
+		else if ( attacker.HasAbility( 'mon_knight_giant' ) && weaponName == 'mon_q701_giant_ep2_weapon' )
+		{
+			SoundEvent( "monster_knight_giant_cmb_weapon_hit_add", 'head' );
+		}
+	}
 	
+	//gets damage bonus for critical hit
 	public function GetCriticalHitDamageBonus(weaponId : SItemUniqueId, victimMonsterCategory : EMonsterCategory, isStrikeAtBack : bool) : SAbilityAttributeValue
 	{
 		return GetAttributeValue(theGame.params.CRITICAL_HIT_DAMAGE_BONUS);
 	}
 	
-	
+	//////////////////////////////////////////////////////////////////////////////////////////
 	public function HasAlternateQuen() : bool
 	{
 		return false;
 	}
 	
-	public function FinishQuen(skipVisuals : bool);
+	public function FinishQuen( skipVisuals : bool, optional forceNoBearSetBonus : bool );
 	
 	public function UpdateStatsForDifficultyLevel(d : EDifficultyMode)
 	{
@@ -6332,6 +6947,10 @@ import abstract class CActor extends CGameplayEntity
 		var definition : EPlayerPreviewInventory;
 		
 		
+		//HACK - failsafe for mega fuckup with saving variables from active game session in entity template
+		buffImmunities.Clear();
+		
+		//HACK - this code is only for geralt
 		if ( this.GetVoicetag() != 'GERALT' )
 		{
 			return true;
@@ -6339,7 +6958,7 @@ import abstract class CActor extends CGameplayEntity
 		
 		definition = theGame.GetGameplayConfigEnumValue('playerPreviewInventory');
 		
-		
+		//proper inventory for preview
 		switch(definition)
 		{			
 			case PPI_Bear_1 :
@@ -6369,7 +6988,10 @@ import abstract class CActor extends CGameplayEntity
 			case PPI_Viper :
 				resourceKey = 'preview_inventory_viper';
 				break;
-			
+			case PPI_Red_Wolf_1 :
+				resourceKey = 'preview_inventory_red_wolf_1';
+				break;
+				
 			case PPI_default :
 			default :
 				resourceKey = 'preview_inventory_default';
@@ -6383,12 +7005,12 @@ import abstract class CActor extends CGameplayEntity
 	
 	event OnCutsceneDeath()
 	{
-		this.Kill( true );
+		Kill( 'Quest', true );
 	}
 	
-	
-	
-	
+	//////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////  @MISC  ////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////
 	
 	public function ActivateEthereal( optional fromHit : bool )
 	{
@@ -6396,16 +7018,16 @@ import abstract class CActor extends CGameplayEntity
 		
 		if( fromHit )
 		{
-			
+			//ManageEtherealSkillsAndFXes();
 			AddTimer( 'ActivateEtherealDelayed', 0.0 );
 		}
 		else
 		{	
-			
+			//ManageEtherealSkillsAndFXes( true );
 			SetBehaviorVariable( 'wakeUpType', 1.0 );
 			AddTimer( 'ActivateEtherealDelayed', 2.15 ); 
-			
-			
+			// time from fx start to impact + time from impact in anim to end of anim, 1.35 + 0.8
+			// so that buff anim ends before one ethereal plays wake up animation
 		}
 	}
 	
@@ -6475,11 +7097,11 @@ import abstract class CActor extends CGameplayEntity
 		}
 	}
 	
+	//////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////  @DAMAGE FLOATERS  //////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
-	
-	
+	//caching heal val for damage floaters
 	private final function CacheHudModuleHealFloater(heal : float)
 	{
 		cachedHeal += heal;
@@ -6504,7 +7126,7 @@ import abstract class CActor extends CGameplayEntity
 		hudModuleHealScheduledUpdate = false;
 	}
 	
-	
+	//caching DoT damage for damage floaters
 	private final function CacheHudModuleDoTDamageFloater(dmg : float)
 	{
 		cachedDoTDamage += dmg;
@@ -6556,27 +7178,80 @@ import abstract class CActor extends CGameplayEntity
 		}
 	}
 	
+	public function IsHuge() : bool
+	{
+		return HasAbility( 'mon_type_huge' );
+	}
 	
+	public function CreateFXEntityAtPelvis( resourceName : name, attach : bool ) : CEntity
+	{
+		var boneName : name;
+		var boneIndex : int;
+		
+		boneName = 'pelvis';
+		boneIndex = GetBoneIndex( boneName );		
+		if( boneIndex == -1 )
+		{
+			boneName = 'k_pelvis_g';
+		}
+		
+		return CreateFXEntityAtBone( resourceName, boneName, attach );
+	}
 	
+	public function CreateFXEntityAtBone( resourceName : name, boneName : name, attach : bool ) : CEntity
+	{
+		var template : CEntityTemplate;
+		var boneRotation : EulerAngles;
+		var bonePosition : Vector;
+		var boneIndex : int;
+		var fxEnt : CEntity;
+		
+		//get bone
+		boneIndex = GetBoneIndex( boneName );		
+		if( boneIndex == -1 )
+		{
+			return fxEnt;
+		}
+		
+		//load resource
+		template = (CEntityTemplate)LoadResource( resourceName );		
+		if( !template )
+		{
+			return fxEnt;
+		}
+		
+		GetBoneWorldPositionAndRotationByIndex( boneIndex, bonePosition, boneRotation );
+		fxEnt = theGame.CreateEntity( template, bonePosition, boneRotation );
+		
+		if( attach )
+		{
+			fxEnt.CreateAttachmentAtBoneWS( this, boneName, bonePosition, boneRotation );
+		}
+		
+		return fxEnt;
+	}
 	
+	//////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////  @SIGNS  ////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
+	//Called after the sign was successfully cast. This only means that you did cast, not that you hit your target
+	//(e.g. with Axii it means that you cast but there might have been no valid target)
 	public function OnSignCastPerformed(signType : ESignType, isAlternate : bool)
 	{
-		
+		//LogSigns("Successfully cast " + signType + ", alternate? = " + isAlternate);
 	}
 	
 	timer function Runeword1DisableFireFX(dt : float, id : int)
 	{
-		
+		//disable burning FX from runeword 1
 		if(IsEffectActive('critical_burning') && !HasBuff(EET_Burning))
 			StopEffect('critical_burning');
 	}
 	
-	
-	
-	
+	//////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////  @DEBUG  ////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////
 	
 	public function Debug_GetUsedDifficultyMode() : EDifficultyMode
 	{

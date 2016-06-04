@@ -1,14 +1,11 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2014
+/** Author : Tomek Kozera
 /***********************************************************************/
-
-
 
 class W3Potion_VitalityRegen extends W3RegenEffect
 {
-	protected var combatRegen, nonCombatRegen : SAbilityAttributeValue;			
+	protected var combatRegen, nonCombatRegen : SAbilityAttributeValue;			//effectValues for combat and non-combat
 	protected var playerTarget : CR4Player;
 
 	public function CacheSettings()
@@ -21,7 +18,7 @@ class W3Potion_VitalityRegen extends W3RegenEffect
 							
 		super.CacheSettings();
 		
-		
+		//find which stat we're regenerating - regenstat set in child classes but let's make sure
 		if(regenStat == CRS_Vitality)
 		{
 			dm = theGame.GetDefinitionsManager();

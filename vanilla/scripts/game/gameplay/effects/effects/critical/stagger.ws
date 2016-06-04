@@ -1,14 +1,11 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2012-2014
+/** Author : Rafal Jarczewski, Andrzej Kwiatkowski, Tomek Kozera
 /***********************************************************************/
-
-
 
 class W3Effect_Stagger extends W3CriticalEffect
 {
-	private var timeToEnableDodge : float;
+	public var timeToEnableDodge : float;
 	
 	default timeToEnableDodge			= 1.f;
 	default criticalStateType			= ECST_Stagger;
@@ -30,13 +27,13 @@ class W3Effect_Stagger extends W3CriticalEffect
 		blockedActions.PushBack(EIAB_Movement);
 		blockedActions.PushBack(EIAB_Fists);
 		blockedActions.PushBack(EIAB_Jump);
-		blockedActions.PushBack(EIAB_RunAndSprint);
+		//blockedActions.PushBack(EIAB_RunAndSprint);
 		blockedActions.PushBack(EIAB_ThrowBomb);
 		blockedActions.PushBack(EIAB_Crossbow);
 		blockedActions.PushBack(EIAB_UsableItem);
 		blockedActions.PushBack(EIAB_SwordAttack);
 		blockedActions.PushBack(EIAB_Parry);
-		blockedActions.PushBack(EIAB_Sprint);
+		//blockedActions.PushBack(EIAB_Sprint);
 		blockedActions.PushBack(EIAB_Explorations);
 		blockedActions.PushBack(EIAB_Counter);
 		blockedActions.PushBack(EIAB_LightAttacks);
@@ -75,10 +72,10 @@ class W3Effect_Stagger extends W3CriticalEffect
 			}
 		}
 		
-		
+		//info for quest conditions
 		tags = target.GetTags();
 		for(i=0; i<tags.Size(); i+=1)
-			FactsAdd("actor_"+NameToString(tags[i])+"_was_stunned",1,CeilF(duration)+1 );	
+			FactsAdd("actor_"+NameToString(tags[i])+"_was_stunned",1,CeilF(duration)+1 );	//valid for stun duration + 1 sec
 	}
 	
 	public function OnTimeUpdated(dt : float)

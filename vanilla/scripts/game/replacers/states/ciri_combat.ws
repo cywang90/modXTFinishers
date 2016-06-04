@@ -1,11 +1,10 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file
 /***********************************************************************/
-
-
-
+/** Copyright © 2012-2014 CDProjektRed
+/** Author : Patryk Fiutowski
+/**			 Tomek Kozera
+/***********************************************************************/
 
 state CombatSword in W3ReplacerCiri extends Combat
 {
@@ -29,7 +28,35 @@ state CombatSword in W3ReplacerCiri extends Combat
 		theInput.SetContext(parent.GetExplorationInputContext());
 	}
 	
-	
+	/*protected function ProcessPlayerCombatStance()
+	{
+		var targetCapsuleHeight		: float;
+		var stance					: EPlayerCombatStance;
+		var playerToTargetVector	: Vector;
+		var playerToTargetDist		: float;
+		var wasVisibleInCam 		: bool;
+		var moveTargetNPC			: CNewNPC;
+		
+		if ( parent.IsGuarded() )
+			stance = PCS_Guarded;
+		else
+		{
+			if ( !parent.IsThreatened() )	
+				stance = PCS_Normal;
+			else
+				stance = PCS_AlertFar;
+		}
+		
+		if ( virtual_parent.GetPlayerCombatStance() == PCS_AlertNear && stance != PCS_AlertNear && stance != PCS_Guarded )
+		{
+			if ( !parent.IsEnemyVisible( parent.moveTarget ) )
+				DisableCombatStance( 5.f, stance );
+			else 
+				SetStance( stance ); 
+		}
+		else
+			SetStance( stance );
+	}*/
 	
 	protected function ProcessStartupAction( action : EInitialAction )
 	{
@@ -53,11 +80,11 @@ state CombatSword in W3ReplacerCiri extends Combat
 	event OnCreateAttackAspects()
 	{
 		CreateAttackLightAspect();
-		
+		//CreateAttackHeavyAspect();
 		CreateAttackLightFarAspect();
-		
+		//CreateAttackHeavyFarAspect();
 		CreateAttackLightFlyingAspect();
-		
+		//CreateAttackHeavyFlyingAspect();
 		CreateAttackLightAspectSlopeUp();
 		CreateAttackLightAspectSlopeDown();
 		CreateAttackLightCapsuleShort();
@@ -71,14 +98,14 @@ state CombatSword in W3ReplacerCiri extends Combat
 	
 		var aspect 		: CComboAspect;
 		var str 		: CComboString;
-		
+		//var comboLink	: array<name>;
 
 		aspect = comboDefinition.CreateComboAspect( 'AttackLight' );
 		
 		{
 			str = aspect.CreateComboString( false );
 			
-			
+			//Add directional attacks near
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_1_rp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_2_rp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_3_rp_40ms', AD_Front, ADIST_Small );
@@ -88,7 +115,7 @@ state CombatSword in W3ReplacerCiri extends Combat
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_left_1_rp_40ms', AD_Left, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_right_1_rp_40ms', AD_Right, ADIST_Small );	
 			
-			
+			//Add directional attacks medium
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_1_rp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_2_rp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_3_rp_40ms', AD_Front, ADIST_Medium );
@@ -98,20 +125,20 @@ state CombatSword in W3ReplacerCiri extends Combat
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_left_1_rp_40ms', AD_Left, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_right_1_rp_40ms', AD_Right, ADIST_Medium );			
 			
-			
+			//Add directional attacks far
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_far_forward_1_rp_50ms', AD_Front, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_far_back_1_rp_50ms', AD_Back, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_far_left_1_rp_50ms', AD_Left, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_far_right_1_rp_50ms', AD_Right, ADIST_Large );			
 			
-			
+			//Add standard attacks near
 			str.AddAttack( 'woman_ciri_sword_attack_fast_1_rp_40ms', ADIST_Small );
 			str.AddAttack( 'woman_ciri_sword_attack_fast_2_rp_40ms', ADIST_Small );
 			str.AddAttack( 'woman_ciri_sword_attack_fast_3_rp_40ms', ADIST_Small );
 			str.AddAttack( 'woman_ciri_sword_attack_fast_4_rp_40ms', ADIST_Small );
 			str.AddAttack( 'woman_ciri_sword_attack_fast_5_rp_40ms', ADIST_Small );	
 			
-			
+			//Add standard attacks medium
 			str.AddAttack( 'woman_ciri_sword_attack_fast_1_rp_40ms', ADIST_Medium );
 			str.AddAttack( 'woman_ciri_sword_attack_fast_2_rp_40ms', ADIST_Medium );
 			str.AddAttack( 'woman_ciri_sword_attack_fast_3_rp_40ms', ADIST_Medium );
@@ -122,7 +149,7 @@ state CombatSword in W3ReplacerCiri extends Combat
 		{
 			str = aspect.CreateComboString( true );
 			
-			
+			//Add directional attacks near
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_1_lp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_2_lp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_3_lp_40ms', AD_Front, ADIST_Small );
@@ -131,7 +158,7 @@ state CombatSword in W3ReplacerCiri extends Combat
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_left_1_lp_40ms', AD_Left, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_right_1_lp_40ms', AD_Right, ADIST_Small );
 			
-			
+			//Add directional attacks medium
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_1_lp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_2_lp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_3_lp_40ms', AD_Front, ADIST_Medium );
@@ -140,19 +167,19 @@ state CombatSword in W3ReplacerCiri extends Combat
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_left_1_lp_40ms', AD_Left, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_right_1_lp_40ms', AD_Right, ADIST_Medium );
 			
-			
+			//Add directional attacks far
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_far_forward_1_lp_50ms', AD_Front, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_far_back_1_lp_50ms', AD_Back, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_far_left_1_lp_50ms', AD_Left, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_far_right_1_lp_50ms', AD_Right, ADIST_Large );				
 			
-			
+			//Add standard attacks near
 			str.AddAttack( 'woman_ciri_sword_attack_fast_1_lp_40ms', ADIST_Small );
 			str.AddAttack( 'woman_ciri_sword_attack_fast_2_lp_40ms', ADIST_Small );
 			str.AddAttack( 'woman_ciri_sword_attack_fast_3_lp_40ms', ADIST_Small );
 			str.AddAttack( 'woman_ciri_sword_attack_fast_4_lp_40ms', ADIST_Small );
 			
-			
+			//Add standard attacks medium
 			str.AddAttack( 'woman_ciri_sword_attack_fast_1_lp_40ms', ADIST_Medium );
 			str.AddAttack( 'woman_ciri_sword_attack_fast_2_lp_40ms', ADIST_Medium );
 			str.AddAttack( 'woman_ciri_sword_attack_fast_3_lp_40ms', ADIST_Medium );
@@ -193,71 +220,71 @@ state CombatSword in W3ReplacerCiri extends Combat
 	{
 		var aspect 		: CComboAspect;
 		var str 		: CComboString;
-		
+		//var comboLink	: array<name>;
 		
 		aspect = comboDefinition.CreateComboAspect( 'AttackLightFlying' );
 		
 		{
 			str = aspect.CreateComboString( false );
 			
-			
+			//Add directional attacks near
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_2_rp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_4_rp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_back_1_rp_40ms', AD_Back, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_left_1_rp_40ms', AD_Left, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_right_1_rp_40ms', AD_Right, ADIST_Small );		
 			
-			
+			//Add directional attacks medium
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_2_rp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_4_rp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_back_1_rp_40ms', AD_Back, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_left_1_rp_40ms', AD_Left, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_right_1_rp_40ms', AD_Right, ADIST_Medium );			
 			
-			
+			//Add directional attacks far
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_2_rp_40ms', AD_Front, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_4_rp_40ms', AD_Front, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_back_1_rp_40ms', AD_Back, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_left_1_rp_40ms', AD_Left, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_right_1_rp_40ms', AD_Right, ADIST_Large );			
 			
-			
+			//Add standard attacks near
 			str.AddAttack( 'woman_ciri_sword_attack_fast_2_rp_40ms', ADIST_Small );
 			str.AddAttack( 'woman_ciri_sword_attack_fast_4_rp_40ms', ADIST_Small );
 			
-			
+			//Add standard attacks medium
 			str.AddAttack( 'woman_ciri_sword_attack_fast_2_rp_40ms', ADIST_Medium );
 			str.AddAttack( 'woman_ciri_sword_attack_fast_4_rp_40ms', ADIST_Medium );
 		}
 		{
 			str = aspect.CreateComboString( true );
 			
-			
+			//Add directional attacks near
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_2_lp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_3_lp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_back_1_lp_40ms', AD_Back, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_left_1_lp_40ms', AD_Left, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_right_1_lp_40ms', AD_Right, ADIST_Small );
 			
-			
+			//Add directional attacks medium
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_2_lp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_3_lp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_back_1_lp_40ms', AD_Back, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_left_1_lp_40ms', AD_Left, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_right_1_lp_40ms', AD_Right, ADIST_Medium );
 			
-			
+			//Add directional attacks far
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_2_lp_40ms', AD_Front, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_3_lp_40ms', AD_Front, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_back_1_lp_40ms', AD_Back, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_left_1_lp_40ms', AD_Left, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_right_1_lp_40ms', AD_Right, ADIST_Large );
 			
-			
+			//Add standard attacks near
 			str.AddAttack( 'woman_ciri_sword_attack_fast_2_lp_40ms', ADIST_Small );
 			str.AddAttack( 'woman_ciri_sword_attack_fast_3_lp_40ms', ADIST_Small );
 			
-			
+			//Add standard attacks medium
 			str.AddAttack( 'woman_ciri_sword_attack_fast_2_lp_40ms', ADIST_Medium );		
 			str.AddAttack( 'woman_ciri_sword_attack_fast_3_lp_40ms', ADIST_Medium );		
 		}		
@@ -267,62 +294,62 @@ state CombatSword in W3ReplacerCiri extends Combat
 	{
 		var aspect 		: CComboAspect;
 		var str 		: CComboString;
-		
+		//var comboLink	: array<name>;
 		
 		aspect = comboDefinition.CreateComboAspect( 'AttackLightSlopeUp' );
 		
 		{
 			str = aspect.CreateComboString( false );
 			
-			
+			//Add directional attacks near
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_2_rp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_back_1_rp_40ms', AD_Back, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_left_1_rp_40ms', AD_Left, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_right_1_rp_40ms', AD_Right, ADIST_Small );		
 			
-			
+			//Add directional attacks medium
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_2_rp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_back_1_rp_40ms', AD_Back, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_left_1_rp_40ms', AD_Left, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_right_1_rp_40ms', AD_Right, ADIST_Medium );			
 			
-			
+			//Add directional attacks far
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_2_rp_40ms', AD_Front, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_back_1_rp_40ms', AD_Back, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_left_1_rp_40ms', AD_Left, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_right_1_rp_40ms', AD_Right, ADIST_Large );			
 			
-			
+			//Add standard attacks near
 			str.AddAttack( 'woman_ciri_sword_attack_fast_2_rp_40ms', ADIST_Small );
 			
-			
+			//Add standard attacks medium
 			str.AddAttack( 'woman_ciri_sword_attack_fast_2_rp_40ms', ADIST_Medium );
 		}
 		{
 			str = aspect.CreateComboString( true );
 			
-			
+			//Add directional attacks near
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_2_lp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_back_1_lp_40ms', AD_Back, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_left_1_lp_40ms', AD_Left, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_right_1_lp_40ms', AD_Right, ADIST_Small );
 			
-			
+			//Add directional attacks medium
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_2_lp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword _attack_fast_back_1_lp_40ms', AD_Back, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_left_1_lp_40ms', AD_Left, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_right_1_lp_40ms', AD_Right, ADIST_Medium );
 			
-			
+			//Add directional attacks far
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_2_lp_40ms', AD_Front, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_back_1_lp_40ms', AD_Back, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_left_1_lp_40ms', AD_Left, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_right_1_lp_40ms', AD_Right, ADIST_Large );
 			
-			
+			//Add standard attacks near
 			str.AddAttack( 'woman_ciri_sword_attack_fast_2_lp_40ms', ADIST_Small );
 			
-			
+			//Add standard attacks medium
 			str.AddAttack( 'woman_ciri_sword_attack_fast_2_lp_40ms', ADIST_Medium );		
 		}	
 	}	
@@ -331,14 +358,14 @@ state CombatSword in W3ReplacerCiri extends Combat
 	{
 		var aspect 		: CComboAspect;
 		var str 		: CComboString;
-		
+		//var comboLink	: array<name>;
 		
 		aspect = comboDefinition.CreateComboAspect( 'AttackLightSlopeDown' );
 		
 		{
 			str = aspect.CreateComboString( false );
 			
-			
+			//Add directional attacks near
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_1_rp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_3_rp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_5_rp_40ms', AD_Front, ADIST_Small );
@@ -346,7 +373,7 @@ state CombatSword in W3ReplacerCiri extends Combat
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_left_1_rp_40ms', AD_Left, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_right_1_rp_40ms', AD_Right, ADIST_Small );		
 			
-			
+			//Add directional attacks medium
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_1_rp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_3_rp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_5_rp_40ms', AD_Front, ADIST_Medium );
@@ -354,18 +381,18 @@ state CombatSword in W3ReplacerCiri extends Combat
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_left_1_rp_40ms', AD_Left, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_right_1_rp_40ms', AD_Right, ADIST_Medium );			
 			
-			
+			//Add directional attacks far
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_far_forward_1_rp_50ms', AD_Front, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_far_back_1_rp_50ms', AD_Back, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_far_left_1_rp_50ms', AD_Left, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_far_right_1_rp_50ms', AD_Right, ADIST_Large );			
 			
-			
+			//Add standard attacks near
 			str.AddAttack( 'woman_ciri_sword_attack_fast_1_rp_40ms', ADIST_Small );
 			str.AddAttack( 'woman_ciri_sword_attack_fast_3_rp_40ms', ADIST_Small );
 			str.AddAttack( 'woman_ciri_sword_attack_fast_5_rp_40ms', ADIST_Small );
 			
-			
+			//Add standard attacks medium
 			str.AddAttack( 'woman_ciri_sword_attack_fast_1_rp_40ms', ADIST_Medium  );
 			str.AddAttack( 'woman_ciri_sword_attack_fast_3_rp_40ms', ADIST_Medium  );
 			str.AddAttack( 'woman_ciri_sword_attack_fast_5_rp_40ms', ADIST_Medium  );
@@ -373,7 +400,7 @@ state CombatSword in W3ReplacerCiri extends Combat
 		{
 			str = aspect.CreateComboString( true );
 			
-			
+			//Add directional attacks near
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_1_lp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_2_lp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_4_lp_40ms', AD_Front, ADIST_Small );
@@ -381,7 +408,7 @@ state CombatSword in W3ReplacerCiri extends Combat
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_left_1_lp_40ms', AD_Left, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_right_1_lp_40ms', AD_Right, ADIST_Small );
 			
-			
+			//Add directional attacks medium
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_1_lp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_2_lp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_4_lp_40ms', AD_Front, ADIST_Medium );
@@ -389,18 +416,18 @@ state CombatSword in W3ReplacerCiri extends Combat
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_left_1_lp_40ms', AD_Left, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_right_1_lp_40ms', AD_Right, ADIST_Medium );
 			
-			
+			//Add directional attacks far
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_far_forward_1_lp_50ms', AD_Front, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_far_back_1_lp_50ms', AD_Back, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_far_left_1_lp_50ms', AD_Left, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_far_right_1_lp_50ms', AD_Right, ADIST_Large );	
 			
-			
+			//Add standard attacks near
 			str.AddAttack( 'woman_ciri_sword_attack_fast_1_lp_40ms', ADIST_Small );
 			str.AddAttack( 'woman_ciri_sword_attack_fast_2_lp_40ms', ADIST_Small );
 			str.AddAttack( 'woman_ciri_sword_attack_fast_4_lp_40ms', ADIST_Small );
 			
-			
+			//Add standard attacks medium
 			str.AddAttack( 'woman_ciri_sword_attack_fast_1_lp_40ms', ADIST_Medium );
 			str.AddAttack( 'woman_ciri_sword_attack_fast_2_lp_40ms', ADIST_Medium );
 			str.AddAttack( 'woman_ciri_sword_attack_fast_4_lp_40ms', ADIST_Medium );		
@@ -411,62 +438,62 @@ state CombatSword in W3ReplacerCiri extends Combat
 	{
 		var aspect 		: CComboAspect;
 		var str 		: CComboString;
-		
+		//var comboLink	: array<name>;
 		
 		aspect = comboDefinition.CreateComboAspect( 'AttackLightVsRider' );
 		
 		{
 			str = aspect.CreateComboString( false );
 			
-			
+			//Add directional attacks near
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_2_rp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_back_1_rp_40ms', AD_Back, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_left_1_rp_40ms', AD_Left, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_right_1_rp_40ms', AD_Right, ADIST_Small );		
 			
-			
+			//Add directional attacks medium
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_2_rp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_back_1_rp_40ms', AD_Back, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_left_1_rp_40ms', AD_Left, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_right_1_rp_40ms', AD_Right, ADIST_Medium );			
 			
-			
+			//Add directional attacks far
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_2_rp_40ms', AD_Front, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_back_1_rp_40ms', AD_Back, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_left_1_rp_40ms', AD_Left, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_right_1_rp_40ms', AD_Right, ADIST_Large );			
 			
-			
+			//Add standard attacks near
 			str.AddAttack( 'woman_ciri_sword_attack_fast_2_rp_40ms', ADIST_Small );
 			
-			
+			//Add standard attacks medium
 			str.AddAttack( 'woman_ciri_sword_attack_fast_2_rp_40ms', ADIST_Medium );
 		}
 		{
 			str = aspect.CreateComboString( true );
 			
-			
+			//Add directional attacks near
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_2_lp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_back_1_lp_40ms', AD_Back, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_left_1_lp_40ms', AD_Left, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_right_1_lp_40ms', AD_Right, ADIST_Small );
 			
-			
+			//Add directional attacks medium
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_2_lp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword _attack_fast_back_1_lp_40ms', AD_Back, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_left_1_lp_40ms', AD_Left, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_right_1_lp_40ms', AD_Right, ADIST_Medium );
 			
-			
+			//Add directional attacks far
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_2_lp_40ms', AD_Front, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_back_1_lp_40ms', AD_Back, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_left_1_lp_40ms', AD_Left, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_right_1_lp_40ms', AD_Right, ADIST_Large );
 			
-			
+			//Add standard attacks near
 			str.AddAttack( 'woman_ciri_sword_attack_fast_2_lp_40ms', ADIST_Small );
 			
-			
+			//Add standard attacks medium
 			str.AddAttack( 'woman_ciri_sword_attack_fast_2_lp_40ms', ADIST_Medium );		
 		}	
 	}	
@@ -475,14 +502,14 @@ state CombatSword in W3ReplacerCiri extends Combat
 	{
 		var aspect 		: CComboAspect;
 		var str 		: CComboString;
-		
+		//var comboLink	: array<name>;
 		
 		aspect = comboDefinition.CreateComboAspect( 'AttackLightCapsuleShort' );
 		
 		{
 			str = aspect.CreateComboString( false );
 			
-			
+			//Add directional attacks near
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_1_rp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_3_rp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_5_rp_40ms', AD_Front, ADIST_Small );
@@ -490,7 +517,7 @@ state CombatSword in W3ReplacerCiri extends Combat
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_left_1_rp_40ms', AD_Left, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_right_1_rp_40ms', AD_Right, ADIST_Small );		
 			
-			
+			//Add directional attacks medium
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_1_rp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_3_rp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_5_rp_40ms', AD_Front, ADIST_Medium );
@@ -498,18 +525,18 @@ state CombatSword in W3ReplacerCiri extends Combat
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_left_1_rp_40ms', AD_Left, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_right_1_rp_40ms', AD_Right, ADIST_Medium );			
 			
-			
+			//Add directional attacks far
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_far_forward_1_rp_50ms', AD_Front, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_far_back_1_rp_50ms', AD_Back, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_far_left_1_rp_50ms', AD_Left, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_far_right_1_rp_50ms', AD_Right, ADIST_Large );					
 			
-			
+			//Add standard attacks near
 			str.AddAttack( 'woman_ciri_sword_attack_fast_1_rp_40ms', ADIST_Small );
 			str.AddAttack( 'woman_ciri_sword_attack_fast_3_rp_40ms', ADIST_Small );
 			str.AddAttack( 'woman_ciri_sword_attack_fast_5_rp_40ms', ADIST_Small );
 			
-			
+			//Add standard attacks medium
 			str.AddAttack( 'woman_ciri_sword_attack_fast_1_rp_40ms', ADIST_Medium  );
 			str.AddAttack( 'woman_ciri_sword_attack_fast_3_rp_40ms', ADIST_Medium  );
 			str.AddAttack( 'woman_ciri_sword_attack_fast_5_rp_40ms', ADIST_Medium  );
@@ -517,7 +544,7 @@ state CombatSword in W3ReplacerCiri extends Combat
 		{
 			str = aspect.CreateComboString( true );
 			
-			
+			//Add directional attacks near
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_1_lp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_2_lp_40ms', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_4_lp_40ms', AD_Front, ADIST_Small );
@@ -525,7 +552,7 @@ state CombatSword in W3ReplacerCiri extends Combat
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_left_1_lp_40ms', AD_Left, ADIST_Small );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_right_1_lp_40ms', AD_Right, ADIST_Small );
 			
-			
+			//Add directional attacks medium
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_1_lp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_2_lp_40ms', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_4_lp_40ms', AD_Front, ADIST_Medium );
@@ -533,18 +560,18 @@ state CombatSword in W3ReplacerCiri extends Combat
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_left_1_lp_40ms', AD_Left, ADIST_Medium );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_right_1_lp_40ms', AD_Right, ADIST_Medium );
 			
-			
+			//Add directional attacks far
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_far_forward_1_lp_50ms', AD_Front, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_far_back_1_lp_50ms', AD_Back, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_far_left_1_lp_50ms', AD_Left, ADIST_Large );
 			str.AddDirAttack( 'woman_ciri_sword_attack_fast_far_right_1_lp_50ms', AD_Right, ADIST_Large );	
 			
-			
+			//Add standard attacks near
 			str.AddAttack( 'woman_ciri_sword_attack_fast_1_lp_40ms', ADIST_Small );
 			str.AddAttack( 'woman_ciri_sword_attack_fast_2_lp_40ms', ADIST_Small );
 			str.AddAttack( 'woman_ciri_sword_attack_fast_4_lp_40ms', ADIST_Small );
 			
-			
+			//Add standard attacks medium
 			str.AddAttack( 'woman_ciri_sword_attack_fast_1_lp_40ms', ADIST_Medium );
 			str.AddAttack( 'woman_ciri_sword_attack_fast_2_lp_40ms', ADIST_Medium );
 			str.AddAttack( 'woman_ciri_sword_attack_fast_4_lp_40ms', ADIST_Medium );		
@@ -555,37 +582,37 @@ state CombatSword in W3ReplacerCiri extends Combat
 	{
 		var aspect 		: CComboAspect;
 		var str 		: CComboString;
-		
+		//var comboLink	: array<name>;
 		
 		aspect = comboDefinition.CreateComboAspect( 'AttackNeutral' );
 		{
 			str = aspect.CreateComboString( false );
 			
-			
+			//Add directional attacks near
 			str.AddDirAttack( 'combat_locomotion_sucker_punch_40ms_close', AD_Front, ADIST_Small );
 			
-			
+			//Add directional attacks medium
 			str.AddDirAttack( 'combat_locomotion_sucker_punch_70ms_far', AD_Front, ADIST_Medium );	
 			
-			
+			//Add standard attacks near
 			str.AddAttack( 'combat_locomotion_sucker_punch_40ms_close', ADIST_Small );
 			
-			
+			//Add standard attacks medium
 			str.AddAttack( 'combat_locomotion_sucker_punch_70ms_far', ADIST_Medium );				
 		}
 		{
 			str = aspect.CreateComboString( true );
 			
-			
+			//Add directional attacks near
 			str.AddDirAttack( 'combat_locomotion_sucker_punch_40ms_close', AD_Front, ADIST_Small );
 			
-			
+			//Add directional attacks medium
 			str.AddDirAttack( 'combat_locomotion_sucker_punch_70ms_far', AD_Front, ADIST_Medium );	
 			
-			
+			//Add standard attacks near
 			str.AddAttack( 'combat_locomotion_sucker_punch_40ms_close', ADIST_Small );
 			
-			
+			//Add standard attacks medium
 			str.AddAttack( 'combat_locomotion_sucker_punch_70ms_far', ADIST_Medium );		
 		}		
 	}
@@ -595,28 +622,28 @@ state CombatSword in W3ReplacerCiri extends Combat
 	
 		var aspect 		: CComboAspect;
 		var str 		: CComboString;
-		
+		//var comboLink	: array<name>;
 		
 		aspect = comboDefinition.CreateComboAspect( 'AttackNeutralUnconscious' );
 		{
 			str = aspect.CreateComboString( false );
 			
-			
+			//Add directional attacks near
 			str.AddDirAttack( 'combat_locomotion_kick_1', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'combat_locomotion_kick_2', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'combat_locomotion_kick_3', AD_Front, ADIST_Small );
 			
-			
+			//Add directional attacks medium
 			str.AddDirAttack( 'combat_locomotion_kick_1', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'combat_locomotion_kick_2', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'combat_locomotion_kick_3', AD_Front, ADIST_Medium );			
 			
-			
+			//Add standard attacks near
 			str.AddAttack( 'combat_locomotion_kick_1', ADIST_Small );
 			str.AddAttack( 'combat_locomotion_kick_2', ADIST_Small );
 			str.AddAttack( 'combat_locomotion_kick_3', ADIST_Small );
 			
-			
+			//Add standard attacks medium
 			str.AddAttack( 'combat_locomotion_kick_1', ADIST_Medium );
 			str.AddAttack( 'combat_locomotion_kick_2', ADIST_Medium );
 			str.AddAttack( 'combat_locomotion_kick_3', ADIST_Medium );			
@@ -624,37 +651,47 @@ state CombatSword in W3ReplacerCiri extends Combat
 		{
 			str = aspect.CreateComboString( true );
 			
-			
+			//Add directional attacks near
 			str.AddDirAttack( 'combat_locomotion_kick_1', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'combat_locomotion_kick_2', AD_Front, ADIST_Small );
 			str.AddDirAttack( 'combat_locomotion_kick_3', AD_Front, ADIST_Small );
 			
-			
+			//Add directional attacks medium
 			str.AddDirAttack( 'combat_locomotion_kick_1', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'combat_locomotion_kick_2', AD_Front, ADIST_Medium );
 			str.AddDirAttack( 'combat_locomotion_kick_3', AD_Front, ADIST_Medium );			
 			
-			
+			//Add standard attacks near
 			str.AddAttack( 'combat_locomotion_kick_1', ADIST_Small );
 			str.AddAttack( 'combat_locomotion_kick_2', ADIST_Small );
 			str.AddAttack( 'combat_locomotion_kick_3', ADIST_Small );
 			
-			
+			//Add standard attacks medium
 			str.AddAttack( 'combat_locomotion_kick_1', ADIST_Medium );
 			str.AddAttack( 'combat_locomotion_kick_2', ADIST_Medium );
 			str.AddAttack( 'combat_locomotion_kick_3', ADIST_Medium );		
 		}		
 	}
+	/*
+	private function ProcessPlayerCombatStance()
+	{
+		var stance					: EPlayerCombatStance;
+		
+		
+		super.ProcessPlayerCombatStance();
+		
+		stance = virtual_parent.GetPlayerCombatStance();
+		
+	}*/
+	
+	////////////////////////////////////////////////////////////////////
+	////@Ciri @SpecialAttack
+	////////////////////////////////////////////////////////////////////
 	
 	
-	
-	
-	
-	
-	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////
+	////Events
+	////////////////////////////////////////////////////////////////////
 	event OnPerformSpecialAttack( startAttack : bool )
 	{
 	
@@ -763,9 +800,9 @@ state CombatSword in W3ReplacerCiri extends Combat
 		parent.OnSpecialActionHeavyEnd();
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////
+	////Variables
+	////////////////////////////////////////////////////////////////////
 	
 	private var specialAttackHeading 					: float;
 	private var completeSpecialAttackDist				: float;
@@ -793,9 +830,9 @@ state CombatSword in W3ReplacerCiri extends Combat
 	
 	private const var SPECIAL_ATTACK_HEAVY_MAX_DIST		: float;	default SPECIAL_ATTACK_HEAVY_MAX_DIST	= 15.0f;
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////
+	////Entry Functions
+	////////////////////////////////////////////////////////////////////
 	
 	entry function PerformSpecialAttack( startAttack : bool )
 	{	
@@ -880,7 +917,7 @@ state CombatSword in W3ReplacerCiri extends Combat
 				
 				buttonWasHeld = false;
 				
-				
+				//parent.OnSlideToNewPositionStart(0.1, Vector(0,0,1), VecFromHeading(parent.rawPlayerHeading));
 				parent.specialAttackCamera = true;
 				
 				specialAttackStartTimeStamp = theGame.GetEngineTimeAsSeconds() + 0.2;
@@ -1015,11 +1052,11 @@ state CombatSword in W3ReplacerCiri extends Combat
 		
 		parent.RaiseEvent( 'ItemEndL' );
 		
-		parent.ResetUninterruptedHitsCount();		
+		parent.ResetUninterruptedHitsCount();		//dodge resets the counter
 		
 		parent.WaitForBehaviorNodeDeactivation('SpecialAttackCiriStart',0.17);
 		
-		newHeadingVec = VecFromHeading(heading);
+		newHeadingVec = VecFromHeading(heading);//parent.GetHeadingVector();
 		
 		currentPos = parent.GetWorldPosition();
 		
@@ -1027,7 +1064,7 @@ state CombatSword in W3ReplacerCiri extends Combat
 		if ( dash && parent.HasStaminaForDash(false) )
 		{
 			angleToTarget = NodeToNodeAngleDistance( parent.slideTarget, parent );
-			
+			//distance = VecDistance( parent.GetWorldPosition(), ((CActor)parent.slideTarget).PredictWorldPosition( 0.2f ) );
 			if ( parent.slideTarget && ( attackDash || ( !parent.bLAxisReleased && AbsF( AngleDistance( parent.GetHeading() - angleToTarget, heading ) ) < 50 ) ) )
 			{
 				if ( distance > 4.0f )
@@ -1048,13 +1085,13 @@ state CombatSword in W3ReplacerCiri extends Combat
 				targetPos = currentPos + newHeadingVec*distance;
 			}
 			
-			
+			//parent.DrainResourceForDash();
 		}
 		else
 		{
 			distance = DODGE_DISTANCE;
 			targetPos = currentPos + newHeadingVec*distance;
-			
+			//parent.DrainResourceForDodge();
 		}
 		
 		tempPos = currentPos;
@@ -1087,14 +1124,14 @@ state CombatSword in W3ReplacerCiri extends Combat
 		
 		parent.StopEffect('Burning');
 		
-		
+		//if ( thePlayer.GetPlayerCombatStance() == PCS_AlertFar || thePlayer.GetPlayerCombatStance() == PCS_Normal || thePlayer.IsSprintActionPressed() )
 		{
 			Appear();
 			parent.RaiseEvent('ForceBlendOut');
 			parent.SetIsCurrentlyDodging(false);
 			parent.LockEntryFunction(false);
 		}
-		
+		//else
 		{
 			if ( parent.moveTarget )
 			{
@@ -1122,7 +1159,7 @@ state CombatSword in W3ReplacerCiri extends Combat
 			
 			parent.EnableCharacterCollisions(true);
 			
-			
+			//SleepOneFrame();
 			
 			parent.SetIsCurrentlyDodging(false);
 			
@@ -1161,8 +1198,8 @@ state CombatSword in W3ReplacerCiri extends Combat
 			{
 				playerToTargetAngles = VecToRotation( playerToTargetVector );
 				playerToTargetPitch = playerToTargetAngles.Pitch + 10;
-				
-				
+				//playerToTargetPitch = ClampF( playerToTargetAngles.Pitch + 20, -45, 50 );			
+				//offset = ClampF( ( playerToTargetPitch * ( -0.023f) ) + 2.5f, 2.5f, 3.2f );
 				
 				moveData.pivotRotationController.SetDesiredPitch( playerToTargetPitch * -1, 0.5f );
 			}
@@ -1196,13 +1233,13 @@ state CombatSword in W3ReplacerCiri extends Combat
 		Appear();
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////
+	////Latent Actions
+	////////////////////////////////////////////////////////////////////
 	
 	private const var teleportToLastPos : bool;
 	private var lastTarget : CActor;
-	
+	//private var endHeading : Vector;
 	
 	default teleportToLastPos = false;
 	
@@ -1223,7 +1260,7 @@ state CombatSword in W3ReplacerCiri extends Combat
 		cachedPos = parent.GetWorldPosition();
 		cachedRot = parent.GetWorldRotation();
 		cachedHeadingVec = parent.GetHeadingVector();
-		
+		//
 		SpecialAttackSphereCleanup();
 		
 		parent.AddBuffImmunity_AllNegative( 'CiriSpecial', true );
@@ -1335,19 +1372,19 @@ state CombatSword in W3ReplacerCiri extends Combat
 		var npc					: CNewNPC;
 		
 		buttonHeldTime = theGame.GetEngineTimeAsSeconds() - specialAttackStartTimeStamp;
-		
+		//if (  buttonHeldTime >= HOLD_SPECIAL_ATTACK_BUTTON_TIME )
 		{
 			parent.SetCombatIdleStance( 0.f );
 		
 			parent.DrainResourceForSpecialAttack();
-			
+			// start blending from Start to Middle
 			parent.SetBehaviorVariable( 'isCompletingSpecialAttack', 1.f );
 			
-			
+			// make invulnerable
 			parent.MakeInvulnerable(true);
 			
-			
-			
+			// calculation destination position
+			//newHeadingVec = parent.GetHeadingVector();
 			if ( parent.slideTarget && GetAttitudeBetween( parent, parent.slideTarget ) == AIA_Hostile )
 			{
 				angleToTarget = NodeToNodeAngleDistance( parent.slideTarget, parent );
@@ -1361,7 +1398,7 @@ state CombatSword in W3ReplacerCiri extends Combat
 			
 			destinationPos = parent.GetWorldPosition() + newHeadingVec*distance;
 			
-			slideDuration = distance/30; 
+			slideDuration = distance/30; //30 m/s
 			slideDuration = ClampF(slideDuration,0.1,0.4);
 			
 			parent.EnableSpecialAttackHeavyCollsion(true);
@@ -1373,9 +1410,21 @@ state CombatSword in W3ReplacerCiri extends Combat
 			
 			parent.MakeInvulnerable(false);
 		}
+		/*else
+		{
+			npc = (CNewNPC)parent.slideTarget;
+			
+			if ( npc )
+			{
+				npc.WasTauntedToAttack();
+				if(ShouldProcessTutorial('TutorialCiriTaunt'))
+				{
+					FactsAdd("tut_ciri_taunted");
+				}
+			}
+		}*/
 		
-		
-		
+		//cleanup
 		parent.SetBehaviorVariable( 'isPerformingSpecialAttack', 0.f );
 		isCompletingSpecialAttack = false;
 	}
@@ -1408,9 +1457,9 @@ state CombatSword in W3ReplacerCiri extends Combat
 		}
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////
+	////Cleanup Functions
+	////////////////////////////////////////////////////////////////////
 	
 	private function SpecialAttackCleanup()
 	{
@@ -1444,9 +1493,9 @@ state CombatSword in W3ReplacerCiri extends Combat
 		((W3ReplacerCiri)parent).DestroyPhantoms();
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////
+	////Other Functions
+	////////////////////////////////////////////////////////////////////
 	
 	private function SpawnSpecialAttackSphere()
 	{
@@ -1506,8 +1555,8 @@ state CombatSword in W3ReplacerCiri extends Combat
 		var ticket 				: SMovementAdjustmentRequestTicket;
 		
 		
-		
-		
+		//parent.OnSlideToNewPositionStart(duration,newPos,newHeading);
+		//rotate towards camera heading
 		movementAdjustor = parent.GetMovingAgentComponent().GetMovementAdjustor();
 		movementAdjustor.CancelAll();
 		ticket = movementAdjustor.CreateNewRequest( 'CiriSpecialAttackSlide' );
@@ -1520,7 +1569,7 @@ state CombatSword in W3ReplacerCiri extends Combat
 		if ( duration > 0 )
 			Sleep(duration);
 		
-		if ( alsoTeleport && VecDistanceSquared(newPos,parent.GetWorldPosition()) > 0.25f ) 
+		if ( alsoTeleport && VecDistanceSquared(newPos,parent.GetWorldPosition()) > 0.25f ) // further than 0.5m
 			parent.Teleport(newPos);
 	}
 	
@@ -1529,7 +1578,7 @@ state CombatSword in W3ReplacerCiri extends Combat
 		var movementAdjustor	: CMovementAdjustor;
 		var ticket 				: SMovementAdjustmentRequestTicket;
 		
-		
+		//rotate towards camera heading
 		movementAdjustor = parent.GetMovingAgentComponent().GetMovementAdjustor();
 		movementAdjustor.CancelAll();
 		ticket = movementAdjustor.CreateNewRequest( 'CiriDodgeRotation' );
@@ -1547,7 +1596,7 @@ state CombatSword in W3ReplacerCiri extends Combat
 		var movementAdjustor	: CMovementAdjustor;
 		var ticket 				: SMovementAdjustmentRequestTicket;
 		
-		
+		//rotate towards camera heading
 		movementAdjustor = parent.GetMovingAgentComponent().GetMovementAdjustor();
 		movementAdjustor.CancelAll();
 		ticket = movementAdjustor.CreateNewRequest( 'CiriSpecialAttackSlide' );
@@ -1607,7 +1656,7 @@ state CombatSword in W3ReplacerCiri extends Combat
 		
 	}
 	
-	
+	//place a check if player can be spawned here
 	private function IsPositionSupaCool( pos : Vector ) : bool
 	{
 		return theGame.GetWorld().NavigationCircleTest(pos,parent.GetRadius());
@@ -1696,7 +1745,7 @@ state CombatSword in W3ReplacerCiri extends Combat
 	{
 		var slideDistance, slideDuration : float;
 		slideDistance = VecDistance(parent.GetWorldPosition(),destinationPos);
-		slideDuration = slideDistance/10; 
+		slideDuration = slideDistance/10; //10 m/s
 		slideDuration = ClampF(slideDuration,0.1,0.4);
 		return slideDuration;
 	}
@@ -1769,7 +1818,7 @@ state CombatSword in W3ReplacerCiri extends Combat
 			{
 				animComp.SetBehaviorVariable('anim',anim);
 				animComp.SetBehaviorVariable('combatIdleStance',parent.GetBehaviorVariable('combatIdleStance',0));
-				
+				//res = animComp.PlaySlotAnimationAsync(animName,'GAMEPLAY_SLOT');
 			}
 			phantom.DestroyAfter(1.5f);
 		}

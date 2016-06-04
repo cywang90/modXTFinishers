@@ -1,18 +1,27 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** 
 /***********************************************************************/
-
-
-
+/** Copyright © 2012
+/** Author : Andrzej Kwiatkowski
+/***********************************************************************/
 
 class CBTTaskLeshyRootAttack extends CBTTaskAttack
 {
-	var loopTime 	: float;
-	var attackRange	: float;
-	var dodgeable	: float;
-	var projEntity	: CEntityTemplate;
+	public var loopTime 				: float;
+	public var attackRange				: float;
+	public var dodgeable				: float;
+	public var projEntity				: CEntityTemplate;
+	
+	private var collisionGroups 		: array<name>;
+	
+	
+	function Initialize()
+	{
+		collisionGroups.PushBack('Ragdoll');
+		collisionGroups.PushBack('Terrain');
+		collisionGroups.PushBack('Static');
+		collisionGroups.PushBack('Water');
+	}
 	
 	latent function Main() : EBTNodeStatus
 	{
@@ -31,8 +40,14 @@ class CBTTaskLeshyRootAttack extends CBTTaskAttack
 		{
 			return BTNS_Failed;
 		}
-		
-		
+		/*
+		while ( !projectile.Expired() )
+		{
+			GCameraShake(0.1, true, projectile.GetWorldPosition(), 30.0f);
+			Sleep(0.2);
+		}
+		*/
+		//Sleep(loopTime);
 		loopRes = Loop();
 		
 		npc.SetBehaviorVariable( 'AttackEnd', 1.0 );
@@ -103,13 +118,13 @@ class CBTTaskLeshyRootAttack extends CBTTaskAttack
 		if ( distanceToTarget < attackRange )
 			attackRange = distanceToTarget;
 		
-		projectile.ShootProjectileAtPosition( 0, 20,  targetPos, attackRange );
+		projectile.ShootProjectileAtPosition( 0, 20, /*10,*/ targetPos, attackRange );
 		
 		if ( dodgeable )
 		{
 			distanceToTarget = VecDistance( npc.GetWorldPosition(), target.GetWorldPosition() );		
 			
-			
+			// used to dodge projectile before it hits
 			projectileFlightTime = distanceToTarget / 20;
 			target.SignalGameplayEventParamFloat('Time2DodgeBomb', projectileFlightTime );
 		}
@@ -122,10 +137,10 @@ class CBTTaskLeshyRootAttackDef extends CBTTaskAttackDef
 {
 	default instanceClass = 'CBTTaskLeshyRootAttack';
 
-	editable var loopTime 	 	: float;
-	editable var attackRange 	: float;
-	editable var dodgeable		: float;
-	editable var projEntity	 	: CEntityTemplate;
+	editable var loopTime 	 				: float;
+	editable var attackRange 				: float;
+	editable var dodgeable					: float;
+	editable var projEntity	 				: CEntityTemplate;
 	
 	default loopTime = 4.0;
 	default attackRange = 10.0;

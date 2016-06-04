@@ -1,14 +1,9 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-class W3GuiAddSocketsInventoryComponent extends W3GuiPlayerInventoryComponent
+﻿class W3GuiAddSocketsInventoryComponent extends W3GuiPlayerInventoryComponent
 {
 	public var merchantInv : CInventoryComponent;
 	private var maxUpgradedItems : array<SItemUniqueId>;
 	
-	protected  function ShouldShowItem( item : SItemUniqueId ):bool
+	protected /* override */ function ShouldShowItem( item : SItemUniqueId ):bool
 	{
 		var itemTags    	 : array <name>;
 		var showItem 		 : bool;
@@ -27,16 +22,17 @@ class W3GuiAddSocketsInventoryComponent extends W3GuiPlayerInventoryComponent
 		return showItem;
 	}
 	
-	public  function SetInventoryFlashObjectForItem( item : SItemUniqueId, out flashObject : CScriptedFlashObject) : void
+	public /* override */ function SetInventoryFlashObjectForItem( item : SItemUniqueId, out flashObject : CScriptedFlashObject) : void
 	{
-		var invItem 	 : SInventoryItem;
-		var isEquipped   : bool;
+		var invItem 	      : SInventoryItem;
+		var isEquipped        : bool;
+		var targetGridSection : int;
 		
 		super.SetInventoryFlashObjectForItem( item, flashObject );
 		
 		isEquipped = GetWitcherPlayer().IsItemEquipped(item);
 		
-		
+		// #Y TEMP PRICE, TODO:
 		invItem = _inv.GetItem( item );
 		flashObject.SetMemberFlashInt( "actionPrice", merchantInv.GetItemPriceAddSlot( invItem ) );
 		flashObject.SetMemberFlashBool( "isEquipped",  isEquipped);
@@ -44,9 +40,20 @@ class W3GuiAddSocketsInventoryComponent extends W3GuiPlayerInventoryComponent
 		
 		if ( maxUpgradedItems.Contains(item) )
 		{
-			flashObject.SetMemberFlashBool( "isReaded", true ); 
+			flashObject.SetMemberFlashBool( "isReaded", true ); // grayout in grid
 			flashObject.SetMemberFlashBool( "disableAction", true );
 		}
+		
+		if( GetWitcherPlayer().IsItemEquipped( item ) )
+		{
+			targetGridSection = 0;
+		}
+		else
+		{
+			targetGridSection = 1;
+		}
+		
+		flashObject.SetMemberFlashInt( "sectionId", targetGridSection );
 	}
 	
 	public function AddSocket(item : SItemUniqueId) : void

@@ -1,12 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2014
+/** Author : Tomek Kozera
 /***********************************************************************/
 
-
-
-
+//assumes dawn and dusk won't be at 0:00
 class W3Mutagen23_Effect extends W3Mutagen_Effect
 {
 	default effectType = EET_Mutagen23;
@@ -25,6 +22,12 @@ class W3Mutagen23_Effect extends W3Mutagen_Effect
 		
 		if(effectManager.HasAnyMutagen23ShrineBuff())
 			return true;
+		
+		//perk allows only 1 shrine buff active
+		if( target == GetWitcherPlayer() && GetWitcherPlayer().CanUseSkill( S_Perk_14 ) && effectManager.HasAnyShrineBuff() )
+		{
+			return true;
+		}
 		
 		gameTime = theGame.GetGameTime();
 		currentHour = GameTimeHours(gameTime);
@@ -46,14 +49,14 @@ class W3Mutagen23_Effect extends W3Mutagen_Effect
 		{			
 			shrineBuffs = GetMinorShrineBuffs();
 			
-			
+			//select only from buffs player doesn't already have
 			for(i=shrineBuffs.Size()-1; i>=0; i-=1)
 			{
 				if(target.HasBuff(shrineBuffs[i]))
 					shrineBuffs.Erase(i);
 			}
 			
-			
+			//if he has all pick random
 			if(shrineBuffs.Size() == 0)
 				shrineBuffs = GetMinorShrineBuffs();
 			

@@ -1,10 +1,7 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2014
+/** Author : Tomek Kozera
 /***********************************************************************/
-
-
 
 state Bestiary in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
@@ -21,7 +18,7 @@ state Bestiary in W3TutorialManagerUIHandler extends TutHandlerBaseState
 		
 		isClosing = false;
 		
-		CloseHint(OPEN_BESTIARY);
+		theGame.GetTutorialSystem().HideTutorialHint( OPEN_BESTIARY );
 		ShowHint(BESTIARY_DESCRIPTION, 0.02f, 0.65f);
 	}
 		
@@ -29,8 +26,8 @@ state Bestiary in W3TutorialManagerUIHandler extends TutHandlerBaseState
 	{
 		isClosing = true;
 		
-		CloseHint(BESTIARY_DESCRIPTION);
-		CloseHint(BESTIARY_CLOSE);
+		CloseStateHint(BESTIARY_DESCRIPTION);
+		CloseStateHint(BESTIARY_CLOSE);
 		
 		super.OnLeaveState(nextStateName);
 	}

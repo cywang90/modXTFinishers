@@ -1,11 +1,10 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
-
+﻿/*********************************************************************************/
+/** Witcher Script file
+/*********************************************************************************/
+/** This class takes care of setting the player on fire when he plays with fire!
+/** Copyright © 2014 
+/** Author: Shadi Dadenji
+/*********************************************************************************/
 
 
 class W3FireSource extends CGameplayEntity

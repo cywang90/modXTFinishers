@@ -1,11 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file - Popup classes used by ingameMenu
 /***********************************************************************/
-
-
-
+/** Copyright © 2015 CDProjektRed
+/** Author : Jason Slama
+/***********************************************************************/
 
 class W3ApplyLoadConfirmation extends ConfirmationPopupData
 {
@@ -103,7 +101,7 @@ class W3DeleteSaveConf extends ConfirmationPopupData
 			menuRef.disableAccountPicker = false;
 			menuRef.SetIgnoreInput(false);
 		}
-		
+		//super.ClosePopup();
 	}
 		
 	protected function OnUserDecline() : void

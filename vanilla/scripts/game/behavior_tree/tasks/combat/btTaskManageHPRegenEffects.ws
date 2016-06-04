@@ -1,24 +1,19 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
-
-
-
-
-
+﻿//>--------------------------------------------------------------------------
+// BTTaskManageHPRegenEffects
+//---------------------------------------------------------------------------
+// Pauses or Resume HP Regenaration effects
+//>--------------------------------------------------------------------------
+// Copyright © 2015 CD Projekt RED
+//---------------------------------------------------------------------------
 class BTTaskManageHPRegenEffects extends BTTaskIrisTask
 {
-	
-	
-	
+	//>----------------------------------------------------------------------
+	// Variables
+	//-----------------------------------------------------------------------
 	public var ResumeEffect	: bool;
 	public var OnDeactivate	: bool;
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function OnActivate() : EBTNodeStatus
 	{
 		if( !OnDeactivate )
@@ -28,8 +23,8 @@ class BTTaskManageHPRegenEffects extends BTTaskIrisTask
 		
 		return BTNS_Active;
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	private function OnDeactivate()
 	{
 		if( OnDeactivate )
@@ -37,8 +32,8 @@ class BTTaskManageHPRegenEffects extends BTTaskIrisTask
 			Execute();
 		}
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function Execute()
 	{
 		if( ResumeEffect )
@@ -52,8 +47,8 @@ class BTTaskManageHPRegenEffects extends BTTaskIrisTask
 	}
 }
 
-
-
+//>--------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 class BTTaskManageHPRegenEffectsDef extends IBehTreeTaskDefinition
 {
 	default instanceClass = 'BTTaskManageHPRegenEffects';

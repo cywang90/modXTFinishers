@@ -1,21 +1,29 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2014
+/** Author : Tomek Kozera
 /***********************************************************************/
-
-
 
 class W3Dimeritium extends W3Petard
 {
 	editable var affectedFX, affectedFXCluster : name;	
 	private var disableTimerCalled : bool;
+	private const var DISABLED_FX_CHECK_DELAY : float;
+	private var disabledFxDT : float;
 	
 		hint affectedFX = "Additional FX that is added when there are affected targets in the area";
 		hint affectedFXCluster = "Additional FX for Clusters that is added when there are affected targets in the area";
 		
 		default disableTimerCalled = false;
+		default DISABLED_FX_CHECK_DELAY = 1.f;
 
+	/*script*/ event OnImpact()
+	{
+		super.OnImpact();
+		
+		//HACK: for some reason this doesn't work with default keyword;
+		disabledFxDT = DISABLED_FX_CHECK_DELAY;
+	}
+	
 	protected function ProcessMechanicalEffect(targets : array<CGameplayEntity>, isImpact : bool, optional dt : float)
 	{
 		var i : int;
@@ -24,15 +32,15 @@ class W3Dimeritium extends W3Petard
 	
 		super.ProcessMechanicalEffect(targets, isImpact, dt);
 			
-		
+		//abort witcher quen cast
 		witcher = GetWitcherPlayer();
 		if(targets.Contains(witcher) && witcher.GetCurrentlyCastSign() == ST_Quen)
 			witcher.CastSignAbort();
 			
+		//abort npc quen cast
+		//TODO
 		
-		
-		
-		
+		//close rifts
 		for(i=0; i<targets.Size(); i+=1)
 		{
 			rift = (CRiftEntity)targets[i];
@@ -53,7 +61,15 @@ class W3Dimeritium extends W3Petard
 		
 		super.LoopFunction(dt);
 		
+		//delay for checking: performance
+		disabledFxDT -= dt;
+		if( disabledFxDT > 0.f )
+		{
+			return;
+		}
+		disabledFxDT = DISABLED_FX_CHECK_DELAY;
 		
+		//check if there is at least one target in range which is affected by the bomb
 		blocked = false;
 		for(i=0; i<targetsSinceLastCheck.Size(); i+=1)
 		{
@@ -68,18 +84,17 @@ class W3Dimeritium extends W3Petard
 				
 			for(j=0; j<loopParams.disabledAbilities.Size(); j+=1)
 			{
-				
+				//check if it's skill				
 				if(isPlayer)
+				{
 					skill = SkillNameToEnum(loopParams.disabledAbilities[j].abilityName);
-				else
-					skill = S_SUndefined;
-				
-				
-				if(skill != S_SUndefined)
 					blocked = thePlayer.IsSkillBlocked(skill);
+				}
 				else
+				{
 					blocked = actor.IsAbilityBlocked(loopParams.disabledAbilities[j].abilityName);
-					
+				}
+	
 				if(blocked)
 					break;
 			}
@@ -88,7 +103,7 @@ class W3Dimeritium extends W3Petard
 				break;
 		}	
 		
-		
+		//show additional fx if someone is in and has something blocked
 		if(blocked)
 		{
 			if(isCluster && IsNameValid(affectedFXCluster))
@@ -112,7 +127,7 @@ class W3Dimeritium extends W3Petard
 		StopEffect(affectedFX);
 	}
 	
-	
+	//called when target leaves loop AoE
 	protected function ProcessTargetOutOfArea(entity : CGameplayEntity)
 	{
 		var bombLevel, i : int;
@@ -129,7 +144,7 @@ class W3Dimeritium extends W3Petard
 				theGame.GetDefinitionsManager().GetItemAttributeValueNoRandom(itemName, true, 'level', min, max);
 				bombLevel = RoundMath(CalculateAttributeValue(min));
 				
-				
+				//if friendly actor - remove ability locks
 				if(GetAttitudeBetween(GetOwner(), target) == AIA_Friendly && !friendlyFire)
 				{
 					for(i=0; i<loopParams.disabledAbilities.Size(); i+=1)
@@ -137,7 +152,7 @@ class W3Dimeritium extends W3Petard
 						BlockTargetsAbility(target, loopParams.disabledAbilities[i].abilityName, 0.f, true);
 					}
 				}
-				
+				//if not friendly and level 3 - block abilities for some more
 				else if(bombLevel == 3)
 				{
 					theGame.GetDefinitionsManager().GetItemAttributeValueNoRandom(itemName, true, 'duration_out_of_cloud', min, max);

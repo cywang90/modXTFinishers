@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-class CMoveTRGActorFlee extends CMoveTRGScript
+﻿class CMoveTRGActorFlee extends CMoveTRGScript
 {
 	public var dangerNode : CNode;
 	public var distance : float;
@@ -11,7 +6,7 @@ class CMoveTRGActorFlee extends CMoveTRGScript
 	
 	default pursue = false;
 	
-	
+	// Called in order to update the movement goal's channels
 	function UpdateChannels( out goal : SMoveLocomotionGoal )
 	{
 		var newHeading : Vector;

@@ -1,11 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Task Despawn
 /***********************************************************************/
-
-
-
+/** Copyright © 2013
+/** Author : Andrzej Kwiatkowski
+/***********************************************************************/
 
 class CBTTaskDespawn extends IBehTreeTask
 {
@@ -39,7 +37,7 @@ class CBTTaskDespawn extends IBehTreeTask
 		
 		if( disappearfxName != emptyName )
 		{
-			
+			//npc.bCanBeStrafed = false;
 			npc.PlayEffect( disappearfxName );
 		}
 		return BTNS_Active;

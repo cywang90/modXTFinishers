@@ -1,21 +1,21 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2015
+/** Author : Tomek Kozera
 /***********************************************************************/
-
-
 
 state UpgradesRemoval in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
 	private const var DESCRIPTION, ITEMS, UPGRADES, COST, REMOVING : name;
+	private const var POS_X, POS_Y : float;
 	private var isClosing : bool;
 	
 		default DESCRIPTION 	= 'TutorialUpgRemovalDescription';
 		default ITEMS 			= 'TutorialUpgRemovalItems';
 		default UPGRADES 		= 'TutorialUpgRemovalUpgrades';
 		default COST 			= 'TutorialUpgRemovalCost';
-		default REMOVING 		= 'TutorialUpgRemovalRemoving';		
+		default REMOVING 		= 'TutorialUpgRemovalRemoving';
+		default POS_X = .15f;
+		default POS_Y = .5f;
 		
 	event OnEnterState( prevStateName : name )
 	{	
@@ -23,18 +23,18 @@ state UpgradesRemoval in W3TutorialManagerUIHandler extends TutHandlerBaseState
 		
 		isClosing = false;
 		
-		ShowHint(DESCRIPTION, theGame.params.TUT_POS_INVENTORY_X, 0.55f, ETHDT_Input);
+		ShowHint(DESCRIPTION, POS_X, POS_Y, ETHDT_Input);
 	}
 			
 	event OnLeaveState( nextStateName : name )
 	{
 		isClosing = true;
 		
-		CloseHint(DESCRIPTION);
-		CloseHint(ITEMS);
-		CloseHint(UPGRADES);
-		CloseHint(COST);
-		CloseHint(REMOVING);
+		CloseStateHint(DESCRIPTION);
+		CloseStateHint(ITEMS);
+		CloseStateHint(UPGRADES);
+		CloseStateHint(COST);
+		CloseStateHint(REMOVING);
 		
 		theGame.GetTutorialSystem().MarkMessageAsSeen(DESCRIPTION);
 		
@@ -43,44 +43,24 @@ state UpgradesRemoval in W3TutorialManagerUIHandler extends TutHandlerBaseState
 	
 	event OnTutorialClosed(hintName : name, closedByParentMenu : bool)
 	{
-		var highlights : array<STutorialHighlight>;
-		
 		if(closedByParentMenu || isClosing)
 			return true;
 			
 		if(hintName == DESCRIPTION)
 		{
-			highlights.Resize(1);
-			highlights[0].x = 0.06;
-			highlights[0].y = 0.13;
-			highlights[0].width = 0.3;
-			highlights[0].height = 0.53;
-						
-			ShowHint(ITEMS, theGame.params.TUT_POS_INVENTORY_X, 0.55f, ETHDT_Input, highlights);
+			ShowHint( ITEMS, POS_X, POS_Y, ETHDT_Input, GetHighlightBlacksmithItems() );
 		}		
 		else if(hintName == ITEMS)
 		{
-			highlights.Resize(1);
-			highlights[0].x = 0.42;
-			highlights[0].y = 0.42;
-			highlights[0].width = 0.2;
-			highlights[0].height = 0.23;
-						
-			ShowHint(UPGRADES, theGame.params.TUT_POS_INVENTORY_X, 0.55f, ETHDT_Input, highlights);
+			ShowHint( UPGRADES, POS_X, POS_Y, ETHDT_Input, GetHighlightBlacksmithSockets() );
 		}
 		else if(hintName == UPGRADES)
 		{
-			highlights.Resize(1);
-			highlights[0].x = 0.45;
-			highlights[0].y = 0.62;
-			highlights[0].width = 0.13;
-			highlights[0].height = 0.15;
-						
-			ShowHint(COST, theGame.params.TUT_POS_INVENTORY_X, 0.50f, ETHDT_Input, highlights);
+			ShowHint( COST, POS_X, POS_Y, ETHDT_Input, GetHighlightBlacksmithPrice() );
 		}
 		else if(hintName == COST)
 		{
-			ShowHint(REMOVING, theGame.params.TUT_POS_INVENTORY_X, 0.55f, ETHDT_Input);
+			ShowHint(REMOVING, POS_X, POS_Y, ETHDT_Input);
 		}
 		else if(hintName == REMOVING)
 		{

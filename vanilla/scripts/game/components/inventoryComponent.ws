@@ -1,13 +1,23 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file
+/***********************************************************************/
+/** Copyright © 2013-2014 CDProjektRed
+/** Author : Dexio ?
+/** 		 Bartosz Bigaj
+/**			 Tomek Kozera
 /***********************************************************************/
 
-
-
-
-
+/*
+enum EInventoryEventType
+{
+	IET_Empty,
+	IET_ItemAdded,				// quantity always positive -> number of added items
+	IET_ItemRemoved,			// quantity always positive -> number of removed items
+	IET_ItemQuantityChanged,	// quantity positive or negative -> number of added (P) or removed (N) items
+	IET_ItemTagChanged,			// quantity not used - always equal to 0
+	IET_InventoryRebalanced,	// quantity not used - always equal to 0, itemId == INVALID
+};
+*/
 
 class IInventoryScriptedListener
 {
@@ -31,13 +41,23 @@ struct SItemExt
 		default quantity = 1;
 };
 
+struct SCardSourceData
+{
+	var cardName 	: name;
+	var source 		: string;
+	var originArea	: string;
+	var originQuest	: string;
+	var details		: string;
+	var coords		: string;
+};
 
+//used to pass data about item being added/removed from inventory
 import struct SItemChangedData
 {
-	import const var itemName : name;				
-	import const var quantity : int;				
-	import const var informGui : bool;				
-	import const var ids : array< SItemUniqueId >;	
+	import const var itemName : name;				//name of changed item
+	import const var quantity : int;				//total quantity of item (e.g. if it's stackable item that spanned to several ids this is the total count)
+	import const var informGui : bool;				//should UI be informed that the change occured
+	import const var ids : array< SItemUniqueId >;	//array of ids of added items (e.g. when we add 3 swords we'll get 3 different ids OR when we add stackable item we might get few ids if quantity > stack size)
 };
 
 import class CInventoryComponent extends CComponent
@@ -57,9 +77,9 @@ import class CInventoryComponent extends CComponent
 	default fundsType = EInventoryFunds_Avg;
 	default daysToIncreaseFunds = 5;
 
-	
-	
-	
+	// ---------------------------------------------------------------------------
+	// Funds Management
+	// ---------------------------------------------------------------------------
 	public function GetFundsType() : EInventoryFundsType
 	{
 		return fundsType;
@@ -72,7 +92,11 @@ import class CInventoryComponent extends CComponent
 
 	public function GetFundsMax() : float
 	{
-		if ( EInventoryFunds_Avg == fundsType )
+		if ( EInventoryFunds_Broke == fundsType )
+		{
+			return 0;
+		}
+		else if ( EInventoryFunds_Avg == fundsType )
 		{
 			return 5000;
 		}
@@ -84,12 +108,24 @@ import class CInventoryComponent extends CComponent
 		{
 			return 7500;
 		}
+		else if ( EInventoryFunds_RichQuickStart == fundsType )
+		{
+			return 15000;
+		}
 		return -1;
 	}
 
 	public function SetupFunds()
 	{
-		if ( EInventoryFunds_Avg == fundsType )
+		if ( EInventoryFunds_Broke == fundsType )
+		{
+			AddMoney( 0 );
+		}
+		else if ( EInventoryFunds_Poor == fundsType )
+		{
+			AddMoney( (int)( 200 * GetFundsModifier() ) );
+		}
+		else if ( EInventoryFunds_Avg == fundsType )
 		{
 			AddMoney( (int)( 500 * GetFundsModifier() ) );
 		}
@@ -97,9 +133,9 @@ import class CInventoryComponent extends CComponent
 		{
 			AddMoney( (int)( 1000 * GetFundsModifier() ) );
 		}
-		else if ( EInventoryFunds_Poor == fundsType )
+		else if ( EInventoryFunds_RichQuickStart == fundsType )
 		{
-			AddMoney( (int)( 200 * GetFundsModifier() ) );
+			AddMoney( (int)( 5000 * GetFundsModifier() ) );
 		}
 	}
 
@@ -118,6 +154,10 @@ import class CInventoryComponent extends CComponent
 			else if ( EInventoryFunds_Rich == fundsType )
 			{
 				AddMoney( (int)( 1000 * GetFundsModifier() ) );
+			}
+			else if ( EInventoryFunds_RichQuickStart == fundsType )
+			{
+				AddMoney( 1000 + (int)( 2500 * GetFundsModifier() ) );
 			}
 		}
 	}
@@ -158,7 +198,7 @@ import class CInventoryComponent extends CComponent
 		if ( amount > 0 )
 		{
 			RemoveItemByName( 'Crowns', amount );
-
+			
 			if ( thePlayer == GetEntity() )
 			{
 				theTelemetry.LogWithValue( TE_HERO_CASH_CHANGED, -amount );
@@ -166,71 +206,71 @@ import class CInventoryComponent extends CComponent
 		}
 	}
 
-	
-	
-	
+	// ---------------------------------------------------------------------------
+	// Items management
+	// ---------------------------------------------------------------------------
 	
 	import final function GetItemAbilityAttributeValue( itemId : SItemUniqueId, attributeName : name, abilityName : name) : SAbilityAttributeValue;
-	
+	//gets item currently equiped in specifed slot or SItemUniqueId::INVALID if none
 	import final function GetItemFromSlot( slotName : name ) : SItemUniqueId;
 		
-	
+	// Check if item index is valid.
 	import final function IsIdValid( itemId : SItemUniqueId ) : bool;
 
+	// Returns number of items in the inventory
+	import final function GetItemCount( optional useAssociatedInventory : bool /* = false */ ) : int;
 	
-	import final function GetItemCount( optional useAssociatedInventory : bool  ) : int;
-	
-	
+	// Returns all names of items stored in the inventory instance.
 	import final function GetItemsNames() : array< name >;
 	
-	
+	// Get all items in form of unique id array
 	import final function GetAllItems( out items : array< SItemUniqueId > );
 	
-	
+	//Returns id of first item item found that have given name
 	import public function GetItemId( itemName : name ) : SItemUniqueId;
 	
-	
+	//Returns ids of items that have given name
 	import public function GetItemsIds( itemName : name ) : array< SItemUniqueId >;
 	
-	
+	// Get all items with given tag in form of unique id array
 	import final function GetItemsByTag( tag : name ) : array< SItemUniqueId >;
 	
-	
+	// Get all items of given category in form of unique id array
 	import final function GetItemsByCategory( category : name ) : array< SItemUniqueId >;
 	
+	// Get the names and quantities of ingredients of given schematic
+	import final function GetSchematicIngredients(itemName : SItemUniqueId, out quantity : array<int>, out names : array<name>); // #B crafting stuff, crafting doesn't work
 	
-	import final function GetSchematicIngredients(itemName : SItemUniqueId, out quantity : array<int>, out names : array<name>); 
+	// Get the type name of the craftsman for specific item
+	import final function GetSchematicRequiredCraftsmanType(craftName : SItemUniqueId) : name; // #B crafting stuff, crafting doesn't work
 	
-	
-	import final function GetSchematicRequiredCraftsmanType(craftName : SItemUniqueId) : name; 
-	
-	
-	import final function GetSchematicRequiredCraftsmanLevel(craftName : SItemUniqueId) : name; 
+	// Get the level name of the craftsman for specific item
+	import final function GetSchematicRequiredCraftsmanLevel(craftName : SItemUniqueId) : name; // #B crafting stuff, crafting doesn't work
     
-    
+    // Get amount of stacked items
     import final function GetNumOfStackedItems( itemUniqueId: SItemUniqueId ) : int;
 	
 	import final function InitInvFromTemplate( resource : CEntityTemplate );
+	// ---------------------------------------------------------------------------
+	// Items localisation
+	// ---------------------------------------------------------------------------
 	
-	
-	
-	
-	
+	// Get localized name of the item using CName
 	import final function GetItemLocalizedNameByName( itemName : CName ) : string;
 	
-	
+	// Get items localized desription using CName
     import final function GetItemLocalizedDescriptionByName( itemName : CName ) : string;
     
-	
+	// Get localized name of the item using UniqueID
 	import final function GetItemLocalizedNameByUniqueID( itemUniqueId : SItemUniqueId ) : string;
 	
-	
+	// Get items localized desripption using UniqueID
     import final function GetItemLocalizedDescriptionByUniqueID( itemUniqueId : SItemUniqueId ) : string;
     
-    
+    // Get item icon using UniqeID
     import final function GetItemIconPathByUniqueID( itemUniqueId : SItemUniqueId ) : string;
     
-    
+    // Get item icon using CName
     import final function GetItemIconPathByName( itemName : CName ) : string;
     
     import final function AddSlot( itemUniqueId : SItemUniqueId ) : bool;
@@ -244,7 +284,7 @@ import class CInventoryComponent extends CComponent
 		return ItemHasTag(itemId, 'MutagenIngredient');
 	}
 	
-    
+    //gets total item armor including repair object bonuses and durability modifiers
     public final function GetItemArmorTotal(item : SItemUniqueId) : SAbilityAttributeValue
     {
 		var armor, armorBonus : SAbilityAttributeValue;
@@ -327,11 +367,11 @@ import class CInventoryComponent extends CComponent
 		
 		if (GetItemLevel(itemId) <= thePlayer.GetLevel())
 		{
-			color = "<font color = '#A09588'>"; 
+			color = "<font color = '#A09588'>"; // gray		
 		}
 		else
 		{
-			color = "<font color = '#9F1919'>"; 
+			color = "<font color = '#9F1919'>"; // red
 		}
 		
 		return color;
@@ -343,10 +383,10 @@ import class CInventoryComponent extends CComponent
 
 		if ( lvl_item > thePlayer.GetLevel() ) 
 		{
-			color = "<font color = '#9F1919'>"; 
+			color = "<font color = '#9F1919'>"; // red
 		} else
 		{
-			color = "<font color = '#A09588'>"; 
+			color = "<font color = '#A09588'>"; // gray
 		}
 		
 		return color;
@@ -392,19 +432,19 @@ import class CInventoryComponent extends CComponent
 		return GetItemsByTag(theGame.params.TAG_ITEM_SINGLETON);
 	}
 	
+	//returns a total quantity of items that have given name
+	import final function GetItemQuantityByName( itemName : name, optional useAssociatedInventory : bool /* = false */, optional ignoreTags : array< name > ) : int;
 	
-	import final function GetItemQuantityByName( itemName : name, optional useAssociatedInventory : bool  ) : int;
-	
-	
-	import final function GetItemQuantityByCategory( itemCategory : name, optional useAssociatedInventory : bool  ) : int;
+	//returns a total quantity of items that have given category
+	import final function GetItemQuantityByCategory( itemCategory : name, optional useAssociatedInventory : bool /* = false */, optional ignoreTags : array< name > ) : int;
 
-	
-	import final function GetItemQuantityByTag( itemTag : name, optional useAssociatedInventory : bool  ) : int;
+	//returns a total quantity of items that have given tag
+	import final function GetItemQuantityByTag( itemTag : name, optional useAssociatedInventory : bool /* = false */, optional ignoreTags : array< name > ) : int;
 
-	
-	import final function GetAllItemsQuantity( optional useAssociatedInventory : bool  ) : int;
+	//Returns amount of all items in inventory. Be aware that this will also count NoShow and NoDrop items!
+	import final function GetAllItemsQuantity( optional useAssociatedInventory : bool /* = false */, optional ignoreTags : array< name > ) : int;
 
-	
+	//if the flag is set then the inventory can have any amount of items with NoShow and/or NoDrop tags but only those
 	public function IsEmpty(optional bSkipNoDropNoShow : bool) : bool
 	{
 		var i : int;
@@ -431,7 +471,7 @@ import class CInventoryComponent extends CComponent
 		return GetItemCount() <= 0;
 	}
 		
-	
+	//Returns categories of all held items
 	public function GetAllHeldAndMountedItemsCategories( out heldItems : array<name>, optional out mountedItems : array<name> )
 	{
 		var allItems : array<SItemUniqueId>;
@@ -492,74 +532,95 @@ import class CInventoryComponent extends CComponent
 		return false;
 	}
 	
-	
+	// Get inventory item from item id
 	import final function GetItem( itemId : SItemUniqueId ) : SInventoryItem;
 	
-	
+	// Get item name
 	import final function GetItemName( itemId : SItemUniqueId ) : name;
 	
-	
+	// Get item category
 	import final function GetItemCategory( itemId : SItemUniqueId ) : name;
 	
+	// Get item class
+	import final function GetItemClass( itemId : SItemUniqueId ) : EInventoryItemClass; // #B not used at all
 	
-	import final function GetItemClass( itemId : SItemUniqueId ) : EInventoryItemClass; 
-	
-	
+	// Get tags of given item, returns false if index is not valid
 	import final function GetItemTags( itemId : SItemUniqueId, out tags : array<name> ) : bool;
 
+	// Get name of the item that can be crafted from given one
+	import final function GetCraftedItemName( itemId : SItemUniqueId ) : name; // #B crafting stuff, check later
 	
-	import final function GetCraftedItemName( itemId : SItemUniqueId ) : name; 
-	
-	
+	// Get item price
 	import final function TotalItemStats( invItem : SInventoryItem ) : float;
 
 	import final function GetItemPrice( itemId : SItemUniqueId ) : int;
 
-	
+	// Get item price after item and vendor modifiers have been applied.
 	import final function GetItemPriceModified( itemId : SItemUniqueId, optional playerSellingItem : Bool ) : int;
 
-	
+	// Get item price after item and vendor modifiers have been applied.
 	import final function GetInventoryItemPriceModified( invItem : SInventoryItem, optional playerSellingItem : Bool ) : int;
 
-	
+	// Generates price per point of repair and total cost of repair for given item.
 	import final function GetItemPriceRepair( invItem : SInventoryItem, out costRepairPoint : int, out costRepairTotal : int );	
 	
-	
+	// Returns cost of removing an upgrade from given item.
 	import final function GetItemPriceRemoveUpgrade( invItem : SInventoryItem ) : int;
 	
-	
+	// Returns cost of disassembling a given item.
 	import final function GetItemPriceDisassemble( invItem : SInventoryItem ) : int;
 	
-	
+	// Returns cost of adding a slot to a given item.
 	import final function GetItemPriceAddSlot( invItem : SInventoryItem ) : int;
 
-	
+	// Returns cost of adding a slot to a given item.
 	import final function GetItemPriceCrafting( invItem : SInventoryItem ) : int;
 
-	
+	// Returns cost of disassembling a given item.
 	import final function GetItemPriceEnchantItem( invItem : SInventoryItem ) : int;
 	
-	
+	// Returns cost of disassembling a given item.
 	import final function GetItemPriceRemoveEnchantment( invItem : SInventoryItem ) : int;
 	
 	import final function GetFundsModifier() : float;
 
-	
+	// Get item quantity by index
 	import final function GetItemQuantity( itemId : SItemUniqueId ) : int;
 	
-	
+	// Check if the item has given tag
 	import final function ItemHasTag( itemId : SItemUniqueId, tag : name ) : bool;
 
-	
+	// Add tag to item - DOES NOT SAVE (it's a feature, not a bug)	
 	import final function AddItemTag( itemId : SItemUniqueId, tag : name ) : bool;
 
-	
+	// Remove tag from item
 	import final function RemoveItemTag( itemId : SItemUniqueId, tag : name ) : bool;
-
 	
-	import final function GetItemByItemEntity( itemEntity : CItemEntity ) : SItemUniqueId;  
+	//Manages tag on item - adds it of removes it
+	public final function ManageItemsTag( items : array<SItemUniqueId>, tag : name, add : bool )
+	{
+		var i		: int;
 		
-	
+		if( add )
+		{
+			for( i = 0 ; i < items.Size() ; i += 1 )
+			{
+				AddItemTag( items[ i ], tag );
+			}
+		}
+		else
+		{
+			for( i = 0 ; i < items.Size() ; i += 1 )
+			{
+				RemoveItemTag( items[ i ], tag );
+			}
+		}
+	}
+
+	// Get item for which we have given itemEntity spawned
+	import final function GetItemByItemEntity( itemEntity : CItemEntity ) : SItemUniqueId;  // #B not used at all
+		
+	//returns true if given item has given ability
 	public function ItemHasAbility(item : SItemUniqueId, abilityName : name) : bool
 	{
 		var abilities : array<name>;
@@ -570,19 +631,19 @@ import class CInventoryComponent extends CComponent
 	
 	import final function GetItemAttributeValue( itemId : SItemUniqueId, attributeName : name, optional abilityTags : array< name >, optional withoutTags : bool ) : SAbilityAttributeValue;
 	
-	
+	// Get base attribute names from item.
 	import final function GetItemBaseAttributes( itemId : SItemUniqueId, out attributes : array<name> );
 	
-	
+	// Get all attribute names from item.
 	import final function GetItemAttributes( itemId : SItemUniqueId, out attributes : array<name> );
 	
-	
+	// Get abilities from item
 	import final function GetItemAbilities( itemId : SItemUniqueId, out abilities : array<name> );
 	
-	
+	// Get efects from abilities
 	import final function GetItemContainedAbilities( itemId : SItemUniqueId, out abilities : array<name> );
 	
-	
+	//returns abilities names of this item's ability which holds given attribute with specified value
 	public function GetItemAbilitiesWithAttribute(id : SItemUniqueId, attributeName : name, attributeVal : float) : array<name>
 	{
 		var i : int;
@@ -623,9 +684,9 @@ import class CInventoryComponent extends CComponent
 		}
 	}
 	
-	
-	
-	
+	// Transfer one item to other inventory ( holsters items if needed )
+	// This has to be overriden in scripts because of custom updating of player item data OnReceive
+	//    Use GiveItemTo() instead
 	import private final function GiveItem( otherInventory : CInventoryComponent, itemId : SItemUniqueId, optional quantity : int ) : array<SItemUniqueId>;
 	
 	public final function GiveMoneyTo(otherInventory : CInventoryComponent, optional quantity : int, optional informGUI : bool )
@@ -642,8 +703,9 @@ import class CInventoryComponent extends CComponent
 		var itemName : name;
 		var i : int;
 		var uiData : SInventoryItemUIData;
+		var isQuestItem : bool;
 		
-		
+		//check quantity parameter
 		if(quantity == 0)
 			quantity = 1;
 		
@@ -652,23 +714,23 @@ import class CInventoryComponent extends CComponent
 			return GetInvalidUniqueId();
 			
 		itemName = GetItemName(itemId);
-		
+		//cannot pass items with NoDrop tag
 		if(!forceTransferNoDrops && ( ItemHasTag(itemId, 'NoDrop') && !ItemHasTag(itemId, 'Lootable') ))
 		{
 			LogItems("Cannot transfer item <<" + itemName + ">> as it has the NoDrop tag set!!!");
 			return GetInvalidUniqueId();
 		}
 		
-		
+		//there can be only one singleton item at a time of the same type		
 		if(IsItemSingletonItem(itemId))
 		{
-			
+			//player already has singleton - get id
 			if(otherInventory == thePlayer.inv && otherInventory.GetItemQuantityByName(itemName) > 0)
 			{
 				LogAssert(false, "CInventoryComponent.GiveItemTo: cannot add singleton item as player already has this item!");
 				return GetInvalidUniqueId();
 			}
-			
+			//player does not have singleton - add one item and get id
 			else
 			{
 				arr = GiveItem(otherInventory, itemId, quantity);
@@ -676,16 +738,20 @@ import class CInventoryComponent extends CComponent
 		}
 		else
 		{
-			
+			//transfer non-singleton items
 			arr = GiveItem(otherInventory, itemId, quantity);
 		}
 		
-		
+		//custom code if player is given an item
 		if(otherInventory == thePlayer.inv)
 		{
+			isQuestItem = this.IsItemQuest( itemId );
 			theTelemetry.LogWithLabelAndValue(TE_INV_ITEM_PICKED, itemName, quantity);
-			if ( !theGame.AreSavesLocked() && ( this.IsItemQuest( itemId ) || this.GetItemQuality( itemId ) >= 4 ) )
+			
+			if ( !theGame.AreSavesLocked() && ( isQuestItem || this.GetItemQuality( itemId ) >= 4 ) )
+			{
 				theGame.RequestAutoSave( "item gained", false );
+			}
 		}
 		
 		if (refreshNewFlag)
@@ -722,11 +788,11 @@ import class CInventoryComponent extends CComponent
 		return ret;
 	}
 		
-	
+	// If there is any item with the same name in inventory
 	import final function HasItem( item : name ) : bool;
 	
-	
-	
+	// If there is specified item in inventory
+	//TK: won't it be enough to check if ID is valid?
 	final function HasItemById(id : SItemUniqueId) : bool
 	{		
 		var arr : array<SItemUniqueId>;
@@ -737,13 +803,21 @@ import class CInventoryComponent extends CComponent
 	
 	public function HasItemByTag(tag : name) : bool
 	{
-		var temp : array<SItemUniqueId>;
+		var quantity : int;
 		
-		temp = GetItemsByTag(tag);
-		return temp.Size() > 0;
+		quantity = GetItemQuantityByTag( tag );
+		return quantity > 0;
+	}
+
+	public function HasItemByCategory(category : name) : bool
+	{
+		var quantity : int;
+		
+		quantity = GetItemQuantityByCategory( category );
+		return quantity > 0;
 	}
 	
-	
+	//returns true if has bolts with infinite ammo
 	public function HasInfiniteBolts() : bool
 	{
 		var ids : array<SItemUniqueId>;
@@ -761,7 +835,7 @@ import class CInventoryComponent extends CComponent
 		return false;
 	}
 	
-	
+	//returns true if has bolts with infinite ammo
 	public function HasGroundBolts() : bool
 	{
 		var ids : array<SItemUniqueId>;
@@ -779,7 +853,7 @@ import class CInventoryComponent extends CComponent
 		return false;
 	}
 	
-	
+	//returns true if has bolts with underwater ammo
 	public function HasUnderwaterBolts() : bool
 	{
 		var ids : array<SItemUniqueId>;
@@ -797,19 +871,22 @@ import class CInventoryComponent extends CComponent
 		return false;
 	}
 	
+	// Add specified item to inventory
+	// due to performance we should call AddSingleItem when only 1 item is added to avoid passing dynamic arrays from code
+	import private final function AddMultiItem( item : name, optional quantity : int, optional informGui : bool /* = true */, optional markAsNew : bool /* = false */, optional lootable : bool /* =true */ ) : array<SItemUniqueId>;
+	import private final function AddSingleItem( item : name, optional informGui : bool /* = true */, optional markAsNew : bool /* = false */, optional lootable : bool /* =true */  ) : SItemUniqueId;
 	
-	
-	import private final function AddMultiItem( item : name, optional quantity : int, optional informGui : bool , optional markAsNew : bool , optional lootable : bool  ) : array<SItemUniqueId>;
-	import private final function AddSingleItem( item : name, optional informGui : bool , optional markAsNew : bool , optional lootable : bool   ) : SItemUniqueId;
-	
-	
+	/*
+		Returns array of item ids of given items (more than 1 if quantity is big enough to split items into few stacks.
+		If item is SingleInstanceItem then nothing is added, instead id of the item already in inventory is returned.
+	*/
 	public final function AddAnItem(item : name, optional quantity : int, optional dontInformGui : bool, optional dontMarkAsNew : bool, optional showAsRewardInUIHax : bool) : array<SItemUniqueId>
 	{
 		var arr : array<SItemUniqueId>;
 		var i : int;
 		var isReadableItem : bool;
 		
-		
+		//there can be only one singleton item at a time of the same type
 		if( theGame.GetDefinitionsManager().IsItemSingletonItem(item) && GetEntity() == thePlayer)			
 		{
 			if(GetItemQuantityByName(item) > 0)
@@ -825,7 +902,7 @@ import class CInventoryComponent extends CComponent
 		}
 		else
 		{
-			if(quantity < 2 ) 
+			if(quantity < 2 ) // #B quantity equals one, or quantity wasn't set, both means that is only one item to add
 			{
 				arr.PushBack(AddSingleItem(item, !dontInformGui, !dontMarkAsNew));
 			}
@@ -835,13 +912,13 @@ import class CInventoryComponent extends CComponent
 			}
 		}
 		
-		
+		//only do checks/show UI once - all items are the same
 		if(this == thePlayer.GetInventory())
 		{
 			if(ItemHasTag(arr[0],'ReadableItem'))
 				UpdateInitialReadState(arr[0]);
 			
-			
+			//Gwint card are not displayed in inventory, looting them needs to show visible reward notification for minigames and containers - quest post 1.0 hax 
 			if(showAsRewardInUIHax || ItemHasTag(arr[0],'GwintCard'))
 				thePlayer.DisplayItemRewardNotification(GetItemName(arr[0]), quantity );
 		}
@@ -849,51 +926,51 @@ import class CInventoryComponent extends CComponent
 		return arr;
 	}
 		
-	
+	// Remove item with specified index from inventory
 	import final function RemoveItem( itemId : SItemUniqueId, optional quantity : int ) : bool;
 	
-	
+	//internal function to remove requested quantity of items
 	private final function InternalRemoveItems(ids : array<SItemUniqueId>, quantity : int)
 	{
 		var i, currQuantityToTake : int;
 	
-		
+		//for each item stack
 		for(i=0; i<ids.Size(); i+=1 )
 		{			
-			
+			//collect the quantity of items in current stack, clamp it to remaining required quantity
 			currQuantityToTake = Min(quantity, GetItemQuantity(ids[i]) );
 			
-			
+			//If taken item is a gwint card remove it from collection as well
 			if( GetEntity() == thePlayer )
 			{
 				GetWitcherPlayer().RemoveGwentCard( GetItemName(ids[i]) , currQuantityToTake);
 			}			
 			
-			
+			//remove items
 			RemoveItem(ids[i], currQuantityToTake);
 			
-			
+			//update remaining required quantity to take
 			quantity -= currQuantityToTake;
 			
-			
+			//if took enough then quit
 			if ( quantity == 0 )
 			{
 				return;
 			}
 			
-			
+			//if took too much then call Houston...
 			LogAssert(quantity>0, "CInventoryComponent.InternalRemoveItems(" + GetItemName(ids[i]) + "): somehow took too many items! Should be " + (-quantity) + " less... Investigate!");
 		}
 	}
 	
-	
-	
+	// if quantity <0 then removes all items from inventory
+	// if quantity == 0 then removes only 1 item
 	public function RemoveItemByName(itemName : name, optional quantity : int) : bool
 	{
 		var totalItemCount : int;
 		var ids : array<SItemUniqueId>;
 	
-		
+		//does not have that many items
 		totalItemCount = GetItemQuantityByName(itemName);
 		if(totalItemCount < quantity || quantity == 0)
 		{
@@ -921,8 +998,8 @@ import class CInventoryComponent extends CComponent
 		return true;
 	}
 	
-	
-	
+	// if quantity <0 then removes all items from inventory
+	// if quantity == 0 then removes only 1 item
 	public function RemoveItemByCategory(itemCategory : name, optional quantity : int) : bool
 	{
 		var totalItemCount : int;
@@ -930,7 +1007,7 @@ import class CInventoryComponent extends CComponent
 		var selectedItemId : SItemUniqueId;
 		var i : int;
 	
-		
+		//does not have that many items
 		totalItemCount = GetItemQuantityByCategory(itemCategory);
 		if(totalItemCount < quantity)
 		{
@@ -966,8 +1043,8 @@ import class CInventoryComponent extends CComponent
 		return true;
 	}
 	
-	
-	
+	// if quantity <0 then removes all items from inventory
+	// if quantity == 0 then removes only 1 item
 	public function RemoveItemByTag(itemTag : name, optional quantity : int) : bool
 	{
 		var totalItemCount : int;
@@ -975,7 +1052,7 @@ import class CInventoryComponent extends CComponent
 		var i : int;
 		var selectedItemId : SItemUniqueId;
 	
-		
+		//does not have that many items
 		totalItemCount = GetItemQuantityByTag(itemTag);
 		if(totalItemCount < quantity)
 		{
@@ -1011,56 +1088,73 @@ import class CInventoryComponent extends CComponent
 		return true;
 	}
 	
-	
+	// Removes all items from inventory
 	import final function RemoveAllItems();
 	
-	
+	// USE WITH EXTREME CAUTION / ASK MARCIN GOLLENT
 	import final function GetItemEntityUnsafe( itemId : SItemUniqueId ) : CItemEntity;
 	
-	
+	// Spawn deployment item entity
 	import final function GetDeploymentItemEntity( itemId : SItemUniqueId, optional position : Vector, optional rotation : EulerAngles, optional allocateIdTag : bool ) : CEntity;
 	
-	
+	// Add specified item to inventory
 	import final function MountItem( itemId : SItemUniqueId, optional toHand : bool, optional force : bool ) : bool;
 	
-	
+	// Add specified item to inventory
 	import final function UnmountItem( itemId : SItemUniqueId, optional destroyEntity : bool ) : bool;
 	
-	
-	
+	// Check if specified item is mounted to equip bone BUT if it is held in hand it will return false
+	// use IsItemEquipped instead to get around this
 	import final function IsItemMounted(  itemId : SItemUniqueId ) : bool;	
 	
-	
-	
+	// Check if specified item is held in hand - only a silver, steel sword or secondary weapon!
+	// If item is held then it is not mounted!!!!!!!!!!
 	import final function IsItemHeld(  itemId : SItemUniqueId ) : bool;	
 	
+	// Drop item
+	import final function DropItem( itemId : SItemUniqueId, optional removeFromInv /*=false*/ : bool );
 	
-	import final function DropItem( itemId : SItemUniqueId, optional removeFromInv  : bool );
-	
-	
+	// Returns the name of a hold slot defined for the item
 	import final function GetItemHoldSlot( itemId : SItemUniqueId ) : name;
 	
-	
+	// Play effect on item
 	import final function PlayItemEffect( itemId : SItemUniqueId, effectName : name );
 	import final function StopItemEffect( itemId : SItemUniqueId, effectName : name );
 	
-	
+	// Throw away given item to a spawned container, returns true if succeded
 	import final function ThrowAwayItem( itemId : SItemUniqueId, optional quantity : int ) : bool;
 	
+	// Throw away all items, returns entity created
+	import final function ThrowAwayAllItems() : CEntity; // #B not used at all
 	
-	import final function ThrowAwayAllItems() : CEntity; 
-	
-	
+	// Throw away items, excluding those with any of given tags, returns entity created
 	import final function ThrowAwayItemsFiltered( excludedTags : array< name > ) : CEntity;
 
-	
+	// Throw away lootable items, returns entity created
 	import final function ThrowAwayLootableItems( optional skipNoDropNoShow : bool ) : CEntity;
 	
-	
+	// Get arrays of names and counts
 	import final function GetItemRecyclingParts( itemId : SItemUniqueId ) : array<SItemParts>;
 	
 	import final function GetItemWeight( id : SItemUniqueId ) : float;
+/*	{
+		var weight : float;
 
+		if( !IsIdValid( id ) )
+			return 0;
+		
+		dm = theGame.GetDefinitionsManager();
+
+		weight = -1;
+		weight = dm.GetItemWeight( id );
+		
+		if ( weight == -1 )
+		{
+			return CalculateAttributeValue( GetItemAttributeValue( id, 'weight' ) );
+		}
+
+		return weight;
+	}*/
 	
 	public final function HasQuestItem() : bool
 	{
@@ -1079,11 +1173,11 @@ import class CInventoryComponent extends CComponent
 		return false;
 	}
 	
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////  @DURABILITY  //////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
-	
-	
+	// Durability, -1 if has none or not set
 	import final function HasItemDurability( itemId : SItemUniqueId ) : bool;
 	import final function GetItemDurability( itemId : SItemUniqueId ) : float;
 	import private final function SetItemDurability( itemId : SItemUniqueId, durability : float );
@@ -1123,7 +1217,7 @@ import class CInventoryComponent extends CComponent
 		SetItemDurability( itemId, durability );		
 	}
 	
-	
+	//returns false if item durability could not be reduced (no durability at all or already at 0)
 	public function ReduceItemDurability(itemId : SItemUniqueId, optional forced : bool) : bool
 	{
 		var dur, value, durabilityDiff, itemToughness, indestructible : float;
@@ -1133,7 +1227,7 @@ import class CInventoryComponent extends CComponent
 			return false;
 		}
 		
-		
+		//get global stats
 		if(IsItemWeapon(itemId))
 		{	
 			chance = theGame.params.DURABILITY_WEAPON_LOSE_CHANCE;
@@ -1152,7 +1246,7 @@ import class CInventoryComponent extends CComponent
 			return false;
 		}
 
-		
+		// Reduce durability
 		if ( forced || RandRange( 100 ) < chance )
 		{
 			itemToughness = CalculateAttributeValue( GetItemAttributeValue( itemId, 'toughness' ) );
@@ -1183,11 +1277,11 @@ import class CInventoryComponent extends CComponent
 		return GetItemDurability(itemId) / GetItemMaxDurability(itemId);
 	}
 	
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
-	
-	
+	//gets item resistance value taking durability into consideration
 	public function GetItemResistStatWithDurabilityModifiers(itemId : SItemUniqueId, stat : ECharacterDefenseStats, out points : SAbilityAttributeValue, out percents : SAbilityAttributeValue)
 	{
 		var mult : float;
@@ -1207,7 +1301,7 @@ import class CInventoryComponent extends CComponent
 		percents = percents * mult;
 	}
 	
-	
+	//returns list of resistance types that this item gives
 	public function GetItemResistanceTypes(id : SItemUniqueId) : array<ECharacterDefenseStats>
 	{
 		var ret : array<ECharacterDefenseStats>;
@@ -1235,70 +1329,72 @@ import class CInventoryComponent extends CComponent
 	import final function GetItemModifierInt  ( itemId : SItemUniqueId, modName : name, optional defValue : int ) : int;	
 	import final function SetItemModifierInt  ( itemId : SItemUniqueId, modName : name, val : int );
 	
-	
+	// Adds quest_bonus tag to component tag list.
 	import final function ActivateQuestBonus();
 
-	
+	// The Set name ( or empty if none exists )
 	import final function GetItemSetName( itemId : SItemUniqueId ) : name;
 	
-	
+	// Adds an ability to the item (for example - during crafting an item)
 	import final function AddItemCraftedAbility( itemId : SItemUniqueId, abilityName : name, optional allowDuplicate : bool );
 	
-	
+	// Removes a crafted ability from the item
 	import final function RemoveItemCraftedAbility( itemId : SItemUniqueId, abilityName : name );
 	
-	
+	//adds item ability
 	import final function AddItemBaseAbility(item : SItemUniqueId, abilityName : name);
 	
-	
+	//removes item ability
 	import final function RemoveItemBaseAbility(item : SItemUniqueId, abilityName : name);
 		
+	// Destroy item
+	import final function DespawnItem( itemId : SItemUniqueId ); // #B not used at all
 	
-	import final function DespawnItem( itemId : SItemUniqueId ); 
+	// ---------------------------------------------------------------------------
+	// Weapons
+	// ---------------------------------------------------------------------------
 	
-	
-	
-	
-	
-	
+	// Get the inventory item ui data
 	import final function GetInventoryItemUIData( item : SItemUniqueId ) : SInventoryItemUIData;
 	
-	
+	// Set the inventory item ui data
 	import final function SetInventoryItemUIData( item : SItemUniqueId, data : SInventoryItemUIData );
 	
-	import final function SortInventoryUIData(); 
+	import final function SortInventoryUIData(); // #B need to check C++ how it works, curently not used
 	
+	// ---------------------------------------------------------------------------
+	// Debug
+	// ---------------------------------------------------------------------------
 	
-	
-	
-	
-	
+	// Print contents of inventory
 	import final function PrintInfo();
 
-	
-	
-	
+	// ---------------------------------------------------------------------------
+	// Loot
+	// ---------------------------------------------------------------------------
 
-	
+	// Enable generating loot
 	import final function EnableLoot( enable : bool );
 
-	
+	// Test loot cache against loot definition. Add items if their respawn time elapsed
 	import final function UpdateLoot();
 	
-	
+	// Add items from specified loot definition
 	import final function AddItemsFromLootDefinition( lootDefinitionName : name );
 		
-	
+	// Check if loot contains items that need to be respawned
 	import final function IsLootRenewable() : bool;
 	
-	
+	// Check if loot will be renewed now (renew time expired)
 	import final function IsReadyToRenew() : bool;
 	
+	// ---------------------------------------------------------------------------
+	// Initialization
+	// ---------------------------------------------------------------------------
 	
-	
-	
-	
-	
+	/**
+		#B Called by player for tracking books
+	*/
 	function Created()
 	{		
 		LoadBooksDefinitions();
@@ -1361,7 +1457,7 @@ import class CInventoryComponent extends CComponent
 		}
 	}
 	
-	
+	//removes known recipe items (to be used inside shop inventory)
 	public final function ClearKnownRecipes()
 	{
 		var witcher : W3PlayerWitcher;
@@ -1372,17 +1468,17 @@ import class CInventoryComponent extends CComponent
 		
 		witcher = GetWitcherPlayer();
 		if(!witcher)
-			return;	
+			return;	//only witchers have recipes
 		
-		
+		//get recipes
 		recipes = witcher.GetAlchemyRecipes();
 		craftRecipes = witcher.GetCraftingSchematicsNames();
 		ArrayOfNamesAppend(recipes, craftRecipes);
 		
-		
+		//get items
 		GetAllItems(allItems);
 		
-		
+		//filter
 		for(i=allItems.Size()-1; i>=0; i-=1)
 		{
 			itemName = GetItemName(allItems[i]);
@@ -1391,11 +1487,11 @@ import class CInventoryComponent extends CComponent
 		}
 	}
 
-	
-	
-	
+	// ---------------------------------------------------------------------------
+	// Books
+	// ---------------------------------------------------------------------------
 
-	function LoadBooksDefinitions() : void 
+	function LoadBooksDefinitions() : void // #B
 	{
 		var readableArray : array<SItemUniqueId>;
 		var i : int;
@@ -1412,7 +1508,7 @@ import class CInventoryComponent extends CComponent
 		}
 	}
 	
-	function UpdateInitialReadState( item : SItemUniqueId ) 
+	function UpdateInitialReadState( item : SItemUniqueId ) // #B
 	{
 		var abilitiesArray : array<name>;
 		var i : int;
@@ -1428,18 +1524,18 @@ import class CInventoryComponent extends CComponent
 		}
 	}
 	
-	function IsBookRead( item : SItemUniqueId ) : bool 
+	function IsBookRead( item : SItemUniqueId ) : bool // #B
 	{
 		var bookName : name;
 		var bResult : bool;
 		
 		bookName = GetItemName( item );
 		
-		bResult = IsBookReadByName( bookName ); 
+		bResult = IsBookReadByName( bookName ); //#B by name because it can be few different instances of one book
 		return bResult;
 	}
 	
-	function IsBookReadByName( bookName : name ) : bool 
+	function IsBookReadByName( bookName : name ) : bool // #B
 	{
 		var bookFactName : string;
 		
@@ -1452,13 +1548,13 @@ import class CInventoryComponent extends CComponent
 		return false;
 	}
 
-	function ReadBook( item : SItemUniqueId ) 
+	function ReadBook( item : SItemUniqueId, optional noNotification : bool ) //#B
 	{
-		
+		//var mapManager : W3Common
 		var bookName : name;
 		var abilitiesArray : array<name>;
 		var i : int;
-		var commonMapManager : CCommonMapManager = theGame.GetCommonMapManager();
+		var commonMapManager : CCommonMapManager = theGame.GetCommonMapManager();		
 		
 		bookName = GetItemName( item );
 		
@@ -1471,21 +1567,39 @@ import class CInventoryComponent extends CComponent
 				commonMapManager.SetEntityMapPinDiscoveredScript(true, abilitiesArray[i], true );
 			}
 		}
-		ReadBookByNameId( bookName, item,  false );
+		ReadBookByNameId( bookName, item, false, noNotification );
 		
+		//RemoveItem(item);
 		
-		
-		
+		// Add perk associated with the book (M.J.)
 		if(ItemHasTag(item, 'PerkBook'))
 		{
-			
-		}
-	
+			//TODO
+		}	
 	}
 	
-	public function GetBookText(item : SItemUniqueId) : string 
+	public function GetBookText(item : SItemUniqueId) : string // #B
 	{
-		return ReplaceTagsToIcons(GetLocStringByKeyExt(GetItemLocalizedNameByUniqueID(item)+"_text")); 
+		if ( GetItemName( item ) != 'Gwent Almanac' )
+		{
+			return ReplaceTagsToIcons(GetLocStringByKeyExt(GetItemLocalizedNameByUniqueID(item)+"_text")); 
+		}
+		else
+		{
+			return GetGwentAlmanacContents();
+		}
+	}
+	
+	public function GetBookTextByName( bookName : name ) : string
+	{
+		if( bookName != 'Gwent Almanac' ) 
+		{
+			return ReplaceTagsToIcons( GetLocStringByKeyExt( GetItemLocalizedNameByName( bookName ) + "_text" ) );
+		}
+		else
+		{
+			return GetGwentAlmanacContents();
+		}
 	}
 	
 	function ReadSchematicsAndRecipes( item : SItemUniqueId )
@@ -1495,7 +1609,7 @@ import class CInventoryComponent extends CComponent
 		var player : W3PlayerWitcher;
 		
 		ReadBook( item );
-
+		
 		player = GetWitcherPlayer();
 		if ( !player )
 		{
@@ -1510,19 +1624,20 @@ import class CInventoryComponent extends CComponent
 			{
 				player.AddAlchemyRecipe( itemName );
 				player.GetInventory().AddItemTag(item, 'NoShow');
-				
+				//theGame.GetGuiManager().ShowNotification( GetLocStringByKeyExt("panel_hud_alchemyschematic_update_new_entry") );
 			}
 		}
 		else if ( itemCategory == 'crafting_schematic' )
 		{
 			player.AddCraftingSchematic( itemName );
 			player.GetInventory().AddItemTag(item, 'NoShow');
-			
+			//theGame.GetGuiManager().ShowNotification( GetLocStringByKeyExt("panel_hud_craftingschematic_update_new_entry") );
 		}
 	}
 	
-	function ReadBookByName( bookName : name , unread : bool  ) 
+	function ReadBookByName( bookName : name , unread : bool, optional noNotification : bool ) // #B 
 	{
+		var defMgr		 : CDefinitionsManagerAccessor;
 		var bookFactName : string;
 		
 		if( IsBookReadByName( bookName ) != unread )
@@ -1541,20 +1656,57 @@ import class CInventoryComponent extends CComponent
 		{
 			FactsAdd( bookFactName, 1 );
 			
-			
-			if(!IsAlchemyRecipe(bookName) && !IsCraftingSchematic(bookName))
+			//reading achievement
+			defMgr = theGame.GetDefinitionsManager();
+			if(!IsAlchemyRecipe(bookName) && !IsCraftingSchematic(bookName) && !defMgr.ItemHasTag( bookName, 'Painting' ) )
+			{
 				theGame.GetGamerProfile().IncStat(ES_ReadBooks);
+				
+				if( !noNotification )
+				{
+					theGame.GetGuiManager().ShowNotification( GetLocStringByKeyExt( "notification_book_moved" ), 0, false );
+				}
+			}
 			
-			
+			// Add bestiary entry from the book
 			if ( AddBestiaryFromBook(bookName) )
 				return;
 			
 				
-			
+			/*
+			else if ( AddRecipePotionFromBook(bookName) )
+				return;
+			else if ( AddRecipeOilFromBook(bookName) )
+				return;
+			else if ( AddRecipePetardFromBook(bookName) )
+				return;
+			else if ( AddRecipeBoltFromBook(bookName) )
+				return;
+			else if ( AddRecipeSteelSwordFromBook(bookName) )
+				return;
+			else if ( AddRecipeSilverSwordFromBook(bookName) )
+				return;
+			else if ( AddRecipeRangedFromBook(bookName) )
+				return;
+			else if ( AddRecipeArmorFromBook(bookName) )
+				return;
+			else if ( AddRecipeBootsFromBook(bookName) )
+				return;
+			else if ( AddRecipePantsFromBook(bookName) )
+				return;
+			else if ( AddRecipeGlovesFromBook(bookName) )
+				return;
+			else if ( AddRecipeWitcherArmorsFromBook(bookName) )
+				return;
+			else if ( AddRecipeComponentFromBook(bookName) )
+				return;
+			else if ( AddRecipeUpgradeFromBook(bookName) )
+				return;
+			*/
 		}
 	}
 	
-	function ReadBookByNameId( bookName : name , itemId:SItemUniqueId,  unread : bool  ) 
+	function ReadBookByNameId( bookName : name, itemId:SItemUniqueId, unread : bool, optional noNotification : bool ) // #B 
 	{
 		var bookFactName : string;
 		
@@ -1574,11 +1726,19 @@ import class CInventoryComponent extends CComponent
 		{
 			FactsAdd( bookFactName, 1 );
 			
-			
-			if(!IsAlchemyRecipe(bookName) && !IsCraftingSchematic(bookName))
+			//reading achievement
+			if( !IsAlchemyRecipe( bookName ) && !IsCraftingSchematic( bookName ) )
+			{
 				theGame.GetGamerProfile().IncStat(ES_ReadBooks);
+				
+				if( !noNotification )
+				{					
+					//theGame.GetGuiManager().ShowNotification( GetLocStringByKeyExt( "notification_book_moved" ), 0, false );
+					GetWitcherPlayer().AddReadBook( bookName );
+				}
+			}
 			
-			
+			// Add bestiary entry from the book
 			if ( AddBestiaryFromBook(bookName) )
 				return;
 			else
@@ -1589,7 +1749,7 @@ import class CInventoryComponent extends CComponent
 	
 	private function AddBestiaryFromBook( bookName : name ) : bool
 	{
-		var i, j, r : int;
+		var i, j, r, len : int;
 		var manager : CWitcherJournalManager;
 		var resource : array<CJournalResource>;
 		var entryBase : CJournalBase;
@@ -1724,16 +1884,71 @@ import class CInventoryComponent extends CComponent
 				resource.PushBack( (CJournalResource)LoadResource( "BestiaryKatakan" ) ); 
 				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Mutagen 1');
 				break;
+			// EP2 books
+			case 'bestiary_sharley_book':
+				resource.PushBack( (CJournalResource)LoadResource( "BestiarySharley" ) ); 
+				break;
+			case 'bestiary_barghest_book':
+				resource.PushBack( (CJournalResource)LoadResource( "BestiaryBarghest" ) ); 
+				break;
+			case 'bestiary_garkain_book':
+				resource.PushBack( (CJournalResource)LoadResource( "BestiaryGarkain" ) ); 
+				break;
+			case 'bestiary_alp_book':
+				resource.PushBack( (CJournalResource)LoadResource( "BestiaryAlp" ) ); 
+				break;
+			case 'bestiary_bruxa_book':
+				resource.PushBack( (CJournalResource)LoadResource( "BestiaryBruxa" ) ); 
+				break;
+			case 'bestiary_spriggan_book':
+				resource.PushBack( (CJournalResource)LoadResource( "BestiarySpriggan" ) ); 
+				break;
+			case 'bestiary_fleder_book':
+				resource.PushBack( (CJournalResource)LoadResource( "BestiaryFleder" ) ); 
+				break;
+			case 'bestiary_wight_book':
+				resource.PushBack( (CJournalResource)LoadResource( "BestiaryWicht" ) ); 
+				break;
+			case 'bestiary_dracolizard_book':
+				resource.PushBack( (CJournalResource)LoadResource( "BestiaryDracolizard" ) ); 
+				break;
+			case 'bestiary_panther_book':
+				resource.PushBack( (CJournalResource)LoadResource( "BestiaryPanther" ) ); 
+				break;
+			case 'bestiary_kikimore_book':
+				resource.PushBack( (CJournalResource)LoadResource( "BestiaryKikimoraWarrior" ) ); 
+				resource.PushBack( (CJournalResource)LoadResource( "BestiaryKikimoraWorker" ) ); 
+				break;
+			case 'bestiary_scolopendromorph_book':
+			case 'mq7023_fluff_book_scolopendromorphs':
+				resource.PushBack( (CJournalResource)LoadResource( "BestiaryScolopendromorph" ) ); 
+				break;
+			case 'bestiary_archespore_book':
+				resource.PushBack( (CJournalResource)LoadResource( "BestiaryArchespore" ) ); 
+				break;
+			case 'bestiary_protofleder_book':
+				resource.PushBack( (CJournalResource)LoadResource( "BestiaryProtofleder" ) ); 
+				break;
 			default: 
 				return false;
 		}
 		
+		// alternatively instead of full path an alias used in LoadResource function i.e.
+		//resource = (CJournalResource)LoadResource( "JournalBasilisk" );
 		
-		for (r=0; r < resource.Size(); r += 1 )
+		len = resource.Size();
+		if( len > 0)
+		{
+			//inventory panel UI notification about new bestiary entry				
+			theGame.GetGuiManager().ShowNotification( GetLocStringByKeyExt( "panel_hud_journal_entry_bestiary_new" ), 0, true );
+			theSound.SoundEvent("gui_ingame_new_journal");
+		}
+		
+		for (r=0; r < len; r += 1 )
 		{
 			if ( !resource[ r ] )
 			{
-				
+				// missing resource
 				continue;
 			}
 			entryBase = resource[r].GetEntry();
@@ -1742,11 +1957,7 @@ import class CInventoryComponent extends CComponent
 				manager.ActivateEntry( entryBase, JS_Active );
 				manager.SetEntryHasAdvancedInfo( entryBase, true );
 				
-				
-				theGame.GetGuiManager().ShowNotification(GetLocStringByKeyExt("panel_hud_journal_entry_bestiary_new"));
-				theSound.SoundEvent("gui_ingame_new_journal");
-				
-				
+				// additionally activate all description entries from description group
 				manager.GetAllChildren( entryBase, childGroups );
 				for ( i = 0; i < childGroups.Size(); i += 1 )
 				{	
@@ -1774,13 +1985,1062 @@ import class CInventoryComponent extends CComponent
 			return false;
 	}
 	
-	
-	
-	
-	
-	
+	/*
+	private function AddRecipePotionFromBook( bookName : name ) : bool
+	{
+		switch ( bookName )
+		{
+			case 'Recipe for Black Blood 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Black Blood 1');
+				return true;
+			case 'Recipe for Black Blood 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Black Blood 2');
+				return true;
+			case 'Recipe for Black Blood 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Black Blood 3');
+				return true;
+				
+			case 'Recipe for Blizzard 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Blizzard 1');
+				return true;
+			case 'Recipe for Blizzard 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Blizzard 2');
+				return true;
+			case 'Recipe for Blizzard 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Blizzard 3');
+				return true;
+				
+			case 'Recipe for Cat 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Cat 1');
+				return true;
+			case 'Recipe for Cat 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Cat 2');
+				return true;
+			case 'Recipe for Cat 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Cat 3');
+				return true;
+				
+			case 'Recipe for Full Moon 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Full Moon 1');
+				return true;
+			case 'Recipe for Full Moon 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Full Moon 2');
+				return true;
+			case 'Recipe for Full Moon 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Full Moon 3');
+				return true;
+				
+			case 'Recipe for Golden Oriole 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Golden Oriole 1');
+				return true;
+			case 'Recipe for Golden Oriole 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Golden Oriole 2');
+				return true;
+			case 'Recipe for Golden Oriole 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Golden Oriole 3');
+				return true;
+				
+			case 'Recipe for Killer Whale 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Killer Whale 1');
+				return true;
+			case 'Recipe for Killer Whale 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Killer Whale 2');
+				return true;
+			case 'Recipe for Killer Whale 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Killer Whale 3');
+				return true;
+				
+			case 'Recipe for Maribor Forest 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Maribor Forest 1');
+				return true;
+			case 'Recipe for Maribor Forest 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Maribor Forest 2');
+				return true;
+			case 'Recipe for Maribor Forest 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Maribor Forest 3');
+				return true;
+				
+			case 'Recipe for Petris Philtre 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Petris Philtre 1');
+				return true;
+			case 'Recipe for Petris Philtre 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Petris Philtre 2');
+				return true;
+			case 'Recipe for Petris Philtre 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Petris Philtre 3');
+				return true;
+				
+			case 'Recipe for Swallow 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Swallow 1');
+				return true;	
+			case 'Recipe for Swallow 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Swallow 2');
+				return true;	
+			case 'Recipe for Swallow 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Swallow 3');
+				return true;	
+				
+			case 'Recipe for Tawny Owl 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Tawny Owl 1');
+				return true;	
+			case 'Recipe for Tawny Owl 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Tawny Owl 2');
+				return true;	
+			case 'Recipe for Tawny Owl 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Tawny Owl 3');
+				return true;
+				
+			case 'Recipe for Thunderbolt 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Thunderbolt 1');
+				return true;		
+			case 'Recipe for Thunderbolt 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Thunderbolt 2');
+				return true;	
+			case 'Recipe for Thunderbolt 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Thunderbolt 3');
+				return true;	
 
+			case 'Recipe for White Honey 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for White Honey 1');
+				return true;	
+			case 'Recipe for White Honey 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for White Honey 2');
+				return true;	
+			case 'Recipe for White Honey 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for White Honey 3');
+				return true;	
+				
+			case 'Recipe for White Raffard Decoction 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for White Raffards Decoction 1');
+				return true;	
+			case 'Recipe for White Raffard Decoction 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for White Raffards Decoction 2');
+				return true;	
+			case 'Recipe for White Raffard Decoction 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for White Raffards Decoction 3');
+				return true;	
+				
+			case 'Recipe for Drowner Pheromone Potion 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Drowner Pheromone Potion 1');
+				return true;	
+				
+			default:
+				return false;
+		}
+	}
 	
+	private function AddRecipeOilFromBook( bookName : name ) : bool
+	{
+		switch ( bookName )
+		{
+			case 'Recipe for Beast Oil 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Beast Oil 1');
+				return true;
+			case 'Recipe for Beast Oil 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Beast Oil 2');
+				return true;
+			case 'Recipe for Beast Oil 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Beast Oil 3');
+				return true;
+				
+			case 'Recipe for Cursed Oil 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Cursed Oil 1');
+				return true;
+			case 'Recipe for Cursed Oil 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Cursed Oil 2');
+				return true;
+			case 'Recipe for Cursed Oil 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Cursed Oil 3');
+				return true;
+			
+			case 'Recipe for Hanged Man Venom 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Hanged Man Venom 1');
+				return true;
+			case 'Recipe for Hanged Man Venom 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Hanged Man Venom 2');
+				return true;
+			case 'Recipe for Hanged Man Venom 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Hanged Man Venom 3');
+				return true;
+				
+			case 'Recipe for Hybrid Oil 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Hybrid Oil 1');
+				return true;
+			case 'Recipe for Hybrid Oil 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Hybrid Oil 2');
+				return true;
+			case 'Recipe for Hybrid Oil 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Hybrid Oil 3');
+				return true;
+				
+			case 'Recipe for Insectoid Oil 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Insectoid Oil 1');
+				return true;
+			case 'Recipe for Insectoid Oil 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Insectoid Oil 2');
+				return true;
+			case 'Recipe for Insectoid Oil 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Insectoid Oil 3');
+				return true;
+				
+			case 'Recipe for Magicals Oil 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Magicals Oil 1');
+				return true;
+			case 'Recipe for Magicals Oil 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Magicals Oil 2');
+				return true;
+			case 'Recipe for Magicals Oil 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Magicals Oil 3');
+				return true;
+				
+			case 'Recipe for Necrophage Oil 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Necrophage Oil 1');
+				return true;
+			case 'Recipe for Necrophage Oil 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Necrophage Oil 2');
+				return true;
+			case 'Recipe for Necrophage Oil 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Necrophage Oil 3');
+				return true;
+			
+			case 'Recipe for Specter Oil 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Specter Oil 1');
+				return true;
+			case 'Recipe for Specter Oil 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Specter Oil 2');
+				return true;
+			case 'Recipe for Specter Oil 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Specter Oil 3');
+				return true;
+				
+			case 'Recipe for Vampire Oil 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Vampire Oil 2');
+				return true;
+			case 'Recipe for Vampire Oil 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Vampire Oil 2');
+				return true;
+			case 'Recipe for Vampire Oil 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Vampire Oil 3');
+				return true;
+				
+			case 'Recipe for Draconide Oil 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Draconide Oil 1');
+				return true;
+			case 'Recipe for Draconide Oil 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Draconide Oil 2');
+				return true;
+			case 'Recipe for Draconide Oil 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Draconide Oil 3');
+				return true;
+				
+			case 'Recipe for Ogre Oil 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Ogre Oil 1');
+				return true;
+			case 'Recipe for Ogre Oil 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Ogre Oil 2');
+				return true;
+			case 'Recipe for Ogre Oil 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Ogre Oil 3');
+				return true;
+				
+			case 'Recipe for Relic Oil 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Relic Oil 1');
+				return true;
+			case 'Recipe for Relic Oil 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Relic Oil 2');
+				return true;
+			case 'Recipe for Relic Oil 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Relic Oil 3');
+				return true;
+			
+			default:
+				return false;
+		}
+	}
+	
+	private function AddRecipePetardFromBook( bookName : name ) : bool
+	{
+		switch ( bookName )
+		{
+			case 'Recipe for Dancing Star 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Dancing Star 1');
+				return true;
+			case 'Recipe for Dancing Star 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Dancing Star 2');
+				return true;
+			case 'Recipe for Dancing Star 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Dancing Star 3');
+				return true;
+				
+			case 'Recipe for Devils Puffball 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Devils Puffball 1');
+				return true;
+			case 'Recipe for Devils Puffball 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Devils Puffball 2');
+				return true;
+			case 'Recipe for Devils Puffball 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Devils Puffball 3');
+				return true;
+			
+			case 'Recipe for Dwimeritium Bomb 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Dwimeritium Bomb 1');
+				return true;
+			case 'Recipe for Dwimeritium Bomb 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Dwimeritium Bomb 2');
+				return true;
+			case 'Recipe for Dwimeritium Bomb 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Dwimeritium Bomb 3');
+				return true;
+				
+			case 'Recipe for Dragons Dream 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Dragons Dream 1');
+				return true;
+			case 'Recipe for Dragons Dream 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Dragons Dream 2');
+				return true;
+			case 'Recipe for Dragons Dream 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Dragons Dream 3');
+				return true;
+				
+			case 'Recipe for Grapeshot 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Grapeshot 1');
+				return true;
+			case 'Recipe for Grapeshot 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Grapeshot 2');
+				return true;
+			case 'Recipe for Grapeshot 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Grapeshot 3');
+				return true;
+				
+			case 'Recipe for Samum 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Samum 1');
+				return true;
+			case 'Recipe for Samum 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Samum 2');
+				return true;
+			case 'Recipe for Samum 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Samum 3');
+				return true;
+			
+			case 'Recipe for Silver Dust Bomb 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Silver Dust Bomb 1');
+				return true;
+			case 'Recipe for Silver Dust Bomb 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Silver Dust Bomb 2');
+				return true;
+			case 'Recipe for Silver Dust Bomb 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for Silver Dust Bomb 3');
+				return true;
+				
+			case 'Recipe for White Frost 1':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for White Frost 1');
+				return true;
+			case 'Recipe for White Frost 2':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for White Frost 2');
+				return true;
+			case 'Recipe for White Frost 3':
+				GetWitcherPlayer().AddAlchemyRecipe('Recipe for White Frost 3');
+				return true;
+			
+			default:
+				return false;
+		}
+	}
+	
+	private function AddRecipeBoltFromBook( bookName : name ) : bool
+	{
+		switch ( bookName )
+		{
+			case 'Bodkin Bolt schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Bodkin Bolt schematic');
+				return true;
+			case 'Blunt Bolt schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Blunt Bolt schematic');
+				return true;
+			case 'Broadhead Bolt schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Broadhead Bolt schematic');
+				return true;
+			case 'Target Point Bolt schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Target Point Bolt schematic');
+				return true;
+			case 'Split Bolt schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Split Bolt schematic');
+				return true;
+			case 'Explosive Bolt schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Explosive Bolt schematic');
+				return true;
+			case 'Bait Bolt schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Bait Bolt schematic');
+				return true;
+			case 'Tracking Bolt schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Tracking Bolt schematic');
+				return true;
+				
+			default:
+				return false;
+		}
+	}
+	
+	private function AddRecipeSteelSwordFromBook( bookName : name ) : bool
+	{
+		switch ( bookName )
+		{
+			case 'Short sword 1 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Short sword 1 schematic');
+				return true;
+			case 'Short sword 2 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Short sword 2 schematic');
+				return true;
+			case 'No Mans Land sword 1 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('No Mans Land sword 1 schematic');
+				return true;
+			case 'No Mans Land sword 2 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('No Mans Land sword 2 schematic');
+				return true;
+			case 'Skellige sword 1 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Skellige sword 1 schematic');
+				return true;
+			case 'Lynx School steel sword schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Lynx School steel sword schematic');
+				return true;
+			case 'Nilfgaardian sword 1 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Nilfgaardian sword 1 schematic');
+				return true;
+			case 'Novigraadan sword 1 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Novigraadan sword 1 schematic');
+				return true;
+			case 'No Mans Land sword 3 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('No Mans Land sword 3 schematic');
+				return true;
+			case 'Skellige sword 2 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Skellige sword 2 schematic');
+				return true;
+			case 'Gryphon School steel sword schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Gryphon School steel sword schematic');
+				return true;
+			case 'No Mans Land sword 4 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('No Mans Land sword 4 schematic');
+				return true;
+			case 'Scoiatael sword 2 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Scoiatael sword 2 schematic');
+				return true;	
+			case 'Novigraadan sword 4 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Novigraadan sword 4 schematic');
+				return true;	
+			case 'Nilfgaardian sword 4 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Nilfgaardian sword 4 schematic');
+				return true;	
+			case 'Scoiatael sword 3 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Scoiatael sword 3 schematic');
+				return true;
+			case 'Inquisitor sword 1 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Inquisitor sword 1 schematic');
+				return true;
+			case 'Bear School steel sword schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Bear School steel sword schematic');
+				return true;
+			case 'Wolf School steel sword schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Wolf School steel sword schematic');
+				return true;
+			case 'Inquisitor sword 2 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Inquisitor sword 2 schematic');
+				return true;
+			case 'Dwarven sword 1 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Dwarven sword 1 schematic');
+				return true;
+			case 'Dwarven sword 2 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Dwarven sword 2 schematic');
+				return true;
+			case 'Gnomish sword 1 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Gnomish sword 1 schematic');
+				return true;
+			case 'Gnomish sword 2 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Gnomish sword 2 schematic');
+				return true;
+			case 'Viper Steel sword schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Viper Steel sword schematic');
+				return true;
+				
+			// Relic steel swords
+			case 'Arbitrator schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Arbitrator schematic');
+				return true;
+			case 'Beannshie schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Beannshie schematic');
+				return true;
+			case 'Blackunicorn schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Blackunicorn schematic');
+				return true;
+			case 'Longclaw schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Longclaw schematic');
+				return true;
+			
+			default:
+				return false;
+		}
+	}
+	
+	private function AddRecipeSilverSwordFromBook( bookName : name ) : bool
+	{
+		switch ( bookName )
+		{
+			case 'Viper Silver sword schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Viper Silver sword schematic');
+				return true;
+			case 'Silver sword 1 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Silver sword 1 schematic');
+				return true;
+			case 'Silver sword 2 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Silver sword 2 schematic');
+				return true;
+			case 'Lynx School silver sword schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Lynx School silver sword schematic');
+				return true;
+			case 'Silver sword 3 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Silver sword 3 schematic');
+				return true;
+			case 'Gryphon School silver sword schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Gryphon School silver sword schematic');
+				return true;
+			case 'Silver sword 4 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Silver sword 4 schematic');
+				return true;
+			case 'Silver sword 6 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Silver sword 6 schematic');
+				return true;
+			case 'Silver sword 7 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Silver sword 7 schematic');
+				return true;
+			case 'Elven silver sword 1 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Elven silver sword 1 schematic');
+				return true;
+			case 'Bear School silver sword schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Bear School silver sword schematic');
+				return true;
+			case 'Elven silver sword 2 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Elven silver sword 2 schematic');
+				return true;
+			case 'Wolf School silver sword schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Wolf School silver sword schematic');
+				return true;
+			case 'Dwarven silver sword 1 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Dwarven silver sword 1 schematic');
+				return true;
+			case 'Dwarven silver sword 2 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Dwarven silver sword 2 schematic');
+				return true;
+			case 'Gnomish silver sword 1 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Gnomish silver sword 1 schematic');
+				return true;
+			case 'Gnomish silver sword 2 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Gnomish silver sword 2 schematic');
+				return true;
+			
+			// Relic silver swords
+			case 'Harpy schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Harpy schematic');
+				return true;
+			case 'Negotiator schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Negotiator schematic');
+				return true;
+			case 'Weeper schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Weeper schematic');
+				return true;
+			
+			default:
+				return false;
+		}
+	}
+	
+	private function AddRecipeRangedFromBook( bookName : name ) : bool
+	{
+		switch ( bookName )
+		{
+			case 'Bear School Crossbow schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Bear School Crossbow schematic');
+				return true;
+			case 'Lynx School Crossbow schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Lynx School Crossbow schematic');
+				return true;
+			
+			default:
+				return false;
+		}
+	}
+	
+	private function AddRecipeArmorFromBook( bookName : name ) : bool
+	{
+		switch ( bookName )
+		{
+			case 'Light Armor 1 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Light Armor 1 schematic');
+				return true;
+			case 'Light Armor 2 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Light Armor 2 schematic');
+				return true;
+			case 'Light Armor 3 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Light Armor 3 schematic');
+				return true;
+			case 'Light Armor 4 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Light Armor 4 schematic');
+				return true;
+			case 'Light Armor 5 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Light Armor 5 schematic');
+				return true;
+			case 'Light Armor 6 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Light Armor 6 schematic');
+				return true;
+			case 'Light Armor 7 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Light Armor 7 schematic');
+				return true;
+			case 'Light Armor 8 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Light Armor 8 schematic');
+				return true;
+			case 'Medium Armor 1 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Medium Armor 1 schematic');
+				return true;
+			case 'Medium Armor 2 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Medium Armor 2 schematic');
+				return true;
+			case 'Medium Armor 3 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Medium Armor 3 schematic');
+				return true;
+			case 'Medium Armor 4 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Medium Armor 4 schematic');
+				return true;
+			case 'Heavy Armor 1 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Heavy Armor 1 schematic');
+				return true;
+			case 'Heavy Armor 2 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Heavy Armor 2 schematic');
+				return true;
+			case 'Heavy Armor 3 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Heavy Armor 3 schematic');
+				return true;
+			case 'Heavy Armor 4 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Heavy Armor 4 schematic');
+				return true;
+			
+			default:
+				return false;
+		}
+	}
+	
+	private function AddRecipeBootsFromBook( bookName : name ) : bool
+	{
+		switch ( bookName )
+		{
+			case 'Boots 1 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Boots 1 schematic');
+				return true;
+			case 'Boots 2 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Boots 2 schematic');
+				return true;
+			case 'Boots 3 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Boots 3 schematic');
+				return true;
+			case 'Boots 4 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Boots 4 schematic');
+				return true;
+			case 'Heavy Boots 1 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Heavy Boots 1 schematic');
+				return true;
+			case 'Heavy Boots 2 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Heavy Boots 2 schematic');
+				return true;
+			case 'Heavy Boots 3 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Heavy Boots 3 schematic');
+				return true;
+			case 'Heavy Boots 4 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Heavy Boots 4 schematic');
+				return true;
+			
+			default:
+				return false;
+		}
+	}
+	
+	private function AddRecipePantsFromBook( bookName : name ) : bool
+	{
+		switch ( bookName )
+		{
+			case 'Pants 1 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Pants 1 schematic');
+				return true;
+			case 'Pants 2 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Pants 2 schematic');
+				return true;
+			case 'Pants 3 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Pants 3 schematic');
+				return true;
+			case 'Pants 4 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Pants 4 schematic');
+				return true;
+			case 'Heavy Pants 1 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Heavy Pants 1 schematic');
+				return true;
+			case 'Heavy Pants 2 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Heavy Pants 2 schematic');
+				return true;
+			case 'Heavy Pants 3 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Heavy Pants 3 schematic');
+				return true;
+			case 'Heavy Pants 4 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Heavy Pants 4 schematic');
+				return true;
+			
+			default:
+				return false;
+		}
+	}
+	
+	private function AddRecipeGlovesFromBook(bookName : name ) : bool
+	{
+		switch ( bookName )
+		{
+			case 'Gloves 1 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Gloves 1 schematic');
+				return true;
+			case 'Gloves 2 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Gloves 2 schematic');
+				return true;
+			case 'Gloves 3 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Gloves 3 schematic');
+				return true;
+			case 'Gloves 4 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Gloves 4 schematic');
+				return true;
+			case 'Heavy Gloves 1 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Heavy Gloves1 schematic');
+				return true;
+			case 'Heavy Gloves 2 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Heavy Gloves 2 schematic');
+				return true;
+			case 'Heavy Gloves 3 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Heavy Gloves 3 schematic');
+				return true;
+			case 'Heavy Gloves 4 schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Heavy Gloves 4 schematic');
+				return true;
+			
+			default:
+				return false;
+		}
+	}
+	
+	private function AddRecipeWitcherArmorsFromBook(bookName : name ) : bool
+	{
+		switch ( bookName )
+		{
+			case 'Lynx Armor schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Lynx Armor schematic');
+				return true;
+			case 'Lynx Boots schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Lynx Boots schematic');
+				return true;
+			case 'Lynx Gloves schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Lynx Gloves schematic');
+				return true;
+			case 'Lynx Pants schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Lynx Pants schematic');
+				return true;
+			case 'Gryphon Armor schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Gryphon Armor schematic');
+				return true;
+			case 'Gryphon Boots schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Gryphon Boots schematic');
+				return true;
+			case 'Gryphon Gloves schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Gryphon Gloves schematic');
+				return true;
+			case 'Gryphon Pants schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Gryphon Pants schematic');
+				return true;
+			case 'Bear Armor schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Bear Armor schematic');
+				return true;
+			case 'Bear Boots schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Bear Boots schematic');
+				return true;
+			case 'Bear Gloves schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Bear Gloves schematic');
+				return true;
+			case 'Bear Pants schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Bear Pants schematic');
+				return true;
+			case 'Wolf Armor schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Wolf Armor schematic');
+				return true;
+			case 'Wolf Boots schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Wolf Boots schematic');
+				return true;
+			case 'Wolf Gloves schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Wolf Gloves schematic');
+				return true;
+			case 'Wolf Pants schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Wolf Pants schematic');
+				return true;
+			
+			default:
+				return false;
+		}
+	}
+	
+	private function AddRecipeComponentFromBook(bookName : name ) : bool
+	{
+		switch ( bookName )
+		{
+			case 'Steel ingot schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Steel ingot schematic');
+				return true;
+			case 'Dark Iron ingot schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Dark Iron ingot schematic');
+				return true;
+			case 'Meteorite ingot schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Meteorite ingot schematic');
+				return true;
+			case 'Dwimeryte ingot schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Dwimeryte ingot schematic');
+				return true;
+			case 'Silver ingot schematic 1':
+				GetWitcherPlayer().AddCraftingSchematic('Silver ingot schematic 1');
+				return true;
+			case 'Silver ingot schematic 2':
+				GetWitcherPlayer().AddCraftingSchematic('Silver ingot schematic 2');
+				return true;
+			case 'Silver ingot schematic 3':
+				GetWitcherPlayer().AddCraftingSchematic('Silver ingot schematic 3');
+				return true;
+			case 'Hardened leather schematic 1':
+				GetWitcherPlayer().AddCraftingSchematic('Hardened leather schematic 1');
+				return true;
+			case 'Hardened leather schematic 2':
+				GetWitcherPlayer().AddCraftingSchematic('Hardened leather schematic 2');
+				return true;
+			case 'Hardened leather schematic 3':
+				GetWitcherPlayer().AddCraftingSchematic('Hardened leather schematic 3');
+				return true;
+			case 'Hardened leather schematic 4':
+				GetWitcherPlayer().AddCraftingSchematic('Hardened leather schematic 4');
+				return true;
+			case 'Hardened timber schematic 1':
+				GetWitcherPlayer().AddCraftingSchematic('Hardened timber schematic 1');
+				return true;
+			case 'Draconide leather schematic 1':
+				GetWitcherPlayer().AddCraftingSchematic('Draconide leather schematic 1');
+				return true;
+			case 'Draconide leather schematic 2':
+				GetWitcherPlayer().AddCraftingSchematic('Draconide leather schematic 2');
+				return true;
+			case 'Draconide leather schematic 3':
+				GetWitcherPlayer().AddCraftingSchematic('Draconide leather schematic 3');
+				return true;
+			case 'Draconide leather schematic 4':
+				GetWitcherPlayer().AddCraftingSchematic('Draconide leather schematic 4');
+				return true;
+			case 'Leather schematic 1':
+				GetWitcherPlayer().AddCraftingSchematic('Leather schematic 1');
+				return true;
+			case 'Leather schematic 2':
+				GetWitcherPlayer().AddCraftingSchematic('Leather schematic 2');
+				return true;
+			case 'Leather schematic 3':
+				GetWitcherPlayer().AddCraftingSchematic('Leather schematic 3');
+				return true;
+			case 'Leather schematic 4':
+				GetWitcherPlayer().AddCraftingSchematic('Leather schematic 4');
+				return true;
+			case 'Leather schematic 5':
+				GetWitcherPlayer().AddCraftingSchematic('Leather schematic 5');
+				return true;
+			case 'Leather schematic 6':
+				GetWitcherPlayer().AddCraftingSchematic('Leather schematic 6');
+				return true;
+			case 'Leather schematic 7':
+				GetWitcherPlayer().AddCraftingSchematic('Leather schematic 7');
+				return true;
+			case 'Leather schematic 8':
+				GetWitcherPlayer().AddCraftingSchematic('Leather schematic 8');
+				return true;
+			case 'Leather straps schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Leather straps schematic');
+				return true;
+			case 'Steel plates schematic':
+				GetWitcherPlayer().AddCraftingSchematic('Steel plates schematic');
+				return true;
+			
+			default:
+				return false;
+		}
+	}
+	
+	private function AddRecipeUpgradeFromBook(bookName : name ) : bool
+	{
+		switch ( bookName )
+		{
+			case 'Starting Armor Upgrade schematic 1':
+				GetWitcherPlayer().AddCraftingSchematic('Starting Armor Upgrade schematic 1');
+				return true;
+				
+			case 'Witcher Bear Jacket Upgrade schematic 1':
+				GetWitcherPlayer().AddCraftingSchematic('Witcher Bear Jacket Upgrade schematic 1');
+				return true;
+			case 'Witcher Bear Jacket Upgrade schematic 2':
+				GetWitcherPlayer().AddCraftingSchematic('Witcher Bear Jacket Upgrade schematic 2');
+				return true;
+			case 'Witcher Bear Jacket Upgrade schematic 3':
+				GetWitcherPlayer().AddCraftingSchematic('Witcher Bear Jacket Upgrade schematic 3');
+				return true;
+			case 'Witcher Bear Boots Upgrade schematic 1':
+				GetWitcherPlayer().AddCraftingSchematic('Witcher Bear Boots Upgrade schematic 1');
+				return true;
+			case 'Witcher Bear Pants Upgrade schematic 1':
+				GetWitcherPlayer().AddCraftingSchematic('Witcher Bear Pants Upgrade schematic 1');
+				return true;
+			case 'Witcher Bear Gloves Upgrade schematic 1':
+				GetWitcherPlayer().AddCraftingSchematic('Witcher Bear Gloves Upgrade schematic 1');
+				return true;
+			case 'Bear School steel sword Upgrade schematic 1':
+				GetWitcherPlayer().AddCraftingSchematic('Bear School steel sword Upgrade schematic 1');
+				return true;
+			case 'Bear School steel sword Upgrade schematic 2':
+				GetWitcherPlayer().AddCraftingSchematic('Bear School steel sword Upgrade schematic 2');
+				return true;
+			case 'Bear School steel sword Upgrade schematic 3':
+				GetWitcherPlayer().AddCraftingSchematic('Bear School steel sword Upgrade schematic 3');
+				return true;
+			case 'Bear School silver sword Upgrade schematic 1':
+				GetWitcherPlayer().AddCraftingSchematic('Bear School silver sword Upgrade schematic 1');
+				return true;
+			case 'Bear School silver sword Upgrade schematic 2':
+				GetWitcherPlayer().AddCraftingSchematic('Bear School silver sword Upgrade schematic 2');
+				return true;
+			case 'Bear School silver sword Upgrade schematic 3':
+				GetWitcherPlayer().AddCraftingSchematic('Bear School silver sword Upgrade schematic 3');
+				return true;
+				
+			case 'Witcher Gryphon Jacket Upgrade schematic 1':
+				GetWitcherPlayer().AddCraftingSchematic('Witcher Gryphon Jacket Upgrade schematic 1');
+				return true;
+			case 'Witcher Gryphon Jacket Upgrade schematic 2':
+				GetWitcherPlayer().AddCraftingSchematic('Witcher Gryphon Jacket Upgrade schematic 2');
+				return true;
+			case 'Witcher Gryphon Jacket Upgrade schematic 3':
+				GetWitcherPlayer().AddCraftingSchematic('Witcher Gryphon Jacket Upgrade schematic 3');
+				return true;
+			case 'Witcher Gryphon Boots Upgrade schematic 1':
+				GetWitcherPlayer().AddCraftingSchematic('Witcher Gryphon Boots Upgrade schematic 1');
+				return true;
+			case 'Witcher Gryphon Pants Upgrade schematic 1':
+				GetWitcherPlayer().AddCraftingSchematic('Witcher Gryphon Pants Upgrade schematic 1');
+				return true;
+			case 'Witcher Gryphon Gloves Upgrade schematic 1':
+				GetWitcherPlayer().AddCraftingSchematic('Witcher Gryphon Gloves Upgrade schematic 1');
+				return true;
+			case 'Gryphon School steel sword Upgrade schematic 1':
+				GetWitcherPlayer().AddCraftingSchematic('Gryphon School steel sword Upgrade schematic 1');
+				return true;
+			case 'Gryphon School steel sword Upgrade schematic 2':
+				GetWitcherPlayer().AddCraftingSchematic('Gryphon School steel sword Upgrade schematic 2');
+				return true;
+			case 'Gryphon School steel sword Upgrade schematic 3':
+				GetWitcherPlayer().AddCraftingSchematic('Gryphon School steel sword Upgrade schematic 3');
+				return true;
+			case 'Gryphon School silver sword Upgrade schematic 1':
+				GetWitcherPlayer().AddCraftingSchematic('Gryphon School silver sword Upgrade schematic 1');
+				return true;
+			case 'Gryphon School silver sword Upgrade schematic 2':
+				GetWitcherPlayer().AddCraftingSchematic('Gryphon School silver sword Upgrade schematic 2');
+				return true;
+			case 'Gryphon School silver sword Upgrade schematic 3':
+				GetWitcherPlayer().AddCraftingSchematic('Gryphon School silver sword Upgrade schematic 3');
+				return true;
+				
+			case 'Witcher Wolf Jacket Upgrade schematic 1':
+				GetWitcherPlayer().AddCraftingSchematic('Witcher Wolf Jacket Upgrade schematic 1');
+				return true;
+			case 'Witcher Wolf Jacket Upgrade schematic 2':
+				GetWitcherPlayer().AddCraftingSchematic('Witcher Wolf Jacket Upgrade schematic 2');
+				return true;
+			case 'Witcher Wolf Jacket Upgrade schematic 3':
+				GetWitcherPlayer().AddCraftingSchematic('Witcher Wolf Jacket Upgrade schematic 3');
+				return true;
+			case 'Witcher Wolf Boots Upgrade schematic 1':
+				GetWitcherPlayer().AddCraftingSchematic('Witcher Wolf Boots Upgrade schematic 1');
+				return true;
+			case 'Witcher Wolf Pants Upgrade schematic 1':
+				GetWitcherPlayer().AddCraftingSchematic('Witcher Wolf Pants Upgrade schematic 1');
+				return true;
+			case 'Witcher Wolf Gloves Upgrade schematic 1':
+				GetWitcherPlayer().AddCraftingSchematic('Witcher Wolf Gloves Upgrade schematic 1');
+				return true;
+			case 'Wolf School steel sword Upgrade schematic 1':
+				GetWitcherPlayer().AddCraftingSchematic('Wolf School steel sword Upgrade schematic 1');
+				return true;
+			case 'Wolf School steel sword Upgrade schematic 2':
+				GetWitcherPlayer().AddCraftingSchematic('Wolf School steel sword Upgrade schematic 2');
+				return true;
+			case 'Wolf School steel sword Upgrade schematic 3':
+				GetWitcherPlayer().AddCraftingSchematic('Wolf School steel sword Upgrade schematic 3');
+				return true;
+			case 'Wolf School silver sword Upgrade schematic 1':
+				GetWitcherPlayer().AddCraftingSchematic('Wolf School silver sword Upgrade schematic 1');
+				return true;
+			case 'Wolf School silver sword Upgrade schematic 2':
+				GetWitcherPlayer().AddCraftingSchematic('Wolf School silver sword Upgrade schematic 2');
+				return true;
+			case 'Wolf School silver sword Upgrade schematic 3':
+				GetWitcherPlayer().AddCraftingSchematic('Wolf School silver sword Upgrade schematic 3');
+				return true;
+			
+			case 'Witcher Lynx Jacket Upgrade schematic 1':
+				GetWitcherPlayer().AddCraftingSchematic('Witcher Lynx Jacket Upgrade schematic 1');
+				return true;
+			case 'Witcher Lynx Jacket Upgrade schematic 2':
+				GetWitcherPlayer().AddCraftingSchematic('Witcher Lynx Jacket Upgrade schematic 2');
+				return true;
+			case 'Witcher Lynx Jacket Upgrade schematic 3':
+				GetWitcherPlayer().AddCraftingSchematic('Witcher Lynx Jacket Upgrade schematic 3');
+				return true;
+			case 'Witcher Lynx Boots Upgrade schematic 1':
+				GetWitcherPlayer().AddCraftingSchematic('Witcher Lynx Boots Upgrade schematic 1');
+				return true;
+			case 'Witcher Lynx Pants Upgrade schematic 1':
+				GetWitcherPlayer().AddCraftingSchematic('Witcher Lynx Pants Upgrade schematic 1');
+				return true;
+			case 'Witcher Lynx Gloves Upgrade schematic 1':
+				GetWitcherPlayer().AddCraftingSchematic('Witcher Lynx Gloves Upgrade schematic 1');
+				return true;
+			case 'Lynx School steel sword Upgrade schematic 1':
+				GetWitcherPlayer().AddCraftingSchematic('Lynx School steel sword Upgrade schematic 1');
+				return true;
+			case 'Lynx School steel sword Upgrade schematic 2':
+				GetWitcherPlayer().AddCraftingSchematic('Lynx School steel sword Upgrade schematic 2');
+				return true;
+			case 'Lynx School steel sword Upgrade schematic 3':
+				GetWitcherPlayer().AddCraftingSchematic('Lynx School steel sword Upgrade schematic 3');
+				return true;
+			case 'Lynx School silver sword Upgrade schematic 1':
+				GetWitcherPlayer().AddCraftingSchematic('Lynx School silver sword Upgrade schematic 1');
+				return true;
+			case 'Lynx School silver sword Upgrade schematic 2':
+				GetWitcherPlayer().AddCraftingSchematic('Lynx School silver sword Upgrade schematic 2');
+				return true;
+			case 'Lynx School silver sword Upgrade schematic 3':
+				GetWitcherPlayer().AddCraftingSchematic('Lynx School silver sword Upgrade schematic 3');
+				return true;
+			
+			default:
+				return false;
+		}
+	}
+	*/
+	
+	// ---------------------------------------------------------------------------
+	// #Books End
+	// ---------------------------------------------------------------------------
+
+	//gets weapon damage types from XML definition
 	function GetWeaponDTNames( id : SItemUniqueId, out dmgNames : array< name > ) : int
 	{
 		var attrs : array< name >;
@@ -1832,6 +3092,46 @@ import class CInventoryComponent extends CComponent
 		return w;
 	}
 	
+	public function GetCurrentlyHeldSword() : SItemUniqueId
+	{
+		var i	: int;
+		var w	: array<SItemUniqueId>;
+		
+		w = GetHeldWeapons();
+		
+		for( i = 0 ; i < w.Size() ; i+=1 )
+		{
+			if( IsItemSteelSwordUsableByPlayer( w[i] ) || IsItemSilverSwordUsableByPlayer( w[i] ) )
+			{
+				return w[i];
+			}
+		}
+		
+		return GetInvalidUniqueId();		
+	}
+	
+	public function GetCurrentlyHeldSwordEntity( out ent : CItemEntity ) : bool
+	{
+		var id		: SItemUniqueId;
+		
+		id = GetCurrentlyHeldSword();
+		
+		if( IsIdValid( id ) )
+		{
+			ent = GetItemEntityUnsafe( id );
+			
+			if( ent )
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		return false;
+	}
+	
 	public function GetHeldWeaponsWithCategory( category : name, out items : array<SItemUniqueId> )
 	{
 		var i : int;
@@ -1870,7 +3170,9 @@ import class CInventoryComponent extends CComponent
 		return false;
 	}
 
-	
+	/**
+		Breaks item into recyclable parts and gives them to hero.
+	*/
 	public function RecycleItem( id : SItemUniqueId, level : ECraftsmanLevel ) :  array<SItemUniqueId>
 	{
 		var itemsAdded : array<SItemUniqueId>;
@@ -1883,7 +3185,7 @@ import class CInventoryComponent extends CComponent
 		
 		for ( i = 0; i < parts.Size(); i += 1 )
 		{
-			if ( ECL_Grand_Master == level )
+			if ( ECL_Grand_Master == level || ECL_Arch_Master == level )
 			{
 				currentAdded = AddAnItem( parts[i].itemName, parts[i].quantity );
 			}
@@ -1903,11 +3205,14 @@ import class CInventoryComponent extends CComponent
 		return itemsAdded;
 	}
 		
+	//////////////////////////////////////////////////////////////////////////////////////////
+	// Potions
+	//////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
-	
-	
+	/**
+		Gets buff names that the given item will give. Checks if item defines attribute with a name the same as some buff name.
+		Returns buffs size.
+	*/
 	public function GetItemBuffs( id : SItemUniqueId, out buffs : array<SEffectInfo>) : int
 	{
 		var attrs, abs, absFast : array< name >;
@@ -1922,7 +3227,7 @@ import class CInventoryComponent extends CComponent
 		if( !IsIdValid(id) )
 			return 0;
 		
-		
+		//Potential fast exit. Get amount of all abilities included
 		GetItemContainedAbilities(id, absFast);
 		if(absFast.Size() == 0)
 			return 0;
@@ -1945,7 +3250,7 @@ import class CInventoryComponent extends CComponent
 					
 					buffs.PushBack(buff);
 					
-					
+					//when we found some buff we remove 1 item from all included abilities array - if it's empty we can quit
 					if(absFast.Size() == 1)
 						return buffs.Size();
 					else
@@ -1957,20 +3262,23 @@ import class CInventoryComponent extends CComponent
 		return buffs.Size();
 	}	
 	
-	
-	public function DropItemInBag( item : SItemUniqueId, quantity : int ) 
+	/*
+		Drops intem from the inventory to the ground. Item is placed in a bag.
+		If there is a bag nearby, the items are added to that bag
+	*/
+	public function DropItemInBag( item : SItemUniqueId, quantity : int ) // #B probably not in use
 	{
 		var entities : array<CGameplayEntity>;
 		var i : int;
 		var owner : CActor;
 		var bag : W3ActorRemains;
 		var template : CEntityTemplate;
-		var tabbags : array <name>;
+		var bagtags : array <name>;
 		var bagPosition : Vector;
 		var tracedPosition, tracedNormal : Vector;
 				
-		if(ItemHasTag(item, 'NoDrop')) 
-			return;		
+		if(ItemHasTag(item, 'NoDrop')) // #B shouldn't be also NoShow here ?
+			return;		//fast abort
 		
 		owner = (CActor)GetEntity();
 		FindGameplayEntitiesInRange(entities, owner, 0.5, 100);
@@ -1983,53 +3291,53 @@ import class CInventoryComponent extends CComponent
 				break;
 		}
 		
-		
+		//create bag entity if none found near
 		if(!bag)
 		{
 			template = (CEntityTemplate)LoadResource("lootbag");
-			tabbags.PushBack('lootbag');
+			bagtags.PushBack('lootbag');
 			
-			
+			// Do raycast down from player position to check if he's in the air
 			bagPosition = owner.GetWorldPosition();
 			if ( theGame.GetWorld().StaticTrace( bagPosition, bagPosition + Vector( 0.0f, 0.0f, -10.0f, 0.0f ), tracedPosition, tracedNormal ) )
 			{
 				bagPosition = tracedPosition;
 			}
-			bag = (W3ActorRemains)theGame.CreateEntity(template, bagPosition, owner.GetWorldRotation(), true, false, false, PM_Persist,tabbags);
+			bag = (W3ActorRemains)theGame.CreateEntity(template, bagPosition, owner.GetWorldRotation(), true, false, false, PM_Persist,bagtags);
 		}
 	
-		
+		//give item
 		GiveItemTo(bag.GetInventory(), item, quantity, false);
 		
-		
+		//if item was not given for some reason then delete empty bag
 		if(bag.GetInventory().IsEmpty())
 		{
 			delete bag;
 			return;
 		}		
-		
-		bag.LootDropped();		
+		//if item added successfully
+		bag.LootDropped();		//this will also reset the timer if we add items to an already created container
 		theTelemetry.LogWithLabelAndValue(TE_INV_ITEM_DROPPED, GetItemName(item), quantity);
 		
-		
+		// if dropped underwater, play curve animation of "floating"
 		if( thePlayer.IsSwimming() )
 		{
 			bag.PlayPropertyAnimation( 'float', 0 );
 		}
 	}
 	
+	/////////////////////////////////////////////
+	//         @REPAIR OBJECTS
+	/////////////////////////////////////////////
 	
-	
-	
-	
-	
+	//returns true if some bonus was added
 	public final function AddRepairObjectItemBonuses(buffArmor : bool, buffSwords : bool, ammoArmor : int, ammoWeapon : int) : bool
 	{
 		var upgradedSomething, isArmor : bool;
 		var i, ammo, currAmmo : int;
 		var items, items2 : array<SItemUniqueId>;
 		
-		
+		//get items to upgrade
 		if(buffArmor)
 		{
 			items = GetItemsByTag(theGame.params.TAG_ARMOR);
@@ -2047,7 +3355,7 @@ import class CInventoryComponent extends CComponent
 		
 		for(i=0; i<items.Size(); i+=1)
 		{
-			
+			//check if item is armor
 			if(IsItemAnyArmor(items[i]))
 			{
 				isArmor = true;
@@ -2059,16 +3367,16 @@ import class CInventoryComponent extends CComponent
 				ammo = ammoWeapon;
 			}
 			
-			
+			//get current ammo
 			currAmmo = GetItemModifierInt(items[i], 'repairObjectBonusAmmo', 0);
 			
-			
+			//if ammo is greater than current
 			if(ammo > currAmmo)
 			{
 				SetItemModifierInt(items[i], 'repairObjectBonusAmmo', ammo);
 				upgradedSomething = true;
 				
-				
+				//if had no ammo - add ability
 				if(currAmmo == 0)
 				{
 					if(isArmor)
@@ -2102,7 +3410,7 @@ import class CInventoryComponent extends CComponent
 		}
 	}
 	
-	
+	//gets value of 'armor' attribute bonus for given item from 'repair objects'
 	public final function GetRepairObjectBonusValueForArmor(armor : SItemUniqueId) : SAbilityAttributeValue
 	{
 		var retVal, bonusValue, baseArmor : SAbilityAttributeValue;
@@ -2112,113 +3420,170 @@ import class CInventoryComponent extends CComponent
 			bonusValue = GetItemAttributeValue(armor, theGame.params.REPAIR_OBJECT_BONUS);		
 			baseArmor = GetItemAttributeValue(armor, theGame.params.ARMOR_VALUE_NAME);
 			
-			baseArmor.valueMultiplicative += 1;		
+			baseArmor.valueMultiplicative += 1;		//added from character ability later on I guess?
 			retVal.valueAdditive = bonusValue.valueAdditive + CalculateAttributeValue(baseArmor) * bonusValue.valueMultiplicative;
 		}
 		
 		return retVal;
 	}
 	
-		
+	/////////////////////////////////////////////
+	//         @OILS
+	/////////////////////////////////////////////
+	
+	/**
+		Checks if item can be upgraded with oil
+	*/	
 	public function CanItemHaveOil(id : SItemUniqueId) : bool
 	{
 		return IsItemSteelSwordUsableByPlayer(id) || IsItemSilverSwordUsableByPlayer(id);
 	}
 	
-	public function ItemHasOilApplied(id : SItemUniqueId) : bool
+	public final function RemoveAllOilsFromItem( id : SItemUniqueId )
 	{
-		var dm : CDefinitionsManagerAccessor;
 		var i : int;
-		var abs : array<name>;
+		var oils : array< W3Effect_Oil >;
+		var actor : CActor;
 		
-		GetItemAbilities(id, abs);
-		dm = theGame.GetDefinitionsManager();
-		
-		for(i=0; i<abs.Size(); i+=1)
+		actor = ( CActor ) GetEntity();
+		oils = GetOilsAppliedOnItem( id );
+		for( i = oils.Size() - 1; i >= 0; i -= 1 )
 		{
-			if(dm.AbilityHasTag(abs[i], theGame.params.OIL_ABILITY_TAG))
-				return true;
+			actor.RemoveEffect( oils[ i ] );
 		}
+	}
+	
+	public final function GetActiveOilsAppliedOnItemCount( id : SItemUniqueId ) : int
+	{
+		var oils : array< W3Effect_Oil >;
+		var i, count : int;
+		
+		count = 0;
+		oils = GetOilsAppliedOnItem( id );
+		for( i=0; i<oils.Size(); i+=1 )
+		{
+			if( oils[ i ].GetAmmoCurrentCount() > 0 )
+			{
+				count += 1;
+			}
+		}
+		return count;
+	}
+	
+	public final function RemoveOldestOilFromItem( id : SItemUniqueId )
+	{
+		var buffToRemove : W3Effect_Oil;
+		var actor : CActor;
+		
+		actor = ( CActor ) GetEntity();
+		if(! actor )
+			return;
 			
+		buffToRemove = GetOldestOilAppliedOnItem(id, false);
+		
+		if(buffToRemove)
+		{
+			actor.RemoveEffect( buffToRemove );
+		}
+	}
+	
+	public final function GetOilsAppliedOnItem( id : SItemUniqueId ) : array< W3Effect_Oil >
+	{
+		var i : int;
+		var oils : array< CBaseGameplayEffect >;
+		var buff : W3Effect_Oil;
+		var ret : array < W3Effect_Oil >;
+		var actor : CActor;
+		
+		actor = ( CActor ) GetEntity();
+		if(! actor )
+			return ret;
+			
+		oils = actor.GetBuffs( EET_Oil );
+		for( i = oils.Size() - 1; i >= 0; i -= 1 )
+		{
+			buff = ( W3Effect_Oil ) oils[ i ];
+			if(buff && buff.GetSwordItemId() == id )
+			{
+				ret.PushBack( buff );
+			}
+		}
+		
+		return ret;
+	}
+	
+	public final function GetNewestOilAppliedOnItem( id : SItemUniqueId, onlyShowable : bool ) : W3Effect_Oil
+	{
+		return GetOilAppliedOnItemInternal( id, onlyShowable, true );
+	}
+	
+	public final function GetOldestOilAppliedOnItem( id : SItemUniqueId, onlyShowable : bool ) : W3Effect_Oil
+	{
+		return GetOilAppliedOnItemInternal( id, onlyShowable, false );
+	}
+	
+	private final function GetOilAppliedOnItemInternal( id : SItemUniqueId, onlyShowable : bool, newest : bool ) : W3Effect_Oil
+	{
+		var oils : array< W3Effect_Oil >;
+		var i, lastIndex : int;
+		
+		oils = GetOilsAppliedOnItem( id );
+		lastIndex = -1;
+		
+		for( i=0; i<oils.Size(); i+=1 )
+		{
+			if( onlyShowable && !oils[i].GetShowOnHUD() )
+			{
+				continue;
+			}
+			
+			if( lastIndex == -1 )
+			{
+				lastIndex = i;
+			}
+			else if( newest && oils[i].GetQueueTimer() < oils[lastIndex].GetQueueTimer() )
+			{
+				lastIndex = i;
+			}
+			else if( !newest && oils[i].GetQueueTimer() > oils[lastIndex].GetQueueTimer() )
+			{
+				lastIndex = i;
+			}
+		}
+		
+		if( lastIndex == -1 )
+		{
+			return NULL;
+		}
+		
+		return oils[lastIndex];
+	}
+	
+	public final function ItemHasAnyActiveOilApplied( id : SItemUniqueId ) : bool
+	{
+		return GetActiveOilsAppliedOnItemCount( id );
+	}
+	
+	public final function ItemHasActiveOilApplied( id : SItemUniqueId, monsterCategory : EMonsterCategory ) : bool
+	{
+		var i : int;
+		var oils : array< W3Effect_Oil >;
+		
+		oils = GetOilsAppliedOnItem( id );
+		for( i=0; i<oils.Size(); i+=1 )
+		{
+			if( oils[ i ].GetMonsterCategory() == monsterCategory && oils[ i ].GetAmmoCurrentCount() > 0 )
+			{
+				return true;
+			}
+		}
+		
 		return false;
 	}
 	
-	public function GetSwordOil(sword : SItemUniqueId):name
-	{
-		var i, tempI     : int;		
-		var tempAF 	     : array<float>;
-		var dm           : CDefinitionsManagerAccessor;
-		var oilAbility   : name;
-		var isSteelSword : bool;
-		var itemCategory : name;
-		var swordAbilities, oilAbs, items, items2 : array<name>;
-		
-		if (!IsIdValid(sword))
-		{
-			return '';
-		}
-		itemCategory = GetItemCategory(sword);
-		if (itemCategory == 'steelsword')
-		{
-			isSteelSword = true;
-		}
-		else if (itemCategory == 'silversword')
-		{
-			isSteelSword = false;
-		}
-		else
-		{
-			
-			return '';
-		}
-		
-		GetItemAbilities(sword, swordAbilities);
-		dm = theGame.GetDefinitionsManager();
-		oilAbility = '';
-		for(i=0; i<swordAbilities.Size(); i+=1)
-		{
-			if(dm.AbilityHasTag(swordAbilities[i], theGame.params.OIL_ABILITY_TAG))
-			{
-				oilAbility = swordAbilities[i];
-				break;
-			}
-		}
-		
-		if(!IsNameValid(oilAbility))
-			return ''; 
-			
-		
-		if(isSteelSword)
-			items = dm.GetItemsWithTag('SteelOil');
-		else
-			items = dm.GetItemsWithTag('SilverOil');
-			
-		
-		if( ( W3ReplacerCiri ) thePlayer )
-		{
-			items2 = dm.GetItemsWithTag( 'SilverOil' );
-			ArrayOfNamesAppend( items, items2 );
-		}
-			
-		
-		for(i=0; i<items.Size(); i+=1)
-		{
-			dm.GetItemAbilitiesWithWeights(items[i], GetEntity() == thePlayer, oilAbs, tempAF, tempI, tempI);
-			if(oilAbs.Contains(oilAbility))
-			{
-				return items[i];
-			}
-		}
-		
-		LogAssert(false, "W3PlayerWitcher.GetOilAppliedOnSword: sword has some oil but this oil is not defined in XMLs!");
-		return '';
-	}
-	
-	
-		
-	
-	
-	
+	/////////////////////////////////////////////
+	//         TOOLTIPS
+	/////////////////////////////////////////////
 	
 	public final function GetParamsForRunewordTooltip(runewordName : name, out i : array<int>, out f : array<float>, out s : array<string>)
 	{
@@ -2272,7 +3637,7 @@ import class CInventoryComponent extends CComponent
 				break;
 			case 'Runeword 4' :
 				theGame.GetDefinitionsManager().GetAbilityAttributeValue('Runeword 4 _Stats', 'max_bonus', min, max);
-				i.PushBack( RoundMath(max.valueMultiplicative * 100) );	
+				i.PushBack( RoundMath(max.valueMultiplicative * 100) );	//hardcoded
 				break;
 			case 'Runeword 6' :
 				theGame.GetDefinitionsManager().GetAbilityAttributeValue( 'Runeword 6 _Stats', 'runeword6_duration_bonus', min, max );
@@ -2284,7 +3649,7 @@ import class CInventoryComponent extends CComponent
 				break;
 			case 'Runeword 10' :
 				theGame.GetDefinitionsManager().GetAbilityAttributeValue( 'Runeword 10 _Stats', 'stamina', min, max );
-				i.PushBack( RoundMath(min.valueMultiplicative * 100) );	
+				i.PushBack( RoundMath(min.valueMultiplicative * 100) );	//hardcoded
 				break;
 			case 'Runeword 11' :
 				theGame.GetDefinitionsManager().GetAbilityAttributeValue( 'Runeword 11 _Stats', 'duration', min, max );
@@ -2310,53 +3675,53 @@ import class CInventoryComponent extends CComponent
 		var newAttr : SAttributeTooltip;
 		var attributeString : string;
 		
-		
+		//if not a potion then quit
 		if(!IsItemPotion(potionId))
 			return;
 			
-		
+		//get potion buff attributes
 		GetItemContainedAbilities(potionId, abs);
 		for(i=0; i<abs.Size(); i+=1)
 		{
 			EffectNameToType(abs[i], buffType, abilityName);
 			
-			
+			//not a buff ability
 			if(buffType == EET_Undefined)
 				continue;
 				
-			
+			//otherwise get list of attributes
 			theGame.GetDefinitionsManager().GetAbilityAttributes(abs[i], attrs);
 			break;
 		}
 		
-		
+		//custom attribute filtering
 		attrs.Remove('duration');
 		attrs.Remove('level');
 		
 		if(buffType == EET_Cat)
 		{
-			
+			//internal
 			attrs.Remove('highlightObjectsRange');
 		}
 		else if(buffType == EET_GoldenOriole)
 		{
-			
+			//in tooltip
 			attrs.Remove('poison_resistance_perc');
 		}
 		else if(buffType == EET_MariborForest)
 		{
-			
+			//in tooltip
 			attrs.Remove('focus_on_drink');
 		}
 		else if(buffType == EET_KillerWhale)
 		{
-			
+			//internal
 			attrs.Remove('swimmingStamina');
 			attrs.Remove('vision_strength');
 		}
 		else if(buffType == EET_Thunderbolt)
 		{
-			
+			//in tooltip
 			attrs.Remove('critical_hit_chance');
 		}
 		else if(buffType == EET_WhiteRaffardDecoction)
@@ -2413,7 +3778,7 @@ import class CInventoryComponent extends CComponent
 			attrs.Remove('mutagen14_max_stack');
 		}
 		
-		
+		//fill attribute names and values
 		for(j=0; j<attrs.Size(); j+=1)
 		{
 			val = GetItemAbilityAttributeValue(potionId, attrs[j], abs[i]);
@@ -2430,7 +3795,7 @@ import class CInventoryComponent extends CComponent
 			{
 				if(buffType == EET_Mutagen26)
 				{
-					
+					//uses same attribute twice with mult and add
 					newAttr.value = val.valueAdditive;
 					newAttr.percentageValue = false;
 					tips.PushBack(newAttr);
@@ -2442,7 +3807,7 @@ import class CInventoryComponent extends CComponent
 				}
 				else if(buffType == EET_Mutagen07)
 				{
-					
+					//has mult == 1 and uses base
 					attrs.Erase(1);
 					newAttr.value = val.valueBase;
 					newAttr.percentageValue = true;
@@ -2491,7 +3856,17 @@ import class CInventoryComponent extends CComponent
 		}
 	}
 	
+	/**	
+		ACHTUNG!
 	
+		This cannot be done by taking two ids of items because the id is unique ONLY in THIS inventory. 
+		So if you have items from two different inventories (like shop, container) the id of the item from
+		the other inventory cannot be used in this inventory (it will point to NULL or some other random item).
+		
+		id - item id of the item in this inventory		
+		invOther - inventory component of the other item
+		idOther - item id of the other item
+	*/
 	public function GetItemRelativeTooltipType(id :SItemUniqueId, invOther : CInventoryComponent, idOther : SItemUniqueId) : ECompareType
 	{	
 		
@@ -2506,7 +3881,9 @@ import class CInventoryComponent extends CComponent
 		return ECT_Incomparable;
 	}
 	
-	
+	/**
+		Formats a float value to show in the tooltip. The value is decimal with 2 points after the dot always. // #B deprecated
+	*/
 	private function FormatFloatForTooltip(fValue : float) : string
 	{
 		var valueInt, valueDec : int;
@@ -2536,7 +3913,7 @@ import class CInventoryComponent extends CComponent
 		priceMult = mult;
 	}
 	
-	
+	// Price modified by area and item category
 	public function GetMerchantPriceModifier( shopNPC : CNewNPC, item : SItemUniqueId ) : float
 	{
 		var areaPriceMult		: float;
@@ -2590,18 +3967,18 @@ import class CInventoryComponent extends CComponent
 		return  finalPriceMult;
 	}	
 
-	public function SetRepairPriceMultiplier( mult : float ) 
+	public function SetRepairPriceMultiplier( mult : float ) // #B
 	{
 		priceRepairMult = mult;
 	}
 	
-	
-	public function GetRepairPriceModifier( repairNPC : CNewNPC ) : float 
+	// Price modified by area and item category
+	public function GetRepairPriceModifier( repairNPC : CNewNPC ) : float // #B should be taken from NPC invComp
 	{
 		return priceRepairMult;
 	}	
 	
-	public function GetRepairPrice( item : SItemUniqueId ) : float 
+	public function GetRepairPrice( item : SItemUniqueId ) : float // #B
 	{
 		var currDiff : float;
 		currDiff = GetItemMaxDurability(item) - GetItemDurability(item); 
@@ -2609,7 +3986,7 @@ import class CInventoryComponent extends CComponent
 		return priceRepair * currDiff;
 	}
 	
-	
+	//fills item tooltip data
 	public function GetTooltipData(itemId : SItemUniqueId, out localizedName : string, out localizedDescription : string, out price : int, out localizedCategory : string,
 									out itemStats : array<SAttributeTooltip>, out localizedFluff : string)
 	{
@@ -2625,7 +4002,7 @@ import class CInventoryComponent extends CComponent
 		GetItemStats(itemId, itemStats);
 	}
 	
-	
+	// get only item's base and crafted stats
 	public function GetItemBaseStats(itemId : SItemUniqueId, out itemStats : array<SAttributeTooltip>)
 	{
 		var attributes : array<name>;
@@ -2634,22 +4011,31 @@ import class CInventoryComponent extends CComponent
 		var oilAbilities, oilAttributes : array<name>;
 		var weights : array<float>;
 		var i, j : int;
+		var tmpI, tmpJ : int;
 		
 		var idx			  : int;
 		var oilStatsCount : int;
 		var oilName  	  : name;
 		var oilStats 	  : array<SAttributeTooltip>;
 		var oilStatFirst  : SAttributeTooltip;
+		var oils		  : array< W3Effect_Oil >;
 		
 		GetItemBaseAttributes(itemId, attributes);
 		
-		
-		oilName = GetSwordOil(itemId);
-		if (oilName != '')
+		// #Y hack to remove oil bufs from this list		
+		oils = GetOilsAppliedOnItem( itemId );
+		dm = theGame.GetDefinitionsManager();
+		for( i=0; i<oils.Size(); i+=1 )
 		{
-			dm = theGame.GetDefinitionsManager();
-			dm.GetItemAbilitiesWithWeights(oilName, GetEntity() == thePlayer, oilAbilities, weights, i, j);
+			oilName = oils[ i ].GetOilItemName();
+			
+			oilAbilities.Clear();
+			weights.Clear();
+			dm.GetItemAbilitiesWithWeights(oilName, GetEntity() == thePlayer, oilAbilities, weights, tmpI, tmpJ);
+			
+			oilAttributes.Clear();
 			oilAttributes = dm.GetAbilitiesAttributes(oilAbilities);
+			
 			oilStatsCount = oilAttributes.Size();
 			for (idx = 0; idx < oilStatsCount; idx+=1)
 			{
@@ -2660,7 +4046,7 @@ import class CInventoryComponent extends CComponent
 		GetItemTooltipAttributes(itemId, attributes, itemStats);
 	}
 	
-	
+	//filling attributes/statsfluff
 	public function GetItemStats(itemId : SItemUniqueId, out itemStats : array<SAttributeTooltip>)
 	{
 		var attributes : array<name>;
@@ -2688,14 +4074,14 @@ import class CInventoryComponent extends CComponent
 		itemCategory = GetItemCategory(itemId);
 		for(i=0; i<settingsSize; i+=1)
 		{
-			
+			//get next in order attribute name
 			attributeString = theGame.tooltipSettings.GetValueAt(0,i);
 			if(StrLen(attributeString) <= 0)
-				continue;						
+				continue;						//just an empty line in file
 			
 			attributeName = '';
 			
-			
+			//check if this item has this attribute
 			for(j=0; j<attributes.Size(); j+=1)
 			{
 				if(NameToString(attributes[j]) == attributeString)
@@ -2707,16 +4093,16 @@ import class CInventoryComponent extends CComponent
 			if(!IsNameValid(attributeName))
 				continue;
 			
-			
+			// hardcode: we don't show damage for swords
 			if(itemCategory == 'silversword' && attributeName == 'SlashingDamage') continue;
 			if(itemCategory == 'steelsword' && attributeName == 'SilverDamage') continue;
 			
-			
+			//get the color of the attribute string (for the tooltip panel)
 			attributeColor = theGame.tooltipSettings.GetValueAt(1,i);
 			
 			isPercentageValue = theGame.tooltipSettings.GetValueAt(2,i);	
 			
-			
+			//if yes then get the values and add them to stats array
 			attributeVal = GetItemAttributeValue(itemId, attributeName);
 			stat.attributeColor = attributeColor;
 			stat.percentageValue = isPercentageValue;			
@@ -2730,8 +4116,8 @@ import class CInventoryComponent extends CComponent
 			}
 			if(attributeVal.valueMultiplicative != 0)
 			{				
-				
-				
+				// #J setting percentage Value to true is smarter here and the localized version of the _mult strings doesn't exist and is overkill from what I can tell
+				// So changing true to false
 				statLabel = GetAttributeNameLocStr(attributeName, false);
 				stat.value = attributeVal.valueMultiplicative;
 				stat.percentageValue = true;
@@ -2744,13 +4130,13 @@ import class CInventoryComponent extends CComponent
 			if (stat.value != 0)
 			{
 				stat.attributeName = statLabel;
-				
+				//stat.attributeName = primaryStatLabel;
 				itemStats.PushBack(stat);
 			}
 		}
 	}
 	
-	
+	//filling attributes/statsfluff for crafting recipe
 	public function GetItemStatsFromName(itemName : name, out itemStats : array<SAttributeTooltip>)
 	{
 		var itemCategory : name;
@@ -2776,14 +4162,14 @@ import class CInventoryComponent extends CComponent
 		itemCategory = dm.GetItemCategory(itemName);
 		for(i=0; i<settingsSize; i+=1)
 		{
-			
+			//get next in order attribute name
 			attributeString = theGame.tooltipSettings.GetValueAt(0,i);
 			if(StrLen(attributeString) <= 0)
-				continue;						
+				continue;						//just an empty line in file
 			
 			attributeName = '';
 			
-			
+			//check if this item has this attribute
 			for(j=0; j<attributes.Size(); j+=1)
 			{
 				if(NameToString(attributes[j]) == attributeString)
@@ -2795,19 +4181,19 @@ import class CInventoryComponent extends CComponent
 			if(!IsNameValid(attributeName))
 				continue;
 			
-			
+			// hardcode: we don't show damage for swords
 			if(itemCategory == 'silversword' && attributeName == 'SlashingDamage') continue;
 			if(itemCategory == 'steelsword' && attributeName == 'SilverDamage') continue;
 			
-			
+			//get the color of the attribute string (for the tooltip panel)
 			attributeColor = theGame.tooltipSettings.GetValueAt(1,i);
 			
 			isPercentageValue = theGame.tooltipSettings.GetValueAt(2,i);
 			
-			
+			//if yes then get the values and add them to stats array
 			dm.GetAbilitiesAttributeValue(itemAbilities, attributeName, min, max);
 			attributeVal = GetAttributeRandomizedValue(min, max);
-			
+			//attributeVal = GetItemAttributeValue(itemId, attributeName);
 			stat.attributeColor = attributeColor;
 			stat.percentageValue = isPercentageValue;
 			
@@ -2844,11 +4230,11 @@ import class CInventoryComponent extends CComponent
 			if (stat.value != 0)
 			{
 				stat.attributeName = statLabel;
-				
+				//stat.attributeName = primaryStatLabel;
 				itemStats.PushBack(stat);
 			}
 			
-			
+			//itemStats.PushBack(stat);
 		}
 	}
 	
@@ -2898,22 +4284,8 @@ import class CInventoryComponent extends CComponent
 		}
 		return false;
 	}
-	public function GetOilNameOnSword(steel:bool):name
-	{
-		var player : W3PlayerWitcher;
-			
-		player = ((W3PlayerWitcher)GetEntity());
-		if(player)
-		{
-			return player.GetOilAppliedOnSword(steel);
-		}
-		else
-		{
-			return '';
-		}
-	}
 	
-	
+	// #Y TODO: Check it
 	public function GetItemPrimaryStat(itemId : SItemUniqueId, out attributeLabel : string, out attributeVal : float ) : void
 	{
 		var attributeName : name;
@@ -3024,7 +4396,7 @@ import class CInventoryComponent extends CComponent
 		attributeLabel = "";
 		categoryName = GetItemCategory(itemId);
 		
-		
+		// #Y Maybe we can just select max stat? TODO: Discuss with Kanik
 		if (categoryName == 'bolt' || categoryName == 'petard')
 		{
 			GetItemAttributes(itemId, abList);
@@ -3130,7 +4502,7 @@ import class CInventoryComponent extends CComponent
 				break;
 			case 'potion':
 			case 'oil':
-				
+				//attributeName = 'duration';
 				break;
 			case 'bolt':
 			case 'petard':
@@ -3218,13 +4590,39 @@ import class CInventoryComponent extends CComponent
 		else									return EES_InvalidSlot;
 	}
 	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////  @SINGLETON ITEMS  ////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
-	
-	public final function SingletonItemRefillAmmo(id : SItemUniqueId)
+	public final function SingletonItemRefillAmmo( id : SItemUniqueId, optional alchemyTableUsed : bool )
 	{
-		SetItemModifierInt(id, 'ammo_current', SingletonItemGetMaxAmmo(id));
+		var l_bed		: W3WitcherBed;
+		var refilledByBed : bool;
+		
+		refilledByBed = false;
+		
+		//Alchemy Table increases all the potions by 1
+		if( FactsQuerySum( "PlayerInsideOuterWitcherHouse" ) >= 1 && FactsQuerySum( "AlchemyTableExists" ) >= 1 && !IsItemMutagenPotion( id ) )
+		{
+			l_bed = (W3WitcherBed)theGame.GetEntityByTag( 'witcherBed' );
+			
+			if( l_bed.GetWasUsed() || alchemyTableUsed )
+			{
+				SetItemModifierInt( id, 'ammo_current', SingletonItemGetMaxAmmo(id) + theGame.params.QUANTITY_INCREASED_BY_ALCHEMY_TABLE ) ;
+				refilledByBed = true;
+				if( !l_bed.GetWereItemsRefilled() )
+				{
+					l_bed.SetWereItemsRefilled( true );
+				}
+			}			
+		}
+		
+		//regular refill
+		if( !refilledByBed && SingletonItemGetAmmo( id ) < SingletonItemGetMaxAmmo( id ) )
+		{
+			SetItemModifierInt(id, 'ammo_current', SingletonItemGetMaxAmmo(id));
+		}
+		
 		theGame.GetGlobalEventsManager().OnScriptedEvent( SEC_OnAmmoChanged );
 	}
 	
@@ -3233,10 +4631,14 @@ import class CInventoryComponent extends CComponent
 		var amount : int;
 		
 		if(ItemHasTag(id, theGame.params.TAG_INFINITE_AMMO))
+		{
 			amount = -1;
-		else			
+		}
+		else
+		{
 			amount = Clamp(quantity, 0, SingletonItemGetMaxAmmo(id));
-				
+		}
+		
 		SetItemModifierInt(id, 'ammo_current', amount);
 		theGame.GetGlobalEventsManager().OnScriptedEvent( SEC_OnAmmoChanged );
 	}
@@ -3251,14 +4653,14 @@ import class CInventoryComponent extends CComponent
 		ammo = GetItemModifierInt(id, 'ammo_current');
 		
 		if(ammo == -1)
-			return;	
+			return;	//infinite, cannot add
 			
 		ammo = Clamp(ammo + quantity, 0, SingletonItemGetMaxAmmo(id));
 		SetItemModifierInt(id, 'ammo_current', ammo);
 		theGame.GetGlobalEventsManager().OnScriptedEvent( SEC_OnAmmoChanged );
 	}
 	
-	public function SingletonItemsRefillAmmo()
+	public function SingletonItemsRefillAmmo( optional alchemyTableUsed : bool ) : bool
 	{
 		var i : int;
 		var singletonItems : array<SItemUniqueId>;
@@ -3268,20 +4670,21 @@ import class CInventoryComponent extends CComponent
 		var itemLabel : string;
 	
 		witcher = GetWitcherPlayer();
-		if(GetEntity() == witcher && HasNotFilledSingletonItem())
+		if(GetEntity() == witcher && HasNotFilledSingletonItem( alchemyTableUsed ) )
 		{
 			alco = witcher.GetAlcoholForAlchemicalItemsRefill();
 		
 			if(!IsIdValid(alco))
 			{
-				
+				//doesn't have alcohol that can be used to refill
 				theGame.GetGuiManager().ShowNotification(GetLocStringByKeyExt("message_common_alchemy_items_cannot_refill"));
 				theSound.SoundEvent("gui_global_denied");
-				return;
+				
+				return false;
 			}
 			else
 			{
-				
+				//has alco to refill				
 				arrStr.PushBack(GetItemName(alco));
 				itemLabel = GetLocStringByKeyExt(GetItemLocalizedNameByUniqueID(alco));
 				theGame.GetGuiManager().ShowNotification( itemLabel + " - " + GetLocStringByKeyExtWithParams("message_common_alchemy_items_refilled", , , arrStr));
@@ -3295,8 +4698,10 @@ import class CInventoryComponent extends CComponent
 		singletonItems = GetSingletonItems();
 		for(i=0; i<singletonItems.Size(); i+=1)
 		{			
-			SingletonItemRefillAmmo(singletonItems[i]);
+			SingletonItemRefillAmmo( singletonItems[i], alchemyTableUsed );
 		}
+		
+		return true;
 	}
 	
 	public function SingletonItemsRefillAmmoNoAlco(optional dontUpdateUI : bool)
@@ -3311,11 +4716,11 @@ import class CInventoryComponent extends CComponent
 		witcher = GetWitcherPlayer();
 		if(!dontUpdateUI && GetEntity() == witcher && HasNotFilledSingletonItem())
 		{
-				
-				arrStr.PushBack(GetItemName(alco));
-				itemLabel = GetLocStringByKeyExt(GetItemLocalizedNameByUniqueID(alco));
-				theGame.GetGuiManager().ShowNotification( itemLabel + " - " + GetLocStringByKeyExtWithParams("message_common_alchemy_items_refilled", , , arrStr));
-				theSound.SoundEvent("gui_alchemy_brew");
+			//has alco to refill				
+			arrStr.PushBack(GetItemName(alco));
+			itemLabel = GetLocStringByKeyExt(GetItemLocalizedNameByUniqueID(alco));
+			theGame.GetGuiManager().ShowNotification( itemLabel + " - " + GetLocStringByKeyExtWithParams("message_common_alchemy_items_refilled", , , arrStr));
+			theSound.SoundEvent("gui_alchemy_brew");
 		}
 		
 		singletonItems = GetSingletonItems();
@@ -3325,16 +4730,36 @@ import class CInventoryComponent extends CComponent
 		}
 	}	
 	
-	
-	private final function HasNotFilledSingletonItem() : bool
+	//returns true if has at least one singleton item that does not have full ammo
+	private final function HasNotFilledSingletonItem( optional alchemyTableUsed : bool ) : bool
 	{
 		var i : int;
 		var singletonItems : array<SItemUniqueId>;
+		var hasLab : bool;
+		var l_bed : W3WitcherBed;
+		
+		//Alchemy Table increases all the potions by 1
+		hasLab = false;
+		if( FactsQuerySum( "PlayerInsideOuterWitcherHouse" ) >= 1 && FactsQuerySum( "AlchemyTableExists" ) >= 1 )
+		{
+			l_bed = (W3WitcherBed)theGame.GetEntityByTag( 'witcherBed' );			
+			if( l_bed.GetWasUsed() || alchemyTableUsed )
+			{
+				hasLab = true;
+			}
+		}
 		
 		singletonItems = GetSingletonItems();
 		for(i=0; i<singletonItems.Size(); i+=1)
 		{			
-			if(SingletonItemGetAmmo(singletonItems[i]) < SingletonItemGetMaxAmmo(singletonItems[i]))
+			if( hasLab && !IsItemMutagenPotion( singletonItems[i] ) )
+			{
+				if(SingletonItemGetAmmo(singletonItems[i]) <= SingletonItemGetMaxAmmo(singletonItems[i]))
+				{
+					return true;
+				}
+			}
+			else if(SingletonItemGetAmmo(singletonItems[i]) < SingletonItemGetMaxAmmo(singletonItems[i]))
 			{
 				return true;
 			}
@@ -3357,7 +4782,7 @@ import class CInventoryComponent extends CComponent
 		ammo = Max(0, ammo - quantity);
 		SetItemModifierInt(itemID, 'ammo_current', ammo);
 		
-		
+		//count alchemy usage but only after nightmare
 		if(ammo == 0 && ShouldProcessTutorial('TutorialAlchemyRefill') && FactsQuerySum("q001_nightmare_ended") > 0)
 		{
 			FactsAdd('tut_alch_refill', 1);
@@ -3375,26 +4800,92 @@ import class CInventoryComponent extends CComponent
 	
 	public function SingletonItemGetMaxAmmo(itemID : SItemUniqueId) : int
 	{
-		var ammo : int;
+		var ammo, i : int;
+		var perk20Bonus, min, max : SAbilityAttributeValue;
+		var atts : array<name>;
+		var canUseSkill : bool;
 		
 		ammo = RoundMath(CalculateAttributeValue(GetItemAttributeValue(itemID, 'ammo')));
 		
-		if(GetEntity() == GetWitcherPlayer() && ammo > 0)
+		if( !ItemHasTag( itemID, 'NoAdditionalAmmo' ) )
 		{
-			if(IsItemBomb(itemID) && thePlayer.CanUseSkill(S_Alchemy_s08) )
-				ammo += thePlayer.GetSkillLevel(S_Alchemy_s08);
-				
-			
-			if(thePlayer.HasBuff(EET_Mutagen03) && (IsItemBomb(itemID) || (!IsItemMutagenPotion(itemID) && IsItemPotion(itemID))) )
-				ammo += 1;
+			if(GetEntity() == GetWitcherPlayer() && ammo > 0)
+			{
+				if(IsItemBomb(itemID) && thePlayer.CanUseSkill(S_Alchemy_s08) )
+				{
+					ammo += thePlayer.GetSkillLevel(S_Alchemy_s08);
+				}
+				//mutagen 3
+				if(thePlayer.HasBuff(EET_Mutagen03) && (IsItemBomb(itemID) || (!IsItemMutagenPotion(itemID) && IsItemPotion(itemID))) )
+				{
+					ammo += 1;
+				}
+
+				if( GetWitcherPlayer().IsSetBonusActive( EISB_RedWolf_2 ) && !IsItemMutagenPotion(itemID) )
+				{
+					theGame.GetDefinitionsManager().GetAbilityAttributeValue( GetSetBonusAbility( EISB_RedWolf_2 ), 'amount', min, max);
+					ammo += (int)min.valueAdditive;
+				}
+							
+				//Perk 20 - decreases amount of bombs in stack, but increases their damage
+				if( IsItemBomb( itemID ) && thePlayer.CanUseSkill( S_Perk_20 ) &&  GetItemName( itemID ) != 'Snow Ball' )
+				{
+					GetItemAttributes( itemID, atts );
+					canUseSkill = thePlayer.CanUseSkill( S_Alchemy_s10 );
+					perk20Bonus = GetWitcherPlayer().GetSkillAttributeValue( S_Perk_20, 'stack_multiplier', false, false );
+					
+					for( i=0 ; i<atts.Size() ; i+=1 )
+					{
+						if( canUseSkill || IsDamageTypeNameValid( atts[i] ) )
+						{
+							ammo = RoundMath( ammo * perk20Bonus.valueMultiplicative );
+							break;
+						}
+					}				
+				}
+			}
 		}
-	
+		
 		return ammo;
 	}
 	
+	public function ManageSingletonItemsBonus()
+	{
+		var l_items			: array<SItemUniqueId>;
+		var l_i				: int;
+		var l_haveBombOrPot	: bool;
+		
+		l_items = GetSingletonItems();
+
+		for( l_i = 0 ; l_i < l_items.Size() ; l_i += 1 )
+		{
+			if( IsItemPotion( l_items[ l_i ] ) || IsItemBomb( l_items[ l_i ] ) )
+			{
+				l_haveBombOrPot = true;
+				if( SingletonItemGetMaxAmmo( l_items[ l_i ] ) >= SingletonItemGetAmmo( l_items[ l_i ] ) )
+				{
+					if( SingletonItemsRefillAmmo( true ) )
+					{
+						theGame.GetGuiManager().ShowNotification( GetLocStringByKeyExt( "message_common_alchemy_table_buff_applied" ),, true );
+					}
+					
+					return;
+				}
+			}
+		}
+		
+		if( !l_haveBombOrPot )
+		{
+			theGame.GetGuiManager().ShowNotification( GetLocStringByKeyExt( "message_common_alchemy_table_buff_no_items" ),, true );
+			return;
+		}
+		
+		theGame.GetGuiManager().ShowNotification( GetLocStringByKeyExt( "message_common_alchemy_table_buff_already_on" ),, true );
+	}
 	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////  @SLOTS  //////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	public final function IsItemSteelSwordUsableByPlayer(item : SItemUniqueId) : bool
 	{
@@ -3429,7 +4920,7 @@ import class CInventoryComponent extends CComponent
 	public final function IsItemDismantleKit(item : SItemUniqueId) : bool					{return ItemHasTag(item, 'DismantleKit');}
 	public final function IsItemHorseBag(item : SItemUniqueId) : bool						{return ItemHasTag(item, 'HorseBag');}	
 	public final function IsItemReadable(item : SItemUniqueId) : bool						{return ItemHasTag(item, 'ReadableItem');}
-	public final function IsItemAlchemyItem(item : SItemUniqueId) : bool					{return IsItemOil(item) || IsItemPotion(item) || IsItemBomb(item) || ItemHasTag(item, 'QuickSlot'); }	
+	public final function IsItemAlchemyItem(item : SItemUniqueId) : bool					{return IsItemOil(item) || IsItemPotion(item) || IsItemBomb(item); /*|| ItemHasTag(item, 'QuickSlot');*/ }	// #B
 	public final function IsItemSingletonItem(item : SItemUniqueId) : bool 					{return ItemHasTag(item, theGame.params.TAG_ITEM_SINGLETON);}
 	public final function IsItemQuest(item : SItemUniqueId) : bool							{return ItemHasTag(item, 'Quest');}
 	public final function IsItemFood(item : SItemUniqueId) : bool							{return ItemHasTag(item, 'Edibles') || ItemHasTag(item, 'Drinks');}
@@ -3437,15 +4928,47 @@ import class CInventoryComponent extends CComponent
 	public final function IsItemHorseItem(item: SItemUniqueId) : bool						{return ItemHasTag(item, 'Saddle') || ItemHasTag(item, 'HorseBag') || ItemHasTag(item, 'Trophy') || ItemHasTag(item, 'Blinders'); }
 	public final function IsItemSaddle(item: SItemUniqueId) : bool							{return ItemHasTag(item, 'Saddle');}
 	public final function IsItemBlinders(item: SItemUniqueId) : bool						{return ItemHasTag(item, 'Blinders');}
+	public final function IsItemDye( item : SItemUniqueId ) : bool							{ return ItemHasTag( item, 'mod_dye' ); }
+	public final function IsItemUsable( item : SItemUniqueId ) : bool 						{ return GetItemCategory( item ) == 'usable'; }
+	public final function IsItemJunk( item : SItemUniqueId ) : bool							{ return ItemHasTag( item,'junk' ) || GetItemCategory( item ) == 'junk' ; }
+	public final function IsItemAlchemyIngredient(item : SItemUniqueId) : bool				{ return ItemHasTag( item, 'AlchemyIngredient' ); }
+	public final function IsItemCraftingIngredient(item : SItemUniqueId) : bool				{ return ItemHasTag( item, 'CraftingIngredient' ); }
+	public final function IsItemArmorReapairKit(item : SItemUniqueId) : bool				{ return ItemHasTag( item, 'ArmorReapairKit' ); }
+	public final function IsItemWeaponReapairKit(item : SItemUniqueId) : bool				{ return ItemHasTag( item, 'WeaponReapairKit' ); }
+	public final function IsQuickSlotItem( item : SItemUniqueId ) : bool 					{ return ItemHasTag( item, 'QuickSlot' ); }
+	
+	public final function IsItemNew( item : SItemUniqueId ) : bool
+	{
+		var uiData : SInventoryItemUIData;
+		
+		uiData = GetInventoryItemUIData( item );
+		return uiData.isNew;
+	}
 	
 	public final function IsItemMutagenPotion(item : SItemUniqueId) : bool
 	{
 		return IsItemPotion(item) && ItemHasTag(item, 'Mutagen');
 	}
 	
+	public final function CanItemBeColored( item : SItemUniqueId) : bool
+	{
+		if ( RoundMath( CalculateAttributeValue( GetItemAttributeValue( item, 'quality' ) ) ) == 5 )
+		{
+			return true;
+		}
+		return false;	
+	}
+
 	public final function IsItemSetItem(item : SItemUniqueId) : bool
 	{
-		return ItemHasTag(item, theGame.params.ITEM_SET_TAG_BEAR) || ItemHasTag(item, theGame.params.ITEM_SET_TAG_GRYPHON) || ItemHasTag(item, theGame.params.ITEM_SET_TAG_LYNX) || ItemHasTag(item, theGame.params.ITEM_SET_TAG_WOLF);
+		return
+			ItemHasTag(item, theGame.params.ITEM_SET_TAG_BEAR) ||
+			ItemHasTag(item, theGame.params.ITEM_SET_TAG_GRYPHON) ||
+			ItemHasTag(item, theGame.params.ITEM_SET_TAG_LYNX) ||
+			ItemHasTag(item, theGame.params.ITEM_SET_TAG_WOLF) ||
+			ItemHasTag(item, theGame.params.ITEM_SET_TAG_RED_WOLF) ||
+			ItemHasTag( item, theGame.params.ITEM_SET_TAG_VAMPIRE ) ||
+			ItemHasTag(item, theGame.params.ITEM_SET_TAG_VIPER);
 	}
 	
 	public function GetArmorType(item : SItemUniqueId) : EArmorType
@@ -3454,7 +4977,7 @@ import class CInventoryComponent extends CComponent
 		
 		isItemEquipped = GetWitcherPlayer().IsItemEquipped(item);
 		
-		
+		//GlyphWord bonuses
 		if( thePlayer.HasAbility('Glyphword 2 _Stats', true) && isItemEquipped )
 		{return EAT_Light;}
 		if( thePlayer.HasAbility('Glyphword 3 _Stats', true) && isItemEquipped )
@@ -3496,22 +5019,22 @@ import class CInventoryComponent extends CComponent
 		if(ItemHasTag(item, theGame.params.TAG_ENCUMBRANCE_ITEM_FORCE_NO))
 			return false;
 
-		
-		if (
+		//#J added in IsItemAlchemyItem and IsItemIngredient to make it consisten with tooltip. Need to varify which is correct but this way makes most sense
+		if (//	IsItemQuest(item)
 				IsRecipeOrSchematic( item )
 			||	IsItemBody( item )
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
+		//	||	IsItemBolt(item)
+		//	||	IsItemAlchemyItem(item)
+		//	||	IsItemIngredient(item)
+		//	||	IsItemTool(item)
+		//	||	GetItemCategory(item) == 'misc'
+		//	||	GetItemCategory(item) == 'usable'
+		//	||	GetItemCategory(item) == 'book'
+		//	||	GetItemCategory(item) == 'key'
+		//	||	GetItemCategory(item) == 'trophy'
+		//	||	GetItemCategory(item) == 'mask'
+		//	||	GetItemCategory(item) == 'junk'
+		//	||	GetItemCategory(item) == 'horse_bag'
 			)
 			return false;
 
@@ -3532,7 +5055,7 @@ import class CInventoryComponent extends CComponent
 			{
 				return 0.01 + GetItemWeight( item ) * GetItemQuantity( item ) * 0.2;
 			}
-			else if ( IsItemAlchemyItem( item ) || IsItemIngredient( item ) )
+			else if ( IsItemAlchemyItem( item ) || IsItemIngredient( item ) || IsItemFood( item ) || IsItemReadable( item ) )
 			{
 				return 0.0;
 			}
@@ -3574,7 +5097,7 @@ import class CInventoryComponent extends CComponent
 		}
 	}	
 	
-	
+	//returns true if given item is an item that is placed in quickslots
 	public function IsItemQuickslotItem(item : SItemUniqueId) : bool
 	{
 		return IsSlotQuickslot( GetSlotForItemId(item) );
@@ -3588,8 +5111,8 @@ import class CInventoryComponent extends CComponent
 		return (int)CalculateAttributeValue(GetItemAttributeValue(id, 'ammo'));
 	}
 		
-	
-	
+	//Returns appropriate slot for given item. If it's a slot that exists in multiple numbers (e.g. quickslot) tries to find first free one. If there is no free one
+	//then returns the default slot for this group.
 	public function GetSlotForItemId(item : SItemUniqueId) : EEquipmentSlots
 	{
 		var tags : array<name>;
@@ -3691,7 +5214,11 @@ import class CInventoryComponent extends CComponent
 		return GetItemsByTag('Weapon');	
 	}
 	
-	
+	/*
+		Quest function to get specific items - do not use outisde of quest function!
+		
+		Gets items of given types, except the ones that cannot be dropped.
+	*/
 	public function GetSpecifiedPlayerItemsQuest(steelSword, silverSword, armor, boots, gloves, pants, trophy, mask, bombs, crossbow, secondaryWeapon, equippedOnly : bool) : array<SItemUniqueId>
 	{	
 		var items, allItems : array<SItemUniqueId>;
@@ -3725,9 +5252,9 @@ import class CInventoryComponent extends CComponent
 		
 		return items;		
 	}	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
+	//Called BEFORE the item is removed from inventory
 	event OnItemRemoved( itemId : SItemUniqueId, quantity : int )
 	{
 		var ent				: CGameplayEntity;
@@ -3736,14 +5263,14 @@ import class CInventoryComponent extends CComponent
 		var refill : W3RefillableContainer;
 		
 		witcher = GetWitcherPlayer();
-		
+		//if player
 		if(GetEntity() == witcher)
 		{
+			//update encumbrance
+			//if(IsItemEncumbranceItem(itemId)) // #B there is no sense in calling it here, "Called BEFORE the item is removed from inventory"
+			//	GetWitcherPlayer().UpdateEncumbrance();
 			
-			
-			
-			
-			
+			//remove infinite bolts if player has no crossbow
 			if(IsItemCrossbow(itemId) && HasInfiniteBolts())
 			{
 				crossbows = GetItemsByCategory('crossbow');
@@ -3757,11 +5284,11 @@ import class CInventoryComponent extends CComponent
 			}
 			else if(IsItemBolt(itemId) && witcher.IsItemEquipped(itemId) && witcher.inv.GetItemQuantity(itemId) == quantity)
 			{
-				
+				//losing all equipped bolts
 				witcher.UnequipItem(itemId);
 			}
 			
-			
+			//removing equipped crossbow
 			if(IsItemCrossbow(itemId) && witcher.IsItemEquipped(itemId) && witcher.rangedWeapon)
 			{
 				witcher.rangedWeapon.ClearDeployedEntity(true);
@@ -3775,23 +5302,23 @@ import class CInventoryComponent extends CComponent
 				}
 			}
 			
-			
+			//failsafe for removing equipped item without proper checks
 			if(witcher.IsItemEquipped(itemId) && quantity >= witcher.inv.GetItemQuantity(itemId))
 				witcher.UnequipItem(itemId);
 		}
 		
-		
+		//if removing currently held weapon (or mounted - Ciri has issues with her Held weapons not being considered held!)
 		if(GetEntity() == thePlayer && IsItemWeapon(itemId) && (IsItemHeld(itemId) || IsItemMounted(itemId) ))
 		{
 			thePlayer.OnHolsteredItem(GetItemCategory(itemId),'r_weapon');
 		}
 		
-		
+		//callback to the entity
 		ent = (CGameplayEntity)GetEntity();
 		if(ent)
 			ent.OnItemTaken( itemId, quantity );
 			
-		
+		//refillable container
 		if(IsLootRenewable())
 		{
 			refill = (W3RefillableContainer)GetEntity();
@@ -3800,7 +5327,7 @@ import class CInventoryComponent extends CComponent
 		}
 	}
 	
-	
+	//FIXME URGENT - what if player is not spawned yet?
 	function GenerateItemLevel( item : SItemUniqueId, rewardItem : bool )
 	{
 		var stat : SAbilityAttributeValue;
@@ -3808,15 +5335,16 @@ import class CInventoryComponent extends CComponent
 		var lvl, i : int;
 		var quality : int;
 		var ilMin, ilMax : int;
-
+		
 		playerLevel = GetWitcherPlayer().GetLevel();
 
 		lvl = playerLevel - 1;
 
-		
+		// W3MOD - MAS - Merchants should offer items beyond the player's level.
 		if ( ( W3MerchantNPC )GetEntity() )
 		{
-			lvl = RoundF( playerLevel + RandRangeF( 4, 1 ) );
+			lvl = RoundF( playerLevel + RandRangeF( 2, 0 ) );
+			AddItemTag( item, 'AutogenUseLevelRange' );
 		}
 		else if ( rewardItem )
 		{
@@ -3828,7 +5356,7 @@ import class CInventoryComponent extends CComponent
 			ilMin = RoundMath(CalculateAttributeValue( GetItemAttributeValue( item, 'item_level_min' ) ));
 			ilMax = RoundMath(CalculateAttributeValue( GetItemAttributeValue( item, 'item_level_max' ) ));
 			
-			lvl += 1; 
+			lvl += 1; //as it is for some reason decreased in on of the futher funtions ...
 			if ( !ItemHasTag( item, 'AutogenForceLevel') )
 				lvl += RoundMath(RandRangeF( 1, -1 ));
 			
@@ -3891,16 +5419,17 @@ import class CInventoryComponent extends CComponent
 		if (FactsQuerySum("StandAloneEP1") > 0)
 			lvl = GetWitcherPlayer().GetLevel() - 1;
 			
+		
 		if ( FactsQuerySum("NewGamePlus") > 0 && !ItemHasTag( item, 'AutogenUseLevelRange') )
 		{	
 			if ( quality == 5 ) lvl += 2; 
 			if ( quality == 4 ) lvl += 1;
 		}
-		
+			
 		if ( lvl < 1 ) lvl = 1; 
-		if ( lvl > 70 ) lvl = 70;
+		if ( lvl > GetWitcherPlayer().GetMaxLevel() ) lvl = GetWitcherPlayer().GetMaxLevel();
 		
-		if ( ItemHasTag( item, 'PlayerSteelWeapon' ) && !ItemHasAbility( item, 'autogen_steel_base') ) 
+		if ( ItemHasTag( item, 'PlayerSteelWeapon' ) && !( ItemHasAbility( item, 'autogen_steel_base' ) || ItemHasAbility( item, 'autogen_fixed_steel_base' ) )  ) // STEEL SWORD
 		{
 			if ( ItemHasTag(item, 'AutogenUseLevelRange') && ItemHasAbility(item, 'autogen_fixed_steel_base') )
 				return;
@@ -3924,7 +5453,7 @@ import class CInventoryComponent extends CComponent
 					AddItemCraftedAbility(item, 'autogen_steel_dmg', true ); 
 			}
 		}
-		else if ( ItemHasTag( item, 'PlayerSilverWeapon' ) && !ItemHasAbility( item, 'autogen_silver_base')  ) 
+		else if ( ItemHasTag( item, 'PlayerSilverWeapon' ) && !( ItemHasAbility( item, 'autogen_silver_base' ) || ItemHasAbility( item, 'autogen_fixed_silver_base' ) ) ) // SILVER SWORD
 		{
 			if ( ItemHasTag(item, 'AutogenUseLevelRange') && ItemHasAbility(item, 'autogen_fixed_silver_base') )
 				return;
@@ -3948,7 +5477,7 @@ import class CInventoryComponent extends CComponent
 					AddItemCraftedAbility(item, 'autogen_silver_dmg', true ); 
 			}
 		}
-		else if ( GetItemCategory( item ) == 'armor' && !ItemHasAbility( item, 'autogen_armor_base') ) 
+		else if ( GetItemCategory( item ) == 'armor' && !( ItemHasAbility( item, 'autogen_armor_base' ) || ItemHasAbility( item, 'autogen_fixed_armor_base' ) ) ) // Armor
 		{
 			if ( ItemHasTag(item, 'AutogenUseLevelRange') && ItemHasAbility(item, 'autogen_fixed_armor_base') )
 				return;
@@ -3972,7 +5501,7 @@ import class CInventoryComponent extends CComponent
 					AddItemCraftedAbility(item, 'autogen_armor_armor', true );		
 			}
 		}
-		else if ( ( GetItemCategory( item ) == 'boots' || GetItemCategory( item ) == 'pants' ) && !ItemHasAbility( item, 'autogen_pants_base') ) 
+		else if ( ( GetItemCategory( item ) == 'boots' || GetItemCategory( item ) == 'pants' ) && !( ItemHasAbility( item, 'autogen_pants_base' ) || ItemHasAbility( item, 'autogen_fixed_pants_base' ) ) ) // Pants and boots
 		{
 			if ( ItemHasTag(item, 'AutogenUseLevelRange') && ItemHasAbility(item, 'autogen_fixed_pants_base') )
 				return;
@@ -3996,7 +5525,7 @@ import class CInventoryComponent extends CComponent
 					AddItemCraftedAbility(item, 'autogen_pants_armor', true ); 
 			}
 		}
-		else if ( GetItemCategory( item ) == 'gloves' && !ItemHasAbility( item, 'autogen_gloves_base') ) 
+		else if ( GetItemCategory( item ) == 'gloves' && !( ItemHasAbility( item, 'autogen_gloves_base' ) || ItemHasAbility( item, 'autogen_fixed_gloves_base' ) ) ) // Gloves
 		{
 			if ( ItemHasTag(item, 'AutogenUseLevelRange') && ItemHasAbility(item, 'autogen_fixed_gloves_base') )
 				return;
@@ -4019,14 +5548,14 @@ import class CInventoryComponent extends CComponent
 				else
 					AddItemCraftedAbility(item, 'autogen_gloves_armor', true );
 			}
-		}		
+		}	
 	}
 		
-	
+	//Called AFTER the item was added to inventory
 	event OnItemAdded(data : SItemChangedData)
 	{
-		var i, j			: int;
-		var ent			: CGameplayEntity;
+		var i, j : int;
+		var ent	: CGameplayEntity;
 		var allCardsNames, foundCardsNames : array<name>;
 		var allStringNamesOfCards : array<string>;
 		var foundCardsStringNames : array<string>;
@@ -4038,44 +5567,66 @@ import class CInventoryComponent extends CComponent
 		var locKey : string;
 		var leaderCardsHack : array<name>;
 		
+		var hud : CR4ScriptedHud;
+		var journalUpdateModule : CR4HudModuleJournalUpdate;
+		var itemId : SItemUniqueId;
+		
+		var isItemShematic : bool;
+		
+		var ngp : bool;
+		
 		ent = (CGameplayEntity)GetEntity();
 		
+		itemId = data.ids[0];
 		
+		//inform GUI
 		if( data.informGui )
 		{
-			recentlyAddedItems.PushBack(data.ids[0]);
-			if( ItemHasTag(data.ids[0],'FocusObject') )
+			recentlyAddedItems.PushBack( itemId );
+			if( ItemHasTag( itemId, 'FocusObject' ) )
 			{
-				GetWitcherPlayer().GetMedallion().Activate(true,3.0);
+				GetWitcherPlayer().GetMedallion().Activate( true, 3.0);
 			} 
 		}
 		
-		
-		if ( ItemHasTag(data.ids[0], 'Autogen') ) GenerateItemLevel( data.ids[0], false );
+		//if item should be auto balanced - do it
+		if ( ItemHasTag(itemId, 'Autogen') ) 
+		{
+			GenerateItemLevel( itemId, false );
+		}
 		
 		witcher = GetWitcherPlayer();
 		
-		
+		//Items with quality and stats change
 		if(ent == witcher || ((W3MerchantNPC)ent) )
 		{
+			ngp = FactsQuerySum("NewGamePlus") > 0;
 			for(i=0; i<data.ids.Size(); i+=1)
 			{
-				
+				//Process items that do not have stats changed already
 				if ( GetItemModifierInt(data.ids[i], 'ItemQualityModified') <= 0 )
 					AddRandomEnhancementToItem(data.ids[i]);
-				
-				if ( FactsQuerySum("NewGamePlus") > 0 )
+				//Safeguard against unwanted level decrease for DLC items
+				if ( ngp )
 					SetItemModifierInt(data.ids[i], 'DoNotAdjustNGPDLC', 1);	
+				
+				itemName = GetItemName(data.ids[i]);
+				// For NG+ items need to increase in level to match NG+
+				if ( ngp && GetItemModifierInt(data.ids[i], 'NGPItemAdjusted') <= 0 && !ItemHasTag(data.ids[i], 'Autogen') )
+				{
+					IncreaseNGPItemlevel(data.ids[i]);
+				}
+				
 			}
 		}
 		if(ent == witcher)
 		{
 			for(i=0; i<data.ids.Size(); i+=1)
 			{	
-				
-				if(ItemHasTag(data.ids[0], theGame.params.GWINT_CARD_ACHIEVEMENT_TAG) || !FactsDoesExist("fix_for_gwent_achievement_bug_121588"))
+				//if gwint card then progress achievement
+				if( ItemHasTag( itemId, theGame.params.GWINT_CARD_ACHIEVEMENT_TAG ) || !FactsDoesExist( "fix_for_gwent_achievement_bug_121588" ) )
 				{
-					
+					//Achievement hack for leaders as they use unique localisation key in XML
 					leaderCardsHack.PushBack('gwint_card_emhyr_gold');
 					leaderCardsHack.PushBack('gwint_card_emhyr_silver');
 					leaderCardsHack.PushBack('gwint_card_emhyr_bronze');
@@ -4090,13 +5641,13 @@ import class CInventoryComponent extends CComponent
 					leaderCardsHack.PushBack('gwint_card_eredin_bronze');
 					
 					dm = theGame.GetDefinitionsManager();
-					
+					//get max count from XML
 					allCardsNames = theGame.GetDefinitionsManager().GetItemsWithTag(theGame.params.GWINT_CARD_ACHIEVEMENT_TAG);
 					
-					
+					//get all cards in inventory
 					gwintCards = GetItemsByTag(theGame.params.GWINT_CARD_ACHIEVEMENT_TAG);
 
-					
+					//Achievement hack for leaders as they use unique localisation key in XML
 					allStringNamesOfCards.PushBack('gwint_name_emhyr');
 					allStringNamesOfCards.PushBack('gwint_name_emhyr');
 					allStringNamesOfCards.PushBack('gwint_name_emhyr');
@@ -4110,7 +5661,7 @@ import class CInventoryComponent extends CComponent
 					allStringNamesOfCards.PushBack('gwint_name_eredin');
 					allStringNamesOfCards.PushBack('gwint_name_eredin');
 					
-					
+					//Count only UNIQUE cards (with the same localisation key name)
 					for(j=0; j<allCardsNames.Size(); j+=1)
 					{
 						itemName = allCardsNames[j];
@@ -4121,7 +5672,7 @@ import class CInventoryComponent extends CComponent
 						}
 					}
 					
-					
+					//If minimum amount needed for achievement (120 unique cards) - Count only UNIQUE cards (with the same localisation key name)
 					if(gwintCards.Size() >= allStringNamesOfCards.Size())
 					{
 						foundCardsNames.Clear();
@@ -4129,7 +5680,7 @@ import class CInventoryComponent extends CComponent
 						{
 							itemName = GetItemName(gwintCards[j]);
 							locKey = dm.GetItemLocalisationKeyName(itemName);
-							
+							// Hack for Leader Cards as they have the same loc key name
 							if(!foundCardsStringNames.Contains(locKey) || leaderCardsHack.Contains(itemName))
 							{
 								foundCardsStringNames.PushBack(locKey);
@@ -4147,20 +5698,39 @@ import class CInventoryComponent extends CComponent
 						FactsAdd("fix_for_gwent_achievement_bug_121588", 1, -1);
 				}
 				
-				itemCategory = GetItemCategory( data.ids[0] );
-				if( itemCategory == 'alchemy_recipe' ||  itemCategory == 'crafting_schematic' )
+				itemCategory = GetItemCategory( itemId );
+				isItemShematic = itemCategory == 'alchemy_recipe' ||  itemCategory == 'crafting_schematic';
+				
+				if( isItemShematic )
 				{
-					ReadSchematicsAndRecipes( data.ids[0] );
+					ReadSchematicsAndRecipes( itemId );
 				}					
 				
+				//gwent cards
+				if( ItemHasTag( data.ids[i], 'GwintCard'))
+				{
+					witcher.AddGwentCard(GetItemName(data.ids[i]), data.quantity);
+				}
 				
-				if(ItemHasTag(data.ids[i], 'GwintCard'))
-						witcher.AddGwentCard(GetItemName(data.ids[i]), data.quantity);
+				// book
+				
+				if( !isItemShematic && ( this.ItemHasTag( itemId, 'ReadableItem' ) || this.ItemHasTag( itemId, 'Painting' ) ) && !this.ItemHasTag( itemId, 'NoNotification' ) )
+				{
+					hud = (CR4ScriptedHud)theGame.GetHud();
+					if( hud )
+					{
+						journalUpdateModule = (CR4HudModuleJournalUpdate)hud.GetHudModule( "JournalUpdateModule" );
+						if( journalUpdateModule )
+						{
+							journalUpdateModule.AddQuestBookInfo( itemId );
+						}
+					}
+				}				
 			}
 		}
 		
-		
-		if(IsItemSingletonItem(data.ids[0]))
+		//singleton item ammo initialize
+		if( IsItemSingletonItem( itemId ) )
 		{
 			for(i=0; i<data.ids.Size(); i+=1)
 			{
@@ -4172,7 +5742,7 @@ import class CInventoryComponent extends CComponent
 			}			
 		}
 		
-		
+		//callback to the entity
 		if(ent)
 			ent.OnItemGiven(data);
 	}
@@ -4183,9 +5753,9 @@ import class CInventoryComponent extends CComponent
 		var itemQuality		: int;
 		var ability			: name;
 		var ent				: CGameplayEntity;
+		//var dm				: CDefinitionsManagerAccessor;
 		
-		
-		
+		//dm = theGame.GetDefinitionsManager();
 		
 		if( ItemHasTag(item, 'DoNotEnhance') )
 		{
@@ -4211,12 +5781,12 @@ import class CInventoryComponent extends CComponent
 						AddItemCraftedAbility(item, theGame.params.GetRandomMagicalArmorAbility(), true);
 						break;
 					}
-					
+					// first ability
 					if ( RandF() > 0.5 )
 						AddItemCraftedAbility(item, theGame.params.GetRandomMagicalArmorAbility(), true);
 					else
 						AddItemCraftedAbility(item, theGame.params.GetRandomMasterworkArmorAbility(), true);
-					
+					//second ability
 					if ( RandF() > 0.5 )
 						AddItemCraftedAbility(item, theGame.params.GetRandomMagicalArmorAbility(), true);
 					else
@@ -4240,12 +5810,12 @@ import class CInventoryComponent extends CComponent
 						AddItemCraftedAbility(item, theGame.params.GetRandomMagicalArmorAbility(), true);
 						break;
 					}		
-					
+					// first ability
 					if ( RandF() > 0.5 )
 						AddItemCraftedAbility(item, theGame.params.GetRandomMagicalGlovesAbility(), true);
 					else
 						AddItemCraftedAbility(item, theGame.params.GetRandomMasterworkGlovesAbility(), true);
-					
+					//second ability
 					if ( RandF() > 0.5 )
 						AddItemCraftedAbility(item, theGame.params.GetRandomMagicalGlovesAbility(), true);
 					else
@@ -4269,12 +5839,12 @@ import class CInventoryComponent extends CComponent
 						AddItemCraftedAbility(item, theGame.params.GetRandomMagicalArmorAbility(), true);
 						break;
 					}
-					
+					// first ability
 					if ( RandF() > 0.5 )
 						AddItemCraftedAbility(item, theGame.params.GetRandomMagicalPantsAbility(), true);
 					else
 						AddItemCraftedAbility(item, theGame.params.GetRandomMasterworkPantsAbility(), true);
-					
+					//second ability
 					if ( RandF() > 0.5 )
 						AddItemCraftedAbility(item, theGame.params.GetRandomMagicalPantsAbility(), true);
 					else
@@ -4298,12 +5868,12 @@ import class CInventoryComponent extends CComponent
 						AddItemCraftedAbility(item, theGame.params.GetRandomMagicalArmorAbility(), true);
 						break;
 					}
-					
+					// first ability
 					if ( RandF() > 0.5 )
 						AddItemCraftedAbility(item, theGame.params.GetRandomMagicalBootsAbility(), true);
 					else
 						AddItemCraftedAbility(item, theGame.params.GetRandomMasterworkBootsAbility(), true);
-					
+					//second ability
 					if ( RandF() > 0.5 )
 						AddItemCraftedAbility(item, theGame.params.GetRandomMagicalBootsAbility(), true);
 					else
@@ -4327,12 +5897,12 @@ import class CInventoryComponent extends CComponent
 						AddItemCraftedAbility(item, theGame.params.GetRandomMagicalArmorAbility(), true);
 						break;
 					}
-					
+					// first ability
 					if ( RandF() > 0.5 )
 						AddItemCraftedAbility(item, theGame.params.GetRandomMagicalWeaponAbility(), true);
 					else
 						AddItemCraftedAbility(item, theGame.params.GetRandomMasterworkWeaponAbility(), true);
-					
+					//second ability
 					if ( RandF() > 0.5 )
 						AddItemCraftedAbility(item, theGame.params.GetRandomMagicalWeaponAbility(), true);
 					else
@@ -4356,12 +5926,12 @@ import class CInventoryComponent extends CComponent
 						AddItemCraftedAbility(item, theGame.params.GetRandomMagicalArmorAbility(), true);
 						break;
 					}
-					
+					// first ability
 					if ( RandF() > 0.5 )
 						AddItemCraftedAbility(item, theGame.params.GetRandomMagicalWeaponAbility(), true);
 					else
 						AddItemCraftedAbility(item, theGame.params.GetRandomMasterworkWeaponAbility(), true);
-					
+					//second ability
 					if ( RandF() > 0.5 )
 						AddItemCraftedAbility(item, theGame.params.GetRandomMagicalWeaponAbility(), true);
 					else
@@ -4379,6 +5949,54 @@ import class CInventoryComponent extends CComponent
 		}
 	}
 	
+	public function IncreaseNGPItemlevel(item : SItemUniqueId)
+	{
+		var i, diff : int;
+		
+		diff = theGame.params.NewGamePlusLevelDifference();
+		
+		if (diff > 0)
+		{
+			if ( ItemHasTag( item, 'PlayerSteelWeapon' ) ) // STEEL SWORD
+			{	
+				for( i=0; i<diff; i+=1 ) 
+				{
+					AddItemCraftedAbility(item, 'autogen_fixed_steel_dmg', true );
+				}
+			}
+			else if ( ItemHasTag( item, 'PlayerSilverWeapon' ) ) // SILVER SWORD
+			{
+				for( i=0; i<diff; i+=1 ) 
+				{
+					AddItemCraftedAbility(item, 'autogen_fixed_silver_dmg', true ); 
+				}
+			}
+			else if ( IsItemChestArmor(item) ) // Armor
+			{	
+				for( i=0; i<diff; i+=1 ) 
+				{
+					AddItemCraftedAbility(item, 'autogen_fixed_armor_armor', true );		
+				}
+			}
+			else if ( IsItemBoots(item) || IsItemPants(item) ) // Pants and boots
+			{				
+				for( i=0; i<diff; i+=1 ) 
+				{
+					AddItemCraftedAbility(item, 'autogen_fixed_pants_armor', true ); 
+				}
+			}
+			else if ( IsItemGloves(item) ) // Gloves
+			{			
+				for( i=0; i<diff; i+=1 ) 
+				{
+					AddItemCraftedAbility(item, 'autogen_fixed_gloves_armor', true );
+				}
+			}	
+		}
+		
+		SetItemModifierInt(item, 'NGPItemAdjusted', 1);
+	}
+	
 	public function GetItemQuality( itemId : SItemUniqueId ) : int
 	{
 		var itemQuality : float;
@@ -4386,7 +6004,7 @@ import class CInventoryComponent extends CComponent
 		var excludedTags : array<name>;
 		var tempItemQualityAtribute	: SAbilityAttributeValue;
 	
-		
+		//get attribute but exclude attribute value of applied oil!!
 		excludedTags.PushBack(theGame.params.OIL_ABILITY_TAG);
 		itemQualityAtribute = GetItemAttributeValue( itemId, 'quality', excludedTags, true );
 		
@@ -4424,17 +6042,17 @@ import class CInventoryComponent extends CComponent
 		}
 	}
 	
-	public function GetRecentlyAddedItems() : array<SItemUniqueId> 
+	public function GetRecentlyAddedItems() : array<SItemUniqueId> //#B
 	{
 		return recentlyAddedItems;
 	}
 	
-	public function GetRecentlyAddedItemsListSize() : int 
+	public function GetRecentlyAddedItemsListSize() : int //#B
 	{
 		return recentlyAddedItems.Size();
 	}
 	
-	public function RemoveItemFromRecentlyAddedList( itemId : SItemUniqueId ) : bool 
+	public function RemoveItemFromRecentlyAddedList( itemId : SItemUniqueId ) : bool //#B
 	{
 		var i : int;
 		
@@ -4450,8 +6068,8 @@ import class CInventoryComponent extends CComponent
 		return false;
 	}
 	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// callbacks
 	
 	import final function NotifyScriptedListeners( notify : bool );
 	
@@ -4485,25 +6103,55 @@ import class CInventoryComponent extends CComponent
 		var i, size : int;
 		
 		size = listeners.Size();
-		for (i=size-1; i>=0; i-=1 )		
+		for (i=size-1; i>=0; i-=1 )		//it seems listeners erase themselves so array iterator gets corrupted
 		{
 			listeners[i].OnInventoryScriptedEvent( eventType, itemId, quantity, fromAssociatedInventory );
 		}
 		
-		
+		//update encumbrance
 		if(GetEntity() == GetWitcherPlayer() && (eventType == IET_ItemRemoved || eventType == IET_ItemQuantityChanged) )
 			GetWitcherPlayer().UpdateEncumbrance();
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////   @MUTAGENS   /////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	public final function GetMutationResearchPoints( color : ESkillColor, item : SItemUniqueId ) : int
+	{
+		var val : SAbilityAttributeValue;
+		var colorAttribute : name;
+		
+		//wrong input
+		if( color == SC_None || color == SC_Yellow || !IsIdValid( item ) )
+		{
+			return 0;
+		}
+		
+		//get attribute name
+		switch( color )
+		{
+			case SC_Red:
+				colorAttribute = 'mutation_research_points_red';
+				break;
+			case SC_Blue:
+				colorAttribute = 'mutation_research_points_blue';
+				break;
+			case SC_Green:
+				colorAttribute = 'mutation_research_points_green';
+				break;
+		}
+		
+		//get value
+		val = GetItemAttributeValue( item, colorAttribute );
+		
+		return ( int )val.valueAdditive;
+	}
 	
 	public function GetSkillMutagenColor(item : SItemUniqueId) : ESkillColor
 	{		
 		var abs : array<name>;
 	
-		
+		//not a mutagen ingredient
 		if(!ItemHasTag(item, 'MutagenIngredient'))
 			return SC_None;
 			
@@ -4522,17 +6170,23 @@ import class CInventoryComponent extends CComponent
 		return SC_None;
 	}
 
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////   @Enhancements   /////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	
-	
-	
-	
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// FUNCTIONS YOU ALWAYS WANTED TO KNOW, BUT NOBODY TOLD YOU ABOUT THEM - ITEM SOCKETS 
+	//
 	import final function GetItemEnhancementSlotsCount( itemId : SItemUniqueId ) : int;
 	import final function GetItemEnhancementItems( itemId : SItemUniqueId, out names : array< name > );
 	import final function GetItemEnhancementCount( itemId : SItemUniqueId ) : int;
+	import final function GetItemColor( itemId : SItemUniqueId ) : name;
+	import final function IsItemColored( itemId : SItemUniqueId ) : bool;
+	import final function SetPreviewColor( itemId : SItemUniqueId, colorId : int );
+	import final function ClearPreviewColor( itemId : SItemUniqueId ) : bool;
+	import final function ColorItem( itemId : SItemUniqueId, dyeId : SItemUniqueId );
+	import final function ClearItemColor( itemId : SItemUniqueId ) : bool;
 	import final function EnchantItem( enhancedItemId : SItemUniqueId, enchantmentName : name, enchantmentStat : name ) : bool;
 	import final function GetEnchantment( enhancedItemId : SItemUniqueId ) : name;
 	import final function IsItemEnchanted( enhancedItemId : SItemUniqueId ) : bool;
@@ -4563,7 +6217,7 @@ import class CInventoryComponent extends CComponent
 		if ( EnhanceItem( enhancedItemId, extensionItemId ) )
 		{
 			NotifyEnhancedItem( enhancedItemId );
-			
+			// Check runeword
 			GetItemEnhancementItems( enhancedItemId, enhancements );
 			if ( theGame.runewordMgr.GetRuneword( enhancements, runeword ) )
 			{
@@ -4594,11 +6248,11 @@ import class CInventoryComponent extends CComponent
 		{
 			NotifyEnhancedItem( enhancedItemId );
 			
-			
-			
+			//Readd rune to inventory
+			//AddAnItem( names[slotIndex], 1, true, true );
 			if ( hasRuneword )
 			{
-				
+				//Remove runeword
 				for ( i = 0; i < runeword.abilities.Size(); i+=1 )
 				{
 					RemoveItemBaseAbility( enhancedItemId, runeword.abilities[i] );
@@ -4620,16 +6274,16 @@ import class CInventoryComponent extends CComponent
 		GetItemEnhancementItems( enhancedItemId, enhancements );
 		hasRuneword = theGame.runewordMgr.GetRuneword( enhancements, runeword );
 		
-		
+		//check runeword
 		if ( RemoveItemEnhancementByName( enhancedItemId, extensionItemName ) )
 		{
 			NotifyEnhancedItem( enhancedItemId );
 			
-			
+			//Readd rune to inventory
 			AddAnItem( extensionItemName, 1, true, true );
 			if ( hasRuneword )
 			{
-				
+				//Remove runeword
 				for ( i = 0; i < runeword.abilities.Size(); i+=1 )
 				{
 					RemoveItemBaseAbility( enhancedItemId, runeword.abilities[i] );
@@ -4668,8 +6322,279 @@ import class CInventoryComponent extends CComponent
 			}
 		}
 	}
-}
 	
+	//Check if this inventory components have any valid items for an armor stand, moved here since it's also used in UI popup
+	public function GetHasValidDecorationItems( items : array<SItemUniqueId>, decoration : W3HouseDecorationBase ) : bool
+	{
+		var i, size : int;
+		
+		size = items.Size();
+		
+		//No valid items were found in the inventory
+		if(size == 0 )
+		{
+			LogChannel( 'houseDecorations', "No items with valid tag were found!" );
+			return false;
+		}
+		
+		//Filter out all items that are not valid but have the tag
+		for( i=0; i < size; i+= 1 )
+		{	
+			//Exclude equipped items
+			if( GetWitcherPlayer().IsItemEquipped( items[i] ) )
+			{
+				LogChannel( 'houseDecorations', "Found item is equipped, erasing..." );
+				continue;
+			}
+			
+			//If items m_acceptQuestItems is false exclude all quest items
+			if( IsItemQuest( items[i] ) && decoration.GetAcceptQuestItems() == false )
+			{
+				LogChannel( 'houseDecorations', "Found item is quest item, and quest items are not accepted, erasing..." );
+				continue;
+			}
+			
+			//If the item has a forbiden tag
+			if( decoration.GetItemHasForbiddenTag( items[i] ) )
+			{
+				LogChannel( 'houseDecorations', "Found item has a forbidden tag, erasing..." );
+				continue;
+			}
+			
+			LogChannel( 'houseDecorations', "Item checks out: "+ GetItemName( items[i] ) );
+			return true;
+		}
+		LogChannel( 'houseDecorations', "No valid items were found!" );
+		
+		return false;	
+	}	
+	
+	//Checks all defined cards against player's collected cards and Gwent Collector Achievement condition, returns missing cards
+	function GetMissingCards() : array< name >
+	{
+		var defMgr 			: CDefinitionsManagerAccessor 	= theGame.GetDefinitionsManager();
+		var allCardNames 	: array< name > 				= defMgr.GetItemsWithTag(theGame.params.GWINT_CARD_ACHIEVEMENT_TAG);
+		var playersCards 	: array< SItemUniqueId > 		= GetItemsByTag(theGame.params.GWINT_CARD_ACHIEVEMENT_TAG);
+		var playersCardLocs	: array< string >;
+		var missingCardLocs	: array< string >;
+		var missingCards 	: array< name >;
+		var i, j 			: int;
+		var found 			: bool;
+		
+		//divide all cards between found and not found, based on item names (not localization keys)
+		for ( i = 0; i < allCardNames.Size(); i+=1 )
+		{
+			found = false;
+			
+			for ( j = 0; j < playersCards.Size(); j+=1 )
+			{
+				if ( allCardNames[i] == GetItemName( playersCards[j] ) )
+				{
+					found = true;
+					playersCardLocs.PushBack( defMgr.GetItemLocalisationKeyName ( allCardNames[i] ) );
+					break;
+				}
+			}
+			
+			if ( !found )
+			{
+				missingCardLocs.PushBack( defMgr.GetItemLocalisationKeyName( allCardNames[i] ) );
+				missingCards.PushBack( allCardNames[i] );
+			}
+		}
+		
+		if( missingCardLocs.Size() < 2 )
+		{
+			return missingCards;
+		}
+		
+		//remove from missingCards the ones the player's got, based on localization keys so non-achievement cards are also removed
+		for ( i = missingCardLocs.Size()-1 ; i >= 0 ; i-=1 )
+		{
+			for ( j = 0 ; j < playersCardLocs.Size() ; j+=1 )
+			{
+				if ( missingCardLocs[i] == playersCardLocs[j] 
+					&& missingCardLocs[i] != "gwint_name_emhyr" && missingCardLocs[i] != "gwint_name_foltest"
+					&& missingCardLocs[i] != "gwint_name_francesca" && missingCardLocs[i] != "gwint_name_eredin" )
+				{
+					missingCardLocs.EraseFast( i );
+					missingCards.EraseFast( i );
+					break;
+				}
+			}
+		}
+		
+		return missingCards;
+	}
+	
+	public function FindCardSources( missingCards : array< name > ) : array< SCardSourceData >
+	{
+		var sourceCSV 			: C2dArray;
+		var sourceTable 		: array< SCardSourceData >;
+		var sourceRemaining		: array< SCardSourceData >;
+		var sourceCount, i, j	: int;
+		
+		if ( theGame.IsFinalBuild() )
+		{
+			sourceCSV = LoadCSV("gameplay\globals\card_sources.csv");
+		}
+		else
+		{
+			sourceCSV = LoadCSV("qa\card_sources.csv");
+		}
+
+		sourceCount = sourceCSV.GetNumRows();
+		sourceTable.Resize(sourceCount);
+		
+		for ( i = 0 ; i < sourceCount ; i+=1 )
+		{
+			sourceTable[i].cardName = sourceCSV.GetValueAsName("CardName",i);
+			sourceTable[i].source = sourceCSV.GetValue("Source",i);
+			sourceTable[i].originArea = sourceCSV.GetValue("OriginArea",i);
+			sourceTable[i].originQuest = sourceCSV.GetValue("OriginQuest",i);
+			sourceTable[i].details = sourceCSV.GetValue("Details",i);
+			sourceTable[i].coords = sourceCSV.GetValue("Coords",i);
+		}
+		
+		for ( i = 0 ; i < missingCards.Size() ; i+=1 )
+		{
+			for ( j = 0 ; j < sourceCount ; j+=1 )
+			{
+				if ( sourceTable[j].cardName == missingCards[i] )
+				{
+					sourceRemaining.PushBack( sourceTable[j] );
+				}
+			}
+		}
+		
+		return sourceRemaining;
+	}
+	
+	public function GetGwentAlmanacContents() : string
+	{
+		var sourcesRemaining	: array< SCardSourceData >;
+		var missingCards		: array< string >;
+		var almanacContents		: string;
+		var i 					: int;
+		var NML, Novigrad, Skellige, Prologue, Vizima, KaerMorhen, Random : int;
+
+		sourcesRemaining = FindCardSources( GetMissingCards() );
+		
+		for ( i = 0 ; i < sourcesRemaining.Size() ; i+=1 )
+		{
+			switch ( sourcesRemaining[i].originArea )
+			{
+				case "NML":
+					NML += 1;
+					break;
+				case "Novigrad":
+					Novigrad += 1;
+					break;
+				case "Skellige":
+					Skellige += 1;
+					break;
+				case "Prologue":
+					Prologue += 1;
+					break;
+				case "Vizima":
+					Vizima += 1;
+					break;
+				case "KaerMorhen":
+					KaerMorhen += 1;
+					break;
+				case "Random":
+					Random += 1;
+					break;
+				default:
+					break;
+			}
+		}
+		
+		if ( NML + Novigrad + Skellige + Prologue + Vizima + KaerMorhen + Random == 0 )
+		{
+			almanacContents = GetLocStringByKeyExt( "gwent_almanac_text" ) + "<br>";
+			almanacContents += GetLocStringByKeyExt( "gwent_almanac_completed_text" );
+		}
+		else
+		{
+			almanacContents = GetLocStringByKeyExt( "gwent_almanac_text" ) + "<br>";
+			if ( NML > 0 )
+			{
+				almanacContents += GetLocStringByKeyExt( "location_name_velen" ) + ": " + NML + "<br>";
+			}
+			if ( Novigrad > 0 )
+			{
+				almanacContents += GetLocStringByKeyExt( "map_location_novigrad" ) + ": " + Novigrad + "<br>";
+			}
+			if ( Skellige > 0 )
+			{
+				almanacContents += GetLocStringByKeyExt( "map_location_skellige" ) + ": " + Skellige + "<br>";
+			}
+			if ( Prologue > 0 )
+			{
+				almanacContents += GetLocStringByKeyExt( "map_location_prolog_village" ) + ": " + Prologue + "<br>";
+			}
+			if ( Vizima > 0 )
+			{
+				almanacContents += GetLocStringByKeyExt( "map_location_wyzima_castle" ) + ": " + Vizima + "<br>";
+			}
+			if ( KaerMorhen > 0 )
+			{
+				almanacContents += GetLocStringByKeyExt( "map_location_kaer_morhen" ) + ": " + KaerMorhen + "<br>";
+			}
+			almanacContents += GetLocStringByKeyExt( "gwent_source_random" ) + ": " + Random;
+		}
+		
+		return almanacContents;
+	}
+}
+
+exec function findMissingCards( optional card : name )
+{
+	var inv					: CInventoryComponent = thePlayer.GetInventory();
+	var sourcesRemaining	: array< SCardSourceData >;
+	var missingCards		: array< name >;
+	var i 					: int;
+	var sourceLogString		: string;
+	
+	if ( card != '' )
+	{
+		missingCards.PushBack( card );
+	}
+	else
+	{
+		missingCards = inv.GetMissingCards();
+	}
+	
+	sourcesRemaining = inv.FindCardSources( missingCards );
+
+	for ( i = 0 ; i < sourcesRemaining.Size() ; i+=1 )
+	{
+		sourceLogString = sourcesRemaining[i].cardName + " is a " + sourcesRemaining[i].source ;
+		if ( sourcesRemaining[i].originArea == "Random" )
+		{
+			sourceLogString += " card from a random merchant.";
+		}
+		else
+		{
+			sourceLogString += " item in " + sourcesRemaining[i].originArea + " from ";
+			
+			if ( sourcesRemaining[i].originQuest != "" )
+			{
+				sourceLogString += sourcesRemaining[i].originQuest + " , ";
+			}
+			
+			sourceLogString += sourcesRemaining[i].details;
+		}
+		Log( sourceLogString );
+		
+		if ( sourcesRemaining[i].coords != "" )
+		{
+			Log( sourcesRemaining[i].coords ); 
+		}
+	}
+}
+
 exec function slotTest()
 {
 	var inv : CInventoryComponent = thePlayer.inv;
@@ -4679,24 +6604,24 @@ exec function slotTest()
 	
 	LogChannel('SlotTest', "----------------------------------------------------------------");
 
-	
+	// add upgrades
 	inv.AddAnItem( 'Perun rune', 1);
 	inv.AddAnItem( 'Svarog rune', 1);
 	
 
 	for ( i = 0; i < 2; i += 1 )
 	{
-		
+		// get 'Long Steel Sword'
 		if ( !GetItem( inv, 'steelsword', weaponItemId ) ||
 			 !GetItem( inv, 'upgrade', upgradeItemId ) )
 		{
 			return;
 		}
 
-		
+		// print
 		PrintItem( inv, weaponItemId );
 	
-		
+		// enhance
 		if ( inv.EnhanceItemScript( weaponItemId, upgradeItemId ) )
 		{
 			LogChannel('SlotTest', "Enhanced item");
@@ -4707,16 +6632,16 @@ exec function slotTest()
 		}
 	}
 	
-	
+	// get item again
 	if ( !GetItem( inv, 'steelsword', weaponItemId ) )
 	{
 		return;
 	}
 
-	
+	// print
 	PrintItem( inv, weaponItemId );
 	
-	
+	// remove enhancement by name
 	if ( inv.RemoveItemEnhancementByNameScript( weaponItemId, 'Svarog rune' ) )
 	{
 		LogChannel('SlotTest', "Removed enhancement");
@@ -4726,16 +6651,16 @@ exec function slotTest()
 		LogChannel('SlotTest', "Failed to remove enhancement!");
 	}
 
-	
+	// get item again
 	if ( !GetItem( inv, 'steelsword', weaponItemId ) )
 	{
 		return;
 	}
 
-	
+	// print
 	PrintItem( inv, weaponItemId );
 
-	
+	// remove enhancement by index
 	if ( inv.RemoveItemEnhancementByIndexScript( weaponItemId, 0 ) )
 	{
 		LogChannel('SlotTest', "Removed enhancement");
@@ -4745,13 +6670,13 @@ exec function slotTest()
 		LogChannel('SlotTest', "Failed to remove enhancement!");
 	}
 	
-	
+	// get item again
 	if ( !GetItem( inv, 'steelsword', weaponItemId ) )
 	{
 		return;
 	}
 
-	
+	// print
 	PrintItem( inv, weaponItemId );
 }
 
@@ -4823,7 +6748,7 @@ function PrintItem( inv : CInventoryComponent, weaponItemId : SItemUniqueId )
 
 }
 
-function PlayItemEquipSound( itemCategory : name ) : void 
+function PlayItemEquipSound( itemCategory : name ) : void // #B
 {
 	switch( itemCategory )
 	{
@@ -4876,7 +6801,7 @@ function PlayItemEquipSound( itemCategory : name ) : void
 	}
 }
 
-function PlayItemUnequipSound( itemCategory : name ) : void 
+function PlayItemUnequipSound( itemCategory : name ) : void // #B
 {	
 	switch( itemCategory )
 	{
@@ -4937,4 +6862,7 @@ function PlayItemConsumeSound( item : SItemUniqueId ) : void
 		theSound.SoundEvent('gui_inventory_eat');
 	}
 }
+
+
+
 

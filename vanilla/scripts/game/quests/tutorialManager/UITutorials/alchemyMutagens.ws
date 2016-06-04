@@ -1,14 +1,11 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2014
+/** Author : Tomek Kozera
 /***********************************************************************/
-
-
 
 state AlchemyMutagens in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
-	private const var MUTAGENS : name;	
+	private const var MUTAGENS : name;	//hints
 	private var currentlySelectedRecipe, requiredRecipeName, selectRecipe : name;
 	
 		default MUTAGENS 		= 'TutorialMutagenPotion';
@@ -22,7 +19,7 @@ state AlchemyMutagens in W3TutorialManagerUIHandler extends TutHandlerBaseState
 			
 	event OnLeaveState( nextStateName : name )
 	{
-		CloseHint(MUTAGENS);
+		CloseStateHint(MUTAGENS);
 		super.OnLeaveState(nextStateName);
 	}
 		
@@ -35,7 +32,7 @@ state AlchemyMutagens in W3TutorialManagerUIHandler extends TutHandlerBaseState
 	{
 		if(theGame.GetDefinitionsManager().IsRecipeForMutagenPotion(recipeName))
 		{		
-			ShowHint(MUTAGENS, theGame.params.TUT_POS_ALCHEMY_X, theGame.params.TUT_POS_ALCHEMY_Y);
+			ShowHint(MUTAGENS, POS_ALCHEMY_X, POS_ALCHEMY_Y);
 		}
 	}
 }

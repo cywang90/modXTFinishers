@@ -1,20 +1,26 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** 
+/***********************************************************************/
+/** Copyright © 2012
+/** Author : Patryk Fiutowski
 /***********************************************************************/
 
-
+enum ECriticalEffectCounterType
+{
+	CECT_Human,
+	CECT_NonHuman,
+	CECT_Undefined
+}
 
 
 class CBehTreeTaskCSEffect extends IBehTreeTask
 {
-	protected var CSType		  : ECriticalStateType;
-	protected var requestedCSType : ECriticalStateType;
+	protected var CSType		  			: ECriticalStateType;
+	protected var requestedCSType 			: ECriticalStateType;
 	
-	var buffType			: EEffectType;
-	var buff 				: CBaseGameplayEffect;
-	public var finisherAnimName 	: name;
+	var buffType							: EEffectType;
+	var buff 								: CBaseGameplayEffect;
+	public var finisherAnimName 			: name;
 	
 	private var hasBuff 					: bool;
 	private var allowBlend 					: bool;
@@ -28,7 +34,6 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 	private var criticalStatesToResist 		: int;
 	private var resistCriticalStateChance 	: int;
 	
-	private var storageHandler 				: CAIStorageHandler;
 	protected var combatDataStorage 		: CBaseAICombatStorage;
 	protected var reactionDataStorage 		: CAIStorageReactionData;
 	
@@ -36,34 +41,53 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 	protected var forceFinisherActivation	: bool;
 	protected var finisherDisabled			: bool;
 	
-	default hasBuff = false;
-	default allowBlend = false;
-	default finisherEnabled = false;
+	default hasBuff 						= false;
+	default allowBlend 						= false;
+	default finisherEnabled 				= false;
 	
-	private var pullToNavRadiusMult : float;
+	private var pullToNavRadiusMult 		: float;
 	
-	default pullToNavRadiusMult = 3.f;
+	default pullToNavRadiusMult 			= 3.f;
+	default waitForDropItem 				= true;
 	
-	default waitForDropItem = true;
+	private	var	m_storedInteractionPri 		: EInteractionPriority;
+	default	m_storedInteractionPri 			= IP_NotSet;
 	
-	private	var	m_storedInteractionPri 		: EInteractionPriority; default	m_storedInteractionPri 		= IP_NotSet;
+	private var armored 					: bool;
+	private var hitAnim 					: bool;
+	private var unstoppable 				: bool;
+	
+	private var ragdollPullingEventReceived : bool;
+	private var distanceFromRootToBone 		: float;
+	private var boneIndex 					: int;
+	
+	private var hitsToRaiseGuard 			: float;
+	private var raiseGuardChance 			: float;
+	private var hitsToCounter 				: float;
+	private var counterChance 				: float;
+	private var counterStaminaCost 			: float;
+	private var canCounter 					: bool;
+	private var counterRequested 			: bool;
+	private var counterRequestTimeStamp 	: float;
+	private var counterType 				: ECriticalEffectCounterType;
+	
 	
 	function IsAvailable () : bool
 	{
-		var owner 			: CNewNPC = GetNPC();
+		var owner : CNewNPC = GetNPC();
 		
 		buff = owner.ChooseCurrentCriticalBuffForAnim();
 		
-		if ( buff )
+		if ( buff && GetLocalTime() > counterRequestTimeStamp + 1.0 )
 			return true;
-
+		
 		return false;
 	}
 	
 	function OnActivate() : EBTNodeStatus
 	{
 		var owner		: CNewNPC = GetNPC();
-		var currentPri : EInteractionPriority;
+		var currentPri 	: EInteractionPriority;
 		var actor 		: CActor;
 		var morphedMM	: CMorphedMeshManagerComponent;
 		
@@ -72,18 +96,18 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		buffType = buff.GetEffectType();
 		CSType = GetBuffCriticalType(buff);
 		
-		
+		//LogCritical("TaskCSEfffect: critical <<" + buffType + ">> anim start request");
 		owner.CSAnimStarted(buff);
 		
 		owner.IncCriticalStateCounter();
 		
 		owner.SetBehaviorVariable( 'bCriticalStopped', 0 );
 		owner.SetBehaviorVariable( 'CriticalStateType', (int)CSType );		
-		owner.SignalGameplayEvent('CSActivated');
+		owner.SignalGameplayEvent( 'CSActivated' );
 		
 		combatDataStorage.SetCriticalState( CSType, true, 0 );
 		
-		
+		//((CHumanAICombatStorage)combatDataStorage).DetachAndDestroyProjectile();
 		
 		reactionDataStorage.ChangeAttitudeIfNeeded(owner, (CActor)(buff.GetCreator()) );
 		
@@ -92,8 +116,11 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		hasBuff = true;
 		
 		finisherDisabled = false;
+		counterRequested = false;
+		ragdollPullingEventReceived = false;
 		
 		
+		// store interaction priority when actor is alive and set unpushable
 		actor = (CActor)owner;
 		currentPri = actor.GetInteractionPriority();
 		if ( actor.IsAlive() && currentPri != IP_Max_Unpushable )
@@ -113,6 +140,15 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 				owner.RemoveAbility( 'Thorns' );
 			}
 			owner.SignalGameplayEvent('StopRage');
+		}
+		
+		if ( actor.HasAbility( 'ablMagic' ) || actor.HasAbility( 'CounterCriticalEffects' ) )
+		{
+			canCounter = true;
+		}
+		else
+		{
+			canCounter = false;
 		}
 		
 		if ( ShouldDisableHitReaction() )
@@ -151,23 +187,27 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 	
 	latent function Main() : EBTNodeStatus
 	{
-		var npc : CNewNPC = GetNPC();
-		var criticalStateCounter : int;
-		var tmpF : float;
-		var timeStamp : float;
-		var mac : CMovingPhysicalAgentComponent;
+		var npc 					: CNewNPC = GetNPC();
+		var npcPos 					: Vector;
+		var criticalStateCounter 	: int;
+		var tmpF 					: float;
+		var tmpB 					: bool;
+		var timeStamp 				: float;
+		var mac 					: CMovingPhysicalAgentComponent;
 		
 		
 		criticalStateCounter = 0;
 		
-		
-		
-		if (( CSType == ECST_HeavyKnockdown || CSType == ECST_Knockdown || CSType == ECST_LongStagger || CSType == ECST_Stagger ) && npc.HasAbility( 'MistCharge' ))
+		if ( canCounter && CheckGuardOrCounter())
 		{
-			npc.PlayEffect( 'appear_fog' );
+			npc.RequestCriticalAnimStop();
+			counterRequested = true;
+			if ( CSType != ECST_HeavyKnockdown && CSType != ECST_Knockdown )
+			{
+				Complete(true);
+			}
 		}
-		
-		if ( CSType == ECST_BurnCritical && npc.HasAbility( 'BurnIgnore' ))
+		else if ( CSType == ECST_BurnCritical && npc.HasAbility( 'BurnIgnore' ))
 		{
 			timeStamp = GetLocalTime();
 			while ( isActive )
@@ -202,24 +242,133 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		}
 		else if ( isInPotentialRagdoll )
 		{
-			mac = (CMovingPhysicalAgentComponent)GetActor().GetMovingAgentComponent();
+			mac = (CMovingPhysicalAgentComponent)npc.GetMovingAgentComponent();
+			timeStamp = GetLocalTime();
+			
+			//AK: looks hacky, but custom condition cannot be parametrized or played from animEvent anyway
+			if ( npc.HasAbility( 'MistCharge' ) )
+			{
+				npc.PlayEffect( 'appear_fog' );
+			}
+			
+			
 			while ( true )
 			{
-				OnRagdollUpdate( npc, mac);
+				OnRagdollUpdate( npc, mac );
+				if ( !tmpB && GetLocalTime() > timeStamp + 0.2 && npc.HasAbility( 'mon_vampiress_base' ) && npc.GetBehaviorVariable( 'preventReappearing' ) < 1 )
+				{
+					if ( npc.HasAbility( 'mon_bruxa' ) )
+					{
+						npc.PlayEffect( 'appear' );
+					}
+					else
+					{
+						npc.PlayEffect( 'appear_safe_mode' );
+					}
+					npc.SignalGameplayEvent( 'appeared' );
+					npc.SetBehaviorVariable( 'vanished', 0, true );
+					npc.SetBehaviorVariable( 'invisible', 0, true );
+					npc.SetGameplayVisibility( true );
+					tmpB = true;
+				}
+				
+				if ( npc.HasAbility( 'EvadeFinisher' ) )
+				{
+					npcPos = npc.GetWorldPosition();
+					npc.SetBehaviorVariable( 'distanceToTarget', VecDistance( npcPos, GetCombatTarget().GetWorldPosition() ), true );
+					
+					if ( GetLocalTime() > timeStamp + 1.0 && !theGame.GetWorld().NavigationLineTest( npcPos, npcPos + npc.GetHeadingVector() * -2.5, npc.GetRadius(), false, true ) )
+					{
+						npc.RequestCriticalAnimStop();
+						//Complete( true );
+					}
+				}
 				SleepOneFrame();
 			}
 		}
+		else if ( ( CSType == ECST_HeavyKnockdown || CSType == ECST_Knockdown ) && ( npc.HasAbility( 'mon_vampiress_base' ) || npc.HasAbility( 'EvadeFinisher' ) ) )
+		{
+			timeStamp = GetLocalTime();
+			
+			while ( true )
+			{
+				if ( !tmpB && GetLocalTime() > timeStamp + 0.2 && npc.HasAbility( 'mon_vampiress_base' ) && npc.GetBehaviorVariable( 'preventReappearing' ) < 1 )
+				{
+					if ( npc.HasAbility( 'mon_bruxa' ) )
+					{
+						npc.PlayEffect( 'appear' );
+					}
+					else
+					{
+						npc.PlayEffect( 'appear_safe_mode' );
+					}
+					npc.SignalGameplayEvent( 'appeared' );
+					npc.SetBehaviorVariable( 'vanished', 0, true );
+					npc.SetBehaviorVariable( 'invisible', 0, true );
+					npc.SetGameplayVisibility( true );
+					tmpB = true;
+				}
+				
+				if ( npc.HasAbility( 'EvadeFinisher' ) )
+				{
+					npcPos = npc.GetWorldPosition();
+					npc.SetBehaviorVariable( 'distanceToTarget', VecDistance( npcPos, GetCombatTarget().GetWorldPosition() ), true );
+					
+					if ( GetLocalTime() > timeStamp + 1.0 && !theGame.GetWorld().NavigationLineTest( npcPos, npcPos + npc.GetHeadingVector() * -2.5, npc.GetRadius(), false, true ) )
+					{
+						npc.RequestCriticalAnimStop();
+						//Complete( true );
+					}
+				}
+				Sleep( 0.01 );
+			}
+		}
+		else if ( ( CSType == ECST_LongStagger || CSType == ECST_Stagger ) && npc.HasAbility( 'mon_vampiress_base' ) )
+		{
+			timeStamp = GetLocalTime();
+			
+			while ( true )
+			{
+				if ( !tmpB && GetLocalTime() > timeStamp + 0.2 && npc.GetBehaviorVariable( 'preventReappearing' ) < 1 )
+				{
+					if ( npc.HasAbility( 'mon_bruxa' ) )
+					{
+						npc.PlayEffect( 'appear' );
+					}
+					else
+					{
+						npc.PlayEffect( 'appear_safe_mode' );
+					}
+					npc.SignalGameplayEvent( 'appeared' );
+					npc.SetBehaviorVariable( 'vanished', 0, true );
+					npc.SetBehaviorVariable( 'invisible', 0, true );
+					npc.SetGameplayVisibility( true );
+					tmpB = true;
+				}
+				
+				Sleep( 0.01 );
+			}
+		}
+		else if ( !isInPotentialRagdoll )
+		{
+			while ( true )
+			{
+				AdjustActorPositionToPhysicalRepresentation();
+				SleepOneFrame();
+			}
+		}
+		
 		
 		return BTNS_Active;
 	}
 	
 	function OnDeactivate()
 	{
-		var actor : CActor;
-		var owner : CNewNPC = GetNPC();
-		var buffs : array<CBaseGameplayEffect>;
-		var deactivate : bool;
-		var i : int;
+		var actor 		: CActor;
+		var owner 		: CNewNPC = GetNPC();
+		var buffs 		: array<CBaseGameplayEffect>;
+		var deactivate 	: bool;
+		var i 			: int;
 		
 		actor = (CActor)owner;
 		
@@ -244,25 +393,59 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		{
 			DisableFinisher();		
 		}
-			
-		combatDataStorage.SetCriticalState( CSType, false, GetLocalTime() );		
+		
+		combatDataStorage.SetCriticalState( CSType, false, GetLocalTime() ); //PFTODO: combatDataStorage is NULL, e.g. do a counterstrike
 		
 		if ( isInPotentialRagdoll )
+		{
 			OnRagdollStop();
+		}
 		
-		
-		
+		// We switch to kinematic if we are alive and ragdolled,
+		// unless we are in static simulation or requestedCS is a knockdown type.
 		if ( owner.IsAlive() && owner.IsRagdolled() && ! owner.IsStatic() 
 			&& ( requestedCSType != ECST_HeavyKnockdown && requestedCSType != ECST_Knockdown ) )
 			owner.SetKinematic(true);
 		
 		forceFinisherActivation = false;
+		
+		if ( armored )
+		{
+			actor.RemoveAbility( 'ReflectMeleeAttacks' );
+			actor.RemoveAbility( 'FireImmunity' );
+			actor.RemoveBuffImmunity( EET_Burning, 'armored' );
+		}
+		
+		if ( hitAnim )
+		{
+			actor.SetCanPlayHitAnim( true );
+		}
+		
+		if ( unstoppable )
+		{
+			GetNPC().SetUnstoppable( false );
+		}
+		
+		if ( counterRequested )
+		{
+			counterRequestTimeStamp = GetLocalTime();
+			switch ( counterType )
+			{
+				case CECT_Human 	: actor.SignalGameplayEvent( 'HitReactionTaskCompleted' ); 	break;
+				case CECT_NonHuman 	: actor.SignalGameplayEvent( 'LaunchCounterAttack' ); 		break;
+			}
+		}
+		
+		if ( actor.HasAbility( 'mon_vampiress_base' ) && ( CSType == ECST_HeavyKnockdown || CSType == ECST_Knockdown ) )
+		{
+			actor.CriticalEffectAnimationInterrupted( 'failsafe for vampiress knockdown' );
+		}
 	}	
 	
-
-
-
-	function ShouldEnableFinisher() : bool
+	/////////////////////////////////////////////////////////////////////////////////////////////////////
+	// functions
+	/////////////////////////////////////////////////////////////////////////////////////////////////////
+	final function ShouldEnableFinisher() : bool
 	{
 		var actor : CActor;
 		actor = GetActor();
@@ -284,7 +467,7 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		return false;
 	}
 	
-	function EnableFinisher()
+	final function EnableFinisher()
 	{
 		if( IsNameValid(finisherAnimName) && ShouldEnableFinisher() && !finisherEnabled && !finisherDisabled )
 		{
@@ -300,14 +483,14 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		}
 	}
 	
-	function DisableFinisher()
+	final function DisableFinisher()
 	{
 		GetNPC().EnableFinishComponent( false );
 		thePlayer.AddToFinishableEnemyList( GetNPC(), false );
 		finisherEnabled = false;
 	}
 	
-	function ShouldCompleteOnParryStart() : bool
+	final function ShouldCompleteOnParryStart() : bool
 	{
 		switch ( CSType )
 		{
@@ -318,7 +501,7 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		return false;
 	}
 	
-	function ShouldNotLowerGuard() : bool
+	final function ShouldNotLowerGuard() : bool
 	{
 		switch ( CSType )
 		{
@@ -329,7 +512,7 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		return false;
 	}
 	
-	function ShouldTryToDisarm() : bool
+	final function ShouldTryToDisarm() : bool
 	{
 		var res : bool;
 		
@@ -348,7 +531,7 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		return GetNPC().HasShieldedAbility();
 	}
 	
-	function ShouldDisableHitReaction() : bool
+	final function ShouldDisableHitReaction() : bool
 	{
 		switch ( CSType )
 		{
@@ -359,18 +542,18 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		return false;
 	}
 	
-	function Disarm()
+	final function Disarm()
 	{
 		GetNPC().DropItemFromSlot( 'l_weapon', true );
 	}
 	
 	
-	function FinisherSyncAnim()
+	final function FinisherSyncAnim()
 	{
 		theGame.GetSyncAnimManager().SetupSimpleSyncAnim( finisherAnimName, thePlayer, GetActor() );
 	}
 	
-	function CombatCheck() : bool
+	final function CombatCheck() : bool
 	{
 		var stateName : name;
 		stateName = thePlayer.GetCurrentStateName();
@@ -382,10 +565,33 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 	}
 	
 	
-	function GetStats()
+	final function GetStats()
 	{
-		var resistCriticalStateMultiplier : int;
+		var raiseGuardMultiplier 	: int;
+		var counterMultiplier 		: int;
+		var actor 					: CActor = GetActor();
 		
+		hitsToRaiseGuard = (int)CalculateAttributeValue(actor.GetAttributeValue('hits_to_raise_guard'));
+		raiseGuardChance = (int)MaxF(0, 100*CalculateAttributeValue(actor.GetAttributeValue('raise_guard_chance')));
+		raiseGuardMultiplier = (int)MaxF(0, 100*CalculateAttributeValue(actor.GetAttributeValue('raise_guard_chance_mult_per_hit')));
+		
+		hitsToCounter = (int)CalculateAttributeValue(actor.GetAttributeValue('hits_to_roll_counter'));
+		counterChance = (int)MaxF(0, 100*CalculateAttributeValue(actor.GetAttributeValue('counter_chance')));
+		counterMultiplier = (int)MaxF(0, 100*CalculateAttributeValue(actor.GetAttributeValue('counter_chance_per_hit')));
+		
+		counterStaminaCost = CalculateAttributeValue(actor.GetAttributeValue( 'counter_stamina_cost' ));
+		
+		raiseGuardChance += Max( 0, actor.GetHitCounter() - 1 ) * raiseGuardMultiplier;
+		counterChance += Max( 0, actor.GetHitCounter() - 1 ) * counterMultiplier;
+		
+		if ( hitsToRaiseGuard < 0 )
+		{
+			hitsToRaiseGuard = 65536;
+		}
+		
+		//var resistCriticalStateMultiplier : int;
+		
+		/*
 		criticalStatesToResist = (int)CalculateAttributeValue(GetActor().GetAttributeValue('critical_states_to_raise_guard'));
 		resistCriticalStateChance = (int)MaxF(0, 100*CalculateAttributeValue(GetActor().GetAttributeValue('resist_critical_state_chance')));
 		resistCriticalStateMultiplier = (int)MaxF(0, 100*CalculateAttributeValue(GetActor().GetAttributeValue('resist_critical_state_chance_mult_per_hit')));
@@ -396,15 +602,48 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		{
 			criticalStatesToResist = 65536;
 		}
+		*/
 	}
 	
-	function Roll( chance : float ) : bool
+	final function Roll( chance : float ) : bool
 	{
 		if ( chance >= 100 )
 			return true;
 		else if ( RandRange(100) < chance )
 		{
 			return true;
+		}
+		
+		return false;
+	}
+	
+	function CheckGuardOrCounter() : bool
+	{
+		var npc 		: CNewNPC = GetNPC();
+		var hitCounter 	: int;
+		
+		
+		GetStats();
+		hitCounter = npc.GetHitCounter();
+		if ( hitCounter >= hitsToRaiseGuard && npc.CanGuard() )
+		{
+			
+			if( Roll( raiseGuardChance ) )
+			{		
+				if ( npc.RaiseGuard() )
+				{
+					counterType = CECT_Human;
+					return true;
+				}
+			}
+		}
+		if ( !npc.IsHuman() && npc.GetMovingAgentComponent().GetName() != "wild_hunt_base" && hitCounter >= hitsToCounter  )
+		{
+			if( Roll( counterChance ) && npc.GetStat( BCS_Stamina ) >= counterStaminaCost )
+			{
+				counterType = CECT_NonHuman;
+				return true;
+			}
 		}
 		
 		return false;
@@ -424,23 +663,23 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		
 		if( AbsF(victimToAttackerAngle) <= 90 )
 		{
-			
+			//hit from front
 			npc.SetBehaviorVariable( 'HitReactionDirection',(int)EHRD_Forward);
 		}
 		else if( AbsF(victimToAttackerAngle) > 90 )
 		{
-			
+			//hit from back
 			npc.SetBehaviorVariable( 'HitReactionDirection',(int)EHRD_Back);
 		}
 		
 		if( victimToAttackerAngle > 45 && victimToAttackerAngle < 135 )
 		{
-			
+			//hit from right
 			npc.SetBehaviorVariable( 'HitReactionSide',(int)EHRS_Right);
 		}
 		else if( victimToAttackerAngle < -45 && victimToAttackerAngle > -135 )
 		{
-			
+			//hit from rights
 			npc.SetBehaviorVariable( 'HitReactionSide',(int)EHRS_Left);
 		}
 		else
@@ -449,34 +688,45 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		}
 	}
 	
-
-
+//////////////////////////////////////////
+// ragdoll
 	
-	private var startAirPos : Vector;
-	private var endAirPos : Vector;
-	private var cachedInAir : bool;
-	private var airStartTime : float;
-	private var screamPlayed : bool;
-	private var fallingDamage : float;
-	private var maxFallingHeightDiff : float;
+	private var startAirPos 			: Vector;
+	private var endAirPos 				: Vector;
+	private var cachedInAir 			: bool;
+	private var airStartTime 			: float;
+	private var screamPlayed 			: bool;
+	private var fallingDamage 			: float;
+	private var maxFallingHeightDiff 	: float;
 	
-	function OnRagdollStart()
+	final function OnRagdollStart()
 	{
-		var mac : CMovingPhysicalAgentComponent;
-		var radius : float;
-		var owner	: CNewNPC = GetNPC();
-		mac = (CMovingPhysicalAgentComponent)GetActor().GetMovingAgentComponent();
+		var mac 		: CMovingPhysicalAgentComponent;
+		var radius 		: float;
+		var owner		: CNewNPC = GetNPC();
+		var bonePos 	: Vector;
+		var boneMatrix 	: Matrix;
+		
+		mac = ( CMovingPhysicalAgentComponent ) owner.GetMovingAgentComponent();
 		
 		screamPlayed = false;
 		airStartTime = 0.f;
 		fallingDamage = 0.f;
 		maxFallingHeightDiff = 0.f;
 		
-		if ( !GetNPC().IsInFistFightMiniGame() && GetActor().IsVulnerable() && ( !IsThisStagger() || IsCliffBehindMe() ) && !GetNPC().IsInInterior() && GetActor().EnablePhysicalMovement(true) )
+		boneIndex = owner.GetBoneIndex( 'pelvis' );
+		if ( boneIndex != -1 )
+		{
+			boneMatrix = owner.GetBoneWorldMatrixByIndex( boneIndex );
+			bonePos = MatrixGetTranslation( boneMatrix );
+			distanceFromRootToBone = VecDistance( bonePos, owner.GetWorldPosition() );
+		}
+		
+		if ( !owner.IsInFistFightMiniGame() && owner.IsVulnerable() && ( !IsThisStagger() || IsCliffBehindMe() ) && !owner.IsInInterior() && owner.EnablePhysicalMovement(true) )
 		{
 			mac.SnapToNavigableSpace( false );
 			isInPotentialRagdoll = true;
-			if ( GetActor().IsInAir() )
+			if ( owner.IsInAir() )
 			{
 				startAirPos = mac.GetAgentPosition();
 				cachedInAir = true;
@@ -487,7 +737,7 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		}
 		else
 		{
-			GetActor().EnablePhysicalMovement(false);
+			owner.EnablePhysicalMovement(false);
 			mac.SnapToNavigableSpace( true );
 			isInPotentialRagdoll = false;
 		}
@@ -495,11 +745,11 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 	}
 	
 	
-	function OnRagdollUpdate( owner : CNewNPC, mac : CMovingPhysicalAgentComponent )
+	final function OnRagdollUpdate( owner : CNewNPC, mac : CMovingPhysicalAgentComponent )
 	{
-		var velocity : float;
-		var submergeDepth : float;
-		var currentFaliingHeightDiff : float;
+		var velocity 					: float;
+		var submergeDepth 				: float;
+		var currentFaliingHeightDiff 	: float;
 		
 		velocity = VecLengthSquared(mac.GetVelocity());
 		submergeDepth = mac.GetSubmergeDepth();
@@ -524,15 +774,13 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 			airStartTime = 0.f;
 		}
 		
-			
-			
 		if ( owner.IsHuman() )
 		{
 			if ( IsThisStagger() && airStartTime > 0.f && ( (GetLocalTime() - airStartTime) > 0 ) )
 			{
 				ApplyRagdoll();
 			}
-			
+			// play scream
 			if ( !screamPlayed && airStartTime > 0.f && ( (GetLocalTime() - airStartTime) > 0.5f ) )
 			{
 				PlayScream();
@@ -567,7 +815,7 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		}
 	}
 	
-	function OnRagdollStop()
+	final function OnRagdollStop()
 	{
 		var mac 	: CMovingPhysicalAgentComponent;
 		var owner 	: CNewNPC;
@@ -608,20 +856,21 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		}
 	}
 	
-	function IsThisStagger() : bool
+	final function IsThisStagger() : bool
 	{
 		return CSType == ECST_Stagger || CSType == ECST_LongStagger || CSType == ECST_CounterStrikeHit;
 	}
 	
-	function IsCliffBehindMe() : bool
+	final function IsCliffBehindMe() : bool
 	{
-		var ownerPosition, pointA, pointB : Vector;
-		var heading : Vector;
-		var position, normal : Vector;
-		var target : CNode;
-		var collisionGroups : array<name>;
+		var ownerPosition, pointA, pointB 	: Vector;
+		var heading 						: Vector;
+		var position, normal 				: Vector;
+		var owner 							: CActor = GetActor();
+		var target 							: CNode;
+		var collisionGroups 				: array<name>;
 		
-		ownerPosition = GetNPC().GetWorldPosition();
+		ownerPosition = owner.GetWorldPosition();
 		if ( buff.GetCreator() )
 		{
 			target = buff.GetCreator();
@@ -633,14 +882,14 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		
 		if ( !target )
 			return false;
-			
+		
 		heading = VecNormalize( target.GetWorldPosition() - ownerPosition )*-1.5;
 		
 		pointA = ownerPosition + heading;
 		
-		if ( theGame.GetWorld().NavigationLineTest( ownerPosition, pointA, GetActor().GetRadius(), false, true ) )
+		if ( theGame.GetWorld().NavigationLineTest( ownerPosition, pointA, owner.GetRadius(), false, true ) )
 			return false;
-	
+		
 		position = ownerPosition;
 		position.Z += 1.5;
 		
@@ -662,25 +911,30 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		return true;
 	}
 	
-	function KillNPCIfNeeded( owner : CNewNPC, mac : CMovingPhysicalAgentComponent ) : bool
+	final function KillNPCIfNeeded( owner : CNewNPC, mac : CMovingPhysicalAgentComponent ) : bool
 	{
 		var newPosition : Vector;
 		
-		if ( !theGame.GetWorld().NavigationFindSafeSpot(mac.GetAgentPosition(), owner.GetRadius(), ClampF(owner.GetRadius()*pullToNavRadiusMult, 0, 2.5f), newPosition) 
-						&& !CanSwimOrFly( owner, mac ))
+		// If cannot reach navmesh and is not a swimming monster in water or flying monster outside of water
+		if ( !theGame.GetWorld().NavigationFindSafeSpot(mac.GetAgentPosition(), owner.GetRadius(), ClampF(owner.GetRadius()*pullToNavRadiusMult, 0, 2.5f), newPosition) && !CanSwimOrFly( owner, mac ))
 		{
 			if ( fallingDamage > 0 || maxFallingHeightDiff >= 1.3f )
-				owner.Kill(false,NULL,'FallingDamage');
+			{
+				owner.Kill( 'FallingDamage' );
+			}
 			else
-				owner.Kill();
-			owner.SetKinematic(false);
+			{
+				owner.Kill( 'Cannot navigate' );
+			}
+			
+			owner.SetKinematic( false );
 			return true;
 		}
 		
 		return false;
 	}
 	
-	function CanSwimOrFly( owner : CNewNPC, mac : CMovingPhysicalAgentComponent ) : bool
+	final function CanSwimOrFly( owner : CNewNPC, mac : CMovingPhysicalAgentComponent ) : bool
 	{
 		if( (owner.HasAbility('mon_drowner_base') ||  owner.HasAbility('mon_siren_base')) && mac.GetSubmergeDepth() < 0  )
 			return true;
@@ -688,54 +942,110 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		if(( owner.HasAbility('mon_wyvern_base') ||  owner.HasAbility('mon_siren_base') || owner.HasAbility('mon_gryphon_base')  || owner.HasAbility('mon_harpy_base') ) &&  mac.GetSubmergeDepth() > 0 )
 			return true;
 			
+		if( owner.HasTag( 'fairytale_witch' ) )
+			return true;
+			
 		return false;
 	}
 	
-	function ApplyRagdoll()
+	final function ApplyRagdoll()
 	{
 		var owner 	: CNewNPC = GetNPC();
 		var params 	: SCustomEffectParams;
 		
-		if ( GetActor().HasBuff(EET_Ragdoll) )
+		if ( owner.HasBuff(EET_Ragdoll) )
 			return;
 		
 		params.effectType = EET_Ragdoll;
-		params.creator = GetActor();
+		params.creator = owner;
 		params.sourceName = "inAir";
 		params.duration = 1.0;
-		GetActor().AddEffectCustom(params);
+		owner.AddEffectCustom(params);
 		
 		
-		
-		
-		
+		// Hack: because the ragdoll is unpredictable, we have situations where a monster falls out of navigable space then bounce back in the air and fall back to it
+		// As these monsters do not have an animation to get out of ragdoll, they just stay here, being alive and doing nothing
+		// This line kills monster as soon as they go ragdoll.
 		if( !owner.IsHuman()  )
 		{
-			owner.Kill();
+			owner.Kill( 'CS out of navmesh' );
 		}
 	}
 	
-	function PlayScream()
+	final function PlayScream()
 	{
 		if ( GetActor().IsWoman() )
 			return GetActor().SoundEvent("grunt_vo_test_falling_scream_AdultFemale", 'head');
 		else
 			return GetActor().SoundEvent("grunt_vo_test_falling_scream_AdultMale", 'head');
 	}
-
-
 	
+	final latent function AdjustActorPositionToPhysicalRepresentation()
+	{
+		var npc 				: CNewNPC = GetNPC();
+		var ragdollPos 			: Vector;
+		var normal 				: Vector;
+		var boneMatrix 			: Matrix;
+		var npcRadius 			: float;
+		var searchRadius 		: float;
+		var timeout 			: float;
+		var distanceToRagdoll 	: float;
+		var z 					: float;
+		
+		
+		// boneIndex set in OnRagdollStart()
+		npc.WaitForBehaviorNodeDeactivation( 'CriticalStateLoop', 10.0f);
+		
+		if ( boneIndex != -1 )
+		{
+			boneMatrix = npc.GetBoneWorldMatrixByIndex( boneIndex );
+			ragdollPos = MatrixGetTranslation( boneMatrix );
+		}
+		else
+		{
+			return;
+		}
+		// distanceFromRootToBone set in OnRagdollStart()
+		distanceToRagdoll = VecDistance( ragdollPos, npc.GetWorldPosition() );
+		if ( distanceToRagdoll < distanceFromRootToBone || distanceToRagdoll < 0.1 )
+		{
+			return;
+		}
+		
+		npcRadius = npc.GetRadius();
+		searchRadius = npcRadius;
+		while ( !theGame.GetWorld().NavigationCircleTest( ragdollPos, npcRadius, true ) )
+		{
+			searchRadius += 0.1;
+			theGame.GetWorld().NavigationFindSafeSpot( ragdollPos, npcRadius, npcRadius*3, ragdollPos );
+			SleepOneFrame();
+		}
+		
+		theGame.GetWorld().StaticTrace( ragdollPos + Vector(0,0,1), ragdollPos - Vector(0,0,3), ragdollPos, normal );
+		
+		npc.GetVisualDebug().AddSphere( 'bonePosition', 1.0, ragdollPos, true, Color( 0,255,0 ), 5.0f );
+		npc.TeleportWithRotation( ragdollPos, npc.GetWorldRotation() );
+	}
+	
+	
+	//Anim event
 	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo ) : bool
 	{
-		var npc : CNewNPC = GetNPC();
+		var npc 				: CNewNPC = GetNPC();
 		var target 				: CActor = npc.GetTarget();
 		var ticket 				: SMovementAdjustmentRequestTicket;
 		var movementAdjustor	: CMovementAdjustor;
 		
+		
 		if ( animEventName == 'AllowBlend' && animEventType == AET_DurationStart )
 		{
+			npc.RequestCriticalAnimStop(); // failsafe
 			Complete( true );
 			return true;
+		}
+		else if( animEventName == 'DisableFinisher' )
+		{
+			DisableFinisher();		
 		}
 		else if( animEventName == 'StaggerCounter' )
 		{
@@ -783,6 +1093,50 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 			movementAdjustor.SlideTowards( ticket, target, 1.0, 1.5 );
 			return true;
 		}
+		else if ( animEventName == 'DisableHitAnim' )
+		{
+			if( animEventType == AET_DurationEnd )
+			{
+				npc.SetCanPlayHitAnim( true );
+				hitAnim = false;
+			}
+			else
+			{
+				npc.SetCanPlayHitAnim( false );
+				hitAnim = true;
+			}
+		}
+		else if ( animEventName == 'SetUnstoppable' )
+		{
+			if( animEventType == AET_DurationEnd )
+			{
+				npc.SetUnstoppable( false );
+				unstoppable = false;
+			}
+			else
+			{
+				npc.SetUnstoppable( true );
+				unstoppable = true;
+			}
+		}
+		else if ( animEventName == 'Armored' )
+		{
+			if( animEventType == AET_DurationEnd )
+			{
+				npc.RemoveAbility( 'ReflectMeleeAttacks' );
+				npc.RemoveAbility( 'FireImmunity' );
+				npc.RemoveBuffImmunity( EET_Burning, 'armored' );
+				armored = false;
+				
+			}
+			else
+			{
+				npc.AddAbility( 'ReflectMeleeAttacks', false );
+				npc.AddAbility( 'FireImmunity', false );
+				npc.AddBuffImmunity( EET_Burning, 'armored', false );
+				armored = true;
+			}
+		}
 		
 		return false;
 	}
@@ -792,7 +1146,7 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		if ( gameEventName == 'CriticalState' )
 		{
 			requestedCSType		= (int) GetNPC().GetBehaviorVariable('CriticalStateType');			
-			
+			//return true;
 		}
 		return IsAvailable();
 	}
@@ -819,15 +1173,18 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 			case ECST_Swarm						: return EET_Swarm;
 			case ECST_Snowstorm					: return EET_Snowstorm;
 			case ECST_Tornado					: return EET_Tornado;
+			case ECST_Trap						: return EET_Trap;
 			default 							: return EET_Undefined;
 		}
 	}
 	
 	function OnGameplayEvent( eventName : name ) : bool
 	{
-		var npc : CNewNPC;
-		var syncAnimName : name;
-		var effect : CBaseGameplayEffect;
+		var effect 			: CBaseGameplayEffect;
+		var data 			: CDamageData;
+		var npc 			: CNewNPC;
+		var syncAnimName 	: name;
+		
 		
 		npc = GetNPC();
 		if ( eventName == 'RotateEventStart' )
@@ -838,8 +1195,8 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		}
 		else if ( eventName == 'StoppingEffect' && finisherEnabled && GetEventParamInt(-1) == CSType )
 		{
-			GetNPC().EnableFinishComponent( false );
-			thePlayer.AddToFinishableEnemyList( GetNPC(), false );
+			npc.EnableFinishComponent( false );
+			thePlayer.AddToFinishableEnemyList( npc, false );
 			finisherEnabled = false;
 			return true;
 		}
@@ -847,9 +1204,9 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		{
 			if ( CombatCheck() && finisherEnabled )
 			{
-				GetNPC().EnableFinishComponent( false );
-				thePlayer.AddToFinishableEnemyList( GetNPC(), false );
-				GetNPC().FinisherAnimStart();
+				npc.EnableFinishComponent( false );
+				thePlayer.AddToFinishableEnemyList( npc, false );
+				npc.FinisherAnimStart();
 				FinisherSyncAnim();
 			}
 			return true;
@@ -861,7 +1218,7 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 		}
 		else if ( eventName == 'DisableFinisher' )
 		{
-			
+			// siren is special has she must be finishable all the time when on ground
 			if( !npc.HasAbility('mon_siren_base') )
 			{
 				finisherDisabled = true;
@@ -880,10 +1237,47 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 			Complete(true);
 			return true;
 		}
-		else if	( eventName == 'SpearDestruction')
+		else if	( eventName == 'SpearDestruction' )
 		{
 			npc.ProcessSpearDestruction();
 			waitForDropItem = false;
+			return true;
+		}
+		else if ( eventName == 'OnRagdollPullingStart' )
+		{
+			ragdollPullingEventReceived = true;
+			return true;
+		}
+		else if ( eventName == 'BeingHit' && ( npc.HasAbility( 'ablMagic' ) || npc.HasAbility( 'CounterCriticalEffects' ) ) )
+		{
+			data = (CDamageData) GetEventParamBaseDamage();
+			if ( !data.isDoTDamage )
+			{
+				npc.IncHitCounter();
+				if ( CheckGuardOrCounter() )
+				{
+					npc.RequestCriticalAnimStop();
+					counterRequested = true;
+					if ( CSType != ECST_HeavyKnockdown && CSType != ECST_Knockdown )
+					{
+						Complete(true);
+					}
+				}
+				return true;
+			}
+		}
+		else if ( eventName == 'AardHitReceived' && ( npc.HasAbility( 'ablMagic' ) || npc.HasAbility( 'CounterCriticalEffects' ) ) )
+		{
+			npc.IncHitCounter();
+			if ( CheckGuardOrCounter() )
+			{
+				npc.RequestCriticalAnimStop();
+				counterRequested = true;
+				if ( CSType != ECST_HeavyKnockdown && CSType != ECST_Knockdown )
+				{
+					Complete(true);
+				}
+			}
 			return true;
 		}
 		
@@ -894,12 +1288,8 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 	{
 		if ( !combatDataStorage || !reactionDataStorage )
 		{
-			storageHandler = InitializeCombatStorage();
-			combatDataStorage = (CHumanAICombatStorage)storageHandler.Get();
-			
-			storageHandler = new CAIStorageHandler in this;
-			storageHandler.Initialize( 'ReactionData', '*CAIStorageReactionData', this );
-			reactionDataStorage = (CAIStorageReactionData)storageHandler.Get();
+			combatDataStorage = (CHumanAICombatStorage)InitializeCombatStorage();
+			reactionDataStorage = (CAIStorageReactionData)RequestStorageItem( 'ReactionData', 'CAIStorageReactionData' );
 		}
 	}
 };
@@ -907,7 +1297,7 @@ class CBehTreeTaskCSEffect extends IBehTreeTask
 class CBehTreeTaskCSEffectDef extends IBehTreeTaskDefinition
 {
 	default instanceClass = 'CBehTreeTaskCSEffect';
-	editable var finisherAnimName		: CBehTreeValCName;	
+	editable var finisherAnimName : CBehTreeValCName;	
 	
 	function InitializeEvents()
 	{

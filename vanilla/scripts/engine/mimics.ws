@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
+﻿// Gameplay mimics mode
 enum EGameplayMimicMode
 {
 	GMM_Default,
@@ -22,7 +17,8 @@ enum EPlayerGameplayMimicMode
 	PGMM_Inventory,
 }
 
-
-
-
-
+// How to set gameplay mimics mode?
+// Npc:
+// parent.SetBehaviorMimicVariable( 'gameplayMimicsMode', (float)(int)GMM_Combat )
+// Player:
+// parent.SetBehaviorMimicVariable( 'gameplayMimicsMode', (float)(int)PGMM_Combat )

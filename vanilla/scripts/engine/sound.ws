@@ -1,11 +1,8 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file
 /***********************************************************************/
-
-
-
+/** Copyright © 2010
+/***********************************************************************/
 
 enum ESoundGameState
 {
@@ -56,11 +53,11 @@ import class CScriptSoundSystem extends CObject
 	private var lastThreatDampTime : float;
 	private var threatUpdateCooldown : float;
 	private var threatDampCooldown : float;
-	private var threatDamper : SpringDamper;   
+	private var threatDamper : SpringDamper;   //KAPSI TODO: use Damper class
 	private var monsterHunt : bool;
 	private var monster : bool;
 	private var isBlackscreen : bool;
-	private var soundSystemSettings : C2dArray; 
+	private var soundSystemSettings : C2dArray; // CSV loaded settings
 	var threatWeight	: int;
 	var levelWeight 	: int;
 	var tweakWeight		: float;
@@ -83,10 +80,17 @@ import class CScriptSoundSystem extends CObject
 	import function SoundSwitch( swichGroupName : string, optional stateName : string  );
 	import function SoundEvent( eventName : string );
 	import function SoundParameter( parameterName : string, value : float, optional duration : float );
-	import function SoundGlobalParameter( parameterName : string, value : float, optional duration : float );
+	import function SoundGlobalParameter( parameterName : string, value : float, optional duration : float );//hack
 	import function SoundSequence( sequenceName : string, sequence : array< string > );
 	import function SoundEventAddToSave( eventName : string );
 	import function SoundEventClearSaved( );
+	import function SoundEnableMusicEvents( how : bool );
+	import function SoundLoadBank( bankName : string, async : bool );
+	import function SoundUnloadBank( bankName : string );
+	import function SoundIsBankLoaded( bankName : string ) : bool;
+	import function EnableMusicDebug( enable : bool);
+	import function TimedSoundEvent(duration : float, optional startEvent : string, optional stopEvent : string, optional shouldUpdateTimeParameter : bool);
+	import function MuteSpeechUnderwater(mute : bool);
 	
 	event OnBlackscreenStart()
 	{
@@ -175,8 +179,8 @@ import class CScriptSoundSystem extends CObject
 			thePlayer.OnCombatStart();
 		}	
 		
-		
-		
+		// When we're in a blackscreen the only states that we want
+		// to let the scripts set are "music_only", "movie", "exploration" and "exploration_night".
 		if( !isBlackscreen ||
 			( isBlackscreen && IsValidBlackscreenState( gameState ) ) )
 		{
@@ -274,6 +278,8 @@ import class CScriptSoundSystem extends CObject
 	
 	function InitializeAreaMusic( worldArea : EAreaName )
 	{
+		SoundEvent( "stop_music" );
+		
 		switch( worldArea )
 		{
 			case AN_NMLandNovigrad:
@@ -308,7 +314,9 @@ import class CScriptSoundSystem extends CObject
 			case AN_Undefined:
 				LogAssert( false, "theSound.InitializeAreaMusic: undefined area! No music set!" );
 				break;
-			
+			case (EAreaName)AN_Dlc_Bob:
+				SoundEvent( "play_music_toussaint" );
+				break;
 			default:
 				LogAssert( false, "theSound.InitializeAreaMusic: unsupported area type <<" + worldArea + ">> passed! Music not set!" );
 				break;
@@ -392,9 +400,9 @@ import class CScriptSoundSystem extends CObject
 		SoundEvent( "stop_music" );
 	}
 	
-
-
-
+// --------------------------------------
+// ---------- THREAT FUNCTIONS ----------
+// --------------------------------------
 	
 	function SendThreatRating()
 	{	
@@ -428,7 +436,7 @@ import class CScriptSoundSystem extends CObject
 		var isTeleporting : bool;
 		var canBeTargeted : bool;
 		var canBeHitByFists : bool;
-		
+		////////////////////////////////////////
 		
 		monsterHunt = false;
 		monster = false;
@@ -448,42 +456,42 @@ import class CScriptSoundSystem extends CObject
 				LogSound( "finalSoundValue is  "+ finalSoundValue); 
 			}
 			
-			if( tempThreat > 2 ) 
+			if( tempThreat > 2 ) // threat greater than 2 we always add
 			{
 				totalWeight += tempThreat;
 			}
-			else 
+			else // we sum lower threats in separate variable...
 			{
 				tempSum += tempThreat;
 				tempSumElements += 1;
 				
-				if( tempThreat > tempMaxElement ) 
+				if( tempThreat > tempMaxElement ) // ... and remember max element
 					tempMaxElement = tempThreat;
 			}
 			
 			if( MonsterCategoryIsMonster( monsterCategory ) )
 				monster = true;
 				
-			
-			
+			//if ( IsMonsterFromMonsterHunt( actors[i] ) )
+			//	monsterHunt = true; // TODO: multiplying threat level if monsterHunt
 		}
 		
 		if( tempSum ) 
 		{
-			totalWeight += tempMaxElement; 
+			totalWeight += tempMaxElement; // ...and add max element of separate sum, 
 			if( tempSumElements > 1 )
-				totalWeight += ( tempSum / tempSumElements ) * 0.5 + 0.3 * tempSumElements; 
+				totalWeight += ( tempSum / tempSumElements ) * 0.5 + 0.3 * tempSumElements; // also 50% of average and 0.3 for each element
 		}
 		if( FactsQuerySum("NewGamePlus") > 0 )
 		{
 			levelWeight += theGame.params.GetNewGamePlusLevel();
 		}
-		tempThreat = totalWeight *threatWeight; 
+		tempThreat = totalWeight *threatWeight; //value defined in CSV - Check UpdateSoundSettings function
 		l_levelget = thePlayer.GetLevel();
-		l_levelget = l_levelget/levelWeight; 
+		l_levelget = l_levelget/levelWeight; //value defined in CSV -  Check UpdateSoundSettings function
 		l_levelget = 1-l_levelget; 
 		tempThreat = tempThreat*l_levelget;
-		tempThreat = tempThreat*tweakWeight; 
+		tempThreat = tempThreat*tweakWeight; //value defined in CSV -  Check UpdateSoundSettings function
 		
 		l_tempthreat = tempThreat;
 		desiredThreatRating = ClampF( tempThreat * 100, 0.0, 100.0 ); 
@@ -534,9 +542,9 @@ import class CScriptSoundSystem extends CObject
 	}
 }
 
-
-
-
+// ------------------------------------
+// ---------- EXEC FUNCTIONS ----------
+// ------------------------------------
 
 exec function CollectSoundStates()
 {
@@ -660,4 +668,14 @@ exec function soundSequenceFive( sequenceName : string, sequenceElementOne : str
 	sequence.PushBack( sequenceElementFour );
 	sequence.PushBack( sequenceElementFive );
 	theSound.SoundSequence( sequenceName, sequence );
+}
+
+exec function enableMusicDebug()
+{
+	theSound.EnableMusicDebug(true);
+}
+
+exec function disableMusicDebug()
+{
+	theSound.EnableMusicDebug(false);
 }

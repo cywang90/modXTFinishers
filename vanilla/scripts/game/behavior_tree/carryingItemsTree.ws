@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-class CSpawnTreeInitializerCarryItemWanderAI extends ISpawnTreeInitializerIdleSmartAI
+﻿class CSpawnTreeInitializerCarryItemWanderAI extends ISpawnTreeInitializerIdleSmartAI
 {
 	function GetObjectForPropertiesEdition() : IScriptable
 	{
@@ -42,8 +37,9 @@ class CAICarryingItems extends CAIWanderTree
 
 class CAICarryingItemsParams extends CAINpcWanderParams
 {	
-	editable var storePointTag	: name;
-	editable var carryingArea 	: EntityHandle;
+	editable var storePointTag			: name;
+	editable var carryingArea 			: EntityHandle;
+	editable var dropItemOnDeactivation : bool;
 	
 	function Init()
 	{

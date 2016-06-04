@@ -1,11 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** 
 /***********************************************************************/
-
-
-
+/** Copyright © 2012
+/** Author : Andrzej Kwiatkowski
+/***********************************************************************/
 
 class CBTTaskNervousState extends IBehTreeTask
 {
@@ -28,7 +26,7 @@ class CBTTaskNervousState extends IBehTreeTask
 				return true;
 			}
 		}
-		else if (  !force )
+		else if ( /*owner.GetMovementType() == MT_Run &&*/ !force )
 		{
 			return true;
 		}
@@ -39,7 +37,7 @@ class CBTTaskNervousState extends IBehTreeTask
 	{
 		var owner : CActor = GetActor();
 		
-		if(  callFromQuestOnly || force )
+		if( /*owner.GetMovementType() != MT_Run ||*/ callFromQuestOnly || force )
 		{
 			owner.ActionCancelAll();
 		}
@@ -50,8 +48,8 @@ class CBTTaskNervousState extends IBehTreeTask
 	{
 		var owner : CActor = GetActor();
 		
-		
-		if( true )
+		// just in case
+		if( true/*owner.GetMovementType() == MT_Run*/ )
 		{
 			Complete(false);
 			return BTNS_Failed;
@@ -66,7 +64,33 @@ class CBTTaskNervousState extends IBehTreeTask
 		callFromQuestOnly = false;
 	}
 
-	
+	/*
+	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo ) : bool
+	{
+		var owner : CActor = GetActor();
+		
+		if( animEventName == 'Idle' && callFromQuest )
+		{
+			owner.RaiseEvent( 'rearing' );
+		}
+		else if( animEventName == 'Idle' )
+		{
+			if( RandF() < rearingChance )
+			{
+				owner.RaiseEvent( 'rearing' );
+			}
+			else if( RandF() < kickChance )
+			{
+				owner.RaiseEvent( 'kick' );
+			}
+			else
+			{
+				Complete(true);
+			}
+		}
+		return false;
+	}
+	*/
 	
 	function OnGameplayEvent( eventName : name ) : bool
 	{

@@ -1,10 +1,7 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2015
+/** Author : Tomek Kozera
 /***********************************************************************/
-
-
 
 state HighLevelQuests in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
@@ -19,14 +16,14 @@ state HighLevelQuests in W3TutorialManagerUIHandler extends TutHandlerBaseState
 		
 		isClosing = false;
 		
-		ShowHint(DESCRIPTION, 0.3, 0.6, ETHDT_Input);
+		ShowHint(DESCRIPTION, POS_QUESTS_X, POS_QUESTS_Y, ETHDT_Input);
 	}
 			
 	event OnLeaveState( nextStateName : name )
 	{
 		isClosing = true;
 		
-		CloseHint(DESCRIPTION);
+		CloseStateHint(DESCRIPTION);
 		
 		theGame.GetTutorialSystem().MarkMessageAsSeen(DESCRIPTION);
 		

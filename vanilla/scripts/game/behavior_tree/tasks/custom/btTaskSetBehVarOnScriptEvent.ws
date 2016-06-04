@@ -1,11 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file
 /***********************************************************************/
-
-
-
+/** Copyright © 2013 CD Projekt RED
+/** Author : Andrzej Kwiatkowski
+/***********************************************************************/
 
 class CBTTaskSetBehVarOnScriptEvent extends IBehTreeTask
 {
@@ -18,7 +16,7 @@ class CBTTaskSetBehVarOnScriptEvent extends IBehTreeTask
 	var previousValueOnDurationEnd	: bool;
 	
 
-	latent function Main()
+	latent function Main() : EBTNodeStatus
 	{
 		var npc : CNewNPC = GetNPC();
 		
@@ -41,6 +39,8 @@ class CBTTaskSetBehVarOnScriptEvent extends IBehTreeTask
 				}
 			}
 		}
+		
+		return BTNS_Active;
 	}
 	
 	function OnDeactivate()

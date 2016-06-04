@@ -1,10 +1,7 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2015
+/** Author : Tomek Kozera
 /***********************************************************************/
-
-
 
 state Crafting in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
@@ -20,32 +17,23 @@ state Crafting in W3TutorialManagerUIHandler extends TutHandlerBaseState
 		
 	event OnEnterState( prevStateName : name )
 	{
-		var highlights : array<STutorialHighlight>;
-		
 		super.OnEnterState(prevStateName);
 		
 		isClosing = false;
-		
-		highlights.Resize(1);
-		highlights[0].x = 0.06;
-		highlights[0].y = 0.14;
-		highlights[0].width = 0.33;
-		highlights[0].height = 0.8;
 			
-		ShowHint(SCHEMATICS, theGame.params.TUT_POS_ALCHEMY_X, theGame.params.TUT_POS_ALCHEMY_Y, ETHDT_Input, highlights);
-		theGame.GetTutorialSystem().MarkMessageAsSeen(SCHEMATICS);
+		ShowHint( SCHEMATICS, POS_ALCHEMY_X, POS_ALCHEMY_Y, ETHDT_Input, GetHighlightCraftingList(), , , true );
 	}
 			
 	event OnLeaveState( nextStateName : name )
 	{
 		isClosing = true;
 		
-		CloseHint(SCHEMATICS);
-		CloseHint(ITEM_DESCRIPTION);
-		CloseHint(COMPONENTS);
-		CloseHint(PRICE);
-		CloseHint(CRAFTSMEN);
-		CloseHint(DISMANTLING);
+		CloseStateHint(SCHEMATICS);
+		CloseStateHint(ITEM_DESCRIPTION);
+		CloseStateHint(COMPONENTS);
+		CloseStateHint(PRICE);
+		CloseStateHint(CRAFTSMEN);
+		CloseStateHint(DISMANTLING);
 		
 		theGame.GetTutorialSystem().MarkMessageAsSeen(SCHEMATICS);
 		
@@ -54,48 +42,28 @@ state Crafting in W3TutorialManagerUIHandler extends TutHandlerBaseState
 	
 	event OnTutorialClosed(hintName : name, closedByParentMenu : bool)
 	{
-		var highlights : array<STutorialHighlight>;
-		
 		if(closedByParentMenu || isClosing)
 			return true;
 			
 		if(hintName == SCHEMATICS)
 		{
-			highlights.Resize(1);
-			highlights[0].x = 0.68;
-			highlights[0].y = 0.14;
-			highlights[0].width = 0.29;
-			highlights[0].height = 0.375;
-			
-			ShowHint(ITEM_DESCRIPTION, theGame.params.TUT_POS_ALCHEMY_X, theGame.params.TUT_POS_ALCHEMY_Y, ETHDT_Input, highlights);
+			ShowHint( ITEM_DESCRIPTION, POS_ALCHEMY_X, POS_ALCHEMY_Y, ETHDT_Input, GetHighlightCraftingItemDescription() );
 		}
 		else if(hintName == ITEM_DESCRIPTION)
 		{
-			highlights.Resize(1);
-			highlights[0].x = 0.4;
-			highlights[0].y = 0.19;
-			highlights[0].width = 0.275;
-			highlights[0].height = 0.48;
-			
-			ShowHint(COMPONENTS, theGame.params.TUT_POS_ALCHEMY_X, theGame.params.TUT_POS_ALCHEMY_Y, ETHDT_Input, highlights);
+			ShowHint( COMPONENTS, POS_ALCHEMY_X, POS_ALCHEMY_Y, ETHDT_Input, GetHighlightCraftingIngredients() );
 		}
 		else if(hintName == COMPONENTS)
 		{
-			highlights.Resize(1);
-			highlights[0].x = 0.42;
-			highlights[0].y = 0.7;
-			highlights[0].width = 0.25;
-			highlights[0].height = 0.2;
-			
-			ShowHint(PRICE, theGame.params.TUT_POS_ALCHEMY_X, theGame.params.TUT_POS_ALCHEMY_Y, ETHDT_Input, highlights);
+			ShowHint( PRICE, POS_ALCHEMY_X, POS_ALCHEMY_Y, ETHDT_Input, GetHighlightCraftingPrice() );
 		}
 		else if(hintName == PRICE)
 		{
-			ShowHint(CRAFTSMEN, theGame.params.TUT_POS_ALCHEMY_X, theGame.params.TUT_POS_ALCHEMY_Y, ETHDT_Input);
+			ShowHint(CRAFTSMEN, POS_ALCHEMY_X, POS_ALCHEMY_Y, ETHDT_Input);
 		}
 		else if(hintName == CRAFTSMEN)
 		{
-			ShowHint(DISMANTLING, theGame.params.TUT_POS_ALCHEMY_X, theGame.params.TUT_POS_ALCHEMY_Y, ETHDT_Input);
+			ShowHint(DISMANTLING, POS_ALCHEMY_X, POS_ALCHEMY_Y, ETHDT_Input);
 		}
 		else if(hintName == DISMANTLING)
 		{

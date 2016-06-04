@@ -1,20 +1,18 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file - character development : Skills
 /***********************************************************************/
-
-
-
+/** Copyright © 2014 CDProjektRed
+/** Author : Bartosz Bigaj
+/***********************************************************************/
 
 class CR4CharacterSkillsMenu extends CR4MenuBase
 {	
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{	
 		var l_flashObject			: CScriptedFlashObject;
 		var l_flashArray			: CScriptedFlashArray;
 		super.OnConfigUI();
-		
+		//theSound.SoundEvent( 'gui_global_panel_open' );  // #B sound - open
 
 		UpdateSkills();
 		UpdatePlayerStatisticsData();
@@ -124,15 +122,21 @@ class CR4CharacterSkillsMenu extends CR4MenuBase
 		l_flashObject = m_flashValueStorage.CreateTempFlashObject();
 		l_flashObject.SetMemberFlashString("name",GetRegenStatLocalizedName(CRS_Vitality));
 		l_flashObject.SetMemberFlashString("icon","Vitality Regeneration");		
-		l_flashObject.SetMemberFlashString("value", NoTrailZeros(RoundTo(CalculateAttributeValue(thePlayer.GetAttributeValue(RegenStatEnumToName(CRS_Vitality))),1)) +" /s");	
+		l_flashObject.SetMemberFlashString("value", NoTrailZeros(RoundTo(CalculateAttributeValue(thePlayer.GetAttributeValue(RegenStatEnumToName(CRS_Vitality))),1)) +" /s");	//#B localize
 		l_flashArray.PushBackFlashObject(l_flashObject);
 
 		l_flashObject = m_flashValueStorage.CreateTempFlashObject();
 		l_flashObject.SetMemberFlashString("name",GetRegenStatLocalizedName(CRS_Stamina));
 		l_flashObject.SetMemberFlashString("icon","Stamina regeneration");
-		l_flashObject.SetMemberFlashString("value", NoTrailZeros(RoundTo(CalculateAttributeValue(thePlayer.GetAttributeValue(RegenStatEnumToName(CRS_Stamina))),1)) +" /s");	
+		l_flashObject.SetMemberFlashString("value", NoTrailZeros(RoundTo(CalculateAttributeValue(thePlayer.GetAttributeValue(RegenStatEnumToName(CRS_Stamina))),1)) +" /s");	//#B localize
 		l_flashArray.PushBackFlashObject(l_flashObject);
-		
+		/*
+		l_flashObject = m_flashValueStorage.CreateTempFlashObject();
+		l_flashObject.SetMemberFlashString("name",GetLocStringByKeyExt("Armor"));
+		l_flashObject.SetMemberFlashString("icon","Armor");
+		l_flashObject.SetMemberFlashString("value","X %");
+		l_flashArray.PushBackFlashObject(l_flashObject);
+		*/
 
 		l_flashObject = GetMenuFlashValueStorage().CreateTempFlashObject();
 		l_flashObject.SetMemberFlashString("name",GetPowerStatLocalizedName(CPS_AttackPower));
@@ -148,7 +152,7 @@ class CR4CharacterSkillsMenu extends CR4MenuBase
 		l_flashObject.SetMemberFlashString("value",RoundMath(spellPower.valueMultiplicative*100) + " %");
 		l_flashArray.PushBackFlashObject(l_flashObject);
 
-		
+		//-- steel sword damages (steel + silver + elemental)
 		l_flashObject = m_flashValueStorage.CreateTempFlashObject();
 		l_flashObject.SetMemberFlashString("name",GetLocStringByKeyExt("Steel sword damage"));
 		l_flashObject.SetMemberFlashString("icon","Steel sword damage");		
@@ -158,12 +162,12 @@ class CR4CharacterSkillsMenu extends CR4MenuBase
 		}
 		else
 		{
-			
+			//if no sword equipped
 			l_flashObject.SetMemberFlashString("value","-");
 		}
 		l_flashArray.PushBackFlashObject(l_flashObject);
 
-		
+		//-- silver sword damages (steel + silver + elemental)
 		l_flashObject = m_flashValueStorage.CreateTempFlashObject();
 		l_flashObject.SetMemberFlashString("name",GetLocStringByKeyExt("Silver sword damage"));
 		l_flashObject.SetMemberFlashString("icon","Silver sword damage");		
@@ -173,7 +177,7 @@ class CR4CharacterSkillsMenu extends CR4MenuBase
 		}
 		else
 		{
-			
+			//if no sword equipped
 			l_flashObject.SetMemberFlashString("value","-");
 		}
 		l_flashArray.PushBackFlashObject(l_flashObject);
@@ -182,7 +186,7 @@ class CR4CharacterSkillsMenu extends CR4MenuBase
 		m_flashValueStorage.SetFlashString( "playerstats.stats.name", GetLocStringByKeyExt("panel_common_statistics_name"),-1 );
 	}
 	
-	function UpdateStatsTooltip( statName : string ) 
+	function UpdateStatsTooltip( statName : string ) //@FIXME BIDON - there is no localisation here
 	{
 		m_flashValueStorage.SetFlashString("inventory.stats.title",statName,-1);
 		m_flashValueStorage.SetFlashString("inventory.stats.description",statName+"description",-1);
@@ -209,10 +213,10 @@ class CR4CharacterSkillsMenu extends CR4MenuBase
 		var durabilityModifier, silverDamage, steelDamage, elementalDamage : float;
 		var retString : string;
 	
-		
+		//get durability modifier
 		durabilityModifier = theGame.params.GetDurabilityMultiplier(thePlayer.inv.GetItemDurabilityRatio(id), true);
 	
-		
+		//get raw weapon damages
 		steelDamage = CalculateAttributeValue(thePlayer.inv.GetItemAttributeValue(id, theGame.params.DAMAGE_NAME_PHYSICAL));
 		steelDamage += CalculateAttributeValue(thePlayer.inv.GetItemAttributeValue(id, theGame.params.DAMAGE_NAME_SLASHING));
 		steelDamage += CalculateAttributeValue(thePlayer.inv.GetItemAttributeValue(id, theGame.params.DAMAGE_NAME_PIERCING));
@@ -224,7 +228,7 @@ class CR4CharacterSkillsMenu extends CR4MenuBase
 		elementalDamage += CalculateAttributeValue(thePlayer.inv.GetItemAttributeValue(id, theGame.params.DAMAGE_NAME_POISON));
 		elementalDamage += CalculateAttributeValue(thePlayer.inv.GetItemAttributeValue(id, theGame.params.DAMAGE_NAME_SHOCK));
 					
-		
+		//apply attack power & durability modifiers
 		steelDamage = MaxF(0, (steelDamage + attackPower.valueBase) * attackPower.valueMultiplicative + attackPower.valueAdditive);
 		steelDamage *= durabilityModifier;			
 		
@@ -234,7 +238,7 @@ class CR4CharacterSkillsMenu extends CR4MenuBase
 		elementalDamage = MaxF(0, (elementalDamage + attackPower.valueBase) * attackPower.valueMultiplicative + attackPower.valueAdditive);
 		elementalDamage *= durabilityModifier;
 		
-		
+		//get final string
 		retString = RoundF(steelDamage) + " + " + RoundF(silverDamage);
 		if(elementalDamage > 0)
 			retString += " + " + RoundF(elementalDamage);
@@ -242,22 +246,22 @@ class CR4CharacterSkillsMenu extends CR4MenuBase
 		return  retString;
 	}
 	
-	event  OnCloseMenu() 
+	event /*flash*/ OnCloseMenu() // @FIXME BIDON
 	{
 		if( m_parentMenu )
 		{
 			m_parentMenu.OnCloseMenu();
 		}
-		theSound.SoundEvent( 'gui_global_quit' ); 
+		theSound.SoundEvent( 'gui_global_quit' ); // #B sound - quit
 		CloseMenu();
 	}
 
-	event  OnUpdateCharacterButtons( skillName : string )
+	event /*flash*/ OnUpdateCharacterButtons( skillName : string )
 	{
-		
+		//UpdateStatsTooltip(statName);
 	}		
 
-	event  OnBuySkill( skillName : name )
+	event /*flash*/ OnBuySkill( skillName : name )
 	{
 		var skillType : ESkill;
 		
@@ -265,7 +269,7 @@ class CR4CharacterSkillsMenu extends CR4MenuBase
 		if( GetWitcherPlayer().CanLearnSkill(skillType) )
 		{
 			GetWitcherPlayer().AddSkill(skillType);
-			UpdateSkills(); 
+			UpdateSkills(); // @FIXME BIDON - update only current one
 			UpdateSkillTooltip(skillName);
 			UpdatePlayerStatisticsData();
 		}
@@ -275,17 +279,17 @@ class CR4CharacterSkillsMenu extends CR4MenuBase
 		}
 	}	
 	
-	event  OnUpdateSkillTooltip( skillName : name )
+	event /*flash*/ OnUpdateSkillTooltip( skillName : name )
 	{
 		UpdateSkillTooltip(skillName);
 	}	
 
-	event  OnCharacterTabSelected( id : int )
+	event /*flash*/ OnCharacterTabSelected( id : int )
 	{
 		m_flashValueStorage.SetFlashInt("character.tab.mode",id,-1);
 	}
 	
-	event  OnPlaySound( soundKey : string )
+	event /*flash*/ OnPlaySound( soundKey : string )
 	{
 		theSound.SoundEvent( soundKey );
 	}

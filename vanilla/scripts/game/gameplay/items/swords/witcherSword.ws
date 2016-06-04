@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-import class CWitcherSword extends CItemEntity
+﻿import class CWitcherSword extends CItemEntity
 {
 	var runeCount : int;
 	editable var padBacklightColor : Vector;
@@ -18,7 +13,7 @@ import class CWitcherSword extends CItemEntity
 		var swordCategory : name;
 		var swordType : EWitcherSwordType;
 		var newRuneCount : int;
-
+		var oilBuff : W3Effect_Oil;
 		var invComp : CInventoryComponent;
 		var itemId : SItemUniqueId;
 		
@@ -34,21 +29,26 @@ import class CWitcherSword extends CItemEntity
 			{
 				swordCategory = 'steelsword';
 				break;
-		}
+			}
 		}
 		
-		invComp = ( CInventoryComponent )( actor.GetComponentByClassName( 'CInventoryComponent' ) );
-
-		ApplyOil( invComp );
-
+		invComp = actor.GetInventory();
 		itemId = invComp.GetItemByItemEntity( this );
+		/*
+		Already handled by ResumeOilBuffs()
+		oilBuff = actor.GetInventory().GetMostRecentOilAppliedOnItem( itemId, true );
+
+		if( oilBuff )
+		{
+			ApplyOil( oilBuff.GetOilAbilityName() );
+		}*/
+		
 		runeCount = invComp.GetItemEnhancementCount( itemId );
 		UpdateEnhancements( invComp );
 		
 		stateName = actor.GetCurrentStateName();
 		
-		if (( swordType == WST_Silver && stateName == 'CombatSilver' )
-		||	( swordType == WST_Steel && stateName == 'CombatSteel' ) )
+		if( ( swordType == WST_Silver && stateName == 'CombatSilver' ) || ( swordType == WST_Steel && stateName == 'CombatSteel' ) )
 		{
 			PlayEffect( 'rune_blast_loop' );
 		}
@@ -89,33 +89,29 @@ import class CWitcherSword extends CItemEntity
 		GetWitcherPlayer().ResetPadBacklightColor( true );
 	}
 	
-	public function ApplyOil( invComp : CInventoryComponent )
+	public function ApplyOil( oilAbilityName : name )
 	{
-		var itemId : SItemUniqueId;
-		var abilities : array< name >;
-		
-		itemId = invComp.GetItemByItemEntity( this );
-		
-		invComp.GetItemAbilitiesWithTag( itemId, theGame.params.OIL_ABILITY_TAG, abilities );
-
-		if ( abilities.Size() > 0 )
-		{
-			PlayEffect( GetOilFxName( abilities[0] ) );
-		}
+		PlayEffect( GetOilFxName( oilAbilityName ) );
 	}
 	
-	public function RemoveOil( invComp : CInventoryComponent )
+	public function RemoveOil( oilAbilityName : name )
 	{
-		var itemId : SItemUniqueId;
-		var abilities : array< name >;
+		var inv : CInventoryComponent;
+		var id : SItemUniqueId;
+		var oil : W3Effect_Oil;
 		
-		itemId = invComp.GetItemByItemEntity( this );
-
-		invComp.GetItemAbilitiesWithTag( itemId, theGame.params.OIL_ABILITY_TAG, abilities );
-
-		if ( abilities.Size() > 0 )
+		//stop effect does not work, see TTP 150685
+		//StopEffect( GetOilFxName( oilAbilityName ) );
+		PlayEffect( 'oil_none' );
+		
+		//if he have other oils on this sword - show one instead
+		inv = ( ( CActor ) GetParentEntity() ).GetInventory();
+		id = inv.GetItemByItemEntity( this );
+		oil = inv.GetNewestOilAppliedOnItem( id, true );
+		
+		if( oil )
 		{
-			StopEffect( GetOilFxName( abilities[0] ) );
+			ApplyOil( oil.GetOilAbilityName() );
 		}
 	}
 	
@@ -408,7 +404,7 @@ import class CWitcherSword extends CItemEntity
 
 		invComp.GetItemEnhancementItems( itemId, enhancements );
 
-		
+		// Disable existing rune effect using member var runeCount
 		if ( runeCount > 0 && ( ( runeCount - 1 ) < enhancements.Size() ) )
 		{
 			StopEffect( GetRuneLevel( runeCount ) );
@@ -420,7 +416,7 @@ import class CWitcherSword extends CItemEntity
 			StopEffect( GetEnchantmentFxName( enhancements[ 0 ] ) );
 		}
 		
-		
+		// Get the new rune count and store from deactivation
 		runeCount = invComp.GetItemEnhancementCount( itemId );
 
 		if ( runeCount > 0 && ( ( runeCount - 1 ) < enhancements.Size() ) )

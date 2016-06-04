@@ -1,11 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file
 /***********************************************************************/
-
-
-
+/** Copyright © 2013 CD Projekt RED
+/** Author : Andrzej Kwiatkowski, Wojciech Żerek
+/***********************************************************************/
 
 class CBTTaskSlideToTarget extends IBehTreeTask
 {
@@ -14,17 +12,27 @@ class CBTTaskSlideToTarget extends IBehTreeTask
 	var maxSpeed			: float; 
 	var onAnimEvent			: name;
 	var adjustVertically 	: bool;
+	var useCombatTarget 	: bool;
 	
 	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo ) : bool
 	{
 		var npc 				: CNewNPC = GetNPC();
-		var target 				: CActor = npc.GetTarget();
+		var target 				: CNode;
 		var ticket 				: SMovementAdjustmentRequestTicket;
 		var movementAdjustor	: CMovementAdjustor;
 		var slidePos			: Vector;
+		var rotateToTarget		: bool;
 		
 		if ( animEventName == onAnimEvent && ( animEventType == AET_DurationStart || animEventType == AET_DurationStartInTheMiddle ) )
 		{
+			if ( useCombatTarget )
+			{
+				target = (CNode)GetCombatTarget();
+			}
+			else
+			{
+				target = GetActionTarget();
+			}
 			movementAdjustor = npc.GetMovingAgentComponent().GetMovementAdjustor();
 			movementAdjustor.CancelByName( 'SlideToTarget' );
 			ticket = movementAdjustor.CreateNewRequest( 'SlideToTarget' );
@@ -34,6 +42,10 @@ class CBTTaskSlideToTarget extends IBehTreeTask
 			if ( adjustVertically )
 			{
 				movementAdjustor.AdjustLocationVertically( ticket, true );
+			}
+			if( rotateToTarget )
+			{
+				movementAdjustor.RotateTowards( ticket, GetCombatTarget() );
 			}
 			movementAdjustor.SlideTowards( ticket, target, minDistance, maxDistance );
 			return true;
@@ -52,31 +64,41 @@ class CBTTaskSlideToTargetDef extends IBehTreeTaskDefinition
 	editable var maxSpeed			: float;
 	editable var onAnimEvent		: name;
 	editable var adjustVertically	: bool;
+	editable var rotateToTarget		: bool;
+	editable var useCombatTarget 	: bool;
 	
 	default minDistance = 1.5;
 	default maxDistance = 2;
 	default maxSpeed = 5;
 	default onAnimEvent = 'SlideToTarget';
 	default adjustVertically = false;
+	default rotateToTarget	 = false;
+	default useCombatTarget  = true;
 	
 	hint onAnimEvent = "Must be specified. Won't work without an event.";
 };
 
-
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class CBTTaskShadowDash extends IBehTreeTask
 {
-	var slideSpeed : float;
-	var slideBehindTarget : bool;
-	var distanceOffset : float;
-	var disableCollision : bool;
-	var dealDamageOnContact : bool;
-	var damageVal : float;
-	var maxDist : float;
+	public var slideSpeed 					: float;
+	public var slideBehindTarget 			: bool;
+	public var distanceOffset 				: float;
+	public var disableCollision 			: bool;
+	public var dealDamageOnContact 			: bool;
+	public var damageVal 					: float;
+	public var maxDist 						: float;
+	public var sideStepDist 				: float;
+	public var sideStepHeadingOffset 		: float;
+	public var minDuration 					: float;
+	public var maxDuration 					: float;
+	public var slideBlendInTime 			: float;
+	public var disableGameplayVisibility 	: bool;
 	
-	var isSliding : bool;
-	var hitEntities : array<CEntity>;
-	var collisionGroupsNames : array<name>;
+	private var isSliding 					: bool;
+	private var hitEntities 				: array<CEntity>;
+	private var collisionGroupsNames 		: array<name>;
 	
 	function OnActivate() : EBTNodeStatus
 	{
@@ -88,7 +110,7 @@ class CBTTaskShadowDash extends IBehTreeTask
 	
 	function OnDeactivate()
 	{
-		SlideStop(); 
+		SlideStop(); // failsafe
 	}
 	
 	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo ) : bool
@@ -102,22 +124,28 @@ class CBTTaskShadowDash extends IBehTreeTask
 		{
 			movementAdjustor = GetNPC().GetMovingAgentComponent().GetMovementAdjustor();
 			movementAdjustor.CancelByName( 'ShadowDash' );
+			movementAdjustor.CancelByName( 'ShadowStepRight' );
+			movementAdjustor.CancelByName( 'ShadowDashLeft' );
 			
 			ticket = movementAdjustor.CreateNewRequest( 'ShadowDash' );
 			slidePos = CalculateSlidePos();
 			slideDuration = CalculateSlideDuration( slidePos );
-
+			if ( maxDuration > 0 )
+			{
+				slideDuration = ClampF( slideDuration, minDuration, maxDuration );
+			}
+			
 			movementAdjustor.Continuous( ticket );
 			movementAdjustor.AdjustmentDuration( ticket, slideDuration );
 			movementAdjustor.AdjustLocationVertically( ticket, true );
-			movementAdjustor.BlendIn( ticket, 0.25 );
-			movementAdjustor.SlideTo( ticket, slidePos );
-			movementAdjustor.RotateTowards( ticket, GetCombatTarget() );
-			
-			if( maxDist > 0.0 )
+			movementAdjustor.BlendIn( ticket, slideBlendInTime );
+			if ( maxDist > 0.0 )
 			{
 				movementAdjustor.MaxLocationAdjustmentDistance( ticket, false, maxDist );
 			}
+			movementAdjustor.SlideTo( ticket, slidePos );
+			movementAdjustor.MaxRotationAdjustmentSpeed( ticket, 9999 );
+			movementAdjustor.RotateTowards( ticket, GetCombatTarget() );
 			
 			SlideStart();
 			
@@ -127,6 +155,8 @@ class CBTTaskShadowDash extends IBehTreeTask
 		{
 			movementAdjustor = GetNPC().GetMovingAgentComponent().GetMovementAdjustor();
 			movementAdjustor.CancelByName( 'ShadowDash' );
+			movementAdjustor.CancelByName( 'ShadowStepRight' );
+			movementAdjustor.CancelByName( 'ShadowDashLeft' );
 			
 			ticket = movementAdjustor.CreateNewRequest( 'ShadowDash' );
 			
@@ -134,11 +164,15 @@ class CBTTaskShadowDash extends IBehTreeTask
 			
 			slidePos = CalculateSlidePos();
 			slideDuration = CalculateSlideDuration( slidePos );
-
+			if ( maxDuration > 0 )
+			{
+				slideDuration = ClampF( slideDuration, minDuration, maxDuration );
+			}
+			
 			movementAdjustor.Continuous( ticket );
 			movementAdjustor.AdjustmentDuration( ticket, slideDuration );
 			movementAdjustor.AdjustLocationVertically( ticket, true );
-			movementAdjustor.BlendIn( ticket, 0.25 );
+			movementAdjustor.BlendIn( ticket, slideBlendInTime );
 			movementAdjustor.SlideTo( ticket, slidePos );
 			movementAdjustor.RotateTowards( ticket, GetCombatTarget() );
 			
@@ -152,13 +186,17 @@ class CBTTaskShadowDash extends IBehTreeTask
 			movementAdjustor.CancelByName( 'ShadowStepRight' );
 			
 			ticket = movementAdjustor.CreateNewRequest( 'ShadowStepRight' );
-			slidePos = GetNPC().GetWorldPosition() + VecFromHeading( GetNPC().GetHeading() - 30.0 ) * 3.0;
+			slidePos = GetNPC().GetWorldPosition() + VecFromHeading( GetNPC().GetHeading() - sideStepHeadingOffset ) * sideStepDist;
 			slideDuration = CalculateSlideDuration( slidePos );
-
+			if ( maxDuration > 0 )
+			{
+				slideDuration = ClampF( slideDuration, minDuration, maxDuration );
+			}
+			
 			movementAdjustor.Continuous( ticket );
 			movementAdjustor.AdjustmentDuration( ticket, slideDuration );
 			movementAdjustor.AdjustLocationVertically( ticket, true );
-			movementAdjustor.BlendIn( ticket, 0.25 );
+			movementAdjustor.BlendIn( ticket, slideBlendInTime );
 			movementAdjustor.SlideTo( ticket, slidePos );
 			movementAdjustor.RotateTowards( ticket, GetCombatTarget() );
 			
@@ -172,13 +210,17 @@ class CBTTaskShadowDash extends IBehTreeTask
 			movementAdjustor.CancelByName( 'ShadowStepLeft' );
 			
 			ticket = movementAdjustor.CreateNewRequest( 'ShadowStepLeft' );
-			slidePos = GetNPC().GetWorldPosition() + VecFromHeading( GetNPC().GetHeading() + 30.0 ) * 3.0;
+			slidePos = GetNPC().GetWorldPosition() + VecFromHeading( GetNPC().GetHeading() + sideStepHeadingOffset ) * sideStepDist;
 			slideDuration = CalculateSlideDuration( slidePos );
-
+			if ( maxDuration > 0 )
+			{
+				slideDuration = ClampF( slideDuration, minDuration, maxDuration );
+			}
+			
 			movementAdjustor.Continuous( ticket );
 			movementAdjustor.AdjustmentDuration( ticket, slideDuration );
 			movementAdjustor.AdjustLocationVertically( ticket, true );
-			movementAdjustor.BlendIn( ticket, 0.25 );
+			movementAdjustor.BlendIn( ticket, slideBlendInTime );
 			movementAdjustor.SlideTo( ticket, slidePos );
 			movementAdjustor.RotateTowards( ticket, GetCombatTarget() );
 			
@@ -192,13 +234,17 @@ class CBTTaskShadowDash extends IBehTreeTask
 			movementAdjustor.CancelByName( 'ShadowDashLeft' );
 			
 			ticket = movementAdjustor.CreateNewRequest( 'ShadowDashLeft' );
-			slidePos = GetNPC().GetWorldPosition() + VecFromHeading( GetNPC().GetHeading() + 90.0 ) * 3.0;
+			slidePos = GetNPC().GetWorldPosition() + VecFromHeading( GetNPC().GetHeading() + 90.0 ) * sideStepDist;
 			slideDuration = CalculateSlideDuration( slidePos );
-
+			if ( maxDuration > 0 )
+			{
+				slideDuration = ClampF( slideDuration, minDuration, maxDuration );
+			}
+			
 			movementAdjustor.Continuous( ticket );
 			movementAdjustor.AdjustmentDuration( ticket, slideDuration );
 			movementAdjustor.AdjustLocationVertically( ticket, true );
-			movementAdjustor.BlendIn( ticket, 0.25 );
+			movementAdjustor.BlendIn( ticket, slideBlendInTime );
 			movementAdjustor.SlideTo( ticket, slidePos );
 			movementAdjustor.RotateTowards( ticket, GetCombatTarget() );
 			
@@ -206,7 +252,8 @@ class CBTTaskShadowDash extends IBehTreeTask
 			
 			return true;
 		}
-		else if( animEventType == AET_DurationEnd )
+		else if( ( animEventName == 'ShadowDash' || animEventName == 'ShadowDashFrontOverrideParams' || animEventName == 'ShadowStepRight' || 
+			animEventName == 'ShadowStepLeft' || animEventName == 'ShadowDashLeft' ) && animEventType == AET_DurationEnd )
 		{
 			SlideStop();
 			
@@ -221,9 +268,11 @@ class CBTTaskShadowDash extends IBehTreeTask
 		if( disableCollision )
 		{
 			GetActor().EnableCharacterCollisions( false );
+		}
+		if ( disableGameplayVisibility )
+		{
 			GetNPC().SetGameplayVisibility( false );
 		}
-		
 		if( dealDamageOnContact )
 		{
 			RunMain();
@@ -237,6 +286,10 @@ class CBTTaskShadowDash extends IBehTreeTask
 		if( disableCollision )
 		{
 			GetActor().EnableCharacterCollisions( true );
+			
+		}
+		if ( disableGameplayVisibility )
+		{
 			GetNPC().SetGameplayVisibility( true );
 		}
 		
@@ -335,15 +388,26 @@ class CBTTaskShadowDashDef extends IBehTreeTaskDefinition
 {
 	default instanceClass = 'CBTTaskShadowDash';
 	
-	editable var slideSpeed : float;
-	editable var slideBehindTarget : bool;
-	editable var distanceOffset : float;
-	editable var disableCollision : bool;
-	editable var dealDamageOnContact : bool;
-	editable var damageVal : float;
-	editable var maxDist : float;
+	editable var slideSpeed 				: float;
+	editable var slideBehindTarget 			: bool;
+	editable var distanceOffset 			: float;
+	editable var disableCollision 			: bool;
+	editable var dealDamageOnContact 		: bool;
+	editable var damageVal 					: float;
+	editable var maxDist 					: float;
+	editable var sideStepDist 				: float;
+	editable var sideStepHeadingOffset 		: float;
+	editable var minDuration 				: float;
+	editable var maxDuration 				: float;
+	editable var slideBlendInTime 			: float;
+	editable var disableGameplayVisibility 	: bool;
 	
-	default slideSpeed = 25.0;
-	default distanceOffset = 4.0;
-	default damageVal = 200.0;
+	default slideSpeed 						= 25.0;
+	default distanceOffset 					= 4.0;
+	default damageVal 						= 200.0;
+	default maxDuration 					= -1;
+	default sideStepDist 					= 3.0;
+	default sideStepHeadingOffset 			= 30.0;
+	default disableGameplayVisibility 		= true;
+	default slideBlendInTime 				= 0.25;
 };

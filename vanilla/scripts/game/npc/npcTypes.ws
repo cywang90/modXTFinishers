@@ -1,13 +1,29 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
+﻿/*import class CVitalSpot
+{
+	import const var entitySlotName			: name;
+	import const var focusPointsCost		: float;
+	import const var visualEffect			: name;
+	import const var gameplayEffects		: array< IGameplayEffectExecutor >;		//list of buffs applied when this spot is hit
+	import const var normal					: Vector;
+	import const var cutDirection			: Vector;
+	import const var hitReactionAnimation	: name;
+	import const var soundOnFocus			: string;
+	import const var soundOffFocus			: string;
+	import const var destroyAfterExecution	: bool;
+	
+	import function GetJournalEntry() : CJournalCreatureVitalSpotEntry;
+}*/
 
+/*enum EVitalSpotType // #B deprecated
+{
+	VST_Human_Bicep,
+	VST_Human_Neck,
+	VST_Human_Abdomen,
+	VST_Human_KneeBack,
+	VST_Human_Shield,
+}*/
 
-
-
-
+//npc death type
 enum EDeathType
 {
 	EDT_Default,
@@ -15,7 +31,14 @@ enum EDeathType
 	EDT_AardDeath,
 	EDT_Agony
 }
-
+/*
+enum EDeathDirection
+{
+	EDD_Forward,
+	EDD_Back,
+	EDD_Left,
+	EDD_Right,
+}*/
 
 enum EFinisherDeathType
 {
@@ -28,7 +51,7 @@ enum EFinisherDeathType
 	EFDT_LegRight,		
 }
 
-
+//Fails on action attempts after disabling abilities by focus mode
 enum EActionFail
 {
 	EAF_ActionFail1,
@@ -38,7 +61,7 @@ enum EActionFail
 	EAF_ActionFail5,
 }
 
-
+//Fails on action attempts after disabling abilities by focus mode
 enum ETauntType
 {
 	TT_Taunt1,
@@ -51,7 +74,7 @@ enum ETauntType
 	TT_Taunt8,
 }
 
-
+//behavior graphs
 enum EBehaviorGraph
 {
 	EBG_None,
@@ -80,10 +103,13 @@ enum EBehaviorGraph
 	EBG_Combat_WildHunt_Eredin,
 	EBG_Combat_Olgierd,
 	EBG_Combat_Caretaker,
-	EBG_Combat_Vampiress
+	EBG_Combat_Dettlaff_Vampire,
+	EBG_Combat_Gregoire,
+	EBG_Combat_Dettlaff_Minion
+	
 }
 
-
+//Spawn type
 enum EExplorationMode
 {
 	EM_None,
@@ -93,7 +119,7 @@ enum EExplorationMode
 }
 
 
-
+//Agony type
 enum EAgonyType
 {
 	AT_ThroatCut,
@@ -109,7 +135,7 @@ enum ENPCFightStage
 	NFS_Stage5
 }
 
-
+//Critical State
 enum ECriticalStateType
 {
 	ECST_BurnCritical,
@@ -131,19 +157,22 @@ enum ECriticalStateType
 	ECST_Snowstorm,
 	ECST_Frozen,
 	ECST_Tornado,
+	ECST_Trap,
+	
 }
 
-
+//higher priority overrides lower priority
 function CalculateCriticalStateTypePriority(type : ECriticalStateType) : int
 {
-	
+	//priority
 	switch(type)
 	{	
 		case ECST_Frozen :				return 130;
-		case ECST_Ragdoll :				return 120;
-		case ECST_Tornado : 			return 115;
-		case ECST_HeavyKnockdown :		return 110;
-		case ECST_Knockdown :			return 100;
+		case ECST_Ragdoll :				return 125;
+		case ECST_Tornado : 			return 120;
+		case ECST_HeavyKnockdown :		return 115;
+		case ECST_Knockdown :			return 105;
+		case ECST_Trap :				return 100;
 		case ECST_Paralyzed :			return 95;
 		case ECST_Immobilize :			return 90;
 		case ECST_Stagger :				return 80;
@@ -176,11 +205,22 @@ enum EHitReactionSide
 
 enum EDetailedHitType
 {
-	EDHT_None,		
-	EDHT_Straight,	
-	EDHT_RightLeft,	
-	EDHT_LeftRight	
-	
+	EDHT_None,		//0
+	EDHT_Straight,	//1
+	EDHT_RightLeft,	//2
+	EDHT_LeftRight	//3
+	/*
+	EDHT_None,
+	EDHT_Jab,						//1
+	EDHT_HorizontalRightLeft,		//2
+	EDHT_HorizontalLeftRight,		//3
+	EDHT_DiagonalUpRightDownLeft,	//4
+	EDHT_DiagonalUpLeftDownRight,	//5
+	EDHT_DiagonalDownRightUpLeft,	//6
+	EDHT_DiagonalDownLeftUpRight,	//7
+	EDHT_VerticalUpDown,			//8
+	EDHT_VerticalDownUp				//9
+	*/
 }
 enum EAttackType
 {
@@ -211,7 +251,7 @@ enum EChargeAttackType
 	ECAT_Knockdown,
 	ECAT_Stagger
 }
-
+// dodge type
 enum EDodgeType
 {
 	EDT_Attack_Light,
@@ -237,7 +277,7 @@ enum ETurnDirection
 	ETD_Left,
 	ETD_Right
 }
-
+// target direction
 enum ETargetDirection
 {
 	ETD_Direction_0,
@@ -287,14 +327,16 @@ enum EInventoryFundsType
 	EInventoryFunds_Unlimited,
 	EInventoryFunds_Rich,
 	EInventoryFunds_Avg,
-	EInventoryFunds_Poor
+	EInventoryFunds_Poor,
+	EInventoryFunds_RichQuickStart,
+	EInventoryFunds_Broke
 }
 
+//-------------------------------------------------
+//Weapon sub-types
+//-------------------------------------------------
 
-
-
-
-
+// -> 1handed weapons
 enum EWeaponSubType1Handed
 {
 	EWST1H_Sword,
@@ -302,7 +344,7 @@ enum EWeaponSubType1Handed
 	EWST1H_Blunt,
 }
 
-
+// -> 2handed weapons
 enum EWeaponSubType2Handed
 {
 	EWST2H_Hammer,
@@ -312,48 +354,48 @@ enum EWeaponSubType2Handed
 	EWST2H_Staff,
 }
 
-
+// -> ranged weapons
 enum EWeaponSubTypeRanged
 {
 	EWSTR_Bow,
 	EWSTR_Crossbow,
 }
 
-
-
+//**************************************************
+//Very important,
 enum ENpcWeapons
 {
-	ENW_1h_Sword			= 0x0001,		
-	ENW_1h_Axe				= 0x0002,		
-	ENW_1h_Mace				= 0x0004,		
-	ENW_Shield				= 0x0008,		
-	ENW_2h_Sword			= 0x0010,		
-	ENW_2h_Axe				= 0x0020,		
-	ENW_2h_Mace				= 0x0040,		
-	ENW_2h_Bow				= 0x0080,		
-	ENW_2h_Crossbow			= 0x0100,		
-	ENW_2h_Halberd			= 0x0200,		
-	ENW_2h_Spear			= 0x0400,		
+	ENW_1h_Sword			= 0x0001,		// 0
+	ENW_1h_Axe				= 0x0002,		// 1
+	ENW_1h_Mace				= 0x0004,		// 2
+	ENW_Shield				= 0x0008,		// 3
+	ENW_2h_Sword			= 0x0010,		// 4
+	ENW_2h_Axe				= 0x0020,		// 5
+	ENW_2h_Mace				= 0x0040,		// 6
+	ENW_2h_Bow				= 0x0080,		// 7
+	ENW_2h_Crossbow			= 0x0100,		// 8
+	ENW_2h_Halberd			= 0x0200,		// 9
+	ENW_2h_Spear			= 0x0400,		// 10
 }
 enum ENpcFightingStyles
 {
-	ENFS_Sword 				= 0x0001,	
-	ENFS_Mounted			= 0x0003,	
-	ENFS_SwordAndShield 	= 0x0009,	
-	ENFS_Axe				= 0x0002,	
-	ENFS_AxeAndShield		= 0x000a,	
-	ENFS_Mace				= 0x0004,	
-	ENFS_MaceAndShield		= 0x000c,	
-	ENFS_2h_Sword			= 0x0010,	
-	ENFS_2h_Axe				= 0x0020,	
-	ENFS_2h_Mace			= 0x0040,	
-	ENFS_Bow				= 0x0080,	
-	ENFS_Crossbow			= 0x0100,	
-	ENFS_Halberd			= 0x0200,	
-	ENFS_Spear				= 0x0400,	
-	ENFS_Hjalmar			= 0x0800,	
+	ENFS_Sword 				= 0x0001,	// ENW_1h_Sword,
+	ENFS_Mounted			= 0x0003,	// Horses and other mounts
+	ENFS_SwordAndShield 	= 0x0009,	// ENW_1h_Sword | ENW_Shield,
+	ENFS_Axe				= 0x0002,	// ,
+	ENFS_AxeAndShield		= 0x000a,	// ,
+	ENFS_Mace				= 0x0004,	// ,
+	ENFS_MaceAndShield		= 0x000c,	// ,
+	ENFS_2h_Sword			= 0x0010,	// ,
+	ENFS_2h_Axe				= 0x0020,	// ,
+	ENFS_2h_Mace			= 0x0040,	// ,
+	ENFS_Bow				= 0x0080,	// ,
+	ENFS_Crossbow			= 0x0100,	// ,
+	ENFS_Halberd			= 0x0200,	// ,
+	ENFS_Spear				= 0x0400,	// ,
+	ENFS_Hjalmar			= 0x0800,	// GI Hjalmar
 }
-
+//***************************************************
 
 function BehGraphIntToName( graphEnum : int ) : name
 {
@@ -384,7 +426,6 @@ function BehGraphIntToName( graphEnum : int ) : name
 		case EBG_Combat_Witcher							: return 'Witcher';
 		
 		case EBG_Combat_Sorceress						: return 'Sorceress';
-		case EBG_Combat_Vampiress						: return 'Vampiress';
 		
 		case EBG_Combat_WildHunt_Imlerith				: return 'Imlerith';
 		case EBG_Combat_WildHunt_Imlerith_Second_Stage	: return 'ImlerithSecondStage';
@@ -396,8 +437,14 @@ function BehGraphIntToName( graphEnum : int ) : name
 		
 		case EBG_Combat_Caretaker						: return 'Exploration';
 		
+		case EBG_Combat_Dettlaff_Vampire				: return 'DettlaffVampire';
+		
+		case EBG_Combat_Gregoire						: return 'Exploration';
+		
+		case EBG_Combat_Dettlaff_Minion					: return 'DettlaffMinion';
+		
 		case EBG_None									: return 'None';
-
+		
 		default 										: return '';
 	}
 	
@@ -419,4 +466,16 @@ import class CMonsterParam extends CGameplayEntityParam
 	import var canBeStrafed : bool;
 };
 
-
+// imported
+/*
+enum ENpcStance
+{
+	NS_Normal,
+	NS_Strafe,
+	NS_Retreat,
+	NS_Guarded,
+	NS_Wounded,
+	NS_Fly,
+	NS_Swim,
+}
+*/

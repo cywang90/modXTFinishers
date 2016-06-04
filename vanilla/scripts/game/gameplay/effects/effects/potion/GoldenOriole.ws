@@ -1,11 +1,7 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2012
+/** Author : Tomasz Kozera
 /***********************************************************************/
-
-
-
 
 class W3Potion_GoldenOriole extends CBaseGameplayEffect
 {
@@ -33,9 +29,9 @@ class W3Potion_GoldenOriole extends CBaseGameplayEffect
 		}
 	}
 	
-	
-	
-	
+	//////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////  BUFF INTERACTIONS  //////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	protected function GetEffectStrength() : float
 	{		
@@ -48,7 +44,7 @@ class W3Potion_GoldenOriole extends CBaseGameplayEffect
 		
 		dm.GetAbilityAttributes(abilityName, atts);
 		
-		
+		//get this effect value
 		for(i=0; i<atts.Size(); i+=1)
 		{
 			if(IsNonPhysicalResistStat(ResistStatNameToEnum(atts[i], isPoint)))

@@ -1,46 +1,57 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-struct SJournalUpdate
+﻿struct SJournalUpdate
 {
-	var text		: string;
-	var title		: string;
-	var status		: EJournalStatus;
-	var journalEntry: CJournalBase;
-	var iconPath	: string;
-	var panelName	: name; 
-	var entryTag	: name; 
-	var soundEvent	: string;
-	var isQuestUpdate: bool;
-	var displayTime : float;
+	var text		  : string;
+	var title		  : string;
+	var status		  : EJournalStatus;
+	var journalEntry  : CJournalBase;
+	var iconPath	  : string;
+	var panelName	  : name; // #B for alchemy and crafting
+	var entryTag	  : name; // #B for alchemy and crafting
+	var soundEvent	  : string;
+	var isQuestUpdate : bool;	
+	var displayTime   : float;
+	var itemId 	      : SItemUniqueId; // item popup info
+	var isItemUpdate  : bool;
+	
 	default title = "";
 };
 
 class CR4HudModuleJournalUpdate extends CR4HudModuleBase
 {	
 	private var _bDuringDisplay : bool;		default _bDuringDisplay = false;
-	private var m_fxShowJournalUpdateSFF	: CScriptedFlashFunction;
-	private var m_fxSetJournalUpdateStatusSFF	: CScriptedFlashFunction;
+	
+	private var m_fxShowJournalUpdateSFF			: CScriptedFlashFunction;
+	private var m_fxSetJournalUpdateStatusSFF		: CScriptedFlashFunction;
 	private var m_fxSetJournalUpdateStatusTextSFF	: CScriptedFlashFunction;
-	private var m_fxClearJournalUpdateSFF	: CScriptedFlashFunction;
-	private var m_fxSetIconSFF	: CScriptedFlashFunction;
+	private var m_fxClearJournalUpdateSFF			: CScriptedFlashFunction;	
+	private var m_fxSetIconSFF			    		: CScriptedFlashFunction;
+	private var m_fxHideItemInfo					: CScriptedFlashFunction;
+	private var m_fxPauseShowTimer					: CScriptedFlashFunction;
+	
 	private var questsUpdates	: array< CJournalQuest>;
 	private var journalUpdates	: array< SJournalUpdate>;
 	private var manager : CWitcherJournalManager;
 	private var m_guiManager : CR4GuiManager;	
-	private var m_flashValueStorage 	: CScriptedFlashValueStorage;
+	private var m_flashValueStorage : CScriptedFlashValueStorage;
 	private var m_defaultInputBindings : array<SKeyBinding>;
+	private var m_bookItemId : SItemUniqueId;
+	private var m_bookPopupData : BookPopupFeedback;
+	private var m_paintingPopupData  : PaintingPopup;
+	
+	private var bShowTimerStopped : bool;
 	private var bWasRemoved : bool;
 	private var defaultDisplayTime : float;
+	private var defaultBookInfoDisplayTime : float;
 	private var defaultTrackableDisplayTime : float;
-	default defaultDisplayTime = 3000; 
+	
+	default defaultDisplayTime = 3000; // #B 3 [s]
+	default defaultBookInfoDisplayTime = 6000;
 	default defaultTrackableDisplayTime = 6000;
 	default bWasRemoved = true;
+	default bShowTimerStopped = false;
 	
-	event  OnConfigUI()
-	{		
+	event /* flash */ OnConfigUI()
+	{
 		var flashModule : CScriptedFlashSprite;
 		var hud : CR4ScriptedHud;
 		
@@ -53,40 +64,86 @@ class CR4HudModuleJournalUpdate extends CR4HudModuleBase
 		m_fxSetJournalUpdateStatusSFF = flashModule.GetMemberFlashFunction( "SetJournalUpdateStatus" );
 		m_fxClearJournalUpdateSFF = flashModule.GetMemberFlashFunction( "ClearJournalUpdate" );
 		m_fxSetIconSFF = flashModule.GetMemberFlashFunction( "SetIcon" );
+		m_fxHideItemInfo = flashModule.GetMemberFlashFunction( "hideItemInfo" );
+		m_fxPauseShowTimer = flashModule.GetMemberFlashFunction( "PauseShowTimer" );
+		
 		manager = theGame.GetJournalManager();
 		m_guiManager = theGame.GetGuiManager();
 		
 		hud = (CR4ScriptedHud)theGame.GetHud();
-						
 		
-		
-		
-		
+		//if (hud)
+		//{
+		//	hud.UpdateHudConfig('JournalUpdateModule', true);
+		//}
 	}
 
 	event OnTick( timeDelta : float )
 	{
-		if( !_bDuringDisplay )
+		var currentContext : name;		
+		
+		if( !theGame.IsPausedForReason( "Popup" ) )
 		{
-			if( CheckPending() )
+			if( !_bDuringDisplay )
 			{
-				DisplayPending();
+				if( CheckPending() )
+				{
+					DisplayPending();
+				}
+			}
+			else if(journalUpdates.Size() > 0)
+			{
+				if( !CheckSceneAndCutsceneDisplay(journalUpdates[0].status,journalUpdates[0].isQuestUpdate) )
+				{
+					m_fxClearJournalUpdateSFF.InvokeSelf();
+					OnRemoveUpdate();
+					OnShowUpdateEnd();
+				}
 			}
 		}
-		else if(journalUpdates.Size() > 0)
+		
+		if( theGame.IsPaused() )
 		{
-			if( !CheckSceneAndCutsceneDisplay(journalUpdates[0].status,journalUpdates[0].isQuestUpdate) )
+			if ( !bShowTimerStopped )
 			{
-				m_fxClearJournalUpdateSFF.InvokeSelf();
-				OnRemoveUpdate();
-				OnShowUpdateEnd();
+				bShowTimerStopped = true;
+				m_fxPauseShowTimer.InvokeSelfOneArg( FlashArgBool( true ) );
 			}
 		}
+		else
+		{
+			if ( bShowTimerStopped )
+			{
+				bShowTimerStopped = false;
+				m_fxPauseShowTimer.InvokeSelfOneArg( FlashArgBool( false ) );
+			}
+		}
+		
+		// force close book popup during cutscenes
+		
+		currentContext = theInput.GetContext();
+		
+		if ( thePlayer.inv.IsIdValid( m_bookItemId ) && currentContext == 'Scene')
+		{
+			m_bookItemId = GetInvalidUniqueId();
+			m_fxHideItemInfo.InvokeSelf();
+		}
+		
+		if( m_bookPopupData && currentContext == 'Scene' )
+		{
+			m_bookPopupData.ClosePopupOverlay();
+			delete m_bookPopupData;
+		}
+	}
+	
+	public function isBookInfoShown():bool
+	{
+		return thePlayer.inv.IsIdValid( m_bookItemId ) || m_bookPopupData;
 	}
 
 	event OnInputHandled(NavCode:string, KeyCode:int, ActionId:int)
 	{
-		
+		// I don't know what it is for and why it's called, but I don't want to see log spammed with missing event messages
 	}
 
 	function CheckPending() : bool
@@ -103,8 +160,41 @@ class CR4HudModuleJournalUpdate extends CR4HudModuleBase
 		var title : string;
 		var offset : int;
 		var isTrackableQuest : bool;
+		var isCutscene : bool;
+		var itemId : SItemUniqueId;
+		var lootPopup : CR4LootPopup;
 		
+		if ( theGame.IsBlackscreen() || theGame.IsFading() )
+		{
+			return;
+		}
+
 		_bDuringDisplay = true;
+		isCutscene = theInput.GetContext() == 'Scene';
+		
+		// item info popup
+		
+		lootPopup = (CR4LootPopup)theGame.GetGuiManager().GetPopup('LootPopup');
+		itemId = journalUpdates[0].itemId;
+		if (thePlayer.inv.IsIdValid(itemId) && !isCutscene )
+		{
+			if (lootPopup)
+			{
+				// wait until lootPopup open
+				_bDuringDisplay = false;
+				return;
+			}
+			
+			ShowElement(true);
+			ShowItemInfo(itemId);
+			journalUpdates.Erase(0);
+			return;
+		}
+		
+		
+		
+		// quest, etc
+		
 		if( (CJournalQuest)journalUpdates[0].journalEntry )
 		{
 			if( !CheckSceneAndCutsceneDisplay(journalUpdates[0].status,journalUpdates[0].isQuestUpdate) )
@@ -139,11 +229,12 @@ class CR4HudModuleJournalUpdate extends CR4HudModuleBase
 				journalUpdates[0].displayTime = defaultDisplayTime;
 			}
 		}
+		
 		m_fxShowJournalUpdateSFF.InvokeSelfThreeArgs( FlashArgString(journalUpdates[0].text), FlashArgString(title), FlashArgNumber(journalUpdates[0].displayTime) );
 		m_fxSetIconSFF.InvokeSelfOneArg(FlashArgString(journalUpdates[0].iconPath));
 		ShowElement(true);
 		
-		
+		//hack fix for TTP 109403 by Shadi Dadenji (I cannot be expected to understand this heiroglyphic labirynth of spaghetti crap for a P3)
 		if ( journalUpdates[0].soundEvent == "" )
 			journalUpdates[0].soundEvent = "gui_ingame_quest_active";
 		
@@ -159,8 +250,13 @@ class CR4HudModuleJournalUpdate extends CR4HudModuleBase
 		if( ( theInput.GetContext() != 'Scene' ) && ( journalUpdates[0].journalEntry || IsNameValid( journalUpdates[0].entryTag ) && !thePlayer.IsCiri() ) )
 		{			
 			if( isTrackableQuest )
-			{
-				RegisterTrackQuestBindings();
+			{			
+				RegisterKeyBindings("panel_button_journal_track");
+				
+				if( ShouldProcessTutorial( 'TutorialNotTrackedQuestUpdate' ) )
+				{
+					FactsAdd( 'tut_not_tracked_quest_updates' );
+				}
 			}
 			SetButtons( ( (CJournalQuest)journalUpdates[0].journalEntry ) );
 		}
@@ -168,35 +264,122 @@ class CR4HudModuleJournalUpdate extends CR4HudModuleBase
 		bWasRemoved = false;
 	}	
 	
-	function RegisterTrackQuestBindings()
+	private function ShowItemInfo(itemId : SItemUniqueId):void
+	{
+		var outKeysPC 	 : array< EInputKey >;
+		var itemInfoData : CScriptedFlashObject;
+		var playerInv    : CInventoryComponent;
+		var itemName     : string;
+		var iconPath     : string;
+		
+		playerInv = thePlayer.inv;
+		itemName = GetLocStringByKeyExt( playerInv.GetItemLocalizedNameByUniqueID( itemId ) );
+		iconPath = playerInv.GetItemIconPathByUniqueID( itemId );
+		m_bookItemId = itemId;
+		
+		outKeysPC.Clear();
+		theInput.GetPCKeysForAction( 'TrackQuest' ,outKeysPC );
+		
+		theInput.RegisterListener( this, 'OnTrackQuest', 'TrackQuest' );
+		
+		// q103_safe_conduct
+		itemInfoData = m_flashValueStorage.CreateTempFlashObject();
+		itemInfoData.SetMemberFlashNumber("showTime", defaultBookInfoDisplayTime);
+		itemInfoData.SetMemberFlashString("itemName", itemName);
+		itemInfoData.SetMemberFlashString("iconPath", "img://" + iconPath);
+		itemInfoData.SetMemberFlashString("buttonLabel", GetLocStringByKeyExt("panel_button_inventory_read"));
+		itemInfoData.SetMemberFlashString("gpadCode", "gamepad_R_Hold");
+		
+		if (outKeysPC.Size() > 0)
+		{
+			itemInfoData.SetMemberFlashInt("keyCode", outKeysPC[0]);
+		}
+		else
+		{
+			itemInfoData.SetMemberFlashInt("keyCode", -1);
+		}
+		
+		
+		m_flashValueStorage.SetFlashObject("hud.journalupdate.bookinfo", itemInfoData);	
+	}
+	
+	private function ShowItemInfoPopup( itemId : SItemUniqueId )
+	{
+		var uiData : SInventoryItemUIData;
+		var playerInv    : CInventoryComponent;
+		var itemName     : name;
+		
+		playerInv = thePlayer.inv;
+		
+		if (m_bookPopupData)
+		{
+			delete m_bookPopupData;
+		}
+		
+		if (m_paintingPopupData)
+		{
+			delete m_paintingPopupData;
+		}
+		
+		if( playerInv.ItemHasTag( itemId, 'Painting' ) )
+		{
+			itemName = playerInv.GetItemName( itemId );
+			
+			m_paintingPopupData = new PaintingPopup in this;
+			m_paintingPopupData.SetMessageTitle( GetLocStringByKeyExt( playerInv.GetItemLocalizedNameByUniqueID( itemId ) ) );
+			m_paintingPopupData.SetImagePath("img://icons/inventory/paintings/" + itemName + ".png");
+			m_paintingPopupData.PauseGame = true;
+			
+			theGame.RequestMenu('PopupMenu', m_paintingPopupData);
+		}
+		else
+		{
+			m_bookPopupData = new BookPopupFeedback in this;
+			m_bookPopupData.SetMessageTitle( GetLocStringByKeyExt(playerInv.GetItemLocalizedNameByUniqueID(itemId)) );
+			m_bookPopupData.SetMessageText( playerInv.GetBookText(itemId) );
+			m_bookPopupData.curInventory = thePlayer.GetInventory();
+			m_bookPopupData.PauseGame = true;
+			m_bookPopupData.bookItemId = itemId;
+			
+			theGame.RequestMenu('PopupMenu', m_bookPopupData);
+		}
+		
+		m_fxHideItemInfo.InvokeSelf();
+		playerInv.ReadBook( itemId );
+		
+		/*
+		if (playerInv.IsIdValid( itemId ))
+		{
+			uiData = playerInv.GetInventoryItemUIData( itemId );
+			uiData.isNew = false;
+			playerInv.SetInventoryItemUIData( itemId, uiData );
+		}
+		*/
+	}
+	
+	private function RegisterKeyBindings(label : string):void
 	{
 		var outKeys 				: array< EInputKey >;
 		var outKeysPC 				: array< EInputKey >;
 		
+		outKeys.Clear();
+		outKeysPC.Clear();
 		
+		theInput.GetPadKeysForAction( 'TrackQuest' ,outKeys );
+		theInput.GetPCKeysForAction( 'TrackQuest' ,outKeysPC );
+		theInput.RegisterListener( this, 'OnTrackQuest', 'TrackQuest' );
 		
-			outKeys.Clear();
-			outKeysPC.Clear();
-			theInput.GetPadKeysForAction( 'TrackQuest' ,outKeys );
-			theInput.GetPCKeysForAction( 'TrackQuest' ,outKeysPC );
-			
-			theInput.RegisterListener( this, 'OnTrackQuest', 'TrackQuest' );
-			
-			if( outKeys.Size() + outKeysPC.Size() > 0 )
+		if( outKeys.Size() + outKeysPC.Size() > 0 )
+		{
+			if (outKeysPC.Size() > 0)
 			{
-				
-				
-				
-				if (outKeysPC.Size() > 0)
-				{
-					AddInputBinding("panel_button_journal_track", "gamepad_R_Hold", outKeysPC[0]);
-				}
-				else
-				{
-					AddInputBinding("panel_button_journal_track", "gamepad_R_Hold", -1);
-				}
+				AddInputBinding(label, "gamepad_R_Hold", outKeysPC[0]);
 			}
-		
+			else
+			{
+				AddInputBinding(label, "gamepad_R_Hold", -1);
+			}
+		}
 	}
 	
 	function IsTrackableQuest() : bool
@@ -235,7 +418,7 @@ class CR4HudModuleJournalUpdate extends CR4HudModuleBase
 				case JS_Failed :
 					str = "panel_journal_monstercontract_update_failed";
 					break;		
-				case JS_Inactive : 
+				case JS_Inactive : // #B Is a new 
 					str = "panel_journal_monstercontract_update_new";
 					break;
 			}
@@ -253,7 +436,7 @@ class CR4HudModuleJournalUpdate extends CR4HudModuleBase
 				case JS_Failed :
 					str = "panel_journal_quest_update_failed";
 					break;		
-				case JS_Inactive : 
+				case JS_Inactive : // #B Is a new 
 					str = "panel_journal_quest_update_new";
 					break;
 			}
@@ -279,7 +462,7 @@ class CR4HudModuleJournalUpdate extends CR4HudModuleBase
 		
 		if( thePlayer.IsNewQuest( newJournalUpdate.journalEntry.guid ) && status == JS_Active )
 		{
-			newJournalUpdate.status = JS_Inactive; 
+			newJournalUpdate.status = JS_Inactive; // #B Is a new 
 			newJournalUpdate.soundEvent = "gui_ingame_quest_active"; 
 		}
 		else
@@ -334,11 +517,11 @@ class CR4HudModuleJournalUpdate extends CR4HudModuleBase
 		var newJournalUpdate : SJournalUpdate;	
 		var m_definitionsManager	: CDefinitionsManagerAccessor;
 		
-		
-		
+		//if( !HasJournalPendingUpdate(journalEntry) ) // #b change to tag
+		//{
 			m_definitionsManager = theGame.GetDefinitionsManager();
 			newJournalUpdate.text = GetLocStringByKeyExt( m_definitionsManager.GetItemLocalisationKeyName( schematicName ));
-			
+			//newJournalUpdate.journalEntry = journalEntry;
 			newJournalUpdate.status = JS_Inactive;
 			newJournalUpdate.iconPath = m_definitionsManager.GetItemIconPath( schematicName );
 			newJournalUpdate.panelName = 'CraftingMenu';
@@ -347,7 +530,7 @@ class CR4HudModuleJournalUpdate extends CR4HudModuleBase
 			
 			newJournalUpdate.title = GetLocStringByKeyExt("panel_hud_craftingschematic_update_new_entry");
 			journalUpdates.PushBack(newJournalUpdate);
-		
+		//}
 	}		
 
 	function AddAlchemySchematicUpdate( schematicName : name ) : void 
@@ -355,11 +538,11 @@ class CR4HudModuleJournalUpdate extends CR4HudModuleBase
 		var newJournalUpdate : SJournalUpdate;	
 		var m_definitionsManager	: CDefinitionsManagerAccessor;
 		
-		
-		
+		//if( !HasJournalPendingUpdate(journalEntry) ) // #b change to tag
+		//{
 			m_definitionsManager = theGame.GetDefinitionsManager();
 			newJournalUpdate.text = GetLocStringByKeyExt( m_definitionsManager.GetItemLocalisationKeyName( schematicName ));
-			
+			//newJournalUpdate.journalEntry = journalEntry;
 			newJournalUpdate.status = JS_Inactive;
 			newJournalUpdate.iconPath = m_definitionsManager.GetItemIconPath( schematicName );
 			newJournalUpdate.panelName = 'AlchemyMenu';
@@ -368,8 +551,29 @@ class CR4HudModuleJournalUpdate extends CR4HudModuleBase
 			
 			newJournalUpdate.title = GetLocStringByKeyExt("panel_hud_alchemyschematic_update_new_entry");
 			journalUpdates.PushBack(newJournalUpdate);
+		//}
+	}
+	
+	function AddQuestBookInfo( itemId : SItemUniqueId ):void
+	{
+		var newJournalUpdate : SJournalUpdate;
 		
-	}	
+		if ( !thePlayer.inv.IsIdValid(itemId) )
+		{
+			return;
+		}
+		
+		if (HasJournalPendingItemInfo() || m_paintingPopupData)
+		{
+			// update info ???
+		}
+		else
+		{
+			newJournalUpdate.itemId = itemId;
+			newJournalUpdate.isItemUpdate = true;
+			journalUpdates.PushBack(newJournalUpdate);
+		}
+	}
 
 	function AddJournalUpdate( journalEntry : CJournalBase, isDescription : bool ) : void 
 	{
@@ -385,7 +589,7 @@ class CR4HudModuleJournalUpdate extends CR4HudModuleBase
 			newJournalUpdate.title = GetEntryTitle(journalEntry, isDescription);
 			journalUpdates.PushBack(newJournalUpdate);
 		}
-	}	
+	}
 	
 	function GetEntryText( journalEntry : CJournalBase ) : string
 	{
@@ -481,7 +685,7 @@ class CR4HudModuleJournalUpdate extends CR4HudModuleBase
 		newJournalUpdate.soundEvent = ""; 
 		arrInt.PushBack(exp);
 		newJournalUpdate.text = GetLocStringByKeyExtWithParams("hud_combat_log_gained_experience", arrInt);
-		newJournalUpdate.status = JS_Active + 1; 
+		newJournalUpdate.status = JS_Active + 1; // sorry
 		newJournalUpdate.iconPath = "icons\skills\exp_gained.png";
 		newJournalUpdate.title = GetLocStringByKey("panel_hud_item_update_recived_experience");
 		journalUpdates.PushBack(newJournalUpdate);
@@ -570,13 +774,27 @@ class CR4HudModuleJournalUpdate extends CR4HudModuleBase
 		}
 		return false;
 	}
-
+	
+	function HasJournalPendingItemInfo() : bool
+	{
+		var i : int;
+		
+		for( i = 0; i < journalUpdates.Size(); i += 1 )
+		{
+			if( journalUpdates[i].isItemUpdate )
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	function ForceAddJournalUpdateInfo(locKeyText : string, locKeyTitle : string ) : void
 	{
 		var newJournalUpdate : SJournalUpdate;
 		var status : EJournalStatus;
 		
-		
+		//newJournalUpdate.journalEntry = journalQuest;
 		
 		if( locKeyText == "" || locKeyText == " ")
 		{
@@ -605,7 +823,7 @@ class CR4HudModuleJournalUpdate extends CR4HudModuleBase
 		return GetLocStringById(trackedQuests.GetTitleStringId());
 	}
 	
-	event  OnRemoveUpdate()	
+	event /* flash */ OnRemoveUpdate()	
 	{
 		if( journalUpdates.Size() > 0 )
 		{
@@ -614,16 +832,18 @@ class CR4HudModuleJournalUpdate extends CR4HudModuleBase
 		bWasRemoved = true;
 	}
 	
-	event  OnShowUpdateEnd()
+	event /* flash */ OnShowUpdateEnd()
 	{
 		theInput.UnregisterListener( this, 'OnShowEntryInPanel' );
 		thePlayer.UnblockAction( EIAB_OpenFastMenu, 'JournalUpdate' );
-				
+		
 		if(journalUpdates.Size() > 0 && (CJournalQuest)journalUpdates[0].journalEntry )
 		{
 			theInput.UnregisterListener( this, 'OnTrackQuest' );
-			
+			//thePlayer.UnblockAction( EIAB_HighlightObjective, 'JournalUpdate' );
 		}
+		
+		m_bookItemId = GetInvalidUniqueId();
 		
 		_bDuringDisplay = false;
 		LogChannel('JOURNALUPDATE',"OnShowUpdateEnd "+journalUpdates.Size());
@@ -645,16 +865,27 @@ class CR4HudModuleJournalUpdate extends CR4HudModuleBase
 		var walkToggleAction : SInputAction;
 		
 		l_quest = journalUpdates[0].journalEntry;
-		
 		walkToggleAction = theInput.GetAction('WalkToggle');
 		
-		if ( IsReleased(action) && walkToggleAction.lastFrameValue < 0.7 && walkToggleAction.value < 0.7  && l_quest && !thePlayer.IsCiri() )
+		if ( IsReleased(action) && walkToggleAction.lastFrameValue < 0.7 && walkToggleAction.value < 0.7  && !thePlayer.IsCiri() )
 		{
-			l_questStatus = manager.GetEntryStatus( l_quest );
-			
-			if( l_questStatus == JS_Active )
+			if ( thePlayer.inv.IsIdValid(m_bookItemId) )
 			{
-				manager.SetTrackedQuest( l_quest );
+				if ( !theGame.IsBlackscreen() && !theGame.IsFading() )
+				{
+					ShowItemInfoPopup(m_bookItemId);
+					m_bookItemId = GetInvalidUniqueId();
+				}
+			}
+			else
+			if (l_quest)
+			{
+				l_questStatus = manager.GetEntryStatus( l_quest );
+				
+				if( l_questStatus == JS_Active )
+				{
+					manager.SetTrackedQuest( l_quest );
+				}
 			}
 		}
 	}
@@ -732,9 +963,18 @@ class CR4HudModuleJournalUpdate extends CR4HudModuleBase
 		if( thePlayer.IsActionAllowed(EIAB_OpenJournal) )
 		{
 			questEntry = (CJournalQuest)journalUpdates[0].journalEntry;
-			
+			/*if( questEntry.GetType() == MonsterHunt )
+			{
+				panelName = 'JournalMonsterHuntingMenu';
+			}
+			else if( questEntry.GetType() == TreasureHunt )
+			{
+				panelName = 'JournalTreasureHuntingMenu';
+			}
+			else
+			{*/
 				panelName = 'JournalQuestMenu';
-			
+			//}
 			
 			uiSavedData = m_guiManager.GetUISavedData(panelName);
 			uiSavedData.selectedTag = questEntry.GetUniqueScriptTag();
@@ -784,7 +1024,32 @@ class CR4HudModuleJournalUpdate extends CR4HudModuleBase
 		var outKeys 				: array< EInputKey >;
 		var outKeysPC 				: array< EInputKey >;
 		
+		/*
 		
+		#Y feature removed
+		
+		if( thePlayer.IsActionAllowed(EIAB_OpenJournal) && isJournalEntry || thePlayer.IsActionAllowed(EIAB_OpenGlossary) && !isJournalEntry )
+		{
+			outKeys.Clear();
+			outKeysPC.Clear();
+			theInput.GetPadKeysForAction( 'ShowEntryInPanel' ,outKeys );
+			theInput.GetPCKeysForActionStr( "ShowEntryInPanel" ,outKeysPC );
+			theInput.RegisterListener( this, 'OnShowEntryInPanel', 'ShowEntryInPanel' );
+			thePlayer.BlockAction( EIAB_OpenFastMenu, 'JournalUpdate', false );
+			
+			if( outKeys.Size() + outKeysPC.Size() > 0 )
+			{
+				if (theGame.GetPlatform() != Platform_PS4)
+				{
+					AddInputBinding("panel_button_common_more_info", InputKeyToString(IK_Pad_Start), outKeysPC[0]);
+				}
+				else
+				{
+					AddInputBinding("panel_button_common_more_info", InputKeyToString(IK_PS4_OPTIONS), outKeysPC[0]);
+				}
+			}
+		}
+		*/
 	}	
 	
 	protected function AddInputBinding(label:string, padNavCode:string, optional keyboardKeyCode:int)

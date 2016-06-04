@@ -1,10 +1,5 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
+﻿// Enum for quantity popup 
+// #Y TODO: Use EInventoryActionType
 enum EQuantityTransferFunction
 {
 	QTF_Sell,
@@ -12,10 +7,13 @@ enum EQuantityTransferFunction
 	QTF_Give,
 	QTF_Take,
 	QTF_Drop,
-	QTF_Dismantle
+	QTF_Dismantle,
+	QTF_MoveToStash
 };
 
-
+/*
+	Virtual base class
+*/
 class W3PopupData extends CObject
 {
 	protected var ButtonsDef  : array <SKeyBinding>;
@@ -28,7 +26,7 @@ class W3PopupData extends CObject
 	
 	public function OnUserFeedback( KeyCode:string ) : void 
 	{
-		
+		// virtual
 	}
 	
 	public function GetGFxButtons(parentFlashValueStorage : CScriptedFlashValueStorage ) : CScriptedFlashArray
@@ -63,7 +61,7 @@ class W3PopupData extends CObject
 	
 	public function forceClose():void
 	{
-		
+		// virtual
 	}
 	
 	public function ClosePopupOverlay():void
@@ -94,16 +92,82 @@ class W3PopupData extends CObject
 	
 	protected function DefineDefaultButtons() : void
 	{
-		
+		// virtual
 	}
 	
 	protected function ClosePopup():void
 	{
 		PopupRef.RequestClose();
 	}
+	
+	public function OnClosing():void
+	{
+		var tut : STutorialMessage;
+
+		if( ( BookPopupFeedback ) this )
+		{
+			//tutorial about glossary books
+			if( ShouldProcessTutorial( 'TutorialBooksOpenCommonMenu' ) )//&& _playerInv.GetItemName( item ) != 'q001_letter_from_yenn' )
+			{
+				//show msg to read books
+				tut.type = ETMT_Hint;
+				tut.tutorialScriptTag = 'TutorialBooksOpenCommonMenu';
+				tut.hintPositionType = ETHPT_DefaultGlobal;
+				tut.hintDurationType = ETHDT_Long;
+				tut.canBeShownInMenus = false;
+				tut.disableHorizontalResize = true;
+				tut.forceToQueueFront = true;	//all should force because if there is something in the queue it will take priority but will never fire since OnTick won't work as the game is paused
+				tut.markAsSeenOnShow = true;
+
+				theGame.GetTutorialSystem().DisplayTutorial( tut );
+			}		
+		}
+		LogChannel('UI', "W3PopupData::OnClosing");
+	}
+	
+	public function OnShown():void
+	{
+		var tut : STutorialMessage;
+		var highlight : STutorialHighlight;
+		
+		if( ( BookPopupFeedback ) this )
+		{
+			//books reading popup tutorial
+			if( ShouldProcessTutorial( 'TutorialBooksReadingMultiple' ) )
+			{
+				//show msg to read books
+				tut.type = ETMT_Hint;
+				tut.tutorialScriptTag = 'TutorialBooksReadingMultiple';
+				tut.journalEntryName = 'TutorialJournalBooks';
+				tut.hintPositionType = ETHPT_Custom;
+				tut.hintPosX = 0.05f;
+				tut.hintPosY = 0.55f;
+				tut.hintDurationType = ETHDT_Input;
+				tut.canBeShownInMenus = true;
+				tut.enableAcceptButton = true;
+				tut.disableHorizontalResize = true;
+				tut.forceToQueueFront = true;	//all should force because if there is something in the queue it will take priority but will never fire since OnTick won't work as the game is paused
+				tut.markAsSeenOnShow = true;
+				
+				highlight.x = .3f;
+				highlight.y = .1f;
+				highlight.width = .4f;
+				highlight.height = .15f;
+				tut.highlightAreas.PushBack( highlight );
+				
+				theGame.GetTutorialSystem().DisplayTutorial( tut );
+				
+				//register book glossary panel tutorial
+				theGame.GetTutorialSystem().uiHandler.AddNewBooksTutorial();
+			}
+		}
+		LogChannel('UI', "W3PopupData::OnShown");
+	}
 }
 
-
+/*
+	Context menu
+*/
 
 class W3ContextMenu extends W3PopupData
 {
@@ -113,7 +177,7 @@ class W3ContextMenu extends W3PopupData
 	public var actionsList:array<SKeyBinding>;
 	public var curActionNavCode:string;
 	
-	public  function GetGFxData(parentFlashValueStorage : CScriptedFlashValueStorage) : CScriptedFlashObject
+	public /* override */ function GetGFxData(parentFlashValueStorage : CScriptedFlashValueStorage) : CScriptedFlashObject
 	{
 		var l_flashArray        : CScriptedFlashArray;
 		var l_flashObject       : CScriptedFlashObject;
@@ -123,14 +187,16 @@ class W3ContextMenu extends W3PopupData
 		
 		l_flashArray = parentFlashValueStorage.CreateTempFlashArray();
 		bindingsCount = actionsList.Size();
+		
 		for( i =0; i < bindingsCount; i += 1 )
 		{
 			l_flashObject = parentFlashValueStorage.CreateTempFlashObject();
 			l_flashObject.SetMemberFlashString("label", GetLocStringByKeyExt(actionsList[i].LocalizationKey));
 			l_flashObject.SetMemberFlashString("NavCode", actionsList[i].Gamepad_NavCode);
-			l_flashObject.SetMemberFlashInt("ActionId", i); 
+			l_flashObject.SetMemberFlashInt("ActionId", i); // Change
 			l_flashArray.PushBackFlashObject(l_flashObject);
 		}
+		
 		l_flashResultObject = parentFlashValueStorage.CreateTempFlashObject();
 		l_flashResultObject.SetMemberFlashArray("ActionsList", l_flashArray);
 		l_flashResultObject.SetMemberFlashNumber("positionX", positionX);
@@ -155,20 +221,22 @@ class W3ContextMenu extends W3PopupData
 		}
 	}
 	
-	protected  function DefineDefaultButtons():void
+	protected /* override */ function DefineDefaultButtons():void
 	{
 		AddButtonDef("panel_button_common_accept", "enter-gamepad_A", IK_Enter);
 		AddButtonDef("panel_button_common_exit", "escape-gamepad_B", IK_Escape);
 	}
 	
-	protected  function GetContentRef() : string
+	protected /* override */ function GetContentRef() : string
 	{
 		return "ContextMenuRef";
 	}
 
 }
 
-
+/*
+	Text popup. Vurtual class
+*/
 class TextPopupData extends W3PopupData
 {
 	protected var m_TextContent : string;
@@ -192,7 +260,7 @@ class TextPopupData extends W3PopupData
 		m_ImagePath = value;
 	}
 	
-	public  function GetGFxData(parentFlashValueStorage : CScriptedFlashValueStorage) : CScriptedFlashObject
+	public /* override */ function GetGFxData(parentFlashValueStorage : CScriptedFlashValueStorage) : CScriptedFlashObject
 	{
 		var l_flashObject : CScriptedFlashObject;
 		
@@ -206,17 +274,17 @@ class TextPopupData extends W3PopupData
 		return l_flashObject;
 	}
 	
-	protected  function DefineDefaultButtons():void
+	protected /* override */ function DefineDefaultButtons():void
 	{
 		AddButtonDef("panel_button_common_exit", "escape-gamepad_B", IK_Escape);
 	}
 	
-	protected  function GetContentRef() : string
+	protected /* override */ function GetContentRef() : string
 	{
 		return "TextPopupRef";
 	}
 	
-	public function  OnUserFeedback( KeyCode:string ) : void
+	public function /* override */ OnUserFeedback( KeyCode:string ) : void
 	{
 		LogChannel('GFX ',"OnUserFeedback  "+KeyCode);
 		if (KeyCode == "escape-gamepad_B")
@@ -226,19 +294,21 @@ class TextPopupData extends W3PopupData
 	}
 }
 
-
+/*
+	Quantity popup. Used inside Inventory menu
+*/
 class SliderPopupData extends TextPopupData
 {
 	public var minValue:int;
 	public var maxValue:int;
 	public var currentValue:int;
 	
-	protected  function GetContentRef() : string 
+	protected /* override */ function GetContentRef() : string 
 	{
 		return "QuantityPopupRef";
 	}
 	
-	public  function GetGFxData(parentFlashValueStorage : CScriptedFlashValueStorage) : CScriptedFlashObject
+	public /* override */ function GetGFxData(parentFlashValueStorage : CScriptedFlashValueStorage) : CScriptedFlashObject
 	{
 		var l_flashObject : CScriptedFlashObject;
 		l_flashObject = super.GetGFxData(parentFlashValueStorage);
@@ -248,7 +318,9 @@ class SliderPopupData extends TextPopupData
 		return l_flashObject;
 	}
 }
-
+/*
+	Quantity popup. Used inside Inventory menu
+*/
 class QuantityPopupData extends SliderPopupData
 {
 	public var itemId:SItemUniqueId;
@@ -257,6 +329,7 @@ class QuantityPopupData extends SliderPopupData
 	public var actionType:EQuantityTransferFunction;
 	public var inventoryRef:CR4InventoryMenu;
 	public var blacksmithRef:CR4BlacksmithMenu;
+	public var craftingRef:CR4CraftingMenu;
 	
 	protected function GetPopupTitle():string
 	{
@@ -271,8 +344,7 @@ class QuantityPopupData extends SliderPopupData
 				titleText = "panel_inventory_quantity_popup_buy";
 				break;
 			case QTF_Give:
-				titleText = "panel_inventory_quantity_popup_transfer";
-				break;
+			case QTF_MoveToStash:
 			case QTF_Take:
 				titleText = "panel_inventory_quantity_popup_transfer";
 				break;
@@ -288,19 +360,19 @@ class QuantityPopupData extends SliderPopupData
 		return titleText;
 	}
 	
-	protected  function GetContentRef() : string 
+	protected /* override */ function GetContentRef() : string 
 	{
 		return "QuantityPopupRef";
 	}
 	
-	protected  function DefineDefaultButtons():void
+	protected /* override */ function DefineDefaultButtons():void
 	{
 		AddButtonDef("panel_button_common_accept", "enter-gamepad_A", IK_E);
 		AddButtonDef("panel_button_common_exit", "escape-gamepad_B", IK_Escape);
 		AddButtonDef("panel_button_common_adjust", "gamepad_L3");
 	}
 	
-	public  function GetGFxData(parentFlashValueStorage : CScriptedFlashValueStorage) : CScriptedFlashObject
+	public /* override */ function GetGFxData(parentFlashValueStorage : CScriptedFlashValueStorage) : CScriptedFlashObject
 	{
 		var l_flashObject : CScriptedFlashObject;
 		l_flashObject = super.GetGFxData(parentFlashValueStorage);
@@ -310,7 +382,7 @@ class QuantityPopupData extends SliderPopupData
 		return l_flashObject;
 	}
 	
-	public function  OnUserFeedback( KeyCode:string ) : void
+	public function /* override */ OnUserFeedback( KeyCode:string ) : void
 	{
 		var newItemId    : SItemUniqueId;
 		var curInventory : CInventoryComponent;
@@ -328,10 +400,19 @@ class QuantityPopupData extends SliderPopupData
 			ClosePopup();
 		}
 		else
+		if (KeyCode == "enter-gamepad_A" && craftingRef)
+		{
+			craftingRef.BuyIngredient(itemId, currentValue, false);
+		}
 		if (KeyCode == "enter-gamepad_A")
 		{
 			switch(actionType)
 			{
+				case QTF_MoveToStash:
+				
+					inventoryRef.handleMoveToStashQuantity(itemId, currentValue);
+					break;
+					
 				case QTF_Sell:
 					
 					newItemId = inventoryRef.SellItem(itemId, currentValue);
@@ -417,9 +498,9 @@ class QuantityPopupData extends SliderPopupData
 			
 			inventoryRef.UpdateAllItemData();
 			
-			
-			
-			
+			// Hmm...
+			// inventoryRef.UpdateData();
+			// inventoryRef.UpdateShop();
 			
 			ClosePopup();
 		}
@@ -445,20 +526,136 @@ class W3DestroyItemConfPopup extends ConfirmationPopupData
 }
 
 
-
+/*
+	Book popup. Used inside Inventory menu
+*/
 class BookPopupFeedback extends TextPopupData
-{	
-	protected  function GetContentRef() : string 
+{
+	public var bookItemId     : SItemUniqueId;
+	public var inventoryRef   : CR4InventoryMenu;
+	public var singleBookMode : bool;
+	public var curInventory   : CInventoryComponent;
+
+	public /* override */ function GetGFxData( parentFlashValueStorage : CScriptedFlashValueStorage ) : CScriptedFlashObject
+	{	
+		var objResult     : CScriptedFlashObject;	
+		var objBookInfo   : CScriptedFlashObject;
+		var arrayBookList : CScriptedFlashArray;
+		
+		var itemList      : array< SItemUniqueId >;		
+		var i, count      : int;
+		var curItemId     : SItemUniqueId;
+		var itemCategory  : name;		
+		var isItemRecipe  : bool;
+		
+
+		objResult = super.GetGFxData( parentFlashValueStorage );
+		
+		if( curInventory.IsIdValid( bookItemId ) )
+		{
+			setItemProperty(bookItemId, objResult);
+			
+			objResult.SetMemberFlashString( "TextTitle", m_TextTitle );
+			objResult.SetMemberFlashString( "TextContent", m_TextContent );
+		}
+		
+		if( !singleBookMode )
+		{
+			arrayBookList = parentFlashValueStorage.CreateTempFlashArray();
+			curInventory.GetAllItems( itemList );		
+			count = itemList.Size();
+			
+			// TODO: + playerInv.ItemHasTag( curItemId, 'Painting' )
+			
+			for( i = 0; i < count; i += 1 )
+			{
+				curItemId = itemList[i];
+				
+				if( !curInventory.IsIdValid( bookItemId ) || bookItemId != curItemId )
+				{
+					itemCategory = curInventory.GetItemCategory( curItemId );
+					isItemRecipe = itemCategory == 'crafting_schematic' || itemCategory == 'alchemy_recipe';
+					
+					/*&& curInventory.IsItemNew( curItemId )*/
+					
+					if( !isItemRecipe && curInventory.ItemHasTag( curItemId, 'ReadableItem' ) && !curInventory.ItemHasTag( curItemId, 'NoShow' ) && !curInventory.IsBookRead( curItemId ) )
+					{
+						objBookInfo = parentFlashValueStorage.CreateTempFlashObject();
+						
+						setItemProperty( curItemId, objBookInfo );
+						objBookInfo.SetMemberFlashString( "TextTitle", GetLocStringByKeyExt( curInventory.GetItemLocalizedNameByUniqueID( curItemId ) ) );
+						objBookInfo.SetMemberFlashString( "TextContent", curInventory.GetBookText( curItemId ) );
+						
+						arrayBookList.PushBackFlashObject( objBookInfo );
+					}
+				}
+			}
+		}
+		
+		objResult.SetMemberFlashArray("newBooksList", arrayBookList);
+		
+		return objResult;
+	}
+	
+	private function setItemProperty(item: SItemUniqueId , out objResult: CScriptedFlashObject)
+	{
+		var l_questTag						: string;
+		var l_isQuest	 					: bool;
+		
+		l_questTag = "";
+		l_isQuest = false;
+		
+		if(curInventory.ItemHasTag(item, 'Quest'))
+		{
+			l_questTag = "Quest";
+			l_isQuest = true;
+		}
+		
+		if (curInventory.ItemHasTag(item, 'QuestEP1'))
+		{
+			l_questTag = "QuestEP1";
+			l_isQuest = true;
+		}
+		
+		if (curInventory.ItemHasTag(item, 'QuestEP2'))
+		{
+			l_questTag = "QuestEP2";
+			l_isQuest = true;
+		}
+		
+		objResult.SetMemberFlashString( "iconPath",  "img://" + curInventory.GetItemIconPathByUniqueID( item ) );
+		objResult.SetMemberFlashUInt( "itemId", ItemToFlashUInt( item ) );
+		objResult.SetMemberFlashBool( "isQuestItem", l_isQuest );
+		objResult.SetMemberFlashString ( "questTag", l_questTag );		
+		objResult.SetMemberFlashBool( "isNewItem", true );
+	}
+	
+	public function UpdateAfterBookRead( bookItemId : SItemUniqueId ):void
+	{
+		if( inventoryRef )
+		{
+			inventoryRef.InventoryUpdateItem( bookItemId );
+		}
+	}
+	
+	protected function /* override */ ClosePopup():void
+	{
+		super.ClosePopup();
+	}
+	
+	protected /* override */ function GetContentRef() : string 
 	{
 		return "BookPopupRef";
 	}
 }
 
-
+/*
+	Tutorial List
+*/
 
 class TutorialListData extends TextPopupData
 {
-	public  function GetGFxData(parentFlashValueStorage : CScriptedFlashValueStorage) : CScriptedFlashObject
+	public /* override */ function GetGFxData(parentFlashValueStorage : CScriptedFlashValueStorage) : CScriptedFlashObject
 	{
 		var l_flashObject  : CScriptedFlashObject;
 		var l_tutorialList : CScriptedFlashArray;
@@ -471,7 +668,7 @@ class TutorialListData extends TextPopupData
 		return l_flashObject;
 	}
 	
-	
+	//#Y WARNING: COPY-PASTE FROM glossaryTutorialMenu.ws
 	protected function GetTutorialList(out tutorialList:CScriptedFlashArray, parentFlashValueStorage : CScriptedFlashValueStorage):void
 	{
 		var l_DataFlashArray		: CScriptedFlashArray;
@@ -557,7 +754,7 @@ class TutorialListData extends TextPopupData
 		}
 	}
 	
-	public function  OnUserFeedback( KeyCode:string ) : void
+	public function /* override */ OnUserFeedback( KeyCode:string ) : void
 	{
 		if (KeyCode == "start" || KeyCode == "escape-gamepad_B")
 		{
@@ -565,20 +762,22 @@ class TutorialListData extends TextPopupData
 		}
 	}
 	
-	protected  function DefineDefaultButtons():void
+	protected /* override */ function DefineDefaultButtons():void
 	{
 		AddButtonDef("panel_button_common_exit", "start", IK_Escape);
 		AddButtonDef("panel_button_common_change_selection", "gamepad_L3");
 	}
 	
-	protected  function GetContentRef() : string 
+	protected /* override */ function GetContentRef() : string 
 	{
 		return "TutorialsListRef";
 	}
 }
 
 
-
+/*
+	Single Tutorial Info
+*/
 class TutorialBlockerData extends TextPopupData
 {
 	public var m_title       : string;
@@ -588,7 +787,7 @@ class TutorialBlockerData extends TextPopupData
 	public var scriptTag:name;
 	public var managerRef : CR4TutorialSystem;
 	
-	public  function GetGFxData(parentFlashValueStorage : CScriptedFlashValueStorage) : CScriptedFlashObject
+	public /* override */ function GetGFxData(parentFlashValueStorage : CScriptedFlashValueStorage) : CScriptedFlashObject
 	{
 		var l_flashObject : CScriptedFlashObject;
 		l_flashObject = parentFlashValueStorage.CreateTempFlashObject();
@@ -599,7 +798,7 @@ class TutorialBlockerData extends TextPopupData
 		return l_flashObject;
 	}
 	
-	public function  OnUserFeedback( KeyCode:string ) : void
+	public function /* override */ OnUserFeedback( KeyCode:string ) : void
 	{
 		if (KeyCode == "enter-gamepad_A")
 		{
@@ -607,7 +806,7 @@ class TutorialBlockerData extends TextPopupData
 		}
 	}
 	
-	public  function forceClose():void
+	public /* override */ function forceClose():void
 	{
 		if (managerRef)
 		{
@@ -615,7 +814,7 @@ class TutorialBlockerData extends TextPopupData
 		}
 	}
 	
-	protected  function ClosePopup() : void
+	protected /* override */ function ClosePopup() : void
 	{
 		if (managerRef)
 		{
@@ -624,40 +823,42 @@ class TutorialBlockerData extends TextPopupData
 		PopupRef.RequestClose();
 	}
 	
-	protected  function DefineDefaultButtons():void
+	protected /* override */ function DefineDefaultButtons():void
 	{
 		AddButtonDef("panel_button_common_accept", "enter-gamepad_A", IK_Enter);
 	}
 	
-	protected  function GetContentRef() : string 
+	protected /* override */ function GetContentRef() : string 
 	{
 		return "TutorialBlockerRef";
 	}
 }
 
-
+/*
+	Global Confirmation Popup. Virtual.
+*/
 class ConfirmationPopupData extends TextPopupData
 {
-	protected  function DefineDefaultButtons():void
+	protected /* override */ function DefineDefaultButtons():void
 	{
 		AddButtonDef(GetAcceptText(), "enter-gamepad_A", IK_E);
 		AddButtonDef(GetDeclineText(), "escape-gamepad_B", IK_Escape);
 	}
 	
-	protected  function GetContentRef() : string 
+	protected /* override */ function GetContentRef() : string 
 	{
 		return "ConfirmationPopupRef";
 	}
 	
-	public function  OnUserFeedback( KeyCode:string ) : void
+	public function /* override */ OnUserFeedback( KeyCode:string ) : void
 	{
 		LogChannel('GFX ',"OnUserFeedback  "+KeyCode);
-		if (KeyCode == "enter-gamepad_A") 
-		{								  
-			OnUserAccept();				  
+		if (KeyCode == "enter-gamepad_A") // #B it will not work with mouse && pad different control preset @FIXME UI
+		{								  // #Y it will work, as we have this navigation equivalent defined inside clickable button		
+			OnUserAccept();				  // #Y maybe we should avoid using hardcoded nav-equivalent strings and define some constants, or use KeyCodes.ws
 			ClosePopup();
 		}
-		else if (KeyCode == "escape-gamepad_B") 
+		else if (KeyCode == "escape-gamepad_B") // #B it will not work with mouse && pad different control preset @FIXME UI
 		{
 			OnUserDecline();
 			ClosePopup();
@@ -666,12 +867,12 @@ class ConfirmationPopupData extends TextPopupData
 	
 	protected function OnUserAccept() : void
 	{
-		
+		// virtual
 	}
 	
 	protected function OnUserDecline() : void
 	{
-		
+		// virtual
 	}
 	
 	protected function GetAcceptText() : string
@@ -685,7 +886,9 @@ class ConfirmationPopupData extends TextPopupData
 	}
 }
 
-
+/*
+	ItemInfo popup
+*/
 
 class ItemInfoPopupData extends TextPopupData
 {
@@ -693,10 +896,10 @@ class ItemInfoPopupData extends TextPopupData
 	public var itemId  		: SItemUniqueId;	
 	public var inventoryRef : CR4InventoryMenu;
 	
-	
+	// local component to create flash object in the popup's scope
 	protected var invComponent : CInventoryComponent;
 
-	public  function GetGFxData(parentFlashValueStorage : CScriptedFlashValueStorage) : CScriptedFlashObject
+	public /* override */ function GetGFxData(parentFlashValueStorage : CScriptedFlashValueStorage) : CScriptedFlashObject
 	{
 		var flashDataObject  : CScriptedFlashObject;
 		var tooltipComponent : W3TooltipComponent;
@@ -712,7 +915,7 @@ class ItemInfoPopupData extends TextPopupData
 		return flashDataObject;
 	}
 	
-	public function  SetupOverlayRef(target : CR4MenuPopup) : void
+	public function /* override */ SetupOverlayRef(target : CR4MenuPopup) : void
 	{
 		var defMgr 		  : CDefinitionsManagerAccessor;
 		var templateName  : string;
@@ -723,19 +926,30 @@ class ItemInfoPopupData extends TextPopupData
 		templateName = defMgr.GetItemEquipTemplate(invRef.GetItemName(itemId));
 		itemCategory = invRef.GetItemCategory(itemId);
 		
+		// ignore bolts,a s we don't have template for it
+		// TODO: Show picture?
 		
+		/*
+		#Y disabled for cert, (display image )?
 		
-		
-		
+		if (itemCategory != 'bolt')
+		{
+			target.ShowItemRTT(templateName, itemCategory);
+		}
+		else
+		{
+			target.HideItemRTT();
+		}
+		*/
 	}
 	
-	protected function  ClosePopup():void
+	protected function /* override */ ClosePopup():void
 	{
 		inventoryRef.OnItemPopupClosed();
 		PopupRef.RequestClose();
 	}
 	
-	public function  OnUserFeedback( KeyCode:string ) : void
+	public function /* override */ OnUserFeedback( KeyCode:string ) : void
 	{
 		if (KeyCode == "escape-gamepad_B")
 		{
@@ -743,19 +957,19 @@ class ItemInfoPopupData extends TextPopupData
 		}
 	}
 	
-	protected  function DefineDefaultButtons():void
+	protected /* override */ function DefineDefaultButtons():void
 	{
 		AddButtonDef("panel_button_common_exit", "escape-gamepad_B", IK_Escape);
-		
+		//AddButtonDef("panel_button_common_rotate", "gamepad_L_Tab", -1);
 	}
 	
-	protected  function GetContentRef() : string 
+	protected /* override */ function GetContentRef() : string 
 	{
 		return "ItemInfoPopupRef";
 	}
 }
 
-class W3PortalConfirmationPopupData extends ConfirmationPopupData 
+class W3PortalConfirmationPopupData extends ConfirmationPopupData // #B
 {
 	protected function OnUserAccept() : void
 	{
@@ -780,7 +994,7 @@ class W3PortalConfirmationPopupData extends ConfirmationPopupData
 
 class PaintingPopup extends TextPopupData
 {	
-	protected  function GetContentRef() : string 
+	protected /* override */ function GetContentRef() : string 
 	{
 		return "PaintingPopupRef";
 	}

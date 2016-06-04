@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
+﻿//_acceptAll it is a special group that can chat with everyone
 
 function GlobalRegisterReactionSceneGroups()
 {
@@ -15,34 +10,35 @@ function GlobalRegisterReactionSceneGroups()
 	GlobalRegisterReactionSceneGroups_Nml( reactionManager );
 	GlobalRegisterReactionSceneGroups_Skellige( reactionManager );
 	GlobalRegisterReactionSceneGroups_Prologue( reactionManager );
+	GlobalRegisterReactionSceneGroups_Bob( reactionManager );
 }
 
 function GlobalRegisterReactionSceneGroups_Prologue( reactionManager : CBehTreeReactionManager )
 {
-	
+	//nilfgaard Imperial	
 	reactionManager.AddReactionSceneGroup( "vset_nilfgaardian_imperial_01", 'nilfgaardImperial' );	
 	reactionManager.AddReactionSceneGroup( "vset_nilfgaardian_imperial_02", 'nilfgaardImperial' );	
 	reactionManager.AddReactionSceneGroup( "vset_nilfgaardian_imperial_03", 'nilfgaardImperial' );	
 	
 	
-	
+	//solider - as in NML
 	reactionManager.AddReactionSceneGroup( "vset_nilfgaardian_prologue_01", 'solider' );	
 	reactionManager.AddReactionSceneGroup( "vset_nilfgaardian_prologue_02", 'solider' );	
 	reactionManager.AddReactionSceneGroup( "vset_nilfgaardian_prologue_03", 'solider' );	
 	
-	
+	//nilfgaard Nobleman	
 	reactionManager.AddReactionSceneGroup( "vset_nilfgaardian_nobleman_01", 'nilfgaardNobleman' );	
 	reactionManager.AddReactionSceneGroup( "vset_nilfgaardian_nobleman_02", 'nilfgaardNobleman' );	
 	reactionManager.AddReactionSceneGroup( "vset_nilfgaardian_nobleman_03", 'nilfgaardNobleman' );	
 	
 	
-	
+	//nilfgaard Bandit	
 	reactionManager.AddReactionSceneGroup( "vset_temerian_bandit_01", 'nilfgaardBandit' );	
 	reactionManager.AddReactionSceneGroup( "vset_temerian_bandit_02", 'nilfgaardBandit' );	
 	reactionManager.AddReactionSceneGroup( "vset_temerian_bandit_03", 'nilfgaardBandit' );	
 	
 	
-	
+	//nilfgaard Peasant
 	reactionManager.AddReactionSceneGroup( "vset_temerian_peasant_01", 'nilfgaardPeasant' );	
 	reactionManager.AddReactionSceneGroup( "vset_temerian_peasant_02", 'nilfgaardPeasant' );	
 	reactionManager.AddReactionSceneGroup( "vset_temerian_peasant_03", 'nilfgaardPeasant' );		
@@ -57,7 +53,7 @@ function GlobalRegisterReactionSceneGroups_Prologue( reactionManager : CBehTreeR
 
 function GlobalRegisterReactionSceneGroups_Skellige( reactionManager : CBehTreeReactionManager )
 {
-	
+	// skellige citizen
 	reactionManager.AddReactionSceneGroup( "vset_skellige_armorer_01", 'skelligeCitizen' );	
 	reactionManager.AddReactionSceneGroup( "vset_skellige_armorer_02", 'skelligeCitizen' );	
 	reactionManager.AddReactionSceneGroup( "vset_skellige_armorer_03", 'skelligeCitizen' );	
@@ -121,7 +117,7 @@ function GlobalRegisterReactionSceneGroups_Skellige( reactionManager : CBehTreeR
 	reactionManager.AddReactionSceneGroup( "vset_skellige_woman_05", 'skelligeCitizen' );	
 	
 
-	
+	// skellige guard
 	reactionManager.AddReactionSceneGroup( "vset_skellige_guard_01", 'skelligeGuard' );
 	reactionManager.AddReactionSceneGroup( "vset_skellige_guard_02", 'skelligeGuard' );
 	reactionManager.AddReactionSceneGroup( "vset_skellige_guard_03", 'skelligeGuard' );
@@ -136,7 +132,7 @@ function GlobalRegisterReactionSceneGroups_Skellige( reactionManager : CBehTreeR
 	reactionManager.AddReactionSceneGroup( "vset_skellige_warrior_05", 'skelligeGuard' );
 
 
-	
+	// druid
 	reactionManager.AddReactionSceneGroup( "vset_skellige_druid_01", 'druid' );	
 	reactionManager.AddReactionSceneGroup( "vset_skellige_druid_02", 'druid' );	
 	reactionManager.AddReactionSceneGroup( "vset_skellige_druid_03", 'druid' );	
@@ -144,7 +140,7 @@ function GlobalRegisterReactionSceneGroups_Skellige( reactionManager : CBehTreeR
 	reactionManager.AddReactionSceneGroup( "vset_skellige_druid_05", 'druid' );		
 		
 
-	
+	// skellige child
 	reactionManager.AddReactionSceneGroup( "vset_skellige_boy_01", 'skelligeChild' );		
 	reactionManager.AddReactionSceneGroup( "vset_skellige_boy_02", 'skelligeChild' );		
 	reactionManager.AddReactionSceneGroup( "vset_skellige_boy_03", 'skelligeChild' );		
@@ -154,25 +150,25 @@ function GlobalRegisterReactionSceneGroups_Skellige( reactionManager : CBehTreeR
 	reactionManager.AddReactionSceneGroup( "vset_skellige_girl_03", 'skelligeChild' );		
 	
 
-	
+	// skellige bandit
 	reactionManager.AddReactionSceneGroup( "vset_skellige_bandit_01", 'skelligeBandit' );
 	reactionManager.AddReactionSceneGroup( "vset_skellige_bandit_02", 'skelligeBandit' );
 	reactionManager.AddReactionSceneGroup( "vset_skellige_bandit_03", 'skelligeBandit' );
 	reactionManager.AddReactionSceneGroup( "vset_skellige_bandit_04", 'skelligeBandit' );
 		
-	
+	// skellige berserker
 	reactionManager.AddReactionSceneGroup( "vset_skellige_berserker_01", 'skelligeBerserker' );
 	reactionManager.AddReactionSceneGroup( "vset_skellige_berserker_02", 'skelligeBerserker' );
 	reactionManager.AddReactionSceneGroup( "vset_skellige_berserker_03", 'skelligeBerserker' );
 	reactionManager.AddReactionSceneGroup( "vset_skellige_berserker_04", 'skelligeBerserker' );
 	reactionManager.AddReactionSceneGroup( "vset_skellige_berserker_05", 'skelligeBerserker' );
 	
-	
+	// skellige merchant
 	reactionManager.AddReactionSceneGroup( "vset_skellige_merchant_01", '_acceptAll' );
 	reactionManager.AddReactionSceneGroup( "vset_skellige_merchant_02", '_acceptAll' );
 	reactionManager.AddReactionSceneGroup( "vset_skellige_merchant_03", '_acceptAll' );	
 
-	
+	// skellige priestess
 	reactionManager.AddReactionSceneGroup( "vset_skellige_priestess_01", 'skelligePriestess' );	
 	reactionManager.AddReactionSceneGroup( "vset_skellige_priestess_02", 'skelligePriestess' );	
 	reactionManager.AddReactionSceneGroup( "vset_skellige_priestess_03", 'skelligePriestess' );	
@@ -180,7 +176,7 @@ function GlobalRegisterReactionSceneGroups_Skellige( reactionManager : CBehTreeR
 
 function GlobalRegisterReactionSceneGroups_Nml( reactionManager : CBehTreeReactionManager )
 {	
-	
+	//baron bandit
 	reactionManager.AddReactionSceneGroup( "vset_baron_bandit_strong_01", 'baronBandit' );
 	reactionManager.AddReactionSceneGroup( "vset_baron_bandit_strong_02", 'baronBandit' );
 	reactionManager.AddReactionSceneGroup( "vset_baron_bandit_strong_03", 'baronBandit' );
@@ -190,12 +186,12 @@ function GlobalRegisterReactionSceneGroups_Nml( reactionManager : CBehTreeReacti
 	reactionManager.AddReactionSceneGroup( "vset_baron_bandit_weak_03", 'baronBandit' );
 		
 
-	
+	//officer
 	reactionManager.AddReactionSceneGroup( "vset_nilfgaardian_officer_01", 'officer' );
 	reactionManager.AddReactionSceneGroup( "vset_nilfgaardian_officer_02", 'officer' );
 	
 	
-	
+	//solider
 	reactionManager.AddReactionSceneGroup( "vset_nilfgaardian_soldier_01", 'solider' );
 	reactionManager.AddReactionSceneGroup( "vset_nilfgaardian_soldier_02", 'solider' );
 	reactionManager.AddReactionSceneGroup( "vset_nilfgaardian_soldier_03", 'solider' );
@@ -203,7 +199,7 @@ function GlobalRegisterReactionSceneGroups_Nml( reactionManager : CBehTreeReacti
 	reactionManager.AddReactionSceneGroup( "vset_nilfgaardian_soldier_05", 'solider' );
 	
 	
-	
+	//guerillas
 	reactionManager.AddReactionSceneGroup( "vset_temerian_guerillas_01", 'guerillas' );
 	reactionManager.AddReactionSceneGroup( "vset_temerian_guerillas_02", 'guerillas' );
 	reactionManager.AddReactionSceneGroup( "vset_temerian_guerillas_03", 'guerillas' );
@@ -211,7 +207,7 @@ function GlobalRegisterReactionSceneGroups_Nml( reactionManager : CBehTreeReacti
 	reactionManager.AddReactionSceneGroup( "vset_temerian_guerillas_05", 'guerillas' );
 	
 
-	
+	//verden
 	reactionManager.AddReactionSceneGroup( "vset_verden_old_man_01", 'verden' );
 	reactionManager.AddReactionSceneGroup( "vset_verden_old_man_02", 'verden' );
 	reactionManager.AddReactionSceneGroup( "vset_verden_old_man_03", 'verden' );
@@ -239,7 +235,7 @@ function GlobalRegisterReactionSceneGroups_Nml( reactionManager : CBehTreeReacti
 	reactionManager.AddReactionSceneGroup( "vset_verden_vendor_03", '_acceptAll' );
 	
 
-	
+	//verdenChild
 	reactionManager.AddReactionSceneGroup( "vset_verden_boy_01", 'verdenChild' );
 	reactionManager.AddReactionSceneGroup( "vset_verden_boy_01", 'verdenChild' );
 	reactionManager.AddReactionSceneGroup( "vset_verden_boy_01", 'verdenChild' );
@@ -249,7 +245,7 @@ function GlobalRegisterReactionSceneGroups_Nml( reactionManager : CBehTreeReacti
 	reactionManager.AddReactionSceneGroup( "vset_verden_girl_03", 'verdenChild' );
 
 	
-	
+	//verdenScavenger
 	reactionManager.AddReactionSceneGroup( "vset_verden_scavenger_01", 'verdenScavenger' );
 	reactionManager.AddReactionSceneGroup( "vset_verden_scavenger_02", 'verdenScavenger' );
 	reactionManager.AddReactionSceneGroup( "vset_verden_scavenger_03", 'verdenScavenger' );
@@ -258,13 +254,25 @@ function GlobalRegisterReactionSceneGroups_Nml( reactionManager : CBehTreeReacti
 	reactionManager.AddReactionSceneGroup( "vset_scavenger_woman_02", 'verdenScavenger' );	
 
 	
+	//verden whatever
+	/*
+	reactionManager.AddReactionSceneGroup( "vset_verden_bandit_01", 'verdenWhatever' );	
+	reactionManager.AddReactionSceneGroup( "vset_verden_bandit_02", 'verdenWhatever' );
+	reactionManager.AddReactionSceneGroup( "vset_verden_bandit_03", 'verdenWhatever' );
+	reactionManager.AddReactionSceneGroup( "vset_verden_bandit_04", 'verdenWhatever' );
+	reactionManager.AddReactionSceneGroup( "vset_verden_bandit_05", 'verdenWhatever' );
 	
+	reactionManager.AddReactionSceneGroup( "vset_verden_warchild_girl_01", 'verdenWhatever' );
+	reactionManager.AddReactionSceneGroup( "vset_verden_warchild_girl_02", 'verdenWhatever' );
 	
+	reactionManager.AddReactionSceneGroup( "vset_verden_warchild_boy_01", 'verdenWhatever' );	
+	reactionManager.AddReactionSceneGroup( "vset_verden_warchild_boy_02", 'verdenWhatever' );
+	*/
 }
 	
 function GlobalRegisterReactionSceneGroups_Novigrad( reactionManager : CBehTreeReactionManager )
 {	
-	
+	//poor
 	reactionManager.AddReactionSceneGroup( "vset_dwarf_man_01", 'poor' );
 	reactionManager.AddReactionSceneGroup( "vset_dwarf_man_02", 'poor' );
 	reactionManager.AddReactionSceneGroup( "vset_dwarf_man_03", 'poor' );	
@@ -325,20 +333,20 @@ function GlobalRegisterReactionSceneGroups_Novigrad( reactionManager : CBehTreeR
 	reactionManager.AddReactionSceneGroup( "vset_novigrad_refugee_woman_03", 'poor' );
 
 	
-	
+	//Guard
 	reactionManager.AddReactionSceneGroup( "vset_eternal_fire_guard_01", 'guard' );
 	reactionManager.AddReactionSceneGroup( "vset_eternal_fire_guard_02", 'guard' );
 	reactionManager.AddReactionSceneGroup( "vset_eternal_fire_guard_03", 'guard' );
 
 	
-	
+	//Mage
 	reactionManager.AddReactionSceneGroup( "vset_mage_01", 'mage' );
 	reactionManager.AddReactionSceneGroup( "vset_mage_02", 'mage' );
 	reactionManager.AddReactionSceneGroup( "vset_mage_03", 'mage' );
 
 	
 	
-	
+	//Nobleman
 	reactionManager.AddReactionSceneGroup( "vset_novigrad_citizen_man_01", 'nobleman' );
 	reactionManager.AddReactionSceneGroup( "vset_novigrad_citizen_man_02", 'nobleman' );
 	reactionManager.AddReactionSceneGroup( "vset_novigrad_citizen_man_03", 'nobleman' );
@@ -372,7 +380,7 @@ function GlobalRegisterReactionSceneGroups_Novigrad( reactionManager : CBehTreeR
 	reactionManager.AddReactionSceneGroup( "vset_novigrad_trader_03", '_acceptAll' );	
 	reactionManager.AddReactionSceneGroup( "vset_novigrad_trader_04", '_acceptAll' );	
 
-	
+	//Bandit
 	reactionManager.AddReactionSceneGroup( "vset_novigrad_thug_strong_01", 'bandit' );		
 	reactionManager.AddReactionSceneGroup( "vset_novigrad_thug_strong_02", 'bandit' );
 	reactionManager.AddReactionSceneGroup( "vset_novigrad_thug_strong_03", 'bandit' );
@@ -382,7 +390,7 @@ function GlobalRegisterReactionSceneGroups_Novigrad( reactionManager : CBehTreeR
 	reactionManager.AddReactionSceneGroup( "vset_novigrad_thug_weak_03", 'bandit' );
 	
 
-	
+	//Child
 	reactionManager.AddReactionSceneGroup( "vset_novigrad_boy_01", 'child' );
 	reactionManager.AddReactionSceneGroup( "vset_novigrad_boy_02", 'child' );
 	reactionManager.AddReactionSceneGroup( "vset_novigrad_boy_03", 'child' );
@@ -392,7 +400,7 @@ function GlobalRegisterReactionSceneGroups_Novigrad( reactionManager : CBehTreeR
 	reactionManager.AddReactionSceneGroup( "vset_novigrad_girl_03", 'child' );
 		
 
-	
+	//Peasant
 	reactionManager.AddReactionSceneGroup( "vset_novigrad_peasant_01", 'peasant' );	
 	reactionManager.AddReactionSceneGroup( "vset_novigrad_peasant_02", 'peasant' );
 	reactionManager.AddReactionSceneGroup( "vset_novigrad_peasant_03", 'peasant' );
@@ -402,7 +410,7 @@ function GlobalRegisterReactionSceneGroups_Novigrad( reactionManager : CBehTreeR
 	reactionManager.AddReactionSceneGroup( "vset_novigrad_peasant_woman_03", 'peasant' );
 	
 
-	
+	//Scoiateal
 	reactionManager.AddReactionSceneGroup( "vset_scoiatael_dwarf_01", 'scoiateal' );
 	
 	reactionManager.AddReactionSceneGroup( "vset_scoiatael_elf_man_01", 'scoiateal' );
@@ -411,14 +419,74 @@ function GlobalRegisterReactionSceneGroups_Novigrad( reactionManager : CBehTreeR
 	reactionManager.AddReactionSceneGroup( "vset_scoiatael_elf_woman_01", 'scoiateal' );		
 	
 	
-	
+	//Beggar
 	reactionManager.AddReactionSceneGroup( "vset_novigrad_beggar_01", 'beggar' );
 	reactionManager.AddReactionSceneGroup( "vset_novigrad_beggar_02", 'beggar' );
 	reactionManager.AddReactionSceneGroup( "vset_novigrad_beggar_03", 'beggar' );
 
 	
-	
+	//Sailor
 	reactionManager.AddReactionSceneGroup( "vset_novigrad_sailor_01", 'sailor' );
 	reactionManager.AddReactionSceneGroup( "vset_novigrad_sailor_02", 'sailor' );
 	reactionManager.AddReactionSceneGroup( "vset_novigrad_sailor_03", 'sailor' );
+}
+
+function GlobalRegisterReactionSceneGroups_Bob( reactionManager : CBehTreeReactionManager )
+{
+	//EP2
+	reactionManager.AddReactionSceneGroup( "vset_beauclair_citizen_man_01", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_beauclair_citizen_man_02", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_beauclair_citizen_man_03", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_beauclair_citizen_woman_01", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_beauclair_citizen_woman_02", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_beauclair_citizen_woman_03", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_bard_man_01", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_bard_man_02", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_bard_man_03", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_bard_man_04", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_bard_man_05", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_bard_man_06", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_bard_woman_01", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_bard_woman_02", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_bard_woman_03", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_bard_woman_04", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_bard_woman_05", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_bard_woman_06", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_bonvivant_man_01", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_bonvivant_man_02", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_bonvivant_man_03", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_bonvivant_man_04", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_bonvivant_woman_01", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_bonvivant_woman_02", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_bonvivant_woman_03", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_bonvivant_woman_04", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_dockworker_01", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_dockworker_02", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_dockworker_03", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_old_man_01", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_old_man_02", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_old_man_03", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_old_man_04", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_old_man_05", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_old_woman_01", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_old_woman_02", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_old_woman_03", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_old_woman_04", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_old_woman_05", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_peasant_man_01", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_peasant_man_02", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_peasant_man_03", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_peasant_man_04", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_peasant_man_05", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_peasant_woman_01", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_peasant_woman_02", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_peasant_woman_03", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_peasant_woman_04", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_peasant_woman_05", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_poor_man_01", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_poor_man_02", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_poor_man_03", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_poor_woman_01", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_poor_woman_02", 'bob' );
+	reactionManager.AddReactionSceneGroup( "vset_toussaint_poor_woman_03", 'bob' );
 }

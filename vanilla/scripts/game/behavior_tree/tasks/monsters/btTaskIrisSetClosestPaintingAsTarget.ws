@@ -1,18 +1,13 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
-
-
-
-
+﻿//>--------------------------------------------------------------------------
+// BTTaskIrisSetClosestPaintingAsTarget
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Copyright © 2015 CD Projekt RED
+//---------------------------------------------------------------------------
 class BTTaskIrisSetClosestPaintingAsTarget extends BTTaskIrisTask
 {
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function OnActivate() : EBTNodeStatus
 	{
 		var l_npc : W3NightWraithIris;
@@ -24,8 +19,8 @@ class BTTaskIrisSetClosestPaintingAsTarget extends BTTaskIrisTask
 	}
 }
 
-
-
+//>--------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 class BTTaskIrisSetClosestPaintingAsTargetDef extends IBehTreeTaskDefinition
 {
 	default instanceClass = 'BTTaskIrisSetClosestPaintingAsTarget';

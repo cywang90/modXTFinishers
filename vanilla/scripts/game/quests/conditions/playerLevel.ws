@@ -1,10 +1,7 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2014
+/** Author : Tomek Kozera
 /***********************************************************************/
-
-
 
 class W3QuestCond_PlayerLevel extends CQuestScriptedCondition
 {
@@ -27,12 +24,6 @@ class W3QuestCond_PlayerLevel extends CQuestScriptedCondition
 		witcher = GetWitcherPlayer();
 		if(!witcher)
 		{
-			return false;
-		}
-		
-		if(level > witcher.levelManager.GetMaxLevel())
-		{
-			LogQuest("W3QuestCond_PlayerLevel: level cannot be higher than max possible character leve (" + witcher.levelManager.GetMaxLevel() + ")");
 			return false;
 		}
 		

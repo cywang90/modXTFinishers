@@ -1,16 +1,11 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
+﻿// CCameraPivotPositionControllerDrift
+//------------------------------------------------------------------------------------------------------------------
+// Eduard Lopez Plans	( 14/12/2013 )	 
+//------------------------------------------------------------------------------------------------------------------
 
 
-
-
-
-
-
-
+//>-----------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------
 class CCameraPivotPositionControllerDrift extends ICustomCameraScriptedPivotPositionController
 {
 	editable	var	zOffset					: float;	default	zOffset					= 1.5f;
@@ -19,7 +14,7 @@ class CCameraPivotPositionControllerDrift extends ICustomCameraScriptedPivotPosi
 	editable	var	blendSpeed				: float;	default	blendSpeed				= 3.0f;
 	editable	var	blendOutMult			: float;	default	blendOutMult			= 2.0f;
 	
-	
+	// displacement
 	editable 	var	sideDistance			: float;	default	sideDistance			= 1.2f;
 	editable 	var	backDistance			: float;	default	backDistance			= 0.8f;
 	editable 	var	upDistance				: float;	default	upDistance				= 0.7f;
@@ -37,7 +32,7 @@ class CCameraPivotPositionControllerDrift extends ICustomCameraScriptedPivotPosi
 	private		var	timeCur					: float;
 	
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	protected function ControllerUpdate( out currentPosition : Vector, out currentVelocity : Vector, timeDelta : float )
 	{
 		var offsetVec			: Vector;
@@ -45,35 +40,35 @@ class CCameraPivotPositionControllerDrift extends ICustomCameraScriptedPivotPosi
 		var displacementCoef	: float;
 		
 		
-		
+		// Original position
 		if( timeCur	== 0.0f )
 		{
 			originalPosition	= currentPosition;
 		}
 		
-		
+		// Update offset distances
 		UpdateDistances( timeDelta );
 		
-		
+		// Get the target position
 		targetPosition	= GetTargetPosition( timeDelta );		
 		
-		
+		// Blend the target position
 		originalPosition	= LerpV( originalPosition, targetPosition, blendSpeed *timeDelta );
 		
-		
+		// Set the final position
 		currentPosition = originalPosition;
 		
 		
-		
+		// Time
 		timeCur	+= timeDelta;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	protected function UpdateDistances( timeDelta : float )
 	{
 		var incrementCoef	: float;
 		
-		
+		// Blending in or out?
 		if( thePlayer.substateManager.m_SharedDataO.m_SkateGlobalC.m_Drifting )
 		{
 			incrementCoef	= 1.0f;
@@ -99,12 +94,12 @@ class CCameraPivotPositionControllerDrift extends ICustomCameraScriptedPivotPosi
 			}
 		}
 		
-		
+		// Get the target offset
 		backDistanceCur	= ClampF( backDistanceCur + timeDelta * incrementCoef * backDistanceBlendSpeed, 0.0f, backDistance );
 		upDistanceCur	= ClampF( upDistanceCur + timeDelta * incrementCoef * upDistanceBlendSpeed, 0.0f, upDistance );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	protected function GetTargetPosition( timeDelta : float ) : Vector
 	{
 		var offsetVec			: Vector;
@@ -115,13 +110,13 @@ class CCameraPivotPositionControllerDrift extends ICustomCameraScriptedPivotPosi
 		offsetVec	+=  thePlayer.GetWorldRight() * sideDistanceCur;
 		
 		
-		
+		// Get the target position
 		targetPosition	=  thePlayer.GetWorldPosition() + offsetVec;
 		
 		return targetPosition;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	protected function ControllerActivate( currentOffset : float )
 	{	
 		timeCur			= 0.0f;
@@ -131,8 +126,8 @@ class CCameraPivotPositionControllerDrift extends ICustomCameraScriptedPivotPosi
 
 
 
-
-
+//>-----------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------
 class CCameraRotationControllerDrift extends ICustomCameraScriptedPivotRotationController
 {
 	private editable			var	fixedPitch		: float;		default	fixedPitch		= -20.0f;
@@ -145,14 +140,14 @@ class CCameraRotationControllerDrift extends ICustomCameraScriptedPivotRotationC
 	private						var turnLast		: float;
 	
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	protected function ControllerUpdate( out currentRotation : EulerAngles, out currentVelocity : EulerAngles, timeDelta : float )
 	{
 		var rollTarget	: float;
 		var yawTarget	: float;
 		
 		
-		
+		// Change turn ressets time
 		if( turnLast * thePlayer.substateManager.m_SharedDataO.m_SkateGlobalC.m_TurnF < 0.0f )
 		{
 			timeCur	= 0.0f;
@@ -168,7 +163,7 @@ class CCameraRotationControllerDrift extends ICustomCameraScriptedPivotRotationC
 		timeCur	+= timeDelta;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	protected function ControllerActivate( currentRotation : EulerAngles )
 	{		
 		timeCur		= 0.0f;

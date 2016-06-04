@@ -1,11 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file
 /***********************************************************************/
-
-
-
+/** Copyright © 2013 CD Projekt RED
+/** Author : Patryk Fiutowski, Andrzej Kwiatkowski
+/***********************************************************************/
 
 abstract class CBTTaskCollisionAttack extends CBTTaskAttack
 {
@@ -70,8 +68,8 @@ abstract class CBTTaskMagicAttack extends CBTTaskCollisionAttack
 					theGame.GetEntitiesByTag( fxDummyEntityTag, fxDummyEntity );
 					if ( fxDummyEntity.Size() > 0 )
 					{
-						
-						
+						//AK: fx can be played only between 2 entities anyway, tag is custom set,
+						//it's on implementation side to ensure that tag is unique and returns one result.
 						actor.PlayEffect( effectName, fxDummyEntity[0] );
 						fxDummyEntity[0].PlayEffect( dummyEntityEffectName );
 					}
@@ -109,22 +107,19 @@ struct SFxOnAnimEvent
 	editable var animEvent : name;
 }
 
-
+// magic melee attack
 class CBTTaskMagicMeleeAttack extends CBTTaskMagicAttack
 {
-	public var resourceName : name;
+	public var resourceName 			: name;
 	
-	private var effectEntityTemplate : CEntityTemplate;
+	private var fxOnAnimEvent 			: array<SFxOnAnimEvent>;
+	private var effectEntityTemplate 	: CEntityTemplate;
+	private var entity 					: CEntity;
+	private var dealDmgOnDeactivate 	: bool;
+	private var couldntLoadResource 	: bool;
+	private var effectHitName			: name;
 	
-	private var dealDmgOnDeactivate : bool;
 	
-	private var couldntLoadResource : bool;
-	
-	private var effectHitName		: name;
-	
-	private var entity 		: CEntity;
-	
-	private var fxOnAnimEvent : array<SFxOnAnimEvent>;
 	
 	var foundPos			: bool;
 	var pos					: Vector;
@@ -148,6 +143,7 @@ class CBTTaskMagicMeleeAttack extends CBTTaskMagicAttack
 			return BTNS_Failed;
 		}
 		
+		super.Main();
 		return BTNS_Active;
 	}
 	
@@ -159,6 +155,7 @@ class CBTTaskMagicMeleeAttack extends CBTTaskMagicAttack
 			dealDmgOnDeactivate = false;
 		}
 		
+		foundPos = false;
 		super.OnDeactivate();
 	}
 	
@@ -177,8 +174,8 @@ class CBTTaskMagicMeleeAttack extends CBTTaskMagicAttack
 	function SpawnEffect( attackData : CPreAttackEventData ) : bool
 	{
 		var effectName 	: name;
-		
-		
+		//var pos			: Vector;
+		//var rot			: EulerAngles;
 		
 		switch ( attackData.swingType )
 		{
@@ -233,10 +230,11 @@ class CBTTaskMagicMeleeAttack extends CBTTaskMagicAttack
 			if (!foundPos)
 			{
 				GetEffectPositionAndRotation(pos, rot);
+				foundPos = true;
 			}
-			
+			// spawn entity and play effect on it;
 			entity = theGame.CreateEntity( effectEntityTemplate, pos, rot );
-			
+			//entity.CreateAttachment(GetCombatTarget());
 			if ( entity )
 			{
 				entity.PlayEffect(effectName);
@@ -259,17 +257,43 @@ class CBTTaskMagicMeleeAttack extends CBTTaskMagicAttack
 	
 	function OnGameplayEvent( eventName : name ) : bool
 	{
-		var witcher : W3PlayerWitcher = GetWitcherPlayer();
+		var witcher 	: W3PlayerWitcher = GetWitcherPlayer();
+		var damageData	: W3DamageAction;
 		
-		if ( eventName == 'DamageInstigated' )
+		if ( eventName == 'HitActionReaction' )
 		{
-			if ( IsNameValid( effectHitName ) && ( GetLocalTime() > fxTimeCooldown ))
+			hitActionReactionEventReceived = true;
+			hitTimeStamp = GetLocalTime();
+			if ( hitActionReactionEventReceived && damageInstigatedEventReceived && IsNameValid( effectHitName ) 
+				&& GetLocalTime() > fxTimeCooldown && GetLocalTime() < hitTimeStamp + 0.5 )
 			{
+				hitActionReactionEventReceived = false;
+				damageInstigatedEventReceived = false;
 				if ( witcher == GetCombatTarget() && ( witcher.IsQuenActive( true ) || witcher.IsQuenActive( false ) ) )
 					return false;
 				
 				fxTimeCooldown = GetLocalTime() + applyFXCooldown;
 				entity.PlayEffect(effectHitName);
+			}
+		}
+		if ( eventName == 'DamageInstigated' )
+		{
+			damageData = ( W3DamageAction ) GetEventParamObject();
+			if ( !damageData.IsDoTDamage() )
+			{
+				damageInstigatedEventReceived = true;
+				hitTimeStamp = GetLocalTime();
+				if ( hitActionReactionEventReceived && damageInstigatedEventReceived && IsNameValid( effectHitName ) 
+					&& GetLocalTime() > fxTimeCooldown && GetLocalTime() < hitTimeStamp + 0.5 )
+				{
+					hitActionReactionEventReceived = false;
+					damageInstigatedEventReceived = false;
+					if ( witcher == GetCombatTarget() && ( witcher.IsQuenActive( true ) || witcher.IsQuenActive( false ) ) )
+						return false;
+					
+					fxTimeCooldown = GetLocalTime() + applyFXCooldown;
+					entity.PlayEffect(effectHitName);
+				}
 			}
 		}
 		
@@ -284,11 +308,13 @@ class CBTTaskMagicMeleeAttack extends CBTTaskMagicAttack
 		var l_entity		: CEntity;
 		var i 				: int;
 		
-		
-		GetEffectPositionAndRotation(pos, rot);
-		
-		foundPos = true;
-		
+		if (!foundPos)
+		{
+			GetEffectPositionAndRotation(pos, rot);
+			foundPos = true;
+		}
+		//pos.Z -= 0.7;
+		// spawn entity and play effect on it;
 		l_entity = theGame.CreateEntity( effectEntityTemplate, pos, rot );
 		
 		res = super.OnAnimEvent(animEventName,animEventType, animInfo);
@@ -354,7 +380,7 @@ class CBTTaskMagicRangeAttackDef extends CBTTaskMagicAttackDef
 	default instanceClass = 'CBTTaskMagicRangeAttack';
 }
 
-
+// magic fx attack
 class CBTTaskMagicFXAttack extends CBTTaskMagicAttack
 {
 	public var resourceName : name;
@@ -380,6 +406,7 @@ class CBTTaskMagicFXAttack extends CBTTaskMagicAttack
 			return BTNS_Failed;
 		}
 		
+		super.Main();
 		return BTNS_Active;
 	}
 	
@@ -415,9 +442,9 @@ class CBTTaskMagicFXAttack extends CBTTaskMagicAttack
 		if( effectName )
 		{
 			GetEffectPositionAndRotation(pos, rot);
-			
+			// spawn entity and play effect on it;
 			entity = theGame.CreateEntity( effectEntityTemplate, pos, rot );
-			
+			//entity.CreateAttachment(GetCombatTarget());
 			if ( entity )
 			{
 				entity.PlayEffect(effectName);
@@ -463,6 +490,7 @@ class CBTTaskMagicBomb extends CBTTaskAttack
 			return BTNS_Failed;
 		}
 		
+		super.Main();
 		return BTNS_Active;
 	}
 	

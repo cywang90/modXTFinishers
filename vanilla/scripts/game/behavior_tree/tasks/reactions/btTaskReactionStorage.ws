@@ -1,11 +1,5 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-class CBTTaskReactionStorage extends IBehTreeTask
+﻿class CBTTaskReactionStorage extends IBehTreeTask
 {
-	protected var storageHandler 		: CAIStorageHandler;
 	protected var reactionDataStorage 	: CAIStorageReactionData;
 	
 	public var onActivate 		: bool;
@@ -53,9 +47,7 @@ class CBTTaskReactionStorage extends IBehTreeTask
 	
 	function Initialize()
 	{
-		storageHandler = new CAIStorageHandler in this;
-		storageHandler.Initialize( 'ReactionData', '*CAIStorageReactionData', this );
-		reactionDataStorage = (CAIStorageReactionData)storageHandler.Get();
+		reactionDataStorage = (CAIStorageReactionData)RequestStorageItem( 'ReactionData', 'CAIStorageReactionData' );
 	}
 	
 }
@@ -73,11 +65,10 @@ class CBTTaskReactionStorageDef extends IBehTreeReactionTaskDefinition
 	editable var reset			: bool;
 }
 
-
-
+/////////////////////////////////////////////////////////
+// CBehTreeTaskCombatStorageCleanup
 class CBehTreeTaskReactionStorageCleanup extends IBehTreeTask
 {
-	protected var storageHandler 		: CAIStorageHandler;
 	protected var reactionDataStorage 	: CAIStorageReactionData;
 	
 	function OnActivate() : EBTNodeStatus
@@ -93,9 +84,7 @@ class CBehTreeTaskReactionStorageCleanup extends IBehTreeTask
 
 	function Initialize()
 	{
-		storageHandler = new CAIStorageHandler in this;
-		storageHandler.Initialize( 'ReactionData', '*CAIStorageReactionData', this );
-		reactionDataStorage = (CAIStorageReactionData)storageHandler.Get();
+		reactionDataStorage = (CAIStorageReactionData)RequestStorageItem( 'ReactionData', 'CAIStorageReactionData' );
 	}
 }
 

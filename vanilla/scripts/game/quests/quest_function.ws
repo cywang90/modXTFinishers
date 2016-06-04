@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-quest function EnableNewGamePlus( enable : bool )
+﻿quest function EnableNewGamePlus( enable : bool )
 {
 	theGame.EnableNewGamePlus( enable );
 }
@@ -23,6 +18,11 @@ quest function LaunchCreditsEP1()
 	theGame.GetGuiManager().RequestCreditsMenu(CreditsIndex_Ep1);
 }
 
+quest function LaunchCreditsEP2()
+{
+	theGame.GetGuiManager().RequestCreditsMenu(CreditsIndex_Ep2);
+}
+
 quest function MessageDialogPopup( locMessage : string )
 {
 	theGame.GetGuiManager().ShowUserDialog(UMID_QuestBlockMessage, "", locMessage, UDB_Ok);
@@ -36,7 +36,7 @@ enum EFactValueChangeMethod
 	FVCM_Divide,
 }
 
-
+////////////////////////////////////////////////////////////////////////
 
 latent function OpenContainerQuest( npcTag : CName, optional tagsFilter : array<name> )
 {
@@ -53,7 +53,7 @@ latent function OpenContainerQuest( npcTag : CName, optional tagsFilter : array<
 	}
 	
 	OpenInventoryForScene(containerOwner, tagsFilter);
-	
+	//OpenGUIPanelForScene( 'InventoryMenu', 'CommonMenu', containerOwner ); //@FIXME TOMEK CZARNY - IT DOESN'T QUIT
 }
 
 latent quest function CollectItemsQuest ( collectorTag : name, items : array<name>, uniqueTransactionId : string, keepItemsInContainer : bool, optional filterTagsList : array<name>, optional singleItemContainer : bool ) : bool
@@ -146,12 +146,15 @@ latent quest function CollectItemsQuest ( collectorTag : name, items : array<nam
 		}
 	}
 	
-	
+	/*if( collectedCount == items.Size() )
+	{
+		result = AllItemsCollected;
+	}*/
 		
 	return result;
 }
 
-
+/////////////////////////////////////////////////////////////////////
 
 quest function ModifyFactValueQuest( fact : string, action : EFactValueChangeMethod, value : float )
 {
@@ -200,7 +203,7 @@ quest function RemoveItemAmmoQuest( itemName : name, amount : int )
 	inv.SingletonItemRemoveAmmo( ids[0], amount );
 }
 
-
+//Enables alternative glossary image for an entry, doesn't have to be enabled on an active entry
 quest function EnableGlossaryImageOverrideQuest( uniqueEntryTag : name, imageFileName : string, enable : bool )
 {
 	thePlayer.EnableGlossaryImageOverride( uniqueEntryTag, imageFileName, enable );
@@ -225,7 +228,7 @@ quest function MonsterHuntInvestigationAreaManager( tag : name, enable: bool )
 	}
 }
 
-
+// custom function for ice giant - fixes issue with cutscene job that shouldn't be cancelled by combat
 quest function Q202GiantDisableHitAnim( tag : name, enable : bool )
 {
 	var actors : array<CActor>;
@@ -256,7 +259,7 @@ quest function ActorBreakQuen(actorTag : name, skipVisuals : bool)
 		actor.FinishQuen(skipVisuals);
 }
 
-
+// Switches display of herbs on the minimap
 quest function DisableHerbsOnMinimapQuest ( disableHerbs : bool )
 {
 	if(!disableHerbs)
@@ -277,7 +280,11 @@ enum EMapPinStatus
 	EMPS_Disabled
 }
 
-quest function SetMapPinStatus( type : EMapPinStatus, tag : name, set : bool )
+//////////////////////////////////////////////////////////
+//
+// if you want to change something inside the function below, do it also for SetMapPinStatusEx
+//
+quest function SetMapPinStatus( type : EMapPinStatus, tag : name, set : bool, dontChangeIfKnown : bool, dontChangeIfDiscovered : bool )
 {
 	var i 			: int;
 	var mapManager 	: CCommonMapManager = theGame.GetCommonMapManager();
@@ -286,6 +293,22 @@ quest function SetMapPinStatus( type : EMapPinStatus, tag : name, set : bool )
 	{
 		return;
 	}
+	
+	if( dontChangeIfKnown )
+	{
+		if ( mapManager.IsEntityMapPinKnown( tag ) )
+		{
+			return;
+		}
+	}
+	
+	if( dontChangeIfDiscovered )
+	{
+		if ( mapManager.IsEntityMapPinDiscovered( tag ) )
+		{
+			return;
+		}
+	}	
 	
 	switch ( type )
 	{
@@ -296,6 +319,54 @@ quest function SetMapPinStatus( type : EMapPinStatus, tag : name, set : bool )
 			break;
 		case EMPS_Discovered:
 			mapManager.SetEntityMapPinDiscovered( tag, set );
+			break;
+		case EMPS_Disabled:
+			mapManager.SetEntityMapPinDisabled( tag, set );
+			break;
+	}
+}
+
+//////////////////////////////////////////////////////////
+//
+// if you want to change something inside the function below, do it also for SetMapPinStatus
+//
+// I didn't want to modify arguments of original SetMapPinStatus function at this point, so I've just added slighty changed version that will notify hud when applicable
+//
+quest function SetMapPinStatusEx( type : EMapPinStatus, tag : name, set : bool, dontChangeIfKnown : bool, dontChangeIfDiscovered : bool )
+{
+	var i 			: int;
+	var mapManager 	: CCommonMapManager = theGame.GetCommonMapManager();
+	
+	if ( !mapManager )
+	{
+		return;
+	}
+	
+	if( dontChangeIfKnown )
+	{
+		if ( mapManager.IsEntityMapPinKnown( tag ) )
+		{
+			return;
+		}
+	}
+	
+	if( dontChangeIfDiscovered )
+	{
+		if ( mapManager.IsEntityMapPinDiscovered( tag ) )
+		{
+			return;
+		}
+	}	
+	
+	switch ( type )
+	{
+		case EMPS_Undefined:
+			break;
+		case EMPS_Known:
+			mapManager.SetEntityMapPinKnown( tag, set );
+			break;
+		case EMPS_Discovered:
+			mapManager.SetEntityMapPinDiscoveredScript( false, tag, set );
 			break;
 		case EMPS_Disabled:
 			mapManager.SetEntityMapPinDisabled( tag, set );
@@ -430,7 +501,7 @@ latent quest function ProcessMonsterHuntTrophyQuest( trophyName : name, dontTele
 		}
 		else
 		{
-			
+			//Hack, force spawn item on horse even if horse manager failed, this will provide only visual representation
 			horse = (CNewNPC)theGame.GetNodeByTag('playerHorse');
 			ids = horse.GetInventory().AddAnItem( trophyName , 1);
 			horse.GetInventory().MountItem( ids[0] );
@@ -479,7 +550,6 @@ quest function AlwaysDisplayItemInfo( display : bool )
 latent quest function DisplayPortalConfirmationPopup( pauseGame : bool ) : bool
 {
 	var guiManager : CR4GuiManager;
-	var popupData : W3PortalConfirmationPopupData;
 	
 	guiManager = theGame.GetGuiManager();
 	guiManager.SetUsePortal( false, false );
@@ -491,6 +561,19 @@ latent quest function DisplayPortalConfirmationPopup( pauseGame : bool ) : bool
 	}
 	
 	return guiManager.GetUsePortal();
+}
+
+quest function DisplaySimplePopup( title : string, text : string, pauseGame : bool )
+{
+	var guiManager : CR4GuiManager;
+	
+	guiManager = theGame.GetGuiManager();
+	if ( !guiManager )
+	{
+		return;
+	}
+	
+	theGame.GetGuiManager().ShowUserDialog( UMID_NoFeedbackRequired, title, text, UDB_Ok );
 }
 
 quest function BankCollectBillOfExchangeQuest( baseBillPrice : int )
@@ -553,8 +636,24 @@ quest function BankCurrencyExchangeQuest( orensExchangeModifier : float, florens
 
 }
 
+quest function FactBasedRewardQuest( baseRewardValue : int, factMultiplier : string )
+{
+    var 	   	   witcher : W3PlayerWitcher;
+	var 		   inv : CInventoryComponent;
+	var 		   finalReward : int;
+
+	witcher = GetWitcherPlayer();
+	inv = witcher.inv;
+	if( FactsQuerySum( factMultiplier ) )
+	{
+		finalReward = FactsQuerySum( factMultiplier ) * baseRewardValue;
+		thePlayer.DisplayItemRewardNotification( 'Crowns', finalReward );
+		inv.AddAnItem( 'Crowns', finalReward, true, true );
+	}
+}
 
 
+//Cleans up all hair items from player's inventory and applies new by given tag
 quest function SetGeraltHairQuest( hairstyleName : name )
 {
 	var inv : CInventoryComponent;
@@ -644,7 +743,7 @@ quest function SetGeraltPalmsQuest( palmsName : name )
 
 
 
-quest function E3TurnOffDebugPagesFromFastMenu( turnOn: bool ) 
+quest function E3TurnOffDebugPagesFromFastMenu( turnOn: bool ) // #B Kill after E3
 {
 	if (turnOn)
 		FactsAdd("DebugPagesOff", 1);
@@ -697,7 +796,7 @@ quest function EnableBuffedMonsterDisplay( value : bool )
 	}
 }
 
-
+//Takes all petards with give tag and detonates them
 quest function DetonatePetardQuest ( targetTag : name, detonationDelay : float )
 {
 
@@ -752,7 +851,7 @@ quest function SetMorphBlendQuest( targetTag: name, morphRatio : float, blendTim
 	}
 }
 
-quest function ForceShowUpdateInfo(locKeyText : string, locKeyTitle : string  )
+quest function ForceShowUpdateInfo(locKeyText : string, locKeyTitle : string /*, status : EJournalStatus =*/ )
 {
 	var hud : CR4ScriptedHud;	
 	var journalUpdateModule : CR4HudModuleJournalUpdate;
@@ -777,7 +876,7 @@ latent quest function ShowStartScreen(fadeOutTime : float, fadeInTime : float, e
 	thePlayer.SetStartScreenFadeInDuration(fadeInTime);
 	thePlayer.SetStartScreenIsOpened(true);
 	
-	
+	//thePlayer.SetStartScreenIsOpenedAsStageDemo(isStageDemo);
 	theGame.RequestMenu('StartScreenMenu');
 	
 	while(thePlayer.GetStartScreenIsOpened())
@@ -791,8 +890,8 @@ latent quest function ShowEndScreen(fadeOutTime : float, fadeInTime : float, isS
 	thePlayer.SetStartScreenFadeDuration(fadeOutTime);
 	thePlayer.SetStartScreenFadeInDuration(fadeInTime);
 	thePlayer.SetEndScreenIsOpened(true);
-	
-	
+	//thePlayer.SetStartScreenEndWithBlackScreen(endWithBlackscreen);
+	//thePlayer.SetStartScreenIsOpenedAsStageDemo(isStageDemo);
 	theGame.RequestMenu('EndScreenMenu');
 	
 	while(thePlayer.GetEndScreenIsOpened())
@@ -811,7 +910,7 @@ quest function ShowCompanionIndicator( enable:bool, npcTag : name, optional icon
 	npc = theGame.GetNPCByTag( npcTag );
 	if ( !npc )
 	{
-		enable = false; 
+		enable = false; // just in case
 	}
 	if ( !enable )
 	{
@@ -896,7 +995,7 @@ quest function OpenMeditation()
 	GetWitcherPlayer().Meditate();
 }
 
-
+// Shave Geralt
 quest function ShaveGeralt_Quest()
 {
 	var acs : array< CComponent >;
@@ -905,7 +1004,7 @@ quest function ShaveGeralt_Quest()
 	( ( CHeadManagerComponent ) acs[0] ).Shave();
 }
 
-
+// Set Geralts beard stage
 quest function SetGeraltBeard_Quest( maxBeard : bool, optional stage : int )
 {
 	var acs : array< CComponent >;
@@ -914,7 +1013,7 @@ quest function SetGeraltBeard_Quest( maxBeard : bool, optional stage : int )
 	( ( CHeadManagerComponent ) acs[0] ).SetBeardStage( maxBeard, stage);
 }
 
-
+// set / remove tattoo
 quest function SetTattoo_Quest( hasTattoo : bool )
 {
 	var acs : array< CComponent >;
@@ -923,7 +1022,7 @@ quest function SetTattoo_Quest( hasTattoo : bool )
 	( ( CHeadManagerComponent ) acs[0] ).SetTattoo( hasTattoo );
 }
 
-
+// set / remove tattoo
 quest function SetDemonMarkQuest( hasDemonMark : bool )
 {
 	var acs : array< CComponent >;
@@ -933,7 +1032,7 @@ quest function SetDemonMarkQuest( hasDemonMark : bool )
 }
 
 
-
+//(un) block beard growing
 quest function BlockBeardGrowth_Quest( optional block : bool )
 {
 	var acs : array< CComponent >;
@@ -942,7 +1041,7 @@ quest function BlockBeardGrowth_Quest( optional block : bool )
 	( ( CHeadManagerComponent ) acs[0] ).BlockGrowing( block );
 }
 
-
+// set custom head it also blocks the beard growth
 quest function SetCustomHead_Quest( head : name, barberSystem : bool )
 {
 	var acs : array< CComponent >;
@@ -956,7 +1055,7 @@ quest function SetCustomHead_Quest( head : name, barberSystem : bool )
 	( ( CHeadManagerComponent ) acs[0] ).SetCustomHead( head );
 }
 
-
+// remove custom head it also blocks the beard growth
 quest function RemoveCustomHead_Quest( barberSystem : bool)
 {
 	var acs : array< CComponent >;
@@ -984,7 +1083,7 @@ quest function RemoveCustomHead_Quest( barberSystem : bool)
 	}
 }
 
-
+//used to give doppler npc geralt's inventory to make him look the same
 quest function CopyPlayersEquipmentToNPCQuest(npcTag : name, copyHead : bool, dontCopyHair: bool)
 {
 	var npc : CNewNPC;
@@ -1055,7 +1154,7 @@ quest function CopyPlayersEquipmentToNPCQuest(npcTag : name, copyHead : bool, do
 		inv.MountItem(ids[0]);
 	}
 
-	
+	//Copy Hair
 	if(!dontCopyHair)
 	{
 		ids = witcher.inv.GetItemsByCategory( 'hair' );
@@ -1095,8 +1194,8 @@ quest function ShowTimeLapse( showTime : float, optional timeLapseMessageKey : s
 		timeLapseModule = (CR4HudModuleTimeLapse)hud.GetHudModule("TimeLapseModule");
 		timeLapseModule.SetShowTime(showTime);
 
-		
-		
+		//we shouldn't send in an additional message without a main one so swap them if need be (in order to calculate a proper background width/height) - Shadi Dadenji
+		//shitty I know but we're actually using a supposed TimeLapse function to display a message so there are shittier things out there.
 		if ( timeLapseMessageKey == "" && timeLapseAdditionalMessageKey != "" )
 		{
 			timeLapseMessageKey = timeLapseAdditionalMessageKey;
@@ -1248,6 +1347,7 @@ quest function FocusSoundClueManager( tag: name, soundEffectType : EFocusModeSou
 	var entity		: CGameplayEntity;
 	var i, size 	: int;
 	var focusModeController : CFocusModeController;
+	var soundClue	: W3SavedSoundClue;
 	
 	if ( tag == '' )
 	{
@@ -1262,12 +1362,17 @@ quest function FocusSoundClueManager( tag: name, soundEffectType : EFocusModeSou
 		entity = (CGameplayEntity)nodes[i];		
 		if ( entity )
 		{
-			if (startEventOverride !='None' && stopEventOverride !='None')
+			if (startEventOverride !='None' || stopEventOverride !='None')
 			{
 				focusModeController = theGame.GetFocusModeController();
-				focusModeController.SetSoundClueEventNames(entity,startEventOverride,stopEventOverride);
+				focusModeController.SetSoundClueEventNames(entity,startEventOverride,stopEventOverride,soundEffectType);
 			}
 			entity.SetFocusModeSoundEffectType( soundEffectType );
+			soundClue = (W3SavedSoundClue)entity;
+			if ( soundClue )
+			{
+				soundClue.savedFocusModeSoundEffectType = soundEffectType;
+			}
 		}
 	}
 }
@@ -1357,11 +1462,14 @@ quest function FocusEffect( actionType : EFocusEffectActivationAction, effectNam
 	}
 }
 
-quest function FocusSetHighlight( tag : name, highlightType : EFocusModeVisibility )
+quest function FocusSetHighlight( tag : name, highlightType : EFocusModeVisibility, optional overrideCustomLogic : bool )
 {
 	var nodes			: array< CNode >;
 	var i, size 		: int;
 	var gameplayEntity 	: CGameplayEntity;
+	var container		: W3Container;
+	var poster			: W3SavedPoster;
+	var clue			: W3MonsterClue;
 
 	theGame.GetNodesByTag( tag, nodes );
 	
@@ -1372,26 +1480,45 @@ quest function FocusSetHighlight( tag : name, highlightType : EFocusModeVisibili
 		if ( gameplayEntity )
 		{
 			gameplayEntity.SetFocusModeVisibility( highlightType, true, true );
+			// here we want to change also custom class-specific variables
+			if ( overrideCustomLogic )
+			{
+				container = (W3Container)gameplayEntity;
+				if ( container )
+				{
+					container.focusModeHighlight = highlightType;
+				}
+				poster = (W3SavedPoster)gameplayEntity;
+				if ( poster )
+				{
+					poster.savedFocusModeHighlight = highlightType;
+				}
+				clue = (W3MonsterClue)gameplayEntity;
+				if ( clue )
+				{
+					clue.OverrideVisibilityParams( highlightType );
+				}
+			}
 		}
 	}
 }
 
+//////////////////////////////////////////////////////////////////////
+// Weather control - WEATHER FUNCTIONS TO BE ADDED, ATM IT INFLUENCES THE WATER SYSTEM
 
-
-
-quest function ChangeWeatherQuest( weatherName: name, blendTime: float, randomGen: bool )
+quest function ChangeWeatherQuest( weatherName: name, blendTime: float, randomGen: bool, questPause: bool )
 {
 	if( randomGen )
 	{
-		RequestRandomWeatherChange( blendTime );
+		RequestRandomWeatherChange( blendTime, questPause );
 	}
 	else
 	{
-		RequestWeatherChangeTo( weatherName, blendTime );
+		RequestWeatherChangeTo( weatherName, blendTime, questPause );
 	}
 }
 
-
+//////////////////////////////////////////////////////////////////////
 
 quest function EffectOnCamera( effectName: name, play: bool )
 {
@@ -1531,8 +1658,8 @@ quest function EnableOrDisableContainers( containersTag : name, containerEnabled
 		}
 	}
 }
-
-
+//This method finds all NPCs with given tag and changes their fight stage (for boss fights mainly).
+//Fight stage is a behavior variable, that alters movement and attacks
 quest function CombatStageChange( npcsTag : name, stage : ENPCFightStage )
 {
 	var i, size : int;
@@ -1548,7 +1675,7 @@ quest function CombatStageChange( npcsTag : name, stage : ENPCFightStage )
 	}
 }
 
-
+//This method finds all NPCs with given tag and changes their appearance
 quest function AppearanceChange( npcsTag : name, appearanceName : name )
 {
 	var i, size : int;
@@ -1600,9 +1727,9 @@ quest function ApplyAppearance( entitiesTag : name, appearanceName : name )
 
 
 
+///////////////////////////////////// SOUND FUNCTIONS /////////////////////////////////////////////
 
-
-
+// Funkcja odtwarzajaca dzwiek bez pozycjonowania w 3D
 quest function SoundEventQuest( eventName : string, saveBehavior : ESoundEventSaveBehavior )
 {
 	theSound.SoundEvent( eventName );
@@ -1617,21 +1744,110 @@ quest function SoundEventQuest( eventName : string, saveBehavior : ESoundEventSa
 	}
 }
 
-
-quest function SoundEventOnActorQuest( actorTag : name, eventName : string )
+// Funkcja odtwarzajaca dzwiek spozycjonowany na konkretnym aktorze
+quest function SoundEventOnActorQuest( actorTag : name, eventName : string, oneRandomActor : bool, onlyIfAlive : bool )
 {
+	var nodes : array<CNode>;
 	var actor : CEntity;
+	var aliveActor : CActor;
 	
-	actor = ( CEntity ) theGame.GetNodeByTag( actorTag );
+	if( oneRandomActor )
+	{
+		theGame.GetNodesByTag( actorTag, nodes );
+		actor = ( CEntity ) nodes[ RandRange( nodes.Size(), 0) ];
+	}
+	else
+	{
+		actor = ( CEntity ) theGame.GetNodeByTag( actorTag );
+	}
+	
+	if( onlyIfAlive )
+	{
+		aliveActor = (CActor) actor;
+		
+		if( !aliveActor.IsAlive() )
+		{
+			return;
+		}
+	}
+	
 	actor.SoundEvent( eventName );
 }
 
-
+// Returns whether player won or lost
 latent quest function EnableFistFightMinigame( toTheDeath : bool, npcTag : array< name >, optional npcTeleportTag : array< name >, optional playerTeleportTag : name ) : bool
 {
 	return true;
 	
+	/*
+	size = npcTag.Size();
+	if ( size > 0 )
+	{
+		player = thePlayer;
+		player.SetFistFightMinigameEnabled( true, toTheDeath );
+		player.OnEquipMeleeWeapon( PW_Fists );
+		
+		if ( playerTeleportTag )
+		{
+			player.fistFightTeleportNode = theGame.GetNodeByTag( playerTeleportTag );
+			player.isStartingFistFightMinigame = true;
+			player.TeleportWithRotation( player.fistFightTeleportNode.GetWorldPosition(), player.fistFightTeleportNode.GetWorldRotation() );
+		}		
+		
+		for ( i = 0; i < size; i += 1 )
+		{
+			enemies.PushBack( theGame.GetActorByTag( npcTag[i] ) );
+			enemies[i].SignalGameplayEventParamInt('ChangePreferedCombatStyle',(int)EBG_Combat_Fists );
+			enemies[i].SetTemporaryAttitudeGroup( 'fistfight_opponent', AGP_Fistfight );
+			if ( npcTeleportTag[i] )
+			{
+				teleportNode = theGame.GetNodeByTag( npcTeleportTag[i] );
+				enemies[i].TeleportWithRotation( teleportNode.GetWorldPosition(), teleportNode.GetWorldRotation() );
+			}
+		}
+	}
+	else
+		LogChannel( 'Fistfight Minigame', "ERROR: No NPCs assigned to fistfight minigame!!!" );	
 	
+	while ( true ) 
+	{
+		wonGame = true;
+		for ( i = 0; i < size; i += 1 )
+		{
+			if ( !thePlayer.IsFistFightMinigameToTheDeath() )
+			{
+				if( !enemies[i].IsUnconsciousEnabled() )
+				{
+					wonGame = false;
+					break;				
+				}
+			}
+			else
+			{
+				if ( !enemies[i].IsUnconsciousEnabled() && enemies[i].IsAlive() )
+				{
+					wonGame = false;
+					break;
+				}				
+			}
+		}
+		
+		if ( wonGame)
+		{
+			player.RestoreStateAfterFistFight( enemies );
+			return true;
+		}
+		else if( player.IsUnconsciousEnabled() || !player.IsAlive() )
+		{
+			player.RestoreStateAfterFistFight( enemies );		
+			return false;
+		}
+		
+		Sleep( 0.5 );
+	}
+	
+	player.RestoreStateAfterFistFight( enemies );
+	*/
 }
 
 quest function HidePlayerItemQuest()
@@ -1644,8 +1860,8 @@ quest function ShowUsableItemLQuest ()
 	thePlayer.OnUseSelectedItem();
 }
 
-
-
+//Adds item to inventory of given gameplay entity
+//We decided to leave the name/quantity parameter so that a) it won't break current uses and b) it will be simplier when adding just one item
 quest function AddItemQuest( targetTag : name, itemName : name, quantity : int, items : array<SItem>, informGUI : bool)
 {
 	var entities : array<CEntity>;
@@ -1684,7 +1900,12 @@ quest function AddItemQuest( targetTag : name, itemName : name, quantity : int, 
 				{
 					LogQuest( "Quest function <<AddItemQuest>>: item name <<" + itemName + ">> is not a valid item name, skipping!");
 					skip = true;
-				}	
+				}
+				if(itemName == 'Bodkin Bolt' || itemName == 'Harpoon Bolt')
+				{
+					LogQuest( "Quest function <<AddItemQuest>>: cannot add Bodkin Bolts from Quests");
+					skip = true;
+				}
 				if(quantity < 0)
 				{
 					LogQuest( "Quest function <<AddItemQuest>>: quantity of " + quantity + "is not a valid value, skipping!");		
@@ -1703,7 +1924,7 @@ quest function AddItemQuest( targetTag : name, itemName : name, quantity : int, 
 					}
 					else if(ids.Size() == 0 && dm.IsItemSingletonItem(itemName) && inv.HasItem(itemName))
 					{
-						
+						//if already has singleton item then add ammo
 						ids.Clear();
 						ids = inv.GetItemsByName(itemName);
 						inv.SingletonItemAddAmmo(ids[0], quantity);
@@ -1716,7 +1937,12 @@ quest function AddItemQuest( targetTag : name, itemName : name, quantity : int, 
 					{
 						LogQuest( "Quest function <<AddItemQuest>>: item name <<" + items[i].itemName + ">> is not a valid item name, skipping!");
 						continue;
-					}	
+					}
+					if(items[i].itemName == 'Bodkin Bolt' || items[i].itemName == 'Harpoon Bolt')
+					{
+						LogQuest( "Quest function <<AddItemQuest>>: cannot add Bodkin Bolts from Quests");
+						continue;
+					}
 					if(items[i].quantity < 0)
 					{
 						LogQuest( "Quest function <<AddItemQuest>>: quantity of " + items[i].quantity + "is not a valid value, skipping!");		
@@ -1735,7 +1961,7 @@ quest function AddItemQuest( targetTag : name, itemName : name, quantity : int, 
 					}
 					else if(ids.Size() == 0 && dm.IsItemSingletonItem(items[i].itemName) && inv.HasItem(items[i].itemName))
 					{
-						
+						//if already has singleton item then add ammo
 						ids.Clear();
 						ids = inv.GetItemsByName(items[i].itemName);
 						inv.SingletonItemAddAmmo(ids[0], items[i].quantity);
@@ -1793,7 +2019,12 @@ quest function AddItemQuestExt( targetTag : name, items : array<SItemExt>, infor
 					{
 						LogQuest( "Quest function <<AddItemQuest>>: item name <<" + items[i].itemName.itemName + ">> is not a valid item name, skipping!");
 						continue;
-					}	
+					}
+					if(items[i].itemName.itemName == 'Bodkin Bolt' || items[i].itemName.itemName == 'Harpoon Bolt')
+					{
+						LogQuest( "Quest function <<AddItemQuest>>: cannot add Bodkin Bolts from Quests");
+						continue;
+					}
 					if(items[i].quantity < 0)
 					{
 						LogQuest( "Quest function <<AddItemQuest>>: quantity of " + items[i].quantity + "is not a valid value, skipping!");		
@@ -1812,7 +2043,7 @@ quest function AddItemQuestExt( targetTag : name, items : array<SItemExt>, infor
 					}
 					else if(ids.Size() == 0 && dm.IsItemSingletonItem(items[i].itemName.itemName) && inv.HasItem(items[i].itemName.itemName))
 					{
-						
+						//if already has singleton item then add ammo
 						ids.Clear();
 						ids = inv.GetItemsByName(items[i].itemName.itemName);
 						inv.SingletonItemAddAmmo(ids[0], items[i].quantity);
@@ -1831,7 +2062,120 @@ quest function AddItemQuestExt( targetTag : name, items : array<SItemExt>, infor
 	}
 }
 
+quest function EquipItemQuestByCategory( targetTag : name, category : name, unequip : bool, toHand : bool )
+{
+	var actors : array<CActor>;
+	var target : CActor;
+	var inv : CInventoryComponent;
+	var ids : array<SItemUniqueId>;
+	var a, i : int;
+	var playerWitcher : W3PlayerWitcher;
+	var itemID : SItemUniqueId;
+	//var itemName : name;
 
+	//find actors to use
+	if( targetTag == 'PLAYER' )
+	{
+		actors.PushBack( thePlayer );
+	}
+	else
+	{
+		theGame.GetActorsByTag( targetTag, actors );
+		if( actors.Size() <= 0 )
+		{
+			LogQuest( "EquipItemQuestByCategory: cannot find actor with tag <<" + targetTag + ">>. Aborting." );
+			return;
+		}
+	}
+	
+	//wrong category type
+	if( !IsNameValid( category ) )
+	{
+		LogQuest( "EquipItemQuestByCategory: category <<" + category + ">> is not valid. Aborting." );
+		return;
+	}
+	
+	for( a=0; a<actors.Size(); a+=1 )
+	{
+		target = actors[a];
+
+		inv = target.GetInventory();		
+		if( inv )
+		{
+			ids = inv.GetItemsByCategory( category );
+			
+			//skip body items
+			itemID = GetInvalidUniqueId();
+			for( i=0; i<ids.Size(); i+=1 )
+			{
+				if( !inv.ItemHasTag( ids[i], 'Body' ) )
+				{
+					itemID = ids[i];
+					break;
+				}
+			}
+			
+			//debug
+			//itemName = inv.GetItemName( itemID );
+			
+			//abort if item was not found
+			if( !inv.IsIdValid( itemID ) )
+			{
+				LogQuest( "EquipItemQuestByCategory: cannot (un)equip item with category(" + category + ") on <<" + target + ">>, cannot find any suitable item. Aborting function.");
+				return;
+			}
+			
+			//equip/unequip item
+			if( unequip )
+			{
+				target.UnequipItem( itemID );
+			}
+			else
+			{
+				playerWitcher = (W3PlayerWitcher)target;
+				
+				if( toHand && !inv.IsItemHeld( itemID ) )
+				{
+					if( playerWitcher )
+					{
+						if( !playerWitcher.IsItemEquipped( itemID ) )	//might be equipped in different slot (e.g. 2 potion slots)
+						{
+							target.EquipItem( itemID, , true );
+						}
+					}
+					else
+					{
+						target.EquipItem( itemID, , true );
+					}
+				}
+				else if( !toHand && !inv.IsItemMounted( itemID ) )
+				{
+					if( playerWitcher )
+					{
+						if( !playerWitcher.IsItemEquipped( itemID ) )	//might be equipped in different slot (e.g. 2 potion slots)
+						{
+							target.EquipItem( itemID );
+						}
+					}
+					else
+					{					
+						target.EquipItem( itemID );
+					}
+				}
+			}
+			
+			//clear array for next loop
+			ids.Clear();
+		}
+		else
+		{
+			LogQuest("EquipItemQuestByCategory: target actor <<" + target + ">> has no inventory component, cannot equip/unequip items. Function will continue.");
+		}
+	}
+}
+
+//Category and tag checks are wrong and broken. Not fixing, since if fixed it would break some existing quests in game.
+//Instead EquipItemQuestByCategory was added
 quest function EquipItemQuest( targetTag : name, itemName : name, itemCategory : name, itemTag : name, optional unequip : bool, optional toHand : bool )
 {
 	var actors : array<CActor>;
@@ -1862,7 +2206,7 @@ quest function EquipItemQuest( targetTag : name, itemName : name, itemCategory :
 		inv = target.GetInventory();		
 		if( inv )
 		{
-			
+			//find item id
 			if(IsNameValid(itemName))
 			{
 				ids = inv.GetItemsIds(itemName);
@@ -1890,7 +2234,7 @@ quest function EquipItemQuest( targetTag : name, itemName : name, itemCategory :
 				}
 			}
 		
-			
+			//equip/unequip item
 			if(unequip)
 			{
 				target.UnequipItem(ids[idx]);
@@ -1966,7 +2310,7 @@ quest function EquipItemQuestExt( targetTag : name, itemName : SItemNameProperty
 	EquipItemQuest(targetTag, itemName.itemName, itemCategory, itemTag, unequip, toHand);
 }
 
-
+// Removes an item from target entity inventory
 quest function RemoveItemQuest( entityTag : name, item_name : name, item_category : name, item_tag : name, optional quantity : int)
 {
 	var entity : CGameplayEntity;
@@ -2008,19 +2352,24 @@ quest function RemoveItemQuest( entityTag : name, item_name : name, item_categor
 				{
 					inv.RemoveItemByName(item_name, quantity);
 				}
-				else
+				else if( quantity == -1 )
 				{
+					inv.RemoveItemByName(item_name, quantity);
+					witcher.HorseRemoveItemByName(item_name, quantity);
+				}
+				else
+				{					
 					playerQuantity = inv.GetItemQuantityByName(item_name);
 					horseQuantity = witcher.GetHorseManager().GetInventoryComponent().GetItemQuantityByName(item_name);
 					
 					if(playerQuantity + horseQuantity < quantity)
 						return;
 					
-					
+					//first take from player
 					removedQuantity = Min(playerQuantity, quantity);
 					inv.RemoveItemByName(item_name, removedQuantity);
 					
-					
+					//then from horse if needed
 					if(removedQuantity < quantity)
 					{
 						witcher.HorseRemoveItemByName(item_name, quantity - removedQuantity);
@@ -2033,6 +2382,11 @@ quest function RemoveItemQuest( entityTag : name, item_name : name, item_categor
 				{
 					inv.RemoveItemByCategory(item_category, quantity);
 				}
+				else if( quantity == -1 )
+				{
+					inv.RemoveItemByCategory(item_category, quantity);
+					witcher.HorseRemoveItemByCategory(item_category, quantity);
+				}
 				else
 				{
 					playerQuantity = inv.GetItemQuantityByCategory(item_category);
@@ -2041,11 +2395,11 @@ quest function RemoveItemQuest( entityTag : name, item_name : name, item_categor
 					if(playerQuantity + horseQuantity < quantity)
 						return;
 					
-					
+					//first take from player
 					removedQuantity = Min(playerQuantity, quantity);
 					inv.RemoveItemByCategory(item_category, removedQuantity);
 					
-					
+					//then from horse if needed
 					if(removedQuantity < quantity)
 					{
 						witcher.HorseRemoveItemByCategory(item_category, quantity - removedQuantity);
@@ -2058,6 +2412,11 @@ quest function RemoveItemQuest( entityTag : name, item_name : name, item_categor
 				{
 					inv.RemoveItemByTag(item_tag, quantity);
 				}
+				else if( quantity == -1 )
+				{
+					inv.RemoveItemByTag(item_tag, quantity);
+					witcher.HorseRemoveItemByTag(item_tag, quantity);
+				}
 				else
 				{
 					playerQuantity = inv.GetItemQuantityByTag(item_tag);
@@ -2066,11 +2425,11 @@ quest function RemoveItemQuest( entityTag : name, item_name : name, item_categor
 					if(playerQuantity + horseQuantity < quantity)
 						return;
 					
-					
+					//first take from player
 					removedQuantity = Min(playerQuantity, quantity);
 					inv.RemoveItemByTag(item_tag, removedQuantity);
 					
-					
+					//then from horse if needed
 					if(removedQuantity < quantity)
 					{
 						witcher.HorseRemoveItemByTag(item_tag, quantity - removedQuantity);
@@ -2091,7 +2450,7 @@ quest function RemoveItemQuestExt( entityTag : name, item_name : SItemExt, item_
 {
 	RemoveItemQuest(entityTag, item_name.itemName.itemName, item_category, item_tag, item_name.quantity);
 }
-
+// Plays visual effect on target entity
 quest function PlayEffectQuest ( entityTag : name, effectName : name, activate : bool, persistentEffect : bool, deactivateAll : bool, preventEffectStacking : bool )
 {
 	var entities : array <CNode>;
@@ -2222,13 +2581,13 @@ quest function PlaySavableEffectQuest ( entityTag : name, effectName : name, act
 	}	
 }
 
-
+// Activates target environment definition - will deactivate previously activated environment from this block, if any
 quest function ActivateEnvironmentQuest ( environmentDefinition : CEnvironmentDefinition, priority : int, blendFactor : float, blendTime : float )
 {
 	ActivateQuestEnvironmentDefinition( environmentDefinition, priority, blendFactor, blendTime );
 }
 
-
+// Deactivates the environment definition activated with ActivateEnvironmentQuest
 quest function DectivateEnvironmentQuest ( blendTime : float )
 {
 	ActivateQuestEnvironmentDefinition( NULL, 0, 0, blendTime );
@@ -2274,7 +2633,28 @@ quest function SetPlayerAdrenaline(percents : int, relative : bool)
 	}
 }
 
+quest function SetPlayerToxicity(percents : int, points : float, relative : bool)
+{
+	if( points == 0 )
+	{
+		points = thePlayer.GetStatMax(BCS_Toxicity) * percents / 100;
+	}
+	
+	if(relative)
+	{
+		if(points > 0)
+			thePlayer.GainStat(BCS_Toxicity, points);
+		else if(points < 0)
+			thePlayer.DrainToxicity(-points);
+	}
+	else
+	{
+		if(points >= 0)
+			thePlayer.ForceSetStat(BCS_Toxicity, points);
+	}
+}
 
+// Restores health on target actor, NPC or player
 quest function SetHealthQuest( targetTag : name, healthPerc : int, relative : bool, shouldPlayHitParticle : bool)
 {
 	var actors : array<CActor>;
@@ -2351,8 +2731,8 @@ quest function SetHealthQuest( targetTag : name, healthPerc : int, relative : bo
 	}
 }
 
-
-
+// Changing NPC to Attackable by Player or not
+// Nikolas Kolm
 quest function SetNPCIsAttackableByPlayer ( npcTag : name , persistent : bool ,  attackable : bool , optional timeout : float)
 {
 	var npcs : array <CNewNPC>;
@@ -2394,7 +2774,7 @@ quest function SetRewardModifierQuest( player: CStoryScenePlayer, rewardName : n
 	}
 }
 
-
+// Switches immortality mode on targets
 quest function SetImmortalQuest( targetsTag : name, immortalityMode : EActorImmortalityMode, optional unconsciousMinDuration : float )
 {
 	var targets : array<CActor>;
@@ -2433,8 +2813,8 @@ quest function ChangeUnconsciousDuration( targetsTag : name, newMinDuration : fl
 		targets[i].SignalGameplayEventParamFloat('ChangeUnconsciousDuration',newMinDuration);
 } 
 
-
-
+////////////////////////////////////////////////////////////////////////////////////////////////
+//Function for activating replacers with enum for replacers
 latent quest function ChangePlayerQuest( designatedTemplate: EQuestReplacerEntities )
 {
 	if( designatedTemplate == EQRE_Geralt )
@@ -2464,7 +2844,7 @@ latent quest function ChangePlayerQuest( designatedTemplate: EQuestReplacerEntit
 		theGame.ChangePlayer( "Ciri" );
 		while( !((W3ReplacerCiri)thePlayer) )
 			SleepOneFrame();
-		
+		// appearance applied by ApplyAppearance because currently appearance applied from ChangePlayer is not saved
 		thePlayer.ApplyAppearance("ciri_wounded");			
 		thePlayer.abilityManager.RestoreStat(BCS_Vitality);
 	}
@@ -2473,7 +2853,7 @@ latent quest function ChangePlayerQuest( designatedTemplate: EQuestReplacerEntit
 		theGame.ChangePlayer( "Ciri" );
 		while( !((W3ReplacerCiri)thePlayer) )
 			SleepOneFrame();
-		
+		// appearance applied by ApplyAppearance because currently appearance applied from ChangePlayer is not saved			
 		thePlayer.ApplyAppearance("ciri_winter");						
 		thePlayer.abilityManager.RestoreStat(BCS_Vitality);		
 	}
@@ -2489,9 +2869,9 @@ enum EQuestReplacerEntities
 	
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
+// Allows to add or remove an ability from NPC
 quest function ModifyNPCAbilityQuest( npcTag : name, abilityName :name, remove : bool )
 {
 	var npcs : array <CNewNPC>;
@@ -2513,7 +2893,7 @@ quest function ModifyNPCAbilityQuest( npcTag : name, abilityName :name, remove :
 	}
 }
 
-
+// Allows to add or remove an ability from NPC
 quest function ModifyPlayerAbilityQuest( abilityName :name, remove : bool )
 {
 	if(remove)
@@ -2522,7 +2902,7 @@ quest function ModifyPlayerAbilityQuest( abilityName :name, remove : bool )
 		thePlayer.AddAbility( abilityName );
 }
 
-
+// Sets target fact value to zero
 quest function ResetFactQuest( factID : name )
 {
 	var sum : int;
@@ -2531,14 +2911,14 @@ quest function ResetFactQuest( factID : name )
 	FactsAdd( factID , -sum);
 }
 
-
+// Removes fact from facts DB
 quest function RemoveFactQuest( factId : name )
 {
 	if( FactsDoesExist( factId ) )
 		FactsRemove( factId );
 }
 
-
+//Adds a copy of a fact with the same sum value
 quest function CloneFactQuest( SourceFactID : name, TargetFactID : name )
 {
 	var SourceSum : int;
@@ -2550,7 +2930,7 @@ quest function CloneFactQuest( SourceFactID : name, TargetFactID : name )
 	FactsAdd( TargetFactID , SourceSum);
 }
 
-
+// Applying blackscreen during designated time
 quest function FadeOutQuest( fadeTime : float, fadeColor : Color )
 {
 	var hud			 	: CR4ScriptedHud;
@@ -2578,20 +2958,34 @@ quest function FadeOutQuest( fadeTime : float, fadeColor : Color )
 	}
 }
 
-
+// Removing blackscreen during designated time
 quest function FadeInQuest( fadeTime : float )
 {
 	theGame.ResetFadeLock( "Quest_FadeInQuest" );
 	theGame.FadeInAsync(fadeTime);
 }
 
-
+// Removing blackscreen during designated time
 quest function ShowFastTravelLoadingScreen( fadeTime : float, enable : bool )
 {
-	
+	// not available anymore
 }
 
+// set the next loading screen video to current location's default
+// can be used to show fancy loading screen instead of blackscreen
+// for far teleport
+quest function SetLoadingScreenByCurrentLocation()
+{
+	var contextName : name;
+	var mapManager : CCommonMapManager;
+	
+	mapManager = theGame.GetCommonMapManager();
+	
+	contextName = mapManager.GetLocalisationNameFromAreaType( mapManager.GetCurrentJournalAreaByPosition( thePlayer.GetWorldPosition() ) );
+	theGame.SetSingleShotLoadingScreen( contextName );
+}
 
+// Enables or disables target component of an target entity
 quest function SwitchComponentStateQuest ( shouldBeEnabled : bool, objectTag : name, componentName : string)
 {
 	var entity    : array <CNode>;
@@ -2625,8 +3019,8 @@ enum EItemSelectionType
 	IST_All
 }
 
-
-
+// Function transfering player items of designated categories to designated container (or the other way around)
+// DZ : We don't have ANY lures in the game right now, but one, used in mh107. Should we keep this?
 quest function TransferPlayerItemsQuest(designatedContainerTag: name, itemSelectionType: EItemSelectionType, steelSword, silverSword, chestArmor, boots, gloves, pants, trophy, mask, bombs, lures, crossbow, secondaryWeapon : bool, optional fromContainerToPlayer : bool, optional equipAfterTransfer : bool )
 {
 	var player : W3PlayerWitcher;
@@ -2677,13 +3071,13 @@ quest function TransferPlayerItemsQuest(designatedContainerTag: name, itemSelect
 	
 	if(!fromContainerToPlayer)
 	{
-		
+		// we should first unequip swords; Geralt needs to update BehaviorGraph variables
 		if( steelSword)		player.UnequipItemFromSlot(EES_SteelSword);
 		if( silverSword)	player.UnequipItemFromSlot(EES_SilverSword);
 		if( crossbow)       player.UnequipItemFromSlot(EES_RangedWeapon);
 	}
 	
-	
+	//transfer items
 	transferdItems = source.GiveItemsTo( dest, items, false, fromContainerToPlayer );
 	
 	if ( equipItems )
@@ -2696,7 +3090,7 @@ quest function TransferPlayerItemsQuest(designatedContainerTag: name, itemSelect
 	}
 }
 
-
+//DZ: Function to transfer items between inventories. quantity -1 transfers everything found.
 quest function TransferItemQuest(sourceTag: name, targetTag: name, itemName: name, itemCategory: name, itemTag:name, quantity:int)
 {	
 	var source, target : CGameplayEntity;
@@ -2786,8 +3180,8 @@ quest function RememberPlayerEquipment()
 }
 
 
-
-quest function UnequipPlayerItemsQuest(steelSword, silverSword, chestArmor, boots, gloves, pants, trophy, bombs, lures, mask, potions, quickslot, bolts, all, crossbow, equipItems, rememberEquipment : bool, excludedItems : array <SItemNameProperty>, excludeHair, secondaryWeapon : bool )
+// Function unequiping player items of designated categories back to his backpack
+quest function UnequipPlayerItemsQuest(steelSword, silverSword, chestArmor, boots, gloves, pants, trophy, bombs, lures, mask, potions, quickslot, bolts, all, crossbow, equipItems, rememberEquipment : bool, excludedItems : array <SItemNameProperty>, excludeHair, secondaryWeapon, forceRestore : bool )
 {
 	var player : W3PlayerWitcher;
 	var inv : CInventoryComponent;
@@ -2804,7 +3198,7 @@ quest function UnequipPlayerItemsQuest(steelSword, silverSword, chestArmor, boot
 	
 	if (!equipItems)
 	{
-		if (rememberEquipment) player.equipmentSlotHistory = player.GetEquippedItems();
+		if (rememberEquipment) player.equipmentSlotHistory = player.GetEquippedItems();//GetSpecifiedPlayerItemsQuest(steelSword, silverSword, chestArmor, boots, gloves, pants, trophy, mask, bombs, crossbow, false);
 	
 		if(all || steelSword)		player.UnequipItemFromSlot(EES_SteelSword);
 		if(all || silverSword)		player.UnequipItemFromSlot(EES_SilverSword);
@@ -2887,7 +3281,7 @@ quest function UnequipPlayerItemsQuest(steelSword, silverSword, chestArmor, boot
 						{
 							currentSlot = inv.GetSlotForItemId( items[i] );
 							
-							if ( !inv.GetItemEquippedOnSlot( currentSlot,  itemForSlot ) )
+							if ( !inv.GetItemEquippedOnSlot( currentSlot,  itemForSlot ) || forceRestore )
 							{
 								thePlayer.EquipItem ( items[i] );
 							}
@@ -2905,7 +3299,7 @@ quest function UnequipPlayerItemsQuest(steelSword, silverSword, chestArmor, boot
 					{
 						currentSlot = inv.GetSlotForItemId( items[i] );
 							
-						if ( !inv.GetItemEquippedOnSlot( currentSlot,  itemForSlot ) )
+						if ( !inv.GetItemEquippedOnSlot( currentSlot,  itemForSlot ) || forceRestore )
 						{
 							thePlayer.EquipItem ( items[i] );
 						}
@@ -2917,6 +3311,67 @@ quest function UnequipPlayerItemsQuest(steelSword, silverSword, chestArmor, boot
 }
 
 
+/**
+---------------------START OF REFERENCE LEVEL DEBUG FUNCTIONS---------------------
+*/
+
+/**
+	enabling flags from editor filters
+*/
+quest function DebugEnableShowFlag(showFlagName : EShowFlags, activate : bool)
+{	
+	DebugSetEShowFlag(showFlagName, activate);	
+}
+/**
+	displaying debug overlay, using enums from environmentManager
+*/
+quest function DebugOverlayDisplay(overlayName : EEnvManagerModifier){
+	EnableDebugOverlayFilter(overlayName);
+}
+/**
+	Setting Environment parameters (post process ones mostly)
+*/
+quest function DebugSetPostProcessState(postProcessName : EDebugPostProcess, activate : bool){
+	EnableDebugPostProcess(postProcessName, activate);
+	}
+/**
+	Dismembers NPC/Enemy by a given tag. Uses random wound.
+*/
+quest function DebugDismemberNPC(npcTag : name)
+{
+	var actor	:	CActor;
+	var dismemberComp	:	CDismembermentComponent;
+	var allWounds	: array<name>;
+	var getWound	: name;
+	
+	actor = theGame.GetActorByTag(npcTag);
+	if(!actor){
+		return;
+	}else{
+		dismemberComp = (CDismembermentComponent)(actor.GetComponentByClassName('CDismembermentComponent'));
+	}
+	
+	if(!dismemberComp)
+	{
+		return;
+	}else{
+		
+		dismemberComp.GetWoundsNames(allWounds, WTF_All);
+	
+		if (allWounds.Size() > 0){
+			getWound = allWounds[RandRange(allWounds.Size())];
+		}
+	
+		actor.SetWound(getWound, true, true, true, true);
+	}
+}
+
+/**
+---------------------END OF REFERENCE LEVEL DEBUG FUNCTIONS---------------------
+*/
+
+
+//Enum for NPC 'states' used in quests. Those are not actual states of an actor.
 enum EQuestNPCStates
 {
 	EQNS_Default,
@@ -2928,7 +3383,13 @@ enum EQuestNPCStates
 	EQNS_Combat
 }
 
+/**	
+	Function changing 'state' of the NPC.
 
+	When editing this function make sure to make corresponding changes in W3QuestCond_ActorIsInState quest function!
+	
+	EQNS_KnockedUnconscious: Make sure the NPC has an Unconscious death tree 
+*/
 quest function ChangeNPCStateQuest(npcTag : name, npcState : EQuestNPCStates, ignoreImmortalityMode : bool)
 {
 	var actors : array<CActor>;
@@ -2949,17 +3410,17 @@ quest function ChangeNPCStateQuest(npcTag : name, npcState : EQuestNPCStates, ig
 	{
 		if( npcState == EQNS_Dead )
 		{
-			actors[i].Kill( ignoreImmortalityMode );			
+			actors[i].Kill( 'Quest', ignoreImmortalityMode );			
 		}
 		else if ( npcState == EQNS_DeadNoAgony )
 		{
 			((CNewNPC)actors[i]).DisableAgony();
-			actors[i].Kill( ignoreImmortalityMode );
+			actors[i].Kill( 'Quest', ignoreImmortalityMode );
 		}
 		else if ( npcState == EQNS_KnockedUnconscious )
 		{
 			actors[i].SetImmortalityMode(AIM_Unconscious, AIC_Default, true);
-			actors[i].Kill();	
+			actors[i].Kill( 'Quest' );	
 		}
 		else if(npcState == EQNS_Agony)
 		{
@@ -2970,7 +3431,7 @@ quest function ChangeNPCStateQuest(npcTag : name, npcState : EQuestNPCStates, ig
 			}
 			
 			actors[i].SignalGameplayEvent('ForceAgony');
-			actors[i].Kill( ignoreImmortalityMode );
+			actors[i].Kill( 'Quest', ignoreImmortalityMode );
 		}
 		else if(npcState == EQNS_Default)
 		{
@@ -2980,7 +3441,7 @@ quest function ChangeNPCStateQuest(npcTag : name, npcState : EQuestNPCStates, ig
 		else if(npcState == EQNS_DeadInstantRagdoll)
 		{
 			((CNewNPC)actors[i]).DisableAgony();
-			actors[i].Kill( ignoreImmortalityMode );
+			actors[i].Kill( 'Quest', ignoreImmortalityMode );
 			if ( actors[i].IsVulnerable() || ignoreImmortalityMode )
 				actors[i].SetKinematic(false);
 		}
@@ -2988,7 +3449,10 @@ quest function ChangeNPCStateQuest(npcTag : name, npcState : EQuestNPCStates, ig
 }
 
 
-
+/**	
+	Changes the stance of an NPC.
+	Make sure that the npc has a proper reaction to stance changes in its behavior graph
+*/
 
 quest function ChangeNPCStanceQuest( npcTag : name, npcStance : ENpcStance )
 {
@@ -3005,7 +3469,11 @@ quest function ChangeNPCStanceQuest( npcTag : name, npcStance : ENpcStance )
 	}
 }
 
-
+/**	
+	Adds debuff/buff to given NPC.
+	
+	When editing this function make sure to make corresponding changes in W3QuestCond_ActorHasModifier quest condition!
+*/
 quest function AddNPCModifierQuest(npcTag : name, buffEffects : array<EEffectType>, remove : bool, removeAll : bool, duration : float, valueAdditive : float, valueMultiplicative : float, valueBase : float, pause : bool, resume : bool, force : bool, pauseResumeSource : name)
 {
 	var params : SCustomEffectParams;
@@ -3095,8 +3563,30 @@ quest function AddNPCModifierQuest(npcTag : name, buffEffects : array<EEffectTyp
 	}
 }
 
+//Custom script used in mh206 monster hunt to handle fiend retreating
+/*latent quest function BiesRetreatCustomQuest( targetTag : name )
+{
 
+	var target : CNewNPC;
 
+	if(targetTag == 'PLAYER')
+	{
+		return;
+	}
+	else
+	{
+		target = theGame.GetNPCByTag(targetTag);
+		if(!target)
+		{
+			return;
+		}
+	}
+	Sleep(0.5);
+	target.SetAppearance('bies_hidden');
+	target.SetBaseAttitudeGroup('neutral_to_player');	
+
+}
+*/
 
 enum EDrawWeaponQuestType
 {
@@ -3112,7 +3602,7 @@ quest function DrawWeaponQuest(weapon : EDrawWeaponQuestType, dontIgnoreDrawActi
 	var inv : CInventoryComponent;
 	var items : array<SItemUniqueId>;
 
-	
+	//witcher has custom handling as he has item slots
 	if(weapon == EDWQT_NoWeapon)
 		thePlayer.OnMeleeForceHolster(!dontIgnoreDrawActionLock);
 	else if((W3PlayerWitcher)thePlayer)
@@ -3200,7 +3690,7 @@ enum ESwarmStateOnArrival
 
 quest function RequestSwarmAttackPlayer( tag : name, stateAfterAttack : ESwarmStateOnArrival, onArrivalFactID : string, onArrivalFactValue : int )
 {
-	
+	//var lair 			: CFlyingSwarmMasterLair;
 	var lair 			: CFlyingCrittersLairEntityScript;
 	var stateName 		: name;
 	var attackGroupID	: CFlyingGroupId;
@@ -3371,7 +3861,7 @@ quest function TeleportObject( objectTag: name, destinationTag: name, xOffset : 
 	
 }
 
-
+//Rotates object to face target
 quest function FaceObjectQuest( objectsTag: name, TargetTag: name, degreeModifier : float )
 {
 
@@ -3398,7 +3888,7 @@ quest function FaceObjectQuest( objectsTag: name, TargetTag: name, degreeModifie
 		Pos = object.GetWorldPosition();
 		headingVec = targetPos - Pos;
 		rot = VecToRotation(headingVec);
-
+//		rot =  EulerAngles(0.0f, rot.Yaw, 0.0f);
 		rot = EulerAdd(EulerAngles(0.0f, rot.Yaw, 0.0f), EulerAngles(0.0f, degreeModifier, 0.0f));
 		
 		object.TeleportWithRotation(Pos, rot );
@@ -3614,7 +4104,7 @@ quest function InstantMountPlayer ( vehicleTag : name, vehicleType : EVehicleTyp
 		{
 			if ( vehicleType == EVT_Horse )
 			{
-				
+				// If not tag checking if player's horse is already around
 				vehicleEntity = thePlayer.GetHorseWithInventory();
 				
 				if ( !vehicleEntity )
@@ -3631,7 +4121,7 @@ quest function InstantMountPlayer ( vehicleTag : name, vehicleType : EVehicleTyp
 				return;
 			}
 		}
-		
+		//mount selected horse
 		if ( useAnim )
 			thePlayer.MountVehicle( vehicleEntity, VMT_ApproachAndMount);
 		else
@@ -3649,7 +4139,7 @@ quest function InstantMountPlayer ( vehicleTag : name, vehicleType : EVehicleTyp
 				return;
 			}
 		}
-		else 
+		else // Boat
 		{
 			if ( vehicleTag != 'None' )
 			{
@@ -3663,10 +4153,10 @@ quest function InstantMountPlayer ( vehicleTag : name, vehicleType : EVehicleTyp
 			if ( !vehicleEntity )
 				return;
 		}
-		
+		//dismount selected vehicle
 		if ( useAnim )
 		{
-			
+			//thePlayer.DismountVehicle( vehicleEntity, DT_normal );
 			thePlayer.GetUsedHorseComponent().OnSmartDismount();
 		}
 		else
@@ -3674,7 +4164,7 @@ quest function InstantMountPlayer ( vehicleTag : name, vehicleType : EVehicleTyp
 	}
 }
 
-
+// Deprecated please use InstantMountPlayer with mount = false
 quest function InstantDismountPlayer ( )
 {	
 	thePlayer.DismountVehicle( thePlayer.GetHorseCurrentlyMounted(), DT_instant );
@@ -3685,9 +4175,6 @@ quest function InstantMountNPC ( npcTag : name )
 	var actor 				: CActor;
 	var entities			: array<CEntity>;
 	var i 					: int;
-	var aiStorageHandler 	: CAIStorageHandler;
-	var riderData 			: CAIStorageRiderData;
-	
 	
 	theGame.GetEntitiesByTag( npcTag, entities );
 		
@@ -3706,8 +4193,6 @@ quest function InstantDismountNPC ( npcTag : name, dismountType : EDismountType 
 	var actor 				: CActor;
 	var entities			: array<CEntity>;
 	var i 					: int;
-	var aiStorageHandler 	: CAIStorageHandler;
-	var riderData 			: CAIStorageRiderData;
 	
 	if ( dismountType == 0 )
 		dismountType = DT_normal;
@@ -3775,8 +4260,8 @@ quest function DoorChangeState(tag : name, newState : EDoorQuestState, optional 
 	
 	for(i=0; i<nodes.Size(); i+=1)
 	{
-		
-		
+		// old door system
+		// TODO: Remove once transition to the new system is complete
 		door = (W3Door)nodes[i];
 		if(door)
 		{			
@@ -3804,7 +4289,7 @@ quest function DoorChangeState(tag : name, newState : EDoorQuestState, optional 
 		}
 		else
 		{
-			
+			// new door system
 			entity = (CEntity)nodes[i];
 			if( !entity )
 			{
@@ -3949,7 +4434,12 @@ latent function QuestHelper_BlockGameplayFunctionality(act : EInputActionBlock, 
 		LogBlockGameplayFunctionality(NameToString(sourceName),"Done");
 }
 
-
+/*
+	Blocks (on unblocks) given gameplay functionality.
+	Each call must provide a sourceName - it's only for logging but we want to know exactly who and when blocks what. In W2 quests had multiple problems
+	with blocked actions not being unblocked and thus generating blockers.
+	Returns true if all selected actions were processed successfully, false if at least one failed.
+*/
 latent quest function BlockGameplayFunctionality(lock : bool, sourceName : name, signs, drawWeapon, openInventory, openPreparation, radialMenu, callHorse, fastTravel, movement, jump, meditation, bombThrow, runAndSprint, sprint, openMap, openCharacterPanel, openJournal, highlightObjective, openAlchemy, explorationFocus, dive, interactions, explorations, climb, slide, mount, dismount, fistFight, swordAttacks, lightAttacks, heavyAttacks, dodgee, roll, parry, counter, quickslots, custom0, crossbow, usableItem, openGlossary, hardLockTarget, meditationWaiting, interactionContainers, XXXXXXX, allGUI, all, sheatheWeaponIfDrawn, specialLightAttack, specialHeavyAttack, openGwint, openFastMenu, openMeditation, noticeboards : bool)
 {
 	var ret : bool;
@@ -3968,16 +4458,16 @@ latent quest function BlockGameplayFunctionality(lock : bool, sourceName : name,
 	
 	if(allGUI)
 	{
-		
+		//start log
 		if(FactsQuerySum("debug_BGF_single_channels") > 0)
 			LogChannel(sourceName, locking + " action    " + "All GUI Panels...");
 		else
 			LogBlockGameplayFunctionality(NameToString(sourceName), locking + " action    " + "All GUI Panels...");
 			
-		
+		//lock
 		thePlayer.BlockAllUIQuestActions(sourceName, lock);
 		
-		
+		//end log
 		if(FactsQuerySum("debug_BGF_single_channels") > 0)
 			LogChannel(sourceName, "Done");
 		else
@@ -3985,29 +4475,29 @@ latent quest function BlockGameplayFunctionality(lock : bool, sourceName : name,
 	}
 	if(all)
 	{
-		
+		//start log
 		if(FactsQuerySum("debug_BGF_single_channels") > 0)
 			LogChannel(sourceName, locking + " action    " + "All Actions...");
 		else
 			LogBlockGameplayFunctionality(NameToString(sourceName), locking + " action    " + "All Actions...");
 			
-		
+		//lock
 		thePlayer.BlockAllQuestActions(sourceName, lock);
 		
-		
+		//end log
 		if(FactsQuerySum("debug_BGF_single_channels") > 0)
 			LogChannel(sourceName, "Done");
 		else
 			LogBlockGameplayFunctionality(NameToString(sourceName),"Done");
 	}
 	
-	
+	//force sheathe weapon
 	if(sheatheWeaponIfDrawn && thePlayer.GetCurrentMeleeWeaponType() != PW_None )
 	{
-		
+		//force sheathe weapon
 		thePlayer.OnMeleeForceHolster(true);
 			
-		
+		//go to exploration state
 		thePlayer.DisableCombatState();
 	}
 	
@@ -4234,7 +4724,7 @@ quest function ShootProjectileByEntityName( advProjectileName : string, sourceTa
 }
 
 
-
+// causes BlockGameplayFunctionality to log each source into it's own channel
 exec function bgfsinglechannels()
 {
 	if(FactsQuerySum("debug_BGF_single_channels") > 0)
@@ -4283,7 +4773,7 @@ latent quest function TogglePhysicalDamageMechanismByTag( tag : name, toggle : b
 
 quest function KillPlayer(ignoreImmortalityMode : bool)
 {
-	thePlayer.Kill(ignoreImmortalityMode);
+	thePlayer.Kill( 'Quest', ignoreImmortalityMode);
 }
 
 quest function DrawableComponentVisiblityQuest( objectTag : name, componentName : name, on : bool )
@@ -4343,7 +4833,7 @@ quest function ToggleRagdollByTag( tag : name , toggle : bool )
 	}
 }
 
-
+//Used for handling clues counting in monster hunting quests
 quest function MonsterHuntingClueHandler( huntingNumber : name, clueNumber : name ) : bool
 {	
 	if( FactsDoesExist( 'mh_'+huntingNumber+'_'+clueNumber ) == false )
@@ -4359,9 +4849,9 @@ quest function MonsterHuntingClueHandler( huntingNumber : name, clueNumber : nam
 	}
 }
 
-
-
-
+// Try adding unique fact with name entered and _unique appended. 
+// Return true if success.
+// Dennis Zoetebier
 
 quest function TryToAddUniqueFact( uniqueFactName : name ) : bool
 {	
@@ -4379,7 +4869,7 @@ quest function TryToAddUniqueFact( uniqueFactName : name ) : bool
 	}
 }
 
-
+//Dispells Illusions spawned by spawners with a given tag
 quest function DispelIllusionQuest ( spawnerTag : name )
 {
 	var spawners : array < CNode >;
@@ -4411,7 +4901,7 @@ quest function DispelIllusionQuest ( spawnerTag : name )
 
 }
 
-
+//Allows to enable and disable illusion obstacles
 quest function EnableIllusionQuest ( illusionTag : name, enabled : bool )
 {
 	var illusions : array < CNode >;
@@ -4434,9 +4924,9 @@ quest function EnableIllusionQuest ( illusionTag : name, enabled : bool )
 
 
 
-
-
-
+//>--------------------------------------------------------------------------------------------------------
+// TRAPS
+//---------------------------------------------------------------------------------------------------------
 quest function SwitchTrapActivation( activate : bool , trapTag: name, optional targetTag:name, armInsteadOfActivate : bool )
 {
 	var	i			: int;
@@ -4471,7 +4961,7 @@ quest function SwitchTrapActivation( activate : bool , trapTag: name, optional t
 				}
 				else
 				{
-					l_trap.Arm(false);
+					l_trap.Arm(false);//l_trap.DisarmTrap();
 				}
 			}
 		}
@@ -4509,7 +4999,7 @@ quest function ManageDamageAreaTrigger ( damageAreaTag : name, affectedEntityTag
 	}
 }
 
-
+//DZ
 quest function ManageEffectAreaTrigger ( effectAreaTag : name, activate : bool, updateEffects : bool ) 
 {
 	var effectAreaList		: array<CEntity>;
@@ -4581,7 +5071,7 @@ quest function ManageRift( riftTag : name, activate : bool, dontActivateEncounte
 		riftEntity.DeactivateRift();
 	}
 }
-
+//Function manages canBeDisabled flag on CRiftEntity	
 quest function ManageRiftDisabling( riftTag : name, canBeDisabled : bool )
 {
 	var riftEntity : CRiftEntity;
@@ -4796,7 +5286,7 @@ quest function KillHeart( tag : name )
 			LogChannel( 'Error', "heart not set properly in KillHeart quest function." );
 	else
 	{
-		thePlayer.EnableSnapToNavMesh( 'TreeHeartFight', false ); 
+		thePlayer.EnableSnapToNavMesh( 'TreeHeartFight', false ); // failsafe
 		heart.GotoState( 'Dead' );
 	}
 }
@@ -4814,7 +5304,7 @@ quest function LockReactions( toggle : bool, areaTag : name )
 
 quest function MeditationStop()
 {
-	
+	//this is just retarded, where are all those insane name collisions coming from
 	var stejt : CScriptableState;
 	var wejt : W3PlayerWitcherStateMeditationWaiting;
 	var meed : W3PlayerWitcherStateMeditation;
@@ -4931,7 +5421,7 @@ quest function SetGeraltLevelHandsOn()
 		currLvl = lm.GetLevel();
 		
 		if(prevLvl == currLvl)
-			break;				
+			break;				//some error, we didnt gain a level this time around
 		
 		prevLvl = currLvl;
 	}		
@@ -5032,7 +5522,7 @@ quest function SetGeraltLevel( level : int, path : EGeraltPath )
 	var exp, prevLvl, currLvl : int;
 	
 	GetWitcherPlayer().Debug_ClearCharacterDevelopment();
-	
+	//GetWitcherPlayer().GetInventory().RemoveAllItems();
 	
 	lm = GetWitcherPlayer();
 	prevLvl = lm.GetLevel();
@@ -5045,7 +5535,7 @@ quest function SetGeraltLevel( level : int, path : EGeraltPath )
 		currLvl = lm.GetLevel();
 		
 		if(prevLvl == currLvl)
-			break;				
+			break;				//some error, we didnt gain a level this time around
 		
 		prevLvl = currLvl;
 	}		
@@ -5070,7 +5560,7 @@ quest function DestroyEntity( entityTag : name )
 		entity.Destroy();
 }
 
-
+// Load Ciri first
 quest function SetSkating()
 {
 	thePlayer.GotoState('Skating');
@@ -5098,7 +5588,7 @@ quest function BirdsManagerTryFlyIfBirdsPresent(birdsManagerTag : name)
 	}
 }
 
-
+//can be used to force combat/safe mode on player
 quest function PlayerModeQuest( playerMode : EPlayerMode, toggle : bool, snapToNavMeshSourceName : name, snapToNavMeshEnable : bool )
 {
 	if ( toggle )
@@ -5245,7 +5735,7 @@ quest function EnableMapPath( tag : name, enable : bool, lineWidth : float, segm
 	}
 }
 
-
+//Add all dynamic mappins that are suppouse to be used in quests to this enum and update the following function!!!
 enum EDM_MappinType
 {
 	EDM_QuestAvailable,
@@ -5258,6 +5748,9 @@ enum EDM_MappinType
 	EDM_EP1QuestAvailableFromNonActor,
 	EDM_EP2QuestAvailable,
 	EDM_EP2QuestAvailableFromNonActor,
+	EDM_Torch,
+	EDM_HorseRaceTarget,
+	EDM_HorseRaceDummy,
 }
 
 
@@ -5285,7 +5778,7 @@ quest function AddQuestMappinToNoticeboard( noticeboardTag : name, entityTag : n
 
 }
 
-
+//Enables dynamic mappin of given type on an entity. This function needs to be updated for all dynamic mappin types added to the game!
 quest function EnableDynamicMappin( tag : name, optional enable : bool, optional type : EDM_MappinType, optional informUI : bool )
 {
 	var commonMapManager: CCommonMapManager = theGame.GetCommonMapManager();
@@ -5324,12 +5817,25 @@ quest function EnableDynamicMappin( tag : name, optional enable : bool, optional
 		case EDM_EP2QuestAvailableFromNonActor:
 			commonMapManager.EnableDynamicMappin( tag, enable, 'QuestAvailableBaW' );
 			break;
-		
+		case EDM_Torch:
+			commonMapManager.EnableDynamicMappin( tag, enable, 'Torch' );
+			break;
+		case EDM_HorseRaceTarget:
+			commonMapManager.EnableDynamicMappin( tag, enable, 'HorseRaceTarget' );
+			break;
+		case EDM_HorseRaceDummy:
+			commonMapManager.EnableDynamicMappin( tag, enable, 'HorseRaceDummy' );
+			break;
+			
 		default:
 			break;
 		}
-		
-		
+		//#B removed because it produce a lot of bugs
+		/*
+		if ( informUI )
+		{
+			commonMapManager.UpdateHud( tag );
+		}*/
 	}
 }
 
@@ -5351,7 +5857,11 @@ quest function EnableStaticMappin( tag : name, enable : bool, isFastTravelPoint 
 
 quest function SetSimulatedCloth( e : CEntity, enable : bool )
 {	
-	
+	/*
+	iterate on each component of e (centity)
+	cast it to cclothcomponent and then on each cclothcomponent
+	call SetSimulated( enable )
+	*/
 }
 
 quest function DestroyByTag( tag : name )
@@ -5537,11 +6047,12 @@ quest function PlayerSelectQuickslotItem(itemName : name, itemCategory : name, u
 	var witcher : W3PlayerWitcher;
 	var equipmentSlot : EEquipmentSlots;
 	var items : array<SItemUniqueId>;
+	var i : int;
 	
 	witcher = GetWitcherPlayer();
 	if(witcher && !((W3ReplacerCiri)thePlayer) )
 	{
-		
+		//item
 		if( IsNameValid( itemName) )
 		{
 			equipmentSlot = witcher.GetItemSlotByItemName(itemName);
@@ -5562,15 +6073,21 @@ quest function PlayerSelectQuickslotItem(itemName : name, itemCategory : name, u
 				
 				if( items.Size() > 0 )
 				{
-					equipmentSlot = witcher.GetItemSlotByItemName(thePlayer.inv.GetItemName(items[0]));
-					
-					if(equipmentSlot != EES_InvalidSlot)
+					for( i=0; i < items.Size(); i+=1 )
 					{
-						witcher.SelectQuickslotItem(equipmentSlot);
-					}
-					else
-					{
-						LogQuest("Quest function <<PlayerSelectQuickslot>>: item found for category <<" + itemCategory + ">> is not equipped on any slot - cannot select");
+						if( witcher.IsItemEquipped( items[i] ) )
+						{
+							equipmentSlot = witcher.GetItemSlotByItemName(thePlayer.inv.GetItemName(items[i]));
+							
+							if(equipmentSlot != EES_InvalidSlot)
+							{
+								witcher.SelectQuickslotItem(equipmentSlot);
+							}
+							else
+							{
+								LogQuest("Quest function <<PlayerSelectQuickslot>>: item found for category <<" + itemCategory + ">> is not equipped on any slot - cannot select");
+							}
+						}
 					}
 				}
 				
@@ -5583,7 +6100,7 @@ quest function PlayerSelectQuickslotItem(itemName : name, itemCategory : name, u
 			}
 		}
 		
-		
+		//sign
 		if(useSign)
 			witcher.SetEquippedSign(sign);
 	}
@@ -5606,7 +6123,7 @@ quest function EquipAmmoOnCrossbow( ammoName : name )
 	
 	player =  (W3PlayerWitcher)thePlayer;
 	
-	
+	//Make sure you have a crossbow and it's equipped
 	items = player.inv.GetItemsByCategory( 'crossbow' );
 	
 	for ( i = 0; i < items.Size() ; i += 1 )
@@ -5630,7 +6147,7 @@ quest function EquipAmmoOnCrossbow( ammoName : name )
 	
 	items.Clear();
 	
-	
+	//Get the special ammo to equip and reload weapon
 	items = player.inv.GetItemsByName( ammoName );
 	if ( items.Size() > 0)
 	{
@@ -5737,6 +6254,95 @@ enum EGwentCardFaction
 	EGCF_Nilfgaard,
 	EGCF_Monsters,
 	EGCF_Scoiatael,
+	EGCG_Skellige
+}
+
+quest function IsGwentFactionPlayable( faction : EGwentCardFaction ) : bool
+{
+	var neutralCreatures : int;
+	var playerCollection : array<CollectionCard>;
+	var cardDefinitions : array<SCardDefinition>;
+	var currentDefinition : SCardDefinition;
+	var currentCollectionCard : CollectionCard;
+	var i : int;
+	var x : int;
+	var unitCardCount : int;
+	var maskResult : int;
+	
+	playerCollection = theGame.GetGwintManager().GetPlayerCollection();
+	cardDefinitions = theGame.GetGwintManager().GetCardDefs();
+	unitCardCount = 0;
+	
+	if (faction != EGCF_Neutral)
+	{
+		for (i = 0; i < playerCollection.Size(); i += 1)
+		{
+			currentCollectionCard = playerCollection[i];
+			
+			for (x = 0; x < cardDefinitions.Size(); x += 1)
+			{
+				currentDefinition = cardDefinitions[x];
+				if (currentDefinition.index == currentCollectionCard.cardID)
+				{
+					if ((int)currentDefinition.faction == (int)EGCF_Neutral || (int)currentDefinition.faction == (int)faction)
+					{
+						maskResult = currentDefinition.typeFlags & GwintType_Creature;
+						
+						if (maskResult == GwintType_Creature)
+						{
+							unitCardCount += currentCollectionCard.numCopies; 
+						}
+						break;
+					}
+				}
+			}
+		}
+	}
+	
+	return unitCardCount >= 22;
+}
+
+quest function UnlockSkelligeGwentDeck()
+{
+	var gwintManager: CR4GwintManager;
+	
+	if (!FactsDoesExist("skel_gwint_base_deck_given"))
+	{
+		gwintManager = theGame.GetGwintManager();
+		
+		FactsAdd("skel_gwint_base_deck_given");
+		
+		gwintManager.AddCardToCollection(22);
+		gwintManager.AddCardToCollection(501);
+		gwintManager.AddCardToCollection(505);
+		gwintManager.AddCardToCollection(506);
+		gwintManager.AddCardToCollection(507);
+		gwintManager.AddCardToCollection(508);
+		gwintManager.AddCardToCollection(509);
+		gwintManager.AddCardToCollection(510);
+		gwintManager.AddCardToCollection(511);
+		gwintManager.AddCardToCollection(513);
+		gwintManager.AddCardToCollection(515);
+		gwintManager.AddCardToCollection(517);
+		gwintManager.AddCardToCollection(517);
+		gwintManager.AddCardToCollection(517);
+		gwintManager.AddCardToCollection(518);
+		gwintManager.AddCardToCollection(519);
+		gwintManager.AddCardToCollection(520);
+		gwintManager.AddCardToCollection(520);
+		gwintManager.AddCardToCollection(521);
+		gwintManager.AddCardToCollection(521);
+		gwintManager.AddCardToCollection(522);
+		gwintManager.AddCardToCollection(522);
+		gwintManager.AddCardToCollection(523);
+		
+		// copied from W3PlayerWitcher::AddGwentCard
+		if( !gwintManager.IsDeckUnlocked( GwintFaction_Skellige ) &&
+			gwintManager.HasCardsOfFactionInCollection( GwintFaction_Skellige, false ) )
+		{
+			gwintManager.UnlockDeck( GwintFaction_Skellige );
+		}
+	}
 }
 
 quest function AddGwentCards( val : EGwentCardFaction )
@@ -5956,16 +6562,30 @@ quest function EnableFXManager( fxManagerTag : name, enable : bool )
 	}
 }
 
-quest function PlayVoicesetQuest( tag : name, voiceSet : string )
+quest function PlayVoicesetQuest( tag : name, voiceSet : string, oneRandomActor : bool )
 {
 	var actors : array<CActor>;
 	var i : int;
 	
 	theGame.GetActorsByTag( tag, actors );
 	
-	for( i = 0; i < actors.Size(); i += 1 )
+	//If no actors found - nothing to do here
+	if( actors.Size() == 0 )
 	{
-		actors[i].PlayVoiceset( 100, voiceSet );
+		return;
+	}
+	
+	//Play voiceset on one random actor of that tag
+	if( oneRandomActor )
+	{
+		actors[ RandRange( actors.Size(), 0) ].PlayVoiceset( 100, voiceSet );
+	}
+	else
+	{
+		for( i = 0; i < actors.Size(); i += 1 )
+		{
+			actors[i].PlayVoiceset( 100, voiceSet );
+		}
 	}
 }
 
@@ -5977,28 +6597,28 @@ quest function Achievement_FinishedGame()
 	lowestDiffMode = theGame.GetLowestDifficultyUsed();
 	profile = theGame.GetGamerProfile();
 	
+	//Achievements have changed here. We used to have easy, normal and hard but then introduced hardcore.
+	//As a result we should get the first one always, second when on hard or hardcore and last when on hardcore.
+	//I don't want to change the names as they're used in who knows how many xbox config files, systems and managers - hence the naming insanity.
 	
-	
-	
-	
-	
+	//EA_FinishTheGameEasy - for any difficulty mode 
 	profile.AddAchievement(EA_FinishTheGameEasy);
 
-	
+	//EA_FinishTheGameNormal - for hard or hardcore
 	if(lowestDiffMode >= EDM_Hard)
 		profile.AddAchievement(EA_FinishTheGameNormal);
 		
-	
+	//EA_FinishTheGameHard - for hardcore
 	if(lowestDiffMode >= EDM_Hardcore)
 		profile.AddAchievement(EA_FinishTheGameHard);
 }
 
-quest function SpawnAndAttachEntity( entTemplate : CEntityTemplate, attachToEntityTag : name, attachSlot : name )
+quest function SpawnAndAttachEntity( entTemplate : CEntityTemplate, attachToEntityTag : name, attachSlot : name, persistanceMode : EPersistanceMode, addedTags : array<name> )
 {
 	var ent : CEntity;
 	var parentEnt : CEntity;
 	
-	ent = theGame.CreateEntity( entTemplate, Vector(0.f,0.f,0.f) );
+	ent = theGame.CreateEntity(entTemplate, Vector(0.f,0.f,0.f), EulerAngles(0.0f, 0.0f, 0.0f), true, false, false, persistanceMode, addedTags );
 	parentEnt = theGame.GetEntityByTag( attachToEntityTag );
 	
 	ent.CreateAttachment( parentEnt, attachSlot );
@@ -6054,7 +6674,7 @@ quest function SetCreaturesGroupState ( encounterTag : name, creaturesGroups : a
 			dataManager = encounter.dataManager;
 		}
 		
-		
+		/////// setting encounter task /////////////
 		if ( enable )
 		{
 			if ( setDelayManually )
@@ -6125,7 +6745,7 @@ quest function ManageGate( tag : name, open : bool, speedModifier : float )
 {
 	var entity : CEntity;
 	var gate : CGateEntity;
-	
+	//var speedModifier : float;
 	
 	entity = theGame.GetEntityByTag( tag );
 
@@ -6153,46 +6773,71 @@ quest function LaunchGwint()
 	theGame.RequestMenu( 'GwintGame' );
 }
 
-quest function QuestItemDisable( itemName : name , addQuestTag : bool )
+quest function QuestItemDisable( itemName : name , addQuestTag : bool, containerTag : name )
 {
-	var allItems : array<SItemUniqueId>;
-	var i : int;
-	var horseManInv : CInventoryComponent;
+	var allItems				: array<SItemUniqueId>;
+	var i 						: int;
+	var horseManInv, contInv	: CInventoryComponent;
+	var containers				: array<CEntity>;
+	var cont					: W3Container;
 	
-	
-	allItems = thePlayer.inv.GetItemsByName(itemName);
-	for(i=allItems.Size()-1; i >= 0; i-=1)
+	//player items
+	if( containerTag == '' )
 	{
-		if (addQuestTag)
+		allItems = thePlayer.inv.GetItemsByName( itemName );
+		
+		thePlayer.inv.ManageItemsTag( allItems, 'Quest', addQuestTag );
+		
+		//player's horse items
+		if( GetWitcherPlayer() )
 		{
-			thePlayer.inv.AddItemTag( allItems[i], 'Quest' );
+			horseManInv = GetWitcherPlayer().GetAssociatedInventory();
+			if( horseManInv )
+			{
+				allItems.Clear();
+				allItems = horseManInv.GetItemsByName( itemName );
+				horseManInv.ManageItemsTag( allItems, 'Quest', addQuestTag );
+			}
+		}
+	}
+	//disabling items in container with given tag
+	else
+	{
+		theGame.GetEntitiesByTag( containerTag, containers );
+		if( containers.Size() == 0 )
+		{
+			LogQuest( "QuestItemDisable - containers with given tag:" + containerTag + " don't exist." );
 		}
 		else
 		{
-			thePlayer.inv.RemoveItemTag( allItems[i], 'Quest' );
-		}
-	}
-	
-	
-	if(GetWitcherPlayer())
-	{
-		horseManInv = GetWitcherPlayer().GetAssociatedInventory();
-		if(horseManInv)
-		{
-			allItems.Clear();
-			allItems = horseManInv.GetItemsByName(itemName);
-			for(i=allItems.Size()-1; i >= 0; i-=1)
+			for( i = 0 ; i < containers.Size() ; i += 1 )
 			{
-				if (addQuestTag)
+				cont = (W3Container)containers[i];
+				contInv = cont.GetInventory();
+				if( !contInv )
 				{
-					horseManInv.AddItemTag( allItems[i], 'Quest' );
+					LogQuest( "QuestItemDisable - given container doesn't have any inventory component." );
 				}
 				else
 				{
-					horseManInv.RemoveItemTag( allItems[i], 'Quest' );
+					allItems = contInv.GetItemsByName( itemName );
+					if( allItems.Size() == 0 )
+					{
+						LogQuest( "QuestItemDisable - container with " + containerTag + " tag, doesn't have given item." );
+					}
+					else
+					{
+						contInv.ManageItemsTag( allItems, 'Quest', addQuestTag );
+						cont.RequestUpdateContainer();
+						
+						if( !cont.HasQuestItem() )
+						{
+							cont.StopQuestItemFx();
+						}
+					}
 				}
 			}
-		}
+		}	
 	}
 }
 
@@ -6300,7 +6945,7 @@ quest function ManagerReplacerWarningArea(areaTag : name, enable : EEnableMode)
 	var area : W3ReplacerWarningArea;
 	var nodes : array<CNode>;
 	
-	
+	//for now we only have 1 param but if we get more we'll need EEM_AsIs
 	if(enable == EEM_AsIs)
 		return;
 		
@@ -6667,19 +7312,19 @@ function AddRandomCraftingComponentsGwintQuest( merchantTag : name )
 	
 	playerLevel = GetWitcherPlayer().GetLevel();
 	
-	
+	//list of givable items generated based on "loot_include_crafting" loot definition
 	OutOfMemoryHack_Level0Items(items);
 	
 	if(playerLevel >= 10)
 		OutOfMemoryHack_Level10Items(items);
 	
-	
+	//select item
 	itemDef = items[ RandRange(items.Size()) ];
 	
-	
+	//randomize quantity
 	quantity = RandRange(itemDef.quantityMax + 1, itemDef.quantityMin);
 	
-	
+	//modify quantity by how many times we already won with this merchant, min 1 item
 	alreadyGivenCount = FactsQuerySum(merchantTag + "_gwent_given");
 	quantity = Max(1, quantity - FloorF(alreadyGivenCount * 0.5f));
 	
@@ -6724,7 +7369,7 @@ quest function GiveMerchantRandomGwintCardToPlayerQuest( merchantTag : name )
 		return;
 	}
 	
-	
+	//Cards that can be given out by merchants are defined here
 	cards.PushBack( 'gwint_card_fog' );
 	cards.PushBack( 'gwint_card_frost' );		
 	cards.PushBack( 'gwint_card_rain' );
@@ -6801,7 +7446,7 @@ quest function KillWithoutAgony( killTag : name )
 
 	npc = theGame.GetNPCByTag( killTag );
 	npc.DisableAgony();
-	npc.Kill(true);
+	npc.Kill( 'Quest', true );
 }
 
 
@@ -6954,6 +7599,38 @@ quest function EnableProudWalk( enable : bool )
 	player.SetBehaviorVariable( 'proudWalk', (float)( player.proudWalk ) );
 }
 
+quest function EnableInjuredWalk( enable : bool )
+{
+	var player : CR4Player;
+
+	player = thePlayer;
+	player.injuredWalk = enable;
+	if ( enable )
+	{
+		player.SetBehaviorVariable( 'alternateWalk', 1.0f );
+	}
+	else
+	{
+		player.SetBehaviorVariable( 'alternateWalk', 0.0f );
+	}
+}
+
+quest function EnableTiedWalk( enable : bool )
+{
+	var player : CR4Player;
+
+	player = thePlayer;
+	player.tiedWalk = enable;
+	if ( enable )
+	{
+		player.SetBehaviorVariable( 'alternateWalk', 2.0f );
+	}
+	else
+	{
+		player.SetBehaviorVariable( 'alternateWalk', 0.0f );
+	}
+}
+
 quest function RecoverGeralt(dontUpdateUI : bool)
 {
 	thePlayer.inv.SingletonItemsRefillAmmoNoAlco(dontUpdateUI);
@@ -6962,8 +7639,12 @@ quest function RecoverGeralt(dontUpdateUI : bool)
 	if(GetWitcherPlayer())
 	{
 		thePlayer.ForceSetStat(BCS_Toxicity, 0.f);
-		GetWitcherPlayer().SetToxicityOffset(0.f);
 	}
+}
+
+quest function ApplyAlchemyTableBuff()
+{
+	thePlayer.inv.ManageSingletonItemsBonus();
 }
 
 quest function EnableTargetingOnActorsQ (actorsTag : name, isEnabled : bool )
@@ -7001,7 +7682,10 @@ quest function ForceManaualSaveQ ()
 	theGame.GetGuiManager().ShowUserDialog(UMID_ForceManualSaveWindow, title, message, UDB_OkCancel);
 }
 
-
+quest function ForceManaualSaveQ_Custom( title:  string, message : string )
+{
+	theGame.GetGuiManager().ShowUserDialog(UMID_ForceManualSaveWindow, title, message, UDB_OkCancel);
+}
 
 
 quest function SetHorseMountableByPlayerQ ( horseTag: name, isMountable : bool )
@@ -7128,6 +7812,7 @@ enum EHudTimeOutAction
 {
 	EHTOA_Start,
 	EHTOA_Stop,
+	EHTOA_Add,
 };
 
 quest function ManageHudTimeOut( action : EHudTimeOutAction, value : float )
@@ -7150,7 +7835,60 @@ quest function ActivateEthereal( tag : name )
 
 quest function AddSkillToEthereals( skillNumber : int, tag : name )
 {
+	/*var ethereals : array<CNewNPC>;
+	var skillName : name;
+	var i : int;
 	
+	ethereals.Clear();
+	theGame.GetNPCsByTag( tag, ethereals );
+	
+	if( !ethereals.Size() )
+			LogChannel( 'Error', "No Ethereals found in AddSkillToEthereals quest function." );
+	else
+	{
+		switch( skillNumber )
+		{
+			case 1:
+				skillName = 'EtherealSkill_1';
+				break;
+			case 2:
+				skillName = 'EtherealSkill_2';
+				break;
+			case 3:
+				skillName = 'EtherealSkill_3';
+				break;
+			case 4:
+				skillName = 'EtherealSkill_4';
+				break;
+			case 5:
+				skillName = 'EtherealSkill_5';
+				break;
+			default:
+				LogChannel( 'Error', "Wrong skill number picked in AddSkillToEthereals quest function." );
+				break;
+		}
+		
+		for( i = 0; i < ethereals.Size(); i += 1 )
+		{
+			ethereals[i].AddAbility( skillName, false );
+			
+			if( skillNumber == 4 )
+			{
+				ethereals[i].AddAbility( 'EtherealMashingFix' );
+			}
+			else if( skillNumber == 5 )
+			{
+				ethereals[i].SetBehaviorVariable( 'hasSkill_5', 1.0 );
+			}
+			
+			ethereals[i].PlayEffect( 'ethereal_buff' );
+			
+			if( !ethereals[i].HasAbility( 'EtherealActive' ) )
+			{
+				ethereals[i].AddAbility( 'EtherealBuff' );
+			}
+		}
+	}*/
 }
 
 quest function BoostPlayerLevel(toLevel : int)
@@ -7168,6 +7906,25 @@ quest function BoostPlayerLevel(toLevel : int)
 		for(i=curLvl;i<toLevel;i+=1)
 		{
 			lvlMng.AddPoints(EExperiencePoint, (lvlMng.GetTotalExpForNextLevel() - lvlMng.GetPointsTotal(EExperiencePoint)), false);
+		}	
+	}		
+}
+
+quest function BoostPlayerLevelEx(toLevel : int, notifyUI : bool )
+{
+	var curLvl, i	: int;
+	var lvlMng		: W3LevelManager;
+	
+	curLvl = thePlayer.GetLevel();
+	lvlMng = GetWitcherPlayer().levelManager;
+	
+	if(curLvl>=toLevel)
+		return;
+	else 
+	{	
+		for(i=curLvl;i<toLevel;i+=1)
+		{
+			lvlMng.AddPoints(EExperiencePoint, (lvlMng.GetTotalExpForNextLevel() - lvlMng.GetPointsTotal(EExperiencePoint)), notifyUI );
 		}	
 	}		
 }
@@ -7253,7 +8010,7 @@ quest function DestroyMonsterNest(tag : name)
 		nest = (CMonsterNestEntity)entity;
 		if(nest)
 		{
-			
+			//:D
 			nest.OnFireHit(NULL);
 		}
 	}
@@ -7275,7 +8032,7 @@ quest function EnableMimics( tag : name, enable : bool )
 	}
 }
 
-
+//final hack - adds tag to items
 quest function MarkEquippedItems(sourceName : name, allItems : bool, slots : array<EEquipmentSlots>)
 {
 	var i, j : int;
@@ -7285,8 +8042,10 @@ quest function MarkEquippedItems(sourceName : name, allItems : bool, slots : arr
 	var items, horseItems : array<SItemUniqueId>;
 	var horseMan : W3HorseManager;
 	var slot : EEquipmentSlots;
+	var selectedQuickslotItem : SItemUniqueId;
+	var sel : SSelectedQuickslotItem;
 	
-	
+	//validation
 	if(!IsNameValid(sourceName))
 	{
 		LogQuest("Quest function <<MarkEquippedItems>>: no source name provided, aborting!");
@@ -7304,7 +8063,7 @@ quest function MarkEquippedItems(sourceName : name, allItems : bool, slots : arr
 		return;
 	}
 	
-	
+	//gather items to save
 	if(allItems)
 	{
 		items = witcher.GetEquippedItems();
@@ -7330,11 +8089,11 @@ quest function MarkEquippedItems(sourceName : name, allItems : bool, slots : arr
 	{
 		for(i=0; i<slots.Size(); i+=1)
 		{
-			
+			//invalid slot
 			if(slots[i] == EES_InvalidSlot)
 				continue;
 				
-			
+			//duplicate entry in array
 			duplicateSlot = false;
 			for(j=0; j<i; j+=1)
 			{
@@ -7348,7 +8107,7 @@ quest function MarkEquippedItems(sourceName : name, allItems : bool, slots : arr
 			if(duplicateSlot)
 				continue;
 			
-			
+			//horse item
 			if(IsSlotHorseSlot(slots[i]))
 			{
 				item = witcher.GetHorseManager().GetItemInSlot(slots[i]);
@@ -7358,20 +8117,30 @@ quest function MarkEquippedItems(sourceName : name, allItems : bool, slots : arr
 				continue;
 			}
 			
-			
+			//witcher item
 			if(witcher.GetItemEquippedOnSlot(slots[i], item))
 				items.PushBack(item);
 		}
 	}
 	
+	selectedQuickslotItem = witcher.GetSelectedItemId();
 	
+	//save items
 	for(i=0; i<items.Size(); i+=1)
 	{
 		if(witcher.inv.GetItemModifierInt(items[i], sourceName, 0) == 0)
 		{
-			
+			//save slot (for items that can go in multiple slots, saving for all so that this does not have to be modified if enum changes)
 			slot = witcher.GetItemSlot(items[i]);
 			witcher.inv.SetItemModifierInt(items[i], sourceName, slot);
+			
+			//save selected quickslot item
+			if( selectedQuickslotItem == items[i] )
+			{
+				sel.sourceName = sourceName;
+				sel.itemID = selectedQuickslotItem;
+				witcher.AddQuestMarkedSelectedQuickslotItem( sel );
+			}
 		}
 	}
 	
@@ -7387,12 +8156,12 @@ quest function ReequipMarkedItems(sourceName : name)
 	var i, j : int;
 	var items : array<SItemUniqueId>;
 	var witcher : W3PlayerWitcher;
-	var horseItem : SItemUniqueId;
+	var horseItem, selectedItemID : SItemUniqueId;
 	var tags : array<name>;
 	var slot : EEquipmentSlots;
 	var slotTag : name;
 	
-	
+	//validation
 	if(!IsNameValid(sourceName))
 	{
 		LogQuest("Quest function <<ReequipMarkedItems>>: no source name provided, aborting!");
@@ -7405,13 +8174,13 @@ quest function ReequipMarkedItems(sourceName : name)
 		return;
 	}
 	
-	
+	//equip items
 	witcher.inv.GetAllItems(items);
 	for(i=0; i<items.Size(); i+=1)
 	{
 		slot = witcher.inv.GetItemModifierInt(items[i], sourceName, 0);
 		
-		
+		//if not set
 		if(slot == 0)
 			continue;
 		
@@ -7423,37 +8192,65 @@ quest function ReequipMarkedItems(sourceName : name)
 		}
 		else
 		{
-			
+			//equip item
 			witcher.EquipItemInGivenSlot(items[i], slot, false);
 			
-			
+			//remove tags from item
 			witcher.inv.SetItemModifierInt(items[i], sourceName, 0);
 		}
 	}
+	
+	//restore selected item
+	selectedItemID = witcher.GetQuestMarkedSelectedQuickslotItem( sourceName );
+	if( witcher.inv.IsIdValid( selectedItemID ) )
+	{
+		witcher.SelectQuickslotItem( witcher.GetSlotForEquippedItem( selectedItemID ) );
+	}
 }
 
-quest function AddItemTagQuest( itemName : name , itemTag : name, remove : bool )
+quest function AddItemTagQuest( itemName : name , itemTag : name, remove : bool, entityTag : name )
 {
 	var allItems : array<SItemUniqueId>;
 	var i : int;
-	var horseManInv : CInventoryComponent;
+	var horseManInv, inv : CInventoryComponent;
+	var entities : array<CEntity>;
 	
+	if( entityTag != '' )
+	{
+		theGame.GetEntitiesByTag( entityTag, entities );
+		if( entities.Size() == 0 )
+		{
+			LogQuest( "AddItemTagQuest: cannot find any entities with tag <<" + entityTag + ">>, aborting!" );
+			return;
+		}
+		inv = (CInventoryComponent) entities[0].GetComponentByClassName( 'CInventoryComponent' );
+		if( !inv )
+		{
+			LogQuest( "AddItemTagQuest: entity with tag <<" + entityTag + ">> has no inventory, aborting!" );
+			return;
+		}
+	}
+	else
+	{
+		inv = thePlayer.inv;
+	}
 	
-	allItems = thePlayer.inv.GetItemsByName(itemName);
+	//items
+	allItems = inv.GetItemsByName(itemName);
 	for(i=allItems.Size()-1; i >= 0; i-=1)
 	{
 		if (!remove)
 		{
-			thePlayer.inv.AddItemTag( allItems[i], itemTag );
+			inv.AddItemTag( allItems[i], itemTag );
 		}
 		else
 		{
-			thePlayer.inv.RemoveItemTag( allItems[i], itemTag );
+			inv.RemoveItemTag( allItems[i], itemTag );
 		}
 	}
 	
-	
-	if(GetWitcherPlayer())
+	//player's horse items
+	if( entityTag == '' && GetWitcherPlayer() )
 	{
 		horseManInv = GetWitcherPlayer().GetAssociatedInventory();
 		if(horseManInv)
@@ -7476,7 +8273,7 @@ quest function AddItemTagQuest( itemName : name , itemTag : name, remove : bool 
 }
 
 
-
+//Find first noticeboard with a given tag and opens it. 
 quest function ForceOpenNoticeboardQuest( boardTag : name, dontConsiderAsVisiting : bool, dontAddDiscoveryFact : bool, dontSetPOIEntitiesKnown : bool )
 {
 	var board : W3NoticeBoard;
@@ -7560,6 +8357,562 @@ quest function StoreEnchanterMoney( enchanterTag : name )
 
 quest function RestoreEnchanterMoney( enchanterTag : name )
 {
+	/*
 	
+	//  PLEASE MAKE SURE YOUR SCRIPTS ARE COMPILING BEFORE SUBMIT
+	
+	var enchanterEntity : W3MerchantNPC;
+	var inventoryComp : CInventoryComponent;
+
+	if ( enchanterTag == '' )
+	{
+		return;
+	}
+
+	enchanterEntity = ( W3MerchantNPC )theGame.GetEntityByTag( enchanterTag );
+	if ( !enchanterEntity )
+	{
+		return;
+	}
+	
+	inventoryComp = ( CInventoryComponent )enchanterEntity.GetComponentByClassName( 'CInventoryComponent' );
+		
+	inventoryComp.SetMoney( theGame.GetSavedEnchanterFunds() );
+	
+	*/
 	return;
+}
+
+latent quest function SetHorseMode( mode : EHorseMode )
+{
+	GetWitcherPlayer().GetHorseManager().SetHorseMode( mode );
+}
+
+latent quest function CollectItemsTHCustomQuest ( collectorTag : name, items : array<name>, uniqueTransactionId : string, keepItemsInContainer : bool, optional filterTagsList : array<name> ) : bool
+{
+	var popupData : W3ItemSelectionPopupData;
+	var itemSelectionPopup : CR4ItemSelectionPopup;
+	var inventory : CInventoryComponent;
+	var received, alreadyCollected : bool;
+	var i, collectedCount : int = 0;	
+	var result : bool;
+	var ent : CGameplayEntity;
+	var validItemFound : bool;
+	
+	ent = (CGameplayEntity)theGame.GetEntityByTag( collectorTag );
+	
+	//If no target entity, end now
+	if( !ent )
+	{
+		return false;
+	}
+	
+	inventory = ent.GetInventory();		
+	theGame.GetGuiManager().SetLastOpenedCommonMenuName( 'None' ); 		
+	
+	//Setup of popup panel
+	popupData = new W3ItemSelectionPopupData in theGame.GetGuiManager();
+	popupData.targetInventory = inventory;
+	popupData.collectorTag = collectorTag;
+	popupData.filterTagsList = filterTagsList;
+	popupData.targetItems = items;
+	
+	theGame.RequestPopup('ItemSelectionPopup', popupData);
+
+	//Wait until popup was closed
+	while (popupData)
+	{
+		SleepOneFrame();
+	}
+
+	//Cleanup of control facts that might have been added before
+	for( i=0; i < items.Size(); i+=1 )
+	{
+		FactsRemove( uniqueTransactionId + "_" + items[i] );
+	}
+
+	//Check if one of the seeked items was given, popup only allows one item at a time
+	for( i=0; i < items.Size(); i+=1 )
+	{
+		if( inventory.HasItem( items[i] ) )
+		{	 
+			FactsAdd( uniqueTransactionId + "_" + items[i], 1, -1 );
+			validItemFound = true;
+			
+			if( !keepItemsInContainer )
+			{
+				inventory.RemoveItemByName( items[i], 1 );
+			}
+		}
+	}
+	
+	return validItemFound;
+}
+
+//Enables and disables Geralt's house decorations, including weapon and armor stands
+quest function EnableHouseDecorationQuest( decorationTag : name, enable : bool )
+{
+	var entities : array<CEntity>;
+	var entity : W3HouseDecorationBase;
+	var size, i : int;
+
+	theGame.GetEntitiesByTag( decorationTag, entities );
+	size = entities.Size();
+	
+	for( i=0; i < size; i+= 1 )
+	{
+		entity = (W3HouseDecorationBase) entities[i];
+		
+		if( entity )
+		{
+			entity.SetDecorationEnabled( enable );
+		}
+		
+	}
+
+}
+
+quest function MutationSystemEnable( enable : bool )
+{
+	GetWitcherPlayer().MutationSystemEnable( enable );
+}
+
+quest function AddSkillPoints( amount : int, dontShowOnHUD : bool )
+{
+	if( !GetWitcherPlayer() )
+	{
+		LogQuest( "AddSkillPoints: can't add skillpoints - only Geralt can have those! Aborting." );
+		return;
+	}
+	
+	if( amount <= 0 )
+	{
+		LogQuest( "AddSkillPoints: can't add skillpoints - amount (" + amount + ") has to be >0. Aborting." );
+		return;
+	}
+	
+	GetWitcherPlayer().AddPoints( ESkillPoint, amount, !dontShowOnHUD );
+}
+
+
+//Allows for syncing HP of an NPC with any number of other NPCs for elaborate combat setups, bossbars etc.
+latent quest function SyncNPCHealthQuest( targetNPCTag : name, sourceNPCsTags : array<name>, useCurrentTargetHPAsBaseline : bool, killOnNoValidSources : bool  )
+{
+	var targetNPC : CNewNPC;
+	var sourceNPCs : array<CNewNPC>;
+	var searchedNPC : CNewNPC;
+	var sourceNPCNumber : int;
+	var i : int;
+	var hpSum : float;
+	var quotaModifier : float;
+	
+	targetNPC  = theGame.GetNPCByTag( targetNPCTag );
+	
+	//No target NPC found, nothing to do here
+	if( !targetNPC )
+	{
+		return;
+	}
+	
+	//Search for NPCs to sync with
+	for( i=0; i < sourceNPCsTags.Size() ; i+= 1 )
+	{
+		searchedNPC = theGame.GetNPCByTag( sourceNPCsTags[i] );
+		
+		if( searchedNPC )
+		{
+			sourceNPCs.PushBack( searchedNPC );
+		}
+	}
+	
+	sourceNPCNumber = sourceNPCs.Size();
+	
+	//No NPCs were found, nothing to do here
+	if( sourceNPCNumber == 0)
+	{
+		return;
+	}
+	
+	//Syncing should assume that it's only part of targets HP, syncing will happen from current HP
+	if( useCurrentTargetHPAsBaseline )
+	{
+		quotaModifier = targetNPC.GetHealthPercents();
+	}
+	
+	//As long as target and synced NPCs are alive continue to sync their HPs
+	while( targetNPC.IsAlive() )
+	{
+		hpSum = 0.0f;
+		
+		for( i=0; i < sourceNPCNumber ; i+= 1 )
+		{
+			if( sourceNPCs[i] )
+			{
+				if( sourceNPCs[i].IsAlive() )
+				{
+					hpSum += sourceNPCs[i].GetHealthPercents();
+				}
+			}
+		}		
+		
+		//If sources don't have any HP stop syncing
+		if( hpSum == 0.0f )
+		{
+			if( killOnNoValidSources )
+			{
+				targetNPC.Kill( 'SyncNPCHealthQuest', true, thePlayer );
+			}
+			
+			return;
+		}
+		else
+		{
+			hpSum = ( hpSum / sourceNPCNumber );
+			
+			//If quota in valid ranges apply it
+			if( quotaModifier <= 1.0f && quotaModifier > 0.0f )
+			{
+				hpSum = hpSum * quotaModifier;
+			}
+			
+			targetNPC.SetHealthPerc( hpSum );
+		}
+		
+		Sleep(0.5f);
+	}
+	
+}
+
+//Opens a loot panel of a container
+quest function ManuallyOpenContainerQuest( containerTag : name )
+{
+	var container : W3Container;
+	
+	container = (W3Container) theGame.GetNodeByTag( containerTag );
+	
+	if( container )
+	{
+		if( !container.IsEmpty() )
+		{
+			container.ShowLoot();
+		}
+	}
+}
+
+quest function IsEntityVisibleInCameraFrame( tag : name ) : bool
+{
+	var actor : CActor;
+	
+	actor = theGame.GetActorByTag( tag );
+	if ( thePlayer.WasVisibleInScaledFrame( actor, 1.f, 1.f ) )
+	{
+		return true;
+	}
+	
+	return false;
+}
+
+//Disables weather display next to the minimap
+quest function DisableWeatherDisplay( disable : bool )
+{
+	thePlayer.SetWeatherDisplayDisabled( disable );
+}
+
+//Forced bruxa spawn
+quest function ForceBruxaSpawn( entityTag : name )
+{
+	var entities : array<CEntity>;
+	var entity : CEntity;
+	var size, i : int;
+	var comp : CDismembermentComponent;
+
+	theGame.GetEntitiesByTag( entityTag, entities );
+	size = entities.Size();
+	
+	for( i=0; i < size; i+= 1 )
+	{
+		entity = entities[i];
+		
+		if( entity )
+		{
+			theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( entity, 'ForceBruxaSpawn', -1.f , 0.5f, 3.f, -1, false, false, entity.GetWorldPosition() );
+		}
+	}
+}
+
+//Enables a wound on an entity if dismemberment component has a wound of that name defined
+quest function EnableDismembermentQuest( entityTag : name, dismembermentName : name, enable : bool )
+{
+	var entities : array<CEntity>;
+	var entity : CEntity;
+	var size, i : int;
+	var comp : CDismembermentComponent;
+
+	theGame.GetEntitiesByTag( entityTag, entities );
+	size = entities.Size();
+	
+	for( i=0; i < size; i+= 1 )
+	{
+		entity = entities[i];
+		
+		if( entity )
+		{
+			comp = (CDismembermentComponent) entity.GetComponentByClassName( 'CDismembermentComponent' );
+			
+			if( comp )
+			{
+				if( enable )
+				{
+					if( comp.IsWoundDefined( dismembermentName ) )
+					{
+						comp.SetVisibleWound( dismembermentName, true, true, true, true );
+					}
+				}
+				else
+				{
+					comp.ClearVisibleWound();
+				}
+			}
+			
+		}
+		
+	}
+}
+
+//Adds entries to the dynamic leaderboard poster
+quest function EditLeaderBoardQuest( boardTag : name, competitorStringKey : string, points : int )
+{
+	var boards : array<CEntity>;
+	var board : W3LeaderboardCustom;
+	var i : int;
+	
+	theGame.GetEntitiesByTag( boardTag, boards );
+	
+	if( boards.Size() == 0 )
+	{
+		return;
+	}
+	
+	if( competitorStringKey == "" )
+	{
+		return;
+	}
+	
+	for( i = 0; boards.Size() > i; i += 1 )
+	{
+		board = (W3LeaderboardCustom) boards[i];
+		
+		if (board)
+		{
+			board.AddPointToCompetitor( competitorStringKey, points );
+		}
+	}
+}
+
+quest function MandragoraMagicShow( tag : name, side : bool, up : bool )
+{
+	var entity : CEntity;
+	
+	entity = theGame.GetEntityByTag( tag );
+	
+	if ( entity )
+	{
+		if ( side )
+		{
+			entity.SetBehaviorVariable( 'side', 1 );
+		}
+		else
+		{
+			entity.SetBehaviorVariable( 'side', 0 );
+		}
+		if ( up )
+		{
+			entity.SetBehaviorVariable( 'up', 1 );
+		}
+		else
+		{
+			entity.SetBehaviorVariable( 'up', 0 );
+		}
+	}
+}
+
+//Manually triggers item receival processing on a house decoration
+quest function HouseDecorationProcessItemReceivalQuest( decorationEntityTag : name )
+{
+	var entity : W3HouseDecorationBase;
+	
+	entity = (W3HouseDecorationBase) theGame.GetEntityByTag( decorationEntityTag );
+
+	if( entity )
+	{
+		entity.ProcessItemReceival( true );
+	}
+}
+
+//Block fast travel between hubs
+quest function BlockGlobalFastTravelQuest( block : bool )
+{
+	if( block  )
+	{
+		thePlayer.BlockAction( EIAB_FastTravelGlobal, 'BlockGlobalFastTravelQuest', true, true );
+	}
+	else
+	{
+		thePlayer.UnblockAction( EIAB_FastTravelGlobal, 'BlockGlobalFastTravelQuest' );	
+	}
+}
+quest function CustomShootingRangeCrossbowSetup()
+{
+	var witcher : W3PlayerWitcher;
+	var equipmentSlot : EEquipmentSlots;
+	var items : array<SItemUniqueId>;
+	var i : int;
+	
+	witcher = GetWitcherPlayer();
+	
+	if(witcher && !((W3ReplacerCiri)thePlayer) )
+	{
+		items = thePlayer.inv.GetItemsByCategory( 'crossbow' );
+		
+		if( items.Size() > 0 )
+		{
+			for( i=0; i < items.Size(); i+=1 )
+			{
+				if( witcher.IsItemEquipped( items[i] ) )
+				{
+					equipmentSlot = witcher.GetItemSlotByItemName(thePlayer.inv.GetItemName(items[i]));
+					
+					if(equipmentSlot != EES_InvalidSlot)
+					{
+						witcher.SelectQuickslotItem(equipmentSlot);
+					}
+				}
+			}
+		}
+	}
+}
+
+//Custom raycaster for sq701, expands the basic one adding facts used by the shooting range and allows to search for an array of tags
+latent quest function CustomShootingRangeHandlerQuest( collisionGroupsNames : array<name>, acceptedTags : array<name> )
+{
+
+	var cachedCamDirection 	: Vector;
+	var cachedCamPosition	: Vector;
+	var cachedOwnerPosition	: Vector;
+
+	var traceResultDists		: array<float>;
+	var tracePosFromInitial		: Vector;
+	var maxRangePos				: Vector;
+	
+	var traceManager 			: CScriptBatchQueryAccessor;
+	
+	var i, size					: int;
+	var hasResult				: bool;
+	var rayCastResult 			: SRaycastHitResult;
+	var rayCastResults 			: array<SRaycastHitResult>;	
+	var ent						: CEntity;	
+	var entityTags				: array<name>;
+	var j, tagsSize				: int;
+	
+	var distanceToPlayer 		: float;
+	
+	traceManager = theGame.GetWorld().GetTraceManager();
+	
+	cachedCamDirection = theCamera.GetCameraDirection();
+	cachedCamPosition = theCamera.GetCameraPosition();
+	cachedOwnerPosition = thePlayer.GetWorldPosition();
+	tracePosFromInitial = 0.5f * VecNormalize( cachedCamDirection ) + cachedCamPosition;
+	maxRangePos = VecNormalize( cachedCamDirection ) * theGame.params.MAX_THROW_RANGE + tracePosFromInitial;
+
+	tagsSize = acceptedTags.Size();
+
+		if ( traceManager.RayCastSync( tracePosFromInitial, maxRangePos , rayCastResults, collisionGroupsNames ) )		
+		{		
+			size =  rayCastResults.Size();
+			if ( size > 0 )
+			{	
+				
+				for ( i = 0; i < rayCastResults.Size(); i += 1 )
+				{
+					ent = rayCastResults[i].component.GetEntity();
+					
+					if(ent)
+					{
+						
+						for( j=0; j < tagsSize; j+=1 )
+						{
+							if( ent.HasTag( acceptedTags[j] ) )
+							{
+								distanceToPlayer = VecDistance2D( thePlayer.GetWorldPosition(), ent.GetWorldPosition() );
+								
+								if( distanceToPlayer > 0 )
+								{
+									Sleep( distanceToPlayer * 0.02f );
+								}
+								
+								if( FactsQuerySum( "shooting_range_"+acceptedTags[j]+"_was_hit" ) == 0 )
+								{
+									FactsAdd( "shooting_range_"+acceptedTags[j]+"_was_hit", 1, -1 );
+								}
+								
+								return;
+							}
+							
+						}
+						
+					}
+					
+				}
+			}
+		}
+}
+
+quest function ShowEP2Logo_Q( show : bool, fadeInterval : float, x : int, y : int )
+{
+	var overlayPopupRef : CR4OverlayPopup;
+	
+	overlayPopupRef = (CR4OverlayPopup) theGame.GetGuiManager().GetPopup('OverlayPopup');
+	if ( overlayPopupRef )
+	{
+		overlayPopupRef.ShowEP2Logo( show, fadeInterval, x, y );
+	}
+}
+
+exec function dupa( tag : name, side : bool, up : bool )
+{
+	var entity : CEntity;
+	
+	entity = theGame.GetEntityByTag( tag );
+	
+	if ( entity )
+	{
+		if ( side )
+		{
+			entity.SetBehaviorVariable( 'side', 1 );
+		}
+		else
+		{
+			entity.SetBehaviorVariable( 'side', 0 );
+		}
+		if ( up )
+		{
+			entity.SetBehaviorVariable( 'up', 1 );
+		}
+		else
+		{
+			entity.SetBehaviorVariable( 'up', 0 );
+		}
+	}
+}
+
+exec function walk( f : float )
+{
+	var entity : CEntity;
+	
+	entity = thePlayer.GetTarget();
+	
+	if ( entity )
+	{
+		entity.SetBehaviorVariable( 'Editor_MoveSpeed', f );
+	}
 }

@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-class CBTTaskSpawnEntityAttack extends CBTTaskAttack
+﻿class CBTTaskSpawnEntityAttack extends CBTTaskAttack
 {
 	var offsetVector	 	: Vector;
 	var ressourceName		: name;
@@ -104,7 +99,7 @@ class CBTTaskSpawnEntityAttackDef extends CBTTaskAttackDef
 {
 	default instanceClass = 'CBTTaskSpawnEntityAttack';
 
-	
+	//editable var projEntityVal	 : name;
 	editable var ressourceName		: CBehTreeValCName;
 	editable var spawnAnimEventName	: name;
 	editable var entityTemplate		: CEntityTemplate;

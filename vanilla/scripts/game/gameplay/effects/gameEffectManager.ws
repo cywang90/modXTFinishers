@@ -1,22 +1,30 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2012-2014
+/** Author : Rafal Jarczewski, Tomek Kozera
 /***********************************************************************/
 
-
-
-
+/**
+	Factory class for creating effect objects. It also holds all global data.
+	
+	When an effect object is required we check if it's cached already. If so then
+	we return a clone of the cache. If not we cache it first.
+	
+	The exception is autobuffs which are set in entity templates. They cannot use the factory 
+	model are we're given ready objects at the start of the game.
+	
+	This class also holds global info read from XML such as icon types and
+	available effects' names.
+*/
 class W3GameEffectManager
 {
-	private var effects : array< CBaseGameplayEffect >;			
-	private var effectNames : array<name>;						
-	private var isReady : bool;									
-	private var effectIconTypes : array<SEffectIconType>;		
+	private var effects : array< CBaseGameplayEffect >;			//array of cached effects
+	private var effectNames : array<name>;						//array of effect names
+	private var isReady : bool;									//if true then everything is initialized and ready to be used (e.g. we can start checking effect names now)
+	private var effectIconTypes : array<SEffectIconType>;		//'map' of effect icon types and their paths
 	
 		default isReady = false;
 	
-	
+	//caches effect names (needed for IsEffectNameValid()) and autobuffs which are not added by the factory but set in the editor
 	function Initialize()
 	{
 		var i,size : int;
@@ -26,17 +34,17 @@ class W3GameEffectManager
 		var iconType : SEffectIconType;
 		var path : string;
 		
-		
+		//hackfix for broken engine object saving
 		isReady = false;
 		effects.Clear();
 		effectNames.Clear();
 		effectIconTypes.Clear();
-		
+		//end hack
 		
 		dm = theGame.GetDefinitionsManager();
 		main = dm.GetCustomDefinition('effects');
 		
-		
+		//cache effect names
 		for(i=0; i<main.subNodes.Size(); i+=1)
 		{
 			if(dm.GetCustomNodeAttributeValueName(main.subNodes[i], 'name_name', effectName))
@@ -48,7 +56,7 @@ class W3GameEffectManager
 			}
 		}
 		
-		
+		//cache icon type's paths
 		main = dm.GetCustomDefinition('effect_icons');
 		for(i=0; i<main.subNodes.Size(); i+=1)
 		{
@@ -60,9 +68,9 @@ class W3GameEffectManager
 			}
 		}
 		
-		effects.Grow(EnumGetMax('EEffectType')+1);
+		effects.Grow( (int)EET_EffectTypesSize );
 		
-		
+		//cache autobuffs - they are defined outside of scripts
 		for(i=0; i<effectNames.Size(); i+=1)
 			if(IsBuffAutoBuff(i))
 				CacheEffect(i);	
@@ -70,7 +78,10 @@ class W3GameEffectManager
 		isReady = true;
 	}
 	
-	
+	/*
+		Returns a string path of icon for given effect type (e.g. stat boost, or stamina decrease (for whatever reason) ).
+		Used by buffs to set their icons.
+	*/
 	public function GetPathForEffectIconTypeName(type : name) : string
 	{
 		var i : int;
@@ -85,7 +96,7 @@ class W3GameEffectManager
 		return "";
 	}
 	
-	
+	// Returns localization key for effect's name
 	public function GetEffectNameLocalisationKey( effect : EEffectType ) : string
 	{
 		if( !effects[effect] )
@@ -94,7 +105,7 @@ class W3GameEffectManager
 		return effects[effect].GetEffectNameLocalisationKey();
 	}
 	
-	
+	// Returns localization key for effect's description
 	public function GetEffectDescriptionLocalisationKey( effect : EEffectType ) : string
 	{
 		if( !effects[effect] )
@@ -103,7 +114,7 @@ class W3GameEffectManager
 		return effects[effect].GetEffectDescriptionLocalisationKey();
 	}
 
-	
+	// Gets string with icon of given effect
 	public function GetEffectIconPath( effect : EEffectType ) : string
 	{
 		if( !effects[effect] )
@@ -114,7 +125,7 @@ class W3GameEffectManager
 
 	public function IsReady() : bool {return isReady;}
 	
-	
+	// Gets immunity flags of this buff
 	public function GetEffectTypeFlags(effect : EEffectType, out potion, positive, neutral, negative, immobilize, confuse, damage : bool)
 	{
 		if( !effects[effect] )
@@ -141,17 +152,17 @@ class W3GameEffectManager
 			damage = false;
 	}
 	
-	
+	//Returns new effect object of chosen type created in provided owner
 	public function MakeNewEffect(effect : EEffectType, ownr : CGameplayEntity, target : CActor, effectManager : W3EffectManager, inDuration : float, srcName : string, optional powerStatValue : SAbilityAttributeValue, optional customVal : SAbilityAttributeValue, optional customAbilityName : name, optional customFXName : name, optional signEffect : bool, optional vibratePadLowFreq : float, optional vibratePadHighFreq : float) : CBaseGameplayEffect
 	{
 		var e : CBaseGameplayEffect;
 		var params : SEffectInitInfo;
 	
-		
+		//ignore invalid enums, e.g. if called from some loop
 		if(effect == EET_Undefined || effect == EET_Unused1)
 			return NULL;
 		
-		
+		//get cached effect
 		if(!effects[effect])
 			CacheEffect(effect);
 			
@@ -178,12 +189,12 @@ class W3GameEffectManager
 		return e;
 	}		
 
-	
+	// Creates new default effect of chosen type and caches it.
 	private function CacheEffect(effect : EEffectType)
 	{
 		var ret : bool;
 		
-		
+		//ignore invalid enums, e.g. if called from some loop
 		if(effect == EET_Undefined || effect == EET_Unused1)
 			return;
 			
@@ -216,7 +227,7 @@ class W3GameEffectManager
 	
 		switch(effect)
 		{
-			
+			// AUTO
 			case EET_AutoEssenceRegen :			effects[effect] = new W3Effect_AutoEssenceRegen in this; 			break;
 			case EET_AutoMoraleRegen :			effects[effect] = new W3Effect_AutoMoraleRegen in this; 			break;
 			case EET_AutoStaminaRegen :			effects[effect] = new W3Effect_AutoStaminaRegen in this; 			break;
@@ -227,7 +238,7 @@ class W3GameEffectManager
 			case EET_DoppelgangerEssenceRegen :	effects[effect] = new W3Effect_DoppelgangerEssenceRegen in this;	break;
 			case EET_AdrenalineDrain :			effects[effect] = new W3Effect_AdrenalineDrain in this;				break;
 			
-			
+			// CRITICAL	
 			case EET_Blindness : 				effects[effect] = new W3BlindnessEffect in this; 					break;
 			case EET_WraithBlindness : 			effects[effect] = new W3WraithBlindnessEffect in this; 				break;
 			case EET_Confusion :				effects[effect] = new W3ConfuseEffect in this; 						break;
@@ -249,8 +260,9 @@ class W3GameEffectManager
 			case EET_Ragdoll :					effects[effect] = new W3Effect_Ragdoll in this; 					break;
 			case EET_Frozen :					effects[effect] = new W3Effect_Frozen in this; 						break;
 			case EET_Tornado : 					effects[effect] = new W3Effect_Tornado in this; 					break;
+			case EET_Trap : 					effects[effect] = new W3Effect_Trap in this; 						break;
 			
-			
+			// DAMAGE OVER TIME	
 			case EET_Bleeding :					effects[effect] = new W3Effect_Bleeding in this; 					break;
 			case EET_BleedingTracking :			effects[effect] = new W3Effect_BleedingTracking in this;			break;
 			case EET_Burning :					effects[effect] = new W3Effect_Burning in this; 					break;
@@ -258,7 +270,7 @@ class W3GameEffectManager
 			case EET_PoisonCritical :			effects[effect] = new W3Effect_PoisonCritical in this; 				break;
 			case EET_DoTHPRegenReduce : 		effects[effect] = new W3Effect_DoTHPRegenReduce in this; 			break;
 			
-			
+			//DRAIN		
 			case EET_Toxicity :					effects[effect] = new W3Effect_Toxicity in this; 					break;
 			case EET_VitalityDrain :			effects[effect] = new W3Effect_VitalityDrain in this; 				break;
 			case EET_AirDrain :					effects[effect] = new W3Effect_AirDrain in this; 					break;
@@ -266,7 +278,7 @@ class W3GameEffectManager
 			case EET_StaminaDrainSwimming :		effects[effect] = new W3Effect_StaminaDrainSwimming in this;		break;
 			case EET_StaminaDrain :				effects[effect] = new W3Effect_StaminaDrain in this;				break;
 			
-			
+			// POTIONS	
 			case EET_BlackBlood :				effects[effect] = new W3Potion_BlackBlood in this; 					break;
 			case EET_Blizzard :					effects[effect] = new W3Potion_Blizzard in this; 					break;
 			case EET_Cat :						effects[effect] = new W3Potion_Cat in this; 						break;
@@ -284,13 +296,13 @@ class W3GameEffectManager
 			case EET_PheromoneDrowner :			effects[effect] = new W3Potion_PheromoneDrowner in this; 			break;
 			case EET_PheromoneBear :			effects[effect] = new W3Potion_PheromoneBear in this; 				break;
 			
-			
+			// SKILLS	
 			case EET_AxiiGuardMe :				effects[effect] = new W3Effect_AxiiGuardMe in this; 				break;
 			case EET_BattleTrance :				effects[effect] = new W3Effect_BattleTrance in this;				break;
 			case EET_YrdenHealthDrain :			effects[effect] = new W3Effect_YrdenHealthDrain in this;			break;
 			case EET_IgnorePain :				effects[effect] = new W3Effect_IgnorePain in this;					break;
 			
-			
+			// SHRINE BUFFS	
 			case EET_ShrineAard :				effects[effect] = new W3Effect_ShrineAard in this; 					break;
 			case EET_ShrineAxii :				effects[effect] = new W3Effect_ShrineAxii in this; 					break;
 			case EET_ShrineIgni :				effects[effect] = new W3Effect_ShrineIgni in this; 					break;
@@ -299,7 +311,7 @@ class W3GameEffectManager
 			case EET_EnhancedArmor:				effects[effect] = new W3Effect_EnhancedArmor in this; 				break;
 			case EET_EnhancedWeapon:			effects[effect] = new W3Effect_EnhancedWeapon in this; 				break;
 			
-			
+			//OTHER		
 			case EET_AirBoost :					effects[effect] = new W3Effect_AirBoost in this;					break;
 			case EET_Edible :					effects[effect] = new W3Effect_Edible in this; 						break;
 			case EET_LowHealth :				effects[effect] = new W3Effect_LowHealth in this; 					break;
@@ -321,11 +333,27 @@ class W3GameEffectManager
 			case EET_Weaken : 					effects[effect] = new W3Effect_Weaken in this;				 		break;
 			case EET_Runeword8 : 				effects[effect] = new W3Effect_Runeword8 in this;			 		break;
 			case EET_Oil :						effects[effect] = new W3Effect_Oil in this;			 				break;
+			case EET_LynxSetBonus :				effects[effect] = new W3Effect_LynxSetBonus in this;				break;
+			case EET_GryphonSetBonus :			effects[effect] = new W3Effect_GryphonSetBonus in this;				break;
+			case EET_GryphonSetBonusYrden :		effects[effect] = new W3Effect_GryphonSetBonusYrden in this;		break;
+			case EET_Mutation7Buff :			effects[effect] = new W3Effect_Mutation7Buff in this;				break;
+			case EET_Mutation7Debuff :			effects[effect] = new W3Effect_Mutation7Debuff in this;				break;
+			case EET_Mutation10 :				effects[effect] = new W3Effect_Mutation10 in this;					break;
+			case EET_Mutation11Buff :			effects[effect] = new W3Effect_Mutation11Buff in this;				break;
+			case EET_Mutation11Debuff :			effects[effect] = new W3Effect_Mutation11Debuff in this;			break;
+			case EET_Perk21InternalCooldown :	effects[effect] = new W3Effect_Perk21InternalCooldown in this;		break;
+			case EET_Mutation11Immortal :		effects[effect] = new W3Effect_Mutation11Immortal in this;			break;
+			case EET_POIGorA10 :				effects[effect] = new W3Effect_POIGorA10Effect in this;				break;
+			case EET_Mutation3 :				effects[effect] = new W3Effect_Mutation3 in this;					break;
+			case EET_Mutation4 :				effects[effect] = new W3Effect_Mutation4 in this;					break;
+			case EET_Mutation5 :				effects[effect] = new W3Effect_Mutation5 in this;					break;
+			case EET_ToxicityVenom :			effects[effect] = new W3Effect_ToxicityVenom in this;				break;
+			case EET_BasicQuen :				effects[effect] = new W3Effect_BasicQuen in this;					break;
 			
-			
+			//FACT POTIONS	
 			case EET_Fact : 					effects[effect] = new W3Potion_Fact in this;						break;
 			
-			
+			//APPLICATORS	
 			case EET_StaggerAura :				effects[effect] = new W3StaggerAura in this;						break;
 			case EET_FireAura :					effects[effect] = new W3FireAura in this;							break;
 			case EET_WeakeningAura : 			effects[effect] = new W3WeakeningAura in this;						break;
@@ -352,7 +380,7 @@ class W3GameEffectManager
 	
 		switch(effect)
 		{
-			
+			// MUTAGENS
 			case EET_Mutagen01 : 				effects[effect] = new W3Mutagen01_Effect in this;					break;
 			case EET_Mutagen02 : 				effects[effect] = new W3Mutagen02_Effect in this;					break;
 			case EET_Mutagen03 : 				effects[effect] = new W3Mutagen03_Effect in this;					break;
@@ -382,6 +410,15 @@ class W3GameEffectManager
 			case EET_Mutagen27 : 				effects[effect] = new W3Mutagen27_Effect in this;					break;
 			case EET_Mutagen28 : 				effects[effect] = new W3Mutagen28_Effect in this;					break;
 			
+			// OTHER
+			case EET_Acid :						effects[effect] = new W3Effect_Acid in this;						break;
+			case EET_WellRested :				effects[effect] = new W3Effect_WellRested in this;					break;
+			case EET_HorseStableBuff :			effects[effect] = new W3Effect_HorseStableBuff in this;				break;
+			case EET_BookshelfBuff :			effects[effect] = new W3Effect_BookshelfBuff in this;				break;
+			case EET_PolishedGenitals :			effects[effect] = new W3Effect_PolishedGenitals in this;			break;
+			case EET_Mutation12Cat :			effects[effect] = new W3Effect_Mutation12Cat in this;				break;
+			case EET_Aerondight :				effects[effect] = new W3Effect_Aerondight in this;					break;
+			
 			default :
 				found = false;
 				break;
@@ -401,7 +438,7 @@ class W3GameEffectManager
 		return effects[effect].GetResistStat();
 	}
 	
-	
+	//ACHTUNG! This will cache the buff if not cached already so it's not a light function!
 	public function IsBuffNegative(effectType : EEffectType) : bool
 	{
 		if(!effects[effectType])
@@ -413,7 +450,7 @@ class W3GameEffectManager
 		return effects[effectType].IsNegative();
 	}
 		
-	
+	//Returns true if provided name is a valid effect name.
 	public function IsEffectNameValid( effectName : name ) : bool
 	{
 		var i,size : int;
@@ -431,7 +468,7 @@ class W3GameEffectManager
 			}
 			else
 			{
-				
+				//used by effects with custom abilities e.g. BurningEffect_HighDamage
 				StrSplitFirst(NameToString(effectName),"_",effectType,tmp);
 				if(NameToString(effectNames[i]) == effectType)
 					return true;
@@ -441,7 +478,29 @@ class W3GameEffectManager
 		return false;
 	}	
 		
-	
+	/**
+		Checks interaction between effects 
+		Interaction matrix:
+		
+		      |D|O|P|  <- old
+		    |D|D|D|D|
+		new |O|D|O|O|
+		    |P|D|D|P|
+		
+		Deny
+		Override
+		Pass
+		
+		@params
+		effect - new effect that might be applied
+		
+		@out
+		overridenEffectsIdxs - if function returns true then this is an array of indexes of effects to remove when new effect is applied (overriden effects)
+		cumulateIdx - if function returns true then this is an array of indexes of effects to cumulate with
+		
+		@returns
+		true if effect can be applied, false otherwise
+	*/
 	public function CheckInteractionWith(effectManager : W3EffectManager, effect : CBaseGameplayEffect, interactionEffects : array<CBaseGameplayEffect>, out overridenEffectsIdxs : array<int>, out cumulateIdx : int) : bool
 	{
 		var i, size, tmpCumulate : int;		
@@ -453,29 +512,29 @@ class W3GameEffectManager
 		tmpCumulate = -1;
 		for(i=size-1; i>=0; i-=1)
 		{
-			
+			//check new against old
 			interactNew = effect.GetInteraction(interactionEffects[i]);
 			interactOld = interactionEffects[i].GetInteraction(effect);
 						
-			
+			//new can cumulate with old to make it better
 			if(interactOld == EI_Cumulate)
 			{
 				tmpCumulate = i ;
 				continue;
 			}
 			
-			
+			//old can cumulate with new -> old one is better so skip the new one
 			if(interactNew == EI_Cumulate)
 			{
 				LogEffects("EffectManager.CheckInteraction: new effect <<" + interactionEffects[i] + ">> should be cumulated by old effect <<" + effect + ">> - older is better - DENY");
 				return false;
 			}
 			
-			
+			//new overrides old
 			if(interactNew == EI_Override)
 				overridenEffectsIdxs.PushBack(i);	
 			
-			
+			//new denies old - remove old
 			if(interactNew == EI_Deny)
 			{
 				LogEffects("EffectManager.CheckInteraction: new effect <<" + effect + ">> denies old effect <<" + interactionEffects[i] + ">> - old is removed");
@@ -484,14 +543,14 @@ class W3GameEffectManager
 				return true;
 			}
 				
-			
+			//check old against new			
 			if(interactOld == EI_Deny)
 			{
 				LogEffects("EffectManager.CheckInteraction: old effect <<" + interactionEffects[i] + ">> denies new effect <<" + effect + ">> - DENY");
 				return false;
 			}
 			
-			
+			//if older stronger than new one - deny
 			if(interactOld == EI_Override && interactNew == EI_Pass)
 			{
 				LogEffects("EffectManager.CheckInteraction: old effect <<" + interactionEffects[i] + ">> overrides new effect <<" + effect + ">> - DENY");
@@ -504,7 +563,7 @@ class W3GameEffectManager
 	}
 }
 
-
+//Returns true if provided name is a valid effect name. Wraps GameEffectManager function for global use
 function IsEffectNameValid( effectName : name ) : bool
 {
 	if(theGame.IsEffectManagerInitialized())
@@ -514,9 +573,49 @@ function IsEffectNameValid( effectName : name ) : bool
 	return false;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+function DecoctionEffectTypeToItemName( effectType : EEffectType ) : name
+{
+	var itemName : name;
+	
+	switch( effectType )
+	{
+		case EET_Mutagen01 : itemName = 'Mutagen 1';  break;
+		case EET_Mutagen02 : itemName = 'Mutagen 2';  break;
+		case EET_Mutagen03 : itemName = 'Mutagen 3';  break;
+		case EET_Mutagen04 : itemName = 'Mutagen 4';  break;
+		case EET_Mutagen05 : itemName = 'Mutagen 5';  break;
+		case EET_Mutagen06 : itemName = 'Mutagen 6';  break;
+		case EET_Mutagen07 : itemName = 'Mutagen 7';  break;
+		case EET_Mutagen08 : itemName = 'Mutagen 8';  break;
+		case EET_Mutagen09 : itemName = 'Mutagen 9';  break;
+		case EET_Mutagen10 : itemName = 'Mutagen 10'; break;
+		case EET_Mutagen11 : itemName = 'Mutagen 11'; break;
+		case EET_Mutagen12 : itemName = 'Mutagen 12'; break;
+		case EET_Mutagen13 : itemName = 'Mutagen 13'; break;
+		case EET_Mutagen14 : itemName = 'Mutagen 14'; break;
+		case EET_Mutagen15 : itemName = 'Mutagen 15'; break;
+		case EET_Mutagen16 : itemName = 'Mutagen 16'; break;
+		case EET_Mutagen17 : itemName = 'Mutagen 17'; break;
+		case EET_Mutagen18 : itemName = 'Mutagen 18'; break;
+		case EET_Mutagen19 : itemName = 'Mutagen 19'; break;
+		case EET_Mutagen20 : itemName = 'Mutagen 20'; break;
+		case EET_Mutagen21 : itemName = 'Mutagen 21'; break;
+		case EET_Mutagen22 : itemName = 'Mutagen 22'; break;
+		case EET_Mutagen23 : itemName = 'Mutagen 23'; break;
+		case EET_Mutagen24 : itemName = 'Mutagen 24'; break;
+		case EET_Mutagen25 : itemName = 'Mutagen 25'; break;
+		case EET_Mutagen26 : itemName = 'Mutagen 26'; break;
+		case EET_Mutagen27 : itemName = 'Mutagen 27'; break;
+		case EET_Mutagen28 : itemName = 'Mutagen 28'; break;
+		default			   : itemName = '';
+	}
+	
+	return itemName;
+}
 
-
-
+//Converts effect name (read from XML) to effect type
+// remember also about EffectTypeToName
 function EffectNameToType(effectName : name, out type : EEffectType, out abilityName : name)
 {
 	var ret : bool;
@@ -536,120 +635,136 @@ function HACK_NO_MEMORY_TO_COMPILE_EffectNameToType_Part1(effectName : name, out
 
 	if(StrSplitFirst(NameToString(effectName),"_",effectType,abilityNameStr))
 	{
-		abilityName = effectName;	
+		abilityName = effectName;	//if name has custom ability attached e.g. BurningEffect_HighDamage
 	}
 	else
 	{
-		effectType = effectName;	
+		effectType = effectName;	//no ability passed
 		abilityName = '';
 	}
 	
 	switch(effectType)
 	{
-		case "AutoEssenceRegen" : type = EET_AutoEssenceRegen; break;
-		case "AutoMoraleRegen" : type = EET_AutoMoraleRegen; break;
-		case "AutoStaminaRegen" : type = EET_AutoStaminaRegen; break;
-		case "AutoVitalityRegen" : type = EET_AutoVitalityRegen; break;
-		case "AutoAirRegen" : type = EET_AutoAirRegen; break;
-		case "AutoSwimmingStaminaRegen" : type = EET_AutoSwimmingStaminaRegen; break;
-		case "AutoPanicRegen" : type = EET_AutoPanicRegen; break;
-		case "DoppelgangerEssenceRegen" : type = EET_DoppelgangerEssenceRegen; break;
-		case "BoostedEssenceRegen" 	: type = EET_BoostedEssenceRegen; break;
-		case "BoostedStaminaRegen" 	: type = EET_BoostedStaminaRegen; break;
+		case "AutoEssenceRegen" : 							type = EET_AutoEssenceRegen; 			break;
+		case "AutoMoraleRegen" : 							type = EET_AutoMoraleRegen;				break;
+		case "AutoStaminaRegen" : 							type = EET_AutoStaminaRegen;			break;
+		case "AutoVitalityRegen" : 							type = EET_AutoVitalityRegen; 			break;
+		case "AutoAirRegen" : 								type = EET_AutoAirRegen; 				break;
+		case "AutoSwimmingStaminaRegen" : 					type = EET_AutoSwimmingStaminaRegen; 	break;
+		case "AutoPanicRegen" : 							type = EET_AutoPanicRegen; 				break;
+		case "DoppelgangerEssenceRegen" : 					type = EET_DoppelgangerEssenceRegen; 	break;
+		case "BoostedEssenceRegen" 	: 						type = EET_BoostedEssenceRegen; 		break;
+		case "BoostedStaminaRegen" 	: 						type = EET_BoostedStaminaRegen; 		break;
 		
-		case "BlindnessEffect" : type = EET_Blindness; break;
-		case "WraithBlindnessEffect" : type = EET_WraithBlindness; break;
-		case "ConfusionEffect" : type = EET_Confusion; break;
-		case "FrozenEffect" : type = EET_Frozen; break;
-		case "TornadoEffect" : type = EET_Tornado; break;
-		case "HeavyKnockdownEffect" : type = EET_HeavyKnockdown; break;
-		case "HypnotizedEffect" : type = EET_Hypnotized; break;
-		case "WitchHypnotizedEffect" : type = EET_WitchHypnotized; break;
-		case "ImmobilizedEffect" : type = EET_Immobilized; break;
-		case "KnockdownEffect" : type = EET_Knockdown; break;
-		case "KnockdownTypeApplicator" : type = EET_KnockdownTypeApplicator; break;
-		case "LongStaggerEffect" : type = EET_LongStagger; break;
-		case "ParalyzedEffect" : type = EET_Paralyzed; break;
-		case "PullEffect" : type = EET_Pull; break;
-		case "TangledEffect" : type = EET_Tangled; break;
-		case "StaggerEffect" : type = EET_Stagger; break;
-		case "SwarmEffect" : type = EET_Swarm; break;
-		case "SnowstormEffect" : type = EET_Snowstorm; break;
-		case "SnowstormEffectQ403" : type = EET_SnowstormQ403; break;
-		case "CounterStrikeHitEffect" : type = EET_CounterStrikeHit; break;
-		case "RagdollEffect" : type = EET_Ragdoll; break;
+		case "BlindnessEffect" : 							type = EET_Blindness; 					break;
+		case "WraithBlindnessEffect" : 						type = EET_WraithBlindness; 			break;
+		case "ConfusionEffect" : 							type = EET_Confusion; 					break;
+		case "FrozenEffect" : 								type = EET_Frozen; 						break;
+		case "TornadoEffect" : 								type = EET_Tornado; 					break;
+		case "TrapEffect" : 								type = EET_Trap; 						break;
+		case "HeavyKnockdownEffect" : 						type = EET_HeavyKnockdown; 				break;
+		case "HypnotizedEffect" : 							type = EET_Hypnotized; 					break;
+		case "WitchHypnotizedEffect" : 						type = EET_WitchHypnotized; 			break;
+		case "ImmobilizedEffect" :						 	type = EET_Immobilized; 				break;
+		case "KnockdownEffect" : 							type = EET_Knockdown; 					break;
+		case "KnockdownTypeApplicator" : 					type = EET_KnockdownTypeApplicator; 	break;
+		case "LongStaggerEffect" : 							type = EET_LongStagger; 				break;
+		case "ParalyzedEffect" : 							type = EET_Paralyzed; 					break;
+		case "PullEffect" : 								type = EET_Pull; 						break;
+		case "TangledEffect" :								type = EET_Tangled; 					break;
+		case "StaggerEffect" : 								type = EET_Stagger; 					break;
+		case "SwarmEffect" :	 							type = EET_Swarm; 						break;
+		case "SnowstormEffect" : 							type = EET_Snowstorm; 					break;
+		case "SnowstormEffectQ403" : 						type = EET_SnowstormQ403; 				break;
+		case "CounterStrikeHitEffect" : 					type = EET_CounterStrikeHit; 			break;
+		case "RagdollEffect" : 								type = EET_Ragdoll; 					break;
 		
-		case "BleedingEffect" : type = EET_Bleeding; break;
-		case "BleedingTrackingEffect" : type = EET_BleedingTracking; break;
-		case "BurningEffect" : type = EET_Burning; break;
-		case "PoisonEffect" : type = EET_Poison; break;
-		case "PoisonCriticalEffect" : type = EET_PoisonCritical; break;
-		case "DoTHPRegenReduceEffect" : type = EET_DoTHPRegenReduce; break;
+		case "BleedingEffect" : 							type = EET_Bleeding; 					break;
+		case "BleedingTrackingEffect" : 					type = EET_BleedingTracking; 			break;
+		case "BurningEffect" : 								type = EET_Burning; 					break;
+		case "PoisonEffect" : 								type = EET_Poison; 						break;
+		case "PoisonCriticalEffect" : 						type = EET_PoisonCritical; 				break;
+		case "DoTHPRegenReduceEffect" : 					type = EET_DoTHPRegenReduce; 			break;
 		
-		case "ToxicityEffect" : type = EET_Toxicity; break;
-		case "VitalityDrainEffect" : type = EET_VitalityDrain; break;
-		case "AdrenalineDrainEffect" : type = EET_AdrenalineDrain; break;
-		case "AirDrainEffect" : type = EET_AirDrain; break;
-		case "AirDrainDiveEffect" : type = EET_AirDrainDive; break;
-		case "StaminaDrainSwimmingEffect" : type = EET_StaminaDrainSwimming; break;
-		case "StaminaDrainEffect" : type = EET_StaminaDrain; break;
+		case "ToxicityEffect" : 							type = EET_Toxicity; 					break;
+		case "VitalityDrainEffect" :						type = EET_VitalityDrain; 				break;
+		case "AdrenalineDrainEffect" : 						type = EET_AdrenalineDrain; 			break;
+		case "AirDrainEffect" : 							type = EET_AirDrain; 					break;
+		case "AirDrainDiveEffect" : 						type = EET_AirDrainDive; 				break;
+		case "StaminaDrainSwimmingEffect" : 				type = EET_StaminaDrainSwimming; 		break;
+		case "StaminaDrainEffect" : 						type = EET_StaminaDrain; 				break;
 		
-		case "FactPotion" : type = EET_Fact; break;
+		case "FactPotion" : 								type = EET_Fact; 						break;
 		
-		case "BlackBloodEffect" : type = EET_BlackBlood; break;
-		case "BlizzardEffect" : type = EET_Blizzard; break;
-		case "CatEffect" : type = EET_Cat; break;
-		case "FullMoonEffect" : type = EET_FullMoon; break;
-		case "GoldenOrioleEffect" : type = EET_GoldenOriole; break;
-		case "KillerWhaleEffect" : type = EET_KillerWhale; break;
-		case "MariborForestEffect" : type = EET_MariborForest; break;
-		case "PetriPhiltreEffect" : type = EET_PetriPhiltre; break;
-		case "SwallowEffect" : type = EET_Swallow; break;
-		case "TawnyOwlEffect" : type = EET_TawnyOwl; break;
-		case "ThunderboltEffect" : type = EET_Thunderbolt; break;
-		case "WhiteHoneyEffect" : type = EET_WhiteHoney; break;
-		case "WhiteRaffardDecoctionEffect" : type = EET_WhiteRaffardDecoction; break;
-		case "PheromoneEffectDrowner" : type = EET_PheromoneDrowner; break;
-		case "PheromoneEffectNekker" : type = EET_PheromoneNekker; break;
-		case "PheromoneEffectBear" : type = EET_PheromoneBear; break;
+		case "BlackBloodEffect" : 							type = EET_BlackBlood; 					break;
+		case "BlizzardEffect" : 							type = EET_Blizzard; 					break;
+		case "CatEffect" : 									type = EET_Cat; 						break;
+		case "FullMoonEffect" : 							type = EET_FullMoon; 					break;
+		case "GoldenOrioleEffect" : 						type = EET_GoldenOriole; 				break;
+		case "KillerWhaleEffect" : 							type = EET_KillerWhale; 				break;
+		case "MariborForestEffect" : 						type = EET_MariborForest; 				break;
+		case "PetriPhiltreEffect" : 						type = EET_PetriPhiltre; 				break;
+		case "SwallowEffect" : 								type = EET_Swallow; 					break;
+		case "TawnyOwlEffect" : 							type = EET_TawnyOwl; 					break;
+		case "ThunderboltEffect" : 							type = EET_Thunderbolt; 				break;
+		case "WhiteHoneyEffect" :							type = EET_WhiteHoney; 					break;
+		case "WhiteRaffardDecoctionEffect" :				type = EET_WhiteRaffardDecoction; 		break;
+		case "PheromoneEffectDrowner" : 					type = EET_PheromoneDrowner; 			break;
+		case "PheromoneEffectNekker" : 						type = EET_PheromoneNekker; 			break;
+		case "PheromoneEffectBear" : 						type = EET_PheromoneBear; 				break;
 		
-		case "AxiiGuardMeEffect" : type = EET_AxiiGuardMe; break;
-		case "BattleTranceEffect" : type = EET_BattleTrance; break;
-		case "YrdenHealthDrainEffect" : type = EET_YrdenHealthDrain; break;
-		case "IgnorePainEffect" : type = EET_IgnorePain; break;
+		case "AxiiGuardMeEffect" : 							type = EET_AxiiGuardMe; 				break;
+		case "BattleTranceEffect" : 						type = EET_BattleTrance; 				break;
+		case "YrdenHealthDrainEffect" : 					type = EET_YrdenHealthDrain; 			break;
+		case "IgnorePainEffect" : 							type = EET_IgnorePain; 					break;
 		
-		case "ShrineAardEffect" : type = EET_ShrineAard; break;
-		case "ShrineAxiiEffect" : type = EET_ShrineAxii; break;
-		case "ShrineIgniEffect" : type = EET_ShrineIgni; break;
-		case "ShrineQuenEffect" : type = EET_ShrineQuen; break;
-		case "ShrineYrdenEffect" : type = EET_ShrineYrden; break;
+		case "ShrineAardEffect" : 							type = EET_ShrineAard; 					break;
+		case "ShrineAxiiEffect" : 							type = EET_ShrineAxii; 					break;
+		case "ShrineIgniEffect" : 							type = EET_ShrineIgni; 					break;
+		case "ShrineQuenEffect" : 							type = EET_ShrineQuen; 					break;
+		case "ShrineYrdenEffect" : 							type = EET_ShrineYrden; 				break;
 		
-		case "LowHealthEffect" : type = EET_LowHealth; break;
-		case "SlowdownEffect" : type = EET_Slowdown; break;
-		case "SlowdownFrostEffect"  : type = EET_SlowdownFrost; break;
-		case "SlowdownAxiiEffect" : type = EET_SlowdownAxii; break;
-		case "EdibleEffect" : type = EET_Edible; break;
-		case "AbilityOnLowHPEffect" : type = EET_AbilityOnLowHealth; break;
-		case "DrowningEffect" : type = EET_Drowning; break;
-		case "ChokingEffect" : type = EET_Choking; break;
-		case "WeatherBonusEffect" : type = EET_WeatherBonus; break;
-		case "OverEncumberedEffect" : type = EET_OverEncumbered; break;
-		case "SilverDustEffect" : type = EET_SilverDust; break;
-		case "WellFedEffect" : type = EET_WellFed; break;
-		case "WellHydratedEffect" : type = EET_WellHydrated; break;
-		case "AirBoostEffect" : type = EET_AirBoost; break;
-		case "DrunkennessEffect" : type = EET_Drunkenness; break;
-		case "EnhancedArmorEffect" : type = EET_EnhancedArmor; break;
-		case "EnhancedWeaponEffect" : type = EET_EnhancedWeapon; break;
-		case "WolfHourEffect" : type = EET_WolfHour; break;
-		case "WeakenEffect" : type = EET_Weaken; break;
-		case "Runeword8Effect" : type = EET_Runeword8; break;
-		case "OilEffect" : type = EET_Oil; break;
+		case "LowHealthEffect" : 							type = EET_LowHealth; 					break;
+		case "SlowdownEffect" : 							type = EET_Slowdown; 					break;
+		case "SlowdownFrostEffect"  :					 	type = EET_SlowdownFrost; 				break;
+		case "SlowdownAxiiEffect" : 						type = EET_SlowdownAxii; 				break;
+		case "EdibleEffect" : 								type = EET_Edible; 						break;
+		case "AbilityOnLowHPEffect" :						type = EET_AbilityOnLowHealth;			break;
+		case "DrowningEffect" :								type = EET_Drowning; 					break;
+		case "ChokingEffect" : 								type = EET_Choking; 					break;
+		case "WeatherBonusEffect" : 						type = EET_WeatherBonus; 				break;
+		case "OverEncumberedEffect" : 						type = EET_OverEncumbered; 				break;
+		case "SilverDustEffect" : 							type = EET_SilverDust; 					break;
+		case "WellFedEffect" : 								type = EET_WellFed; 					break;
+		case "WellHydratedEffect" : 						type = EET_WellHydrated; 				break;
+		case "AirBoostEffect" : 							type = EET_AirBoost; 					break;
+		case "DrunkennessEffect" :							type = EET_Drunkenness; 				break;
+		case "EnhancedArmorEffect" : 						type = EET_EnhancedArmor; 				break;
+		case "EnhancedWeaponEffect" : 						type = EET_EnhancedWeapon; 				break;
+		case "WolfHourEffect" : 							type = EET_WolfHour; 					break;
+		case "WeakenEffect" : 								type = EET_Weaken; 						break;
+		case "Runeword8Effect" : 							type = EET_Runeword8; 					break;
+		case "OilEffect" : 									type = EET_Oil; 						break;
+		case "LynxSetBonusEffect" : 						type = EET_LynxSetBonus; 				break;
+		case "GryphonSetBonusEffect" :						type = EET_GryphonSetBonus;				break;
+		case "GryphonSetBonusYrdenEffect" : 				type = EET_GryphonSetBonusYrden; 		break;
+		case "Mutation7BuffEffect" : 						type = EET_Mutation7Buff; 				break;
+		case "Mutation7DebuffEffect" : 						type = EET_Mutation7Debuff; 			break;
+		case "Mutation10Effect" :							type = EET_Mutation10;					break;
+		case "Mutation11BuffEffect" :						type = EET_Mutation11Buff;				break;
+		case "Mutation11DebuffEffect" :						type = EET_Mutation11Debuff;			break;
+		case "Perk21InternalCooldownEffect" :				type = EET_Perk21InternalCooldown;		break;
+		case "Mutation11ImmortalEffect" :					type = EET_Mutation11Immortal;			break;
+		case "Mutation3Effect" :							type = EET_Mutation3; 					break;
+		case "Mutation4Effect" :							type = EET_Mutation4; 					break;
+		case "Mutation5Effect" :							type = EET_Mutation5; 					break;
+		case "ToxicityVenomEffect" :						type = EET_ToxicityVenom;				break;
+		case "BasicQuenEffect" : 							type = EET_BasicQuen;					break;
 		
-		
-		case "StaggerAuraEffect" : type = EET_StaggerAura; break;
-		case "FireAuraEffect" : type = EET_FireAura; break;
-		case "WeakeningAuraEffect" : type = EET_WeakeningAura; break;
+		//applicators
+		case "StaggerAuraEffect" : 							type = EET_StaggerAura; 				break;
+		case "FireAuraEffect" : 							type = EET_FireAura; 					break;
+		case "WeakeningAuraEffect" : 						type = EET_WeakeningAura; 				break;		
 		
 		default :
 			found = false;
@@ -665,17 +780,17 @@ function HACK_NO_MEMORY_TO_COMPILE_EffectNameToType_Part2(effectName : name, out
 
 	if(StrSplitFirst(NameToString(effectName),"_",effectType,abilityNameStr))
 	{
-		abilityName = effectName;	
+		abilityName = effectName;	//if name has custom ability attached e.g. BurningEffect_HighDamage
 	}
 	else
 	{
-		effectType = effectName;	
+		effectType = effectName;	//no ability passed
 		abilityName = '';
 	}
 	
 	switch(effectType)
 	{
-		
+		//mutagens
 		case "Mutagen01Effect" : type = EET_Mutagen01; break;
 		case "Mutagen02Effect" : type = EET_Mutagen02; break;
 		case "Mutagen03Effect" : type = EET_Mutagen03; break;
@@ -704,6 +819,16 @@ function HACK_NO_MEMORY_TO_COMPILE_EffectNameToType_Part2(effectName : name, out
 		case "Mutagen26Effect" : type = EET_Mutagen26; break;
 		case "Mutagen27Effect" : type = EET_Mutagen27; break;
 		case "Mutagen28Effect" : type = EET_Mutagen28; break;
+		
+		// OTHER		
+		case "AcidEffect" :									type = EET_Acid;						break;
+		case "WellRestedEffect" :							type = EET_WellRested;					break;
+		case "HorseStableBuffEffect" :						type = EET_HorseStableBuff;				break;
+		case "BookshelfBuffEffect" :						type = EET_BookshelfBuff;				break;
+		case "PolishedGenitalsEffect" :						type = EET_PolishedGenitals;			break;		
+		case "Mutation12CatEffect" :						type = EET_Mutation12Cat;				break;
+		case "AerondightEffect" :							type = EET_Aerondight;					break;
+		case "POIGorA10Effect" :							type = EET_POIGorA10;					break;
 			
 		default : 
 			LogAssert(false, "EffectNameToType: Effect with name <<"+effectName+">> is not defined!");
@@ -711,146 +836,170 @@ function HACK_NO_MEMORY_TO_COMPILE_EffectNameToType_Part2(effectName : name, out
 			break;
 	}
 }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
+//remember also about EffectNameToType
 function EffectTypeToName(effectType : EEffectType) : name
 {
 	switch(effectType)
 	{
-		case EET_AutoEssenceRegen : return 'AutoEssenceRegen';
-		case EET_AutoMoraleRegen : return 'AutoMoraleRegen';
-		case EET_AutoStaminaRegen : return 'AutoStaminaRegen';
-		case EET_AutoVitalityRegen : return 'AutoVitalityRegen';
-		case EET_AutoAirRegen : return 'AutoAirRegen';
-		case EET_AutoPanicRegen : return 'AutoPanicRegen';
-		case EET_AutoSwimmingStaminaRegen : return 'AutoSwimmingStaminaRegen';
-		case EET_BoostedEssenceRegen : return 'BoostedEssenceRegen';
-		case EET_BoostedStaminaRegen : return 'BoostedStaminaRegen';
+		case EET_AutoEssenceRegen : 					return 'AutoEssenceRegen';
+		case EET_AutoMoraleRegen : 						return 'AutoMoraleRegen';
+		case EET_AutoStaminaRegen : 					return 'AutoStaminaRegen';
+		case EET_AutoVitalityRegen : 					return 'AutoVitalityRegen';
+		case EET_AutoAirRegen : 						return 'AutoAirRegen';
+		case EET_AutoPanicRegen : 						return 'AutoPanicRegen';
+		case EET_AutoSwimmingStaminaRegen : 			return 'AutoSwimmingStaminaRegen';
+		case EET_BoostedEssenceRegen : 					return 'BoostedEssenceRegen';
+		case EET_BoostedStaminaRegen : 					return 'BoostedStaminaRegen';
 		
-		case EET_Blindness : return 'BlindnessEffect';
-		case EET_WraithBlindness : return 'WraithBlindnessEffect';
-		case EET_Confusion : return 'ConfusionEffect';
-		case EET_Frozen : return 'FrozenEffect';
-		case EET_Tornado : return 'TornadoEffect';
-		case EET_HeavyKnockdown : return 'HeavyKnockdownEffect';
-		case EET_Hypnotized : return 'HypnotizedEffect';
-		case EET_WitchHypnotized : return 'WitchHypnotizedEffect';
-		case EET_Immobilized : return 'ImmobilizedEffect';
-		case EET_Knockdown : return 'KnockdownEffect';
-		case EET_KnockdownTypeApplicator : return 'KnockdownTypeApplicator';
-		case EET_LongStagger : return 'LongStaggerEffect';
-		case EET_Paralyzed : return 'ParalyzedEffect';
-		case EET_Stagger : return 'StaggerEffect';
-		case EET_Swarm : return 'SwarmEffect';
-		case EET_Snowstorm : return 'SnowstormEffect';
-		case EET_SnowstormQ403 : return 'SnowstormEffectQ403';
-		case EET_CounterStrikeHit : return 'CounterStrikeHitEffect';
-		case EET_Ragdoll : return 'RagdollEffect';
+		case EET_Blindness : 							return 'BlindnessEffect';
+		case EET_WraithBlindness : 						return 'WraithBlindnessEffect';
+		case EET_Confusion : 							return 'ConfusionEffect';
+		case EET_Frozen : 								return 'FrozenEffect';
+		case EET_Tornado : 								return 'TornadoEffect';
+		case EET_Trap : 								return 'TrapEffect';
+		case EET_HeavyKnockdown : 						return 'HeavyKnockdownEffect';
+		case EET_Hypnotized : 							return 'HypnotizedEffect';
+		case EET_WitchHypnotized : 						return 'WitchHypnotizedEffect';
+		case EET_Immobilized : 							return 'ImmobilizedEffect';
+		case EET_Knockdown : 							return 'KnockdownEffect';
+		case EET_KnockdownTypeApplicator : 				return 'KnockdownTypeApplicator';
+		case EET_LongStagger : 							return 'LongStaggerEffect';
+		case EET_Paralyzed : 							return 'ParalyzedEffect';
+		case EET_Stagger : 								return 'StaggerEffect';
+		case EET_Swarm : 								return 'SwarmEffect';
+		case EET_Snowstorm : 							return 'SnowstormEffect';
+		case EET_SnowstormQ403 : 						return 'SnowstormEffectQ403';
+		case EET_CounterStrikeHit : 					return 'CounterStrikeHitEffect';
+		case EET_Ragdoll : 								return 'RagdollEffect';
 		
-		case EET_Bleeding : return 'BleedingEffect';
-		case EET_BleedingTracking : return 'BleedingTrackingEffect';
-		case EET_Burning : return 'BurningEffect';
-		case EET_Poison : return 'PoisonEffect';
-		case EET_PoisonCritical : return 'PoisonCriticalEffect';
-		case EET_DoTHPRegenReduce : return 'DoTHPRegenReduceEffect';
+		case EET_Bleeding : 							return 'BleedingEffect';
+		case EET_BleedingTracking :						return 'BleedingTrackingEffect';
+		case EET_Burning : 								return 'BurningEffect';
+		case EET_Poison : 								return 'PoisonEffect';
+		case EET_PoisonCritical : 						return 'PoisonCriticalEffect';
+		case EET_DoTHPRegenReduce : 					return 'DoTHPRegenReduceEffect';
+		case EET_Acid :									return 'AcidEffect';
 		
-		case EET_Toxicity : return 'ToxicityEffect';
-		case EET_AdrenalineDrain : return 'AdrenalineDrainEffect';
-		case EET_AirDrain : return 'AirDrainEffect';
-		case EET_AirDrainDive : return 'AirDrainDiveEffect';
-		case EET_StaminaDrainSwimming : return 'StaminaDrainSwimmingEffect';
-		case EET_StaminaDrain : return 'StaminaDrainEffect';
-		case EET_VitalityDrain : return 'VitalityDrainEffect';
+		case EET_Toxicity : 							return 'ToxicityEffect';
+		case EET_AdrenalineDrain : 						return 'AdrenalineDrainEffect';
+		case EET_AirDrain : 							return 'AirDrainEffect';
+		case EET_AirDrainDive : 						return 'AirDrainDiveEffect';
+		case EET_StaminaDrainSwimming : 				return 'StaminaDrainSwimmingEffect';
+		case EET_StaminaDrain : 						return 'StaminaDrainEffect';
+		case EET_VitalityDrain : 						return 'VitalityDrainEffect';
 		
-		case EET_Fact : return 'FactPotion';
+		case EET_Fact : 								return 'FactPotion';
 		
-		case EET_BlackBlood : return 'BlackBloodEffect';
-		case EET_Blizzard : return 'BlizzardEffect';
-		case EET_Cat : return 'CatEffect';
-		case EET_Pull : return 'PullEffect';
-		case EET_Tangled : return 'TangledEffect';
-		case EET_FullMoon : return 'FullMoonEffect';
-		case EET_GoldenOriole : return 'GoldenOrioleEffect';
-		case EET_KillerWhale : return 'KillerWhaleEffect';
-		case EET_MariborForest : return 'MariborForestEffect';
-		case EET_PetriPhiltre : return 'PetriPhiltreEffect';
-		case EET_Swallow : return 'SwallowEffect';
-		case EET_TawnyOwl : return 'TawnyOwlEffect';
-		case EET_Thunderbolt : return 'ThunderboltEffect';
-		case EET_WhiteHoney : return 'WhiteHoneyEffect';
-		case EET_WhiteRaffardDecoction : return 'WhiteRaffardDecoctionEffect';
-		case EET_PheromoneNekker : return 'PheromoneEffectNekker';
-		case EET_PheromoneDrowner : return 'PheromoneEffectDrowner';
-		case EET_PheromoneBear : return 'PheromoneEffectBear';
+		case EET_BlackBlood : 							return 'BlackBloodEffect';
+		case EET_Blizzard : 							return 'BlizzardEffect';
+		case EET_Cat : 									return 'CatEffect';
+		case EET_Pull : 								return 'PullEffect';
+		case EET_Tangled : 								return 'TangledEffect';
+		case EET_FullMoon : 							return 'FullMoonEffect';
+		case EET_GoldenOriole : 						return 'GoldenOrioleEffect';
+		case EET_KillerWhale : 							return 'KillerWhaleEffect';
+		case EET_MariborForest : 						return 'MariborForestEffect';
+		case EET_PetriPhiltre : 						return 'PetriPhiltreEffect';
+		case EET_Swallow : 								return 'SwallowEffect';
+		case EET_TawnyOwl : 							return 'TawnyOwlEffect';
+		case EET_Thunderbolt : 							return 'ThunderboltEffect';
+		case EET_WhiteHoney : 							return 'WhiteHoneyEffect';
+		case EET_WhiteRaffardDecoction : 				return 'WhiteRaffardDecoctionEffect';
+		case EET_PheromoneNekker : 						return 'PheromoneEffectNekker';
+		case EET_PheromoneDrowner : 					return 'PheromoneEffectDrowner';
+		case EET_PheromoneBear : 						return 'PheromoneEffectBear';
 		
-		case EET_AxiiGuardMe : return 'AxiiGuardMeEffect';
-		case EET_BattleTrance : return 'BattleTranceEffect';
-		case EET_YrdenHealthDrain : return 'YrdenHealthDrainEffect';
-		case EET_IgnorePain : return 'IgnorePainEffect';
+		case EET_AxiiGuardMe : 							return 'AxiiGuardMeEffect';
+		case EET_BattleTrance : 						return 'BattleTranceEffect';
+		case EET_YrdenHealthDrain : 					return 'YrdenHealthDrainEffect';
+		case EET_IgnorePain : 							return 'IgnorePainEffect';
 		
-		case EET_ShrineAard : return 'ShrineAardEffect';
-		case EET_ShrineAxii : return 'ShrineAxiiEffect';
-		case EET_ShrineIgni : return 'ShrineIgniEffect';
-		case EET_ShrineQuen : return 'ShrineQuenEffect';
-		case EET_ShrineYrden : return 'ShrineYrdenEffect';
+		case EET_ShrineAard : 							return 'ShrineAardEffect';
+		case EET_ShrineAxii : 							return 'ShrineAxiiEffect';
+		case EET_ShrineIgni : 							return 'ShrineIgniEffect';
+		case EET_ShrineQuen : 							return 'ShrineQuenEffect';
+		case EET_ShrineYrden : 							return 'ShrineYrdenEffect';
 		
-		case EET_LowHealth : return 'LowHealthEffect';
-		case EET_Slowdown : return 'SlowdownEffect';
-		case EET_SlowdownFrost : return 'SlowdownFrostEffect';
-		case EET_SlowdownAxii : return 'SlowdownAxiiEffect';
-		case EET_Edible : return 'EdibleEffect';
-		case EET_AbilityOnLowHealth : return 'AbilityOnLowHPEffect';
-		case EET_Drowning : return 'DrowningEffect';
-		case EET_Choking : return 'ChokingEffect';
-		case EET_OverEncumbered : return 'OverEncumberedEffect';
-		case EET_SilverDust : return 'SilverDustEffect';
-		case EET_WeatherBonus : return 'WeatherBonusEffect';
-		case EET_WellFed : return 'WellFedEffect';
-		case EET_WellHydrated : return 'WellHydratedEffect';
-		case EET_AirBoost : return 'AirBoostEffect';
-		case EET_Drunkenness : return 'DrunkennessEffect';
-		case EET_EnhancedArmor : return 'EnhancedArmorEffect';
-		case EET_EnhancedWeapon : return 'EnhancedWeaponEffect';
-		case EET_WolfHour : return 'WolfHourEffect';
-		case EET_Weaken : return 'WeakenEffect';
-		case EET_Runeword8 : return 'Runeword8Effect';
-		case EET_Oil : return 'OilEffect';
+		case EET_LowHealth : 							return 'LowHealthEffect';
+		case EET_Slowdown : 							return 'SlowdownEffect';
+		case EET_SlowdownFrost : 						return 'SlowdownFrostEffect';
+		case EET_SlowdownAxii : 						return 'SlowdownAxiiEffect';
+		case EET_Edible : 								return 'EdibleEffect';
+		case EET_AbilityOnLowHealth : 					return 'AbilityOnLowHPEffect';
+		case EET_Drowning : 							return 'DrowningEffect';
+		case EET_Choking : 								return 'ChokingEffect';
+		case EET_OverEncumbered : 						return 'OverEncumberedEffect';
+		case EET_SilverDust : 							return 'SilverDustEffect';
+		case EET_WeatherBonus : 						return 'WeatherBonusEffect';
+		case EET_WellFed : 								return 'WellFedEffect';
+		case EET_WellHydrated : 						return 'WellHydratedEffect';
+		case EET_AirBoost : 							return 'AirBoostEffect';
+		case EET_Drunkenness : 							return 'DrunkennessEffect';
+		case EET_EnhancedArmor : 						return 'EnhancedArmorEffect';
+		case EET_EnhancedWeapon : 						return 'EnhancedWeaponEffect';
+		case EET_WolfHour : 							return 'WolfHourEffect';
+		case EET_Weaken : 								return 'WeakenEffect';
+		case EET_Runeword8 : 							return 'Runeword8Effect';
+		case EET_Oil : 									return 'OilEffect';
+		case EET_LynxSetBonus : 						return 'LynxSetBonusEffect';
+		case EET_GryphonSetBonus: 						return 'GryphonSetBonusEffect';
+		case EET_GryphonSetBonusYrden : 				return 'GryphonSetBonusYrdenEffect';
+		case EET_Mutation7Buff : 						return 'Mutation7BuffEffect';
+		case EET_Mutation7Debuff : 						return 'Mutation7DebuffEffect';
+		case EET_Mutation10 :							return 'Mutation10Effect';
+		case EET_Mutation11Buff :						return 'Mutation11BuffEffect';
+		case EET_Mutation11Debuff :						return 'Mutation11DebuffEffect';
+		case EET_Perk21InternalCooldown :				return 'Perk21InternalCooldownEffect';
+		case EET_HorseStableBuff :						return 'HorseStableBuff';
+		case EET_Mutation12Cat :						return 'Mutation12CatEffect';
+		case EET_Mutation11Immortal :					return 'Mutation11ImmortalEffect';
+		case EET_ToxicityVenom :						return 'ToxicityVenomEffect';
+		case EET_BasicQuen :							return 'BasicQuenEffect';
 		
+		//applicators
+		case EET_StaggerAura : 							return 'StaggerAuraEffect';
+		case EET_FireAura : 							return 'FireAuraEffect';
+		case EET_WeakeningAura :						return 'WeakeningAuraEffect';
 		
-		case EET_StaggerAura : return 'StaggerAuraEffect';
-		case EET_FireAura : return 'FireAuraEffect';
-		case EET_WeakeningAura : return 'WeakeningAuraEffect';
-		
-		
-		case EET_Mutagen01 : return 'Mutagen01Effect';
-		case EET_Mutagen02 : return 'Mutagen02Effect';
-		case EET_Mutagen03 : return 'Mutagen03Effect';
-		case EET_Mutagen04 : return 'Mutagen04Effect';
-		case EET_Mutagen05 : return 'Mutagen05Effect';
-		case EET_Mutagen06 : return 'Mutagen06Effect';
-		case EET_Mutagen07 : return 'Mutagen07Effect';
-		case EET_Mutagen08 : return 'Mutagen08Effect';
-		case EET_Mutagen09 : return 'Mutagen09Effect';
-		case EET_Mutagen10 : return 'Mutagen10Effect';
-		case EET_Mutagen11 : return 'Mutagen11Effect';
-		case EET_Mutagen12 : return 'Mutagen12Effect';
-		case EET_Mutagen13 : return 'Mutagen13Effect';
-		case EET_Mutagen14 : return 'Mutagen14Effect';
-		case EET_Mutagen15 : return 'Mutagen15Effect';
-		case EET_Mutagen16 : return 'Mutagen16Effect';
-		case EET_Mutagen17 : return 'Mutagen17Effect';
-		case EET_Mutagen18 : return 'Mutagen18Effect';
-		case EET_Mutagen19 : return 'Mutagen19Effect';
-		case EET_Mutagen20 : return 'Mutagen20Effect';
-		case EET_Mutagen21 : return 'Mutagen21Effect';
-		case EET_Mutagen22 : return 'Mutagen22Effect';
-		case EET_Mutagen23 : return 'Mutagen23Effect';
-		case EET_Mutagen24 : return 'Mutagen24Effect';
-		case EET_Mutagen25 : return 'Mutagen25Effect';
-		case EET_Mutagen26 : return 'Mutagen26Effect';
-		case EET_Mutagen27 : return 'Mutagen27Effect';
-		case EET_Mutagen28 : return 'Mutagen28Effect';
+		//mutagens
+		case EET_Mutagen01 : 							return 'Mutagen01Effect';
+		case EET_Mutagen02 : 							return 'Mutagen02Effect';
+		case EET_Mutagen03 : 							return 'Mutagen03Effect';
+		case EET_Mutagen04 : 							return 'Mutagen04Effect';
+		case EET_Mutagen05 : 							return 'Mutagen05Effect';
+		case EET_Mutagen06 : 							return 'Mutagen06Effect';
+		case EET_Mutagen07 : 							return 'Mutagen07Effect';
+		case EET_Mutagen08 : 							return 'Mutagen08Effect';
+		case EET_Mutagen09 : 							return 'Mutagen09Effect';
+		case EET_Mutagen10 : 							return 'Mutagen10Effect';
+		case EET_Mutagen11 : 							return 'Mutagen11Effect';
+		case EET_Mutagen12 : 							return 'Mutagen12Effect';
+		case EET_Mutagen13 : 							return 'Mutagen13Effect';
+		case EET_Mutagen14 : 							return 'Mutagen14Effect';
+		case EET_Mutagen15 : 							return 'Mutagen15Effect';
+		case EET_Mutagen16 : 							return 'Mutagen16Effect';
+		case EET_Mutagen17 : 							return 'Mutagen17Effect';
+		case EET_Mutagen18 : 							return 'Mutagen18Effect';
+		case EET_Mutagen19 : 							return 'Mutagen19Effect';
+		case EET_Mutagen20 : 							return 'Mutagen20Effect';
+		case EET_Mutagen21 : 							return 'Mutagen21Effect';
+		case EET_Mutagen22 : 							return 'Mutagen22Effect';
+		case EET_Mutagen23 : 							return 'Mutagen23Effect';
+		case EET_Mutagen24 : 							return 'Mutagen24Effect';
+		case EET_Mutagen25 : 							return 'Mutagen25Effect';
+		case EET_Mutagen26 : 							return 'Mutagen26Effect';
+		case EET_Mutagen27 : 							return 'Mutagen27Effect';
+		case EET_Mutagen28 : 							return 'Mutagen28Effect';
+		case EET_WellRested :							return 'WellRestedEffect';
+		case EET_BookshelfBuff :						return 'BookshelfBuffEffect';
+		case EET_PolishedGenitals :						return 'PolishedGenitalsEffect';
+		case EET_Aerondight :							return 'AerondightEffect';
+		case EET_POIGorA10 :							return 'POIGorA10Effect';
+		case EET_Mutation3 :							return 'Mutation3Effect';
+		case EET_Mutation4 :							return 'Mutation4Effect';
+		case EET_Mutation5 :							return 'Mutation5Effect';
 			
 		default : 
 			LogAssert(false, "EffectTypeToName: Effect type <<" + effectType + ">> is undefined!");
@@ -858,7 +1007,7 @@ function EffectTypeToName(effectType : EEffectType) : name
 	}
 }
 
-
+//Returns true if given effect is an auto-buff
 function IsBuffAutoBuff(effectType : EEffectType) : bool
 {
 	switch(effectType)

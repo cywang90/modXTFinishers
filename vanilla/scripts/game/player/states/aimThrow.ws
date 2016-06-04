@@ -1,15 +1,12 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2012-2013
+/** Authors: ?, Tomek Kozera
 /***********************************************************************/
 
-
-
-
-state AimThrow in CR4Player extends ExtendedMovable 
+// state for item throwing in aiming mode (only, no aim does not enter this state)
+state AimThrow in CR4Player extends ExtendedMovable // ABSTRACT
 {
-	
+	// CAMERA
 	protected var camera : CCustomCamera;
 	protected var fovVel : float;
 	protected var initialPitch : float;
@@ -23,7 +20,7 @@ state AimThrow in CR4Player extends ExtendedMovable
 	{
 		prevState = prevStateName;
 		super.OnEnterState(prevStateName);
-		
+		//LogChannel( 'States', "Changed state to: " + this + " from " + prevStateName);
 		
 		CreateNoSaveLock();
 		
@@ -43,7 +40,7 @@ state AimThrow in CR4Player extends ExtendedMovable
 		
 		SearchForTargets();
 		
-		
+		//theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( thePlayer, 'CrossbowShotAction', 10.0, 8.0f, -1, -1, true); //reactionSystemSearch
 		
 		cachedHorTimeout = camera.GetManualRotationHorTimeout();
 		cachedVerTimeout = camera.GetManualRotationVerTimeout();
@@ -56,14 +53,14 @@ state AimThrow in CR4Player extends ExtendedMovable
 	
 	function OnEnterStateExtended()
 	{
-		
+		//theCamera.SetBehaviorVariable( 'cameraState', (int)CS_AimThrow );
 		
 		if( !parent.inv.IsItemCrossbow( parent.GetSelectedItemId() ) )
-			virtual_parent.SetIsThrowingItemWithAim(true);			
+			virtual_parent.SetIsThrowingItemWithAim(true);			//not cleared on leave - cleared in player when we finish the throw anim and leave throwing at all
 		else
 		{
 			initialPitch = ProcessInitialPitch();
-			
+			//followTarget = true;
 		}
 		
 		virtual_parent.OnDelayOrientationChange();
@@ -101,15 +98,15 @@ state AimThrow in CR4Player extends ExtendedMovable
 		parent.SetIsShootingFriendly( false );
 		parent.playerAiming.StopAiming();
 	
-		
-		
-		
+		// set current heading to where the bomb is being thrown and maintain a rotation in that direction even after exiting the state
+		// this is to fix a case where you quickly aim-throw a bomb behind your back and you leave the state before completing the rotation
+		// also the new heading should be set anyway to where you are facing
 		
 		camera.fov = 60.f;
 		
 		camera.EnableScreenSpaceCorrection( true );
 		
-		
+		//virtual_parent.SetCustomRotation('PostThrowHoldUp', heading, 1080, 1, false);
 		virtual_parent.rawPlayerHeading = theCamera.GetCameraHeading();
 		virtual_parent.RemoveCustomOrientationTarget( 'AimThrow' );
 		
@@ -130,7 +127,7 @@ state AimThrow in CR4Player extends ExtendedMovable
 	
 	event OnDelayOrientationChangeOff()
 	{
-		
+		//virtual_parent.SetCustomOrientationTargetForCombatActions( OT_None );
 		virtual_parent.AddCustomOrientationTarget( OT_CameraOffset, 'AimThrow' );
 		parent.SetSlideTarget( NULL );
 		virtual_parent.OnDelayOrientationChangeOff();	
@@ -148,7 +145,7 @@ state AimThrow in CR4Player extends ExtendedMovable
 		pos = MatrixGetTranslation( aimingTarget.GetBoneWorldMatrixByIndex( aimingTarget.GetTorsoBoneIndex() ) );
 		pos.Z += 0.25f;
 		angles = VecToRotation( pos - playerpos );
-		
+		//parent.GetVisualDebug().AddSphere( 'wha84t9e54998', 0.5f, pos, true, Color( 255, 0, 255 ), 12.f );
 		return -angles.Pitch;
 	}
 	
@@ -172,7 +169,7 @@ state AimThrow in CR4Player extends ExtendedMovable
 		theGame.GetGameCamera().ChangePivotPositionController( 'Default' );
 		theGame.GetGameCamera().ChangePivotDistanceController( 'AimThrow' );
 		
-		
+		// HACK
 		moveData.pivotRotationController = theGame.GetGameCamera().GetActivePivotRotationController();
 		moveData.pivotDistanceController = theGame.GetGameCamera().GetActivePivotDistanceController();
 		moveData.pivotPositionController = theGame.GetGameCamera().GetActivePivotPositionController();
@@ -181,8 +178,8 @@ state AimThrow in CR4Player extends ExtendedMovable
 		
 		if ( parent.inv.IsItemCrossbow( parent.GetSelectedItemId() ) )
 		{
-			
-			
+			//moveData.cameraLocalSpaceOffset = Vector( 0.6f, 0.75f, 0.15f );
+			//DampVectorSpring( moveData.cameraLocalSpaceOffset, moveData.cameraLocalSpaceOffsetVel, Vector( theGame.GetGameplayConfigFloatValue( 'debugA' ), theGame.GetGameplayConfigFloatValue( 'debugB' ), theGame.GetGameplayConfigFloatValue( 'debugC' ) ), 0.2f, dt );
 			
 			if ( parent.GetPlayerCombatStance() == PCS_AlertNear )
 				followTarget = false;
@@ -193,74 +190,98 @@ state AimThrow in CR4Player extends ExtendedMovable
 			{
 				if ( rawToCamHeadingDiff > -45 && rawToCamHeadingDiff < 45 )
 				{
-					
-					
-					
+					//With screenspace
+					/*camOffsetVec.X = 0.5f;
+					camOffsetVec.Y = 0.875f;
+					camOffsetVec.Z = 0.18f;*/
+					//Without screenspace
 					camOffsetVec.X = 0.5f;
 					camOffsetVec.Y = 0.5f;
 					camOffsetVec.Z = 0.18f; 				
-					 				
+					/*camOffsetVec.X = theGame.GetGameplayConfigFloatValue( 'debugA' );
+					camOffsetVec.Y = theGame.GetGameplayConfigFloatValue( 'debugB' );
+					camOffsetVec.Z = theGame.GetGameplayConfigFloatValue( 'debugC' );*/ 				
 				}
 				else if ( rawToCamHeadingDiff >= 45 && rawToCamHeadingDiff < 135 )
 				{
-					
-					
-					
+					//With screenspace				
+					/*camOffsetVec.X = 0.5f;
+					camOffsetVec.Y = 0.95f;
+					camOffsetVec.Z = 0.15f;*/
+					//Without screenspace					
 					camOffsetVec.X = 0.55f;
 					camOffsetVec.Y = 0.55f;
 					camOffsetVec.Z = 0.15f;
-					
+					/*camOffsetVec.X = theGame.GetGameplayConfigFloatValue( 'debugA' );
+					camOffsetVec.Y = theGame.GetGameplayConfigFloatValue( 'debugB' );
+					camOffsetVec.Z = theGame.GetGameplayConfigFloatValue( 'debugC' );*/
 				}
 				else if ( rawToCamHeadingDiff <= -45 && rawToCamHeadingDiff > -135 )
 				{
-					
-					
-					
+					//With screenspace
+					/*camOffsetVec.X = 0.55f;
+					camOffsetVec.Y = 0.875f;
+					camOffsetVec.Z = 0.2f;*/
+					//Without screenspace					
 					camOffsetVec.X = 0.55f;
 					camOffsetVec.Y = 0.45f;
 					camOffsetVec.Z = 0.18f; 
-					
+					/*camOffsetVec.X = theGame.GetGameplayConfigFloatValue( 'debugA' );
+					camOffsetVec.Y = theGame.GetGameplayConfigFloatValue( 'debugB' );
+					camOffsetVec.Z = theGame.GetGameplayConfigFloatValue( 'debugC' );*/
 				}
 				else
 				{
-					
-					
-					
+					//With screenspace
+					/*camOffsetVec.X = 0.55f;
+					camOffsetVec.Y = 0.925f;
+					camOffsetVec.Z = 0.2f;*/
+					//Without screenspace
 					camOffsetVec.X = 0.55f;
 					camOffsetVec.Y = 0.6f;
 					camOffsetVec.Z = 0.2f; 			
-					
+					/*camOffsetVec.X = theGame.GetGameplayConfigFloatValue( 'debugA' );
+					camOffsetVec.Y = theGame.GetGameplayConfigFloatValue( 'debugB' );
+					camOffsetVec.Z = theGame.GetGameplayConfigFloatValue( 'debugC' );*/
 				}
 			}
 			else
 			{
-				
-				
-				
+				//With screenspace
+				/*camOffsetVec.X = 0.43f;
+				camOffsetVec.Y = 0.85f;
+				camOffsetVec.Z = 0.22f;*/
+				//Without screenspace
 				camOffsetVec.X = 0.43f;
 				camOffsetVec.Y = 0.52f;
 				camOffsetVec.Z = 0.22f;
-				  
+				/*camOffsetVec.X = theGame.GetGameplayConfigFloatValue( 'debugA' );
+				camOffsetVec.Y = theGame.GetGameplayConfigFloatValue( 'debugB' );
+				camOffsetVec.Z = theGame.GetGameplayConfigFloatValue( 'debugC' );*/  
 			}
 			
 			if ( parent.rangedWeapon && parent.rangedWeapon.GetCurrentStateName() == 'State_WeaponReload' )
 			{
-				
-				
-				
+				//With screenspace
+				/*camOffsetVec.X = 0.43f;
+				camOffsetVec.Y = 0.65f;
+				camOffsetVec.Z = 0.22f;*/
+				//Without screenspace
 				camOffsetVec.X = 0.43f;
 				camOffsetVec.Y = 0.1f;
 				camOffsetVec.Z = 0.22f;
-				  
+				/*camOffsetVec.X = theGame.GetGameplayConfigFloatValue( 'debugA' );
+				camOffsetVec.Y = theGame.GetGameplayConfigFloatValue( 'debugB' );
+				camOffsetVec.Z = theGame.GetGameplayConfigFloatValue( 'debugC' );*/  
 			}
 
 			DampVectorSpring( moveData.cameraLocalSpaceOffset, moveData.cameraLocalSpaceOffsetVel, Vector( camOffsetVec.X, camOffsetVec.Y, camOffsetVec.Z ), 0.2f, dt );
-			
+			//DampVectorSpring( moveData.cameraLocalSpaceOffset, moveData.cameraLocalSpaceOffsetVel, Vector( 0.43f, 1.0f, 0.22f ), 0.2f, dt );
 			virtual_parent.oTCameraOffset = 17.f;
 			virtual_parent.oTCameraPitchOffset = 5.f;
 			
-			
-			
+			//initialPitch = 0.f;
+			//if ( thePlayer.bLAxisReleased )
 			{
 				heading = VecHeading(theCamera.GetCameraDirection());
 				angledist = AngleDistance( heading, VecHeading(thePlayer.GetHeadingVector()) );
@@ -292,7 +313,12 @@ state AimThrow in CR4Player extends ExtendedMovable
 				}
 			}
 			
-			
+			/*if ( thePlayer.bRAxisReleased )
+			{
+				moveData.pivotRotationController.SetDesiredHeading( moveData.pivotRotationValue.Yaw);//, 100000.f );
+				moveData.pivotRotationController.SetDesiredPitch( moveData.pivotRotationValue.Pitch);//, 100000.f );
+				moveData.pivotRotationController.StopRotating();
+			}*/
 		}
 		else
 		{
@@ -300,12 +326,20 @@ state AimThrow in CR4Player extends ExtendedMovable
 			virtual_parent.oTCameraPitchOffset = 0.f;
 			initialPitch = -15.f;
 			
-			
+			//initialPitch = 0.f;
 			heading = VecHeading(theCamera.GetCameraDirection());
 			angledist = AngleDistance( heading, VecHeading(thePlayer.GetHeadingVector()) );
 			
-				
+			/*if ( isRotating || ( angledist < 0 || angledist > 90 ) )
+			{
+				isRotating = true;
+				parent.SetCustomRotation( 'BombThrow', heading-45, 0.0f, 0.4f, false );
+			}
 			
+			if ( angledist > 30 && angledist < 60 )
+				isRotating = false;
+			*/	
+			//parent.SetCustomRotation( 'BombThrow', heading-45, 0.0f, 0.1f, false );
 
 			if ( moveData.pivotRotationValue.Pitch < -20 )
 				enableAimingLookAt =  false;
@@ -358,21 +392,22 @@ state AimThrow in CR4Player extends ExtendedMovable
 		else if ( thePlayer.bRAxisReleased && parent.GetDisplayTarget() && followTarget )
 		{
 			moveData.pivotRotationController.SetDesiredHeading( VecHeading( followPosition - theCamera.GetCameraPosition() ), 1.f );
-			
+			//theGame.GetGameCamera().ForceManualControlHorTimeout();
 			moveData.pivotRotationController.SetDesiredPitch( ProcessInitialPitch(), 1.f );
-			
+			//theGame.GetGameCamera().ForceManualControlVerTimeout();
 		}
 		else
 			moveData.pivotRotationController.SetDesiredHeading( moveData.pivotRotationValue.Yaw, 1.f );			
 		
-		
+		/*if ( !thePlayer.bRAxisReleased )
+			followTarget = false;*/
 		
 		moveData.pivotDistanceController.SetDesiredDistance( 1.f );
-		
+		//moveData.pivotDistanceValue = 1.f;
 			
 		moveData.pivotPositionController.offsetZ = 1.5f;
 	
-		
+		//Vector( 0.85f, 0.5f, 0.f ) Vector( 0.65f, 0.9f, 0.27f )
 		DampVectorSpring( moveData.cameraLocalSpaceOffset, moveData.cameraLocalSpaceOffsetVel, Vector( camOffsetVec.X, camOffsetVec.Y, camOffsetVec.Z ), 0.2f, dt );		
 		
 		return true;
@@ -386,9 +421,9 @@ state AimThrow in CR4Player extends ExtendedMovable
 		
 		target = parent.GetDisplayTarget();
 		
+		//aimVector = VecTransform( target.GetLocalToWorld(), target.aimVector );
 		
-		
-		
+		//if ( aimVector == Vector(0,0,0) )
 			aimVector =  target.GetWorldPosition();
 			
 		angles = VecToRotation( aimVector - parent.GetWorldPosition() );
@@ -405,7 +440,7 @@ state AimThrow in CR4Player extends ExtendedMovable
 	
 	event OnCheckDiving()
 	{
-		
+		// MS: this is okay because you can't go to aiming when swimming above water
 		return prevState == 'Swimming';
 	}	
 	event OnIsCameraUnderwater()

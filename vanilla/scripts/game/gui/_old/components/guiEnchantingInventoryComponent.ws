@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-class W3GuiEnchantingInventoryComponent extends W3GuiBaseInventoryComponent
+﻿class W3GuiEnchantingInventoryComponent extends W3GuiBaseInventoryComponent
 {
 	private var REQUIRED_SLOTS_COUNTS : int;
 	default REQUIRED_SLOTS_COUNTS = 3;
@@ -13,7 +8,7 @@ class W3GuiEnchantingInventoryComponent extends W3GuiBaseInventoryComponent
 		return _inv.GetItemEnhancementSlotsCount( item ) >= REQUIRED_SLOTS_COUNTS;
 	}
 	
-	
+	// override
 	public function ShouldShowItem( item : SItemUniqueId ) : bool
 	{
 		var catName:name;
@@ -22,7 +17,7 @@ class W3GuiEnchantingInventoryComponent extends W3GuiBaseInventoryComponent
 		return super.ShouldShowItem(item) && (catName== 'steelsword' || catName== 'silversword' || catName== 'armor') && !_inv.ItemHasTag(item, 'SecondaryWeapon');
 	}
 	
-	
+	// override
 	public function SetInventoryFlashObjectForItem( item : SItemUniqueId, out flashObject : CScriptedFlashObject) : void
 	{
 		var isEquipped:bool;

@@ -1,10 +1,6 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2013
 /***********************************************************************/
-
-
 
 class W3WeatherShrine extends CGameplayEntity
 {
@@ -43,7 +39,7 @@ class W3WeatherShrine extends CGameplayEntity
 	{
 		var currentWeather : name = GetWeatherConditionName();
 		
-		
+		//this intearaction is for player only
 		if ( thePlayer.GetInventory().GetMoney() < price )
 			return false;
 		
@@ -61,7 +57,7 @@ class W3WeatherShrine extends CGameplayEntity
 	
 	private function ChangeWeatherTo( newWeather : name ) : bool
 	{
-		if ( RequestWeatherChangeTo(newWeather, weatherBlendTime) )
+		if ( RequestWeatherChangeTo(newWeather, weatherBlendTime, false) )
 		{
 			thePlayer.DisplayHudMessage( GetLocStringByKeyExt( "panel_hud_message_prayer_heard" ) );
 			if ( prayerForSunAcceptedFX )

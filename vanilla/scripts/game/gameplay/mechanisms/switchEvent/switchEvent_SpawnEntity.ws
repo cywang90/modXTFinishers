@@ -1,23 +1,18 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
-
-
-
-
-
-
-
-
+﻿//>--------------------------------------------------------------------------
+// W3SE_SpawnEntity
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Add an entity at position
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// R.Pergent - 09-June-2014
+// Copyright © 2014 CD Projekt RED
+//---------------------------------------------------------------------------
 class W3SE_SpawnEntity extends W3SwitchEvent
 {
-	
-	
-	
+	//>--------------------------------------------------------------------------
+	// VARIABLES
+	//---------------------------------------------------------------------------
 	private editable 	var 	entityTemplate			: CEntityTemplate;
 	private editable	var		positionOffset			: Vector;
 	private editable 	var		randomOffset			: Vector;
@@ -37,8 +32,8 @@ class W3SE_SpawnEntity extends W3SwitchEvent
 	hint  randomOffset 		= "Additional random offset";
 	hint  lifeTime 			= "-1 means infinite. Food entity is destroyed at the end of its lifetime";
 	
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	public function Perform( _Parent : CEntity )
 	{	
 		var	l_spawnPos	: Vector;
@@ -62,8 +57,8 @@ class W3SE_SpawnEntity extends W3SwitchEvent
 			DestroySpawnedEntity( lifeTime );
 		}
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	private timer function DestroySpawnedEntity( _deltaTime : float , optional id : int)
 	{
 		if( m_spawnedEntities.Size() == 0 ) return;

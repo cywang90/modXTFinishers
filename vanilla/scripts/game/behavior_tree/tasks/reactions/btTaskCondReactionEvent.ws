@@ -1,14 +1,19 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file
+/***********************************************************************/
+/** Copyright © 2013 CD Projekt RED
+/** Author : Andrzej Kwiatkowski
 /***********************************************************************/
 
-
-
-
-
-
+// Reaction event name list
+/*
+PlayerAttack
+PlayerCastSign
+PlayerThrowItem
+PlayerEvade
+PlayerSpecialAttack
+PlayerSprint
+*/
 
 class CBTTaskCondReactionEvent extends IBehTreeTask
 {
@@ -30,14 +35,10 @@ class CBTTaskCondReactionEvent extends IBehTreeTask
 		eventReceived = false;
 	}
 	
-	function OnGameplayEvent( eventName : name ) : bool
+	function OnListenedGameplayEvent( _EventName : name ) : bool
 	{
-		if ( eventName == reactionEventName )
-		{
-			eventReceived = true;
-			return true;
-		}
-		return false;
+		eventReceived = true;
+		return true;
 	}
 };
 
@@ -47,13 +48,13 @@ class CBTTaskCondReactionEventDef extends IBehTreeReactionTaskDefinition
 
 	editable var reactionEventName	: name;
 	
-	function InitializeEvents()
+	function OnSpawn( taskGen : IBehTreeTask )
 	{
-		super.InitializeEvents();
-		
-		if ( IsNameValid( reactionEventName ) )
+		var task : CBTTaskCondReactionEvent;
+		task = (CBTTaskCondReactionEvent) taskGen;
+		if ( IsNameValid( task.reactionEventName ) )
 		{
-			listenToGameplayEvents.PushBack( reactionEventName );
+			ListenToGameplayEvent( task.reactionEventName );
 		}
 	}
 };

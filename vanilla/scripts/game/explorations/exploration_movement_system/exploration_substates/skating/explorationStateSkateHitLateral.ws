@@ -1,16 +1,11 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
+﻿// CExplorationStateSkatingHitLateral
+//------------------------------------------------------------------------------------------------------------------
+// Eduard Lopez Plans	( 18/02/2014 )	 
+//------------------------------------------------------------------------------------------------------------------
 
 
-
-
-
-
-
-
+//>-----------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------
 class CExplorationStateSkatingHitLateral extends CExplorationStateAbstract
 {		
 	private						var	skateGlobal			: CExplorationSkatingGlobal;
@@ -23,7 +18,7 @@ class CExplorationStateSkatingHitLateral extends CExplorationStateAbstract
 	protected editable			var extraAngle			: float;		default	extraAngle			= 15.0f;	
 	
 	
-	
+	//---------------------------------------------------------------------------------
 	private function InitializeSpecific( _Exploration : CExplorationStateManager )
 	{	
 		if( !IsNameValid( m_StateNameN ) )
@@ -33,19 +28,19 @@ class CExplorationStateSkatingHitLateral extends CExplorationStateAbstract
 		
 		skateGlobal	= _Exploration.m_SharedDataO.m_SkateGlobalC;		
 		
-		
+		// Make sure the data is correct
 		speedReductionPerc	= ClampF( speedReductionPerc, 0.0f, 1.0f );
 		
-		
+		// Set the type
 		m_StateTypeE	= EST_Skate;
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	private function AddDefaultStateChangesSpecific()
 	{
 	}
 
-	
+	//---------------------------------------------------------------------------------
 	function StateWantsToEnter() : bool
 	{	
 		if( m_ExplorationO.m_MoverO.GetMovementSpeedF() < speedMinToEnter )
@@ -53,7 +48,7 @@ class CExplorationStateSkatingHitLateral extends CExplorationStateAbstract
 			return false;
 		}
 		
-		
+		// Check collisions
 		if( m_ExplorationO.m_OwnerMAC.GetCollisionDataCount() > 1 )
 		{
 			return true;
@@ -62,32 +57,32 @@ class CExplorationStateSkatingHitLateral extends CExplorationStateAbstract
 		return false;
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	function StateCanEnter( curStateName : name ) : bool
 	{	
 		return true;
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	private function StateEnterSpecific( prevStateName : name )	
 	{		
 		var yawTarget		: float;
 		
 		
-		
+		// Get collision angle
 		yawTarget	= GetCollisionAngle();
 		
-		
+		// Anim
 		m_ExplorationO.SetBehaviorParamBool( 'Skate_HitLeft', yawTarget > 0.0f );	
 		
-		
+		// Speed
 		ReduceSpeed();
 		
-		
+		// Rotation
 		SetOrientation( yawTarget );
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	function StateChangePrecheck( )	: name
 	{
 		if( m_ExplorationO.GetStateTimeF() > timeMax )
@@ -98,7 +93,7 @@ class CExplorationStateSkatingHitLateral extends CExplorationStateAbstract
 		return super.StateChangePrecheck();
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	protected function StateUpdateSpecific( _Dt : float )
 	{		
 		var accel	: float;
@@ -106,24 +101,24 @@ class CExplorationStateSkatingHitLateral extends CExplorationStateAbstract
 		var braking	: bool;
 		
 		
-		
+		// Attack
 		skateGlobal.UpdateRandomAttack();
 		
-		
+		// Movement
 		m_ExplorationO.m_MoverO.UpdateSkatingMovement( _Dt, accel, turn, braking );
 		
-		
+		// Anim		
 		skateGlobal.SetBehParams( accel, braking, turn );		
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	private function StateExitSpecific( nextStateName : name )
 	{				
-		
+		// Movement adjustor
 		m_ExplorationO.m_OwnerMAC.GetMovementAdjustor().CancelByName( 'turnForSkateHit' );
 	}	
 	
-	
+	//---------------------------------------------------------------------------------
 	private function GetCollisionAngle() : float
 	{
 		var collisionData	: SCollisionData;
@@ -133,7 +128,7 @@ class CExplorationStateSkatingHitLateral extends CExplorationStateAbstract
 		var yawTarget		: float;
 		
 		
-		
+		// get resulting collisions
 		collisionNum	= m_ExplorationO.m_OwnerMAC.GetCollisionDataCount();
 		for( i = 0; i < collisionNum; i += 1 )
 		{
@@ -144,7 +139,7 @@ class CExplorationStateSkatingHitLateral extends CExplorationStateAbstract
 			}
 		}
 		
-		
+		// Get the direction we have to face
 		resultingColl	= VecNormalize( resultingColl );
 		
 		yawTarget		= VecHeading( resultingColl );
@@ -160,14 +155,14 @@ class CExplorationStateSkatingHitLateral extends CExplorationStateAbstract
 		return yawTarget;
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	private function SetOrientation( yawTarget : float )
 	{
 		var movAdj 			: CMovementAdjustor;
 		var ticket 			: SMovementAdjustmentRequestTicket;
 		
 		
-		
+		// setup movement adjustment
 		movAdj = m_ExplorationO.m_OwnerMAC.GetMovementAdjustor();
 		ticket = movAdj.CreateNewRequest( 'turnForSkateHit' );
 		
@@ -176,7 +171,7 @@ class CExplorationStateSkatingHitLateral extends CExplorationStateAbstract
 		movAdj.LockMovementInDirection( ticket, yawTarget );
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	private function ReduceSpeed()
 	{
 		var newVelocity	: Vector;
@@ -189,11 +184,11 @@ class CExplorationStateSkatingHitLateral extends CExplorationStateAbstract
 	}
 	
 	
-	
-	
-	
+	//---------------------------------------------------------------------------------
+	// Anim events
+	//---------------------------------------------------------------------------------
 
-	
+	//------------------------------------------------------------------------------------------------------------------
 	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
 		if( animEventName	== behAnimEnd )
@@ -202,11 +197,11 @@ class CExplorationStateSkatingHitLateral extends CExplorationStateAbstract
 		}
 	}
 	
+	//---------------------------------------------------------------------------------
+	// Collision events
+	//---------------------------------------------------------------------------------
 	
-	
-	
-	
-	
+	//---------------------------------------------------------------------------------
 	function ReactToLoseGround() : bool
 	{
 		SetReadyToChangeTo( 'StartFalling' );
@@ -214,13 +209,13 @@ class CExplorationStateSkatingHitLateral extends CExplorationStateAbstract
 		return true;
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	function ReactToHitGround() : bool
 	{		
 		return true;
 	}		
 	
-	
+	//---------------------------------------------------------------------------------
 	function CanInteract( ) : bool
 	{		
 		return false;

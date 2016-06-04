@@ -1,29 +1,29 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file
 /***********************************************************************/
-
-
-
+/** Copyright © 2013-2014 CDProjektRed
+/** Author : Dexio ?
+/** 		 Bartosz Bigaj
+/**			 Tomek Kozera
+/***********************************************************************/
 
 import class CItemEntity extends CEntity
 {
-	
+	// Get entity item is attached to
 	import final function GetParentEntity() : CEntity;
 	
-	
+	//Get tags of an item represented by this entity
 	import final function GetItemTags( out tags : array<name> );
 
 	import final function GetMeshComponent() : CComponent;
 
-	
+	//sets item sound info for attacks/parrying/hits, called when equipment changes
 	event OnGrab()
 	{
 		SetupDrawHolsterSounds();
 	}
 	
-	
+	//sets item sound info for attacks/parrying/hits, called when equipment changes
 	event OnPut()
 	{
 		SetupDrawHolsterSounds();
@@ -50,7 +50,7 @@ import class CItemEntity extends CEntity
 						}	
 					}
 				}
-				else 
+				else //some armors doesnt have it set, weirdo
 				{
 					actorParent.AddTimer('DelaySoundInfoUpdate', 1);
 				}
@@ -83,6 +83,36 @@ import class CItemEntity extends CEntity
 	
 	event OnItemCollision( object : CObject, physicalActorindex : int, shapeIndex : int )
 	{
+		var victim : CGameplayEntity;
+		var owner : CActor;
+		var ent : CEntity;
+		var component : CComponent;
+		component = (CComponent) object;
+		if( !component )
+		{
+			return false;
+		}
+		
+		ent = component.GetEntity();
+		owner = (CActor)GetParentEntity();
+		
+		if ( ent != this && owner && ent != owner )
+		{
+			victim = (CGameplayEntity)component.GetEntity();
+			
+			if ( victim )
+			{
+				if ( physicalActorindex == 0 && shapeIndex == 0 && ((CMovingAgentComponent)component).HasRagdoll() )
+					return false;
+					
+				owner.OnCollisionFromItem(victim, this);
+			}
+			return true;
+		}	
+	}
+	
+	event OnGiantWeaponCollision( object : CObject, physicalActorindex : int, shapeIndex : int )
+	{
 		var victim : CActor;
 		var owner : CActor;
 		var ent : CEntity;
@@ -105,7 +135,7 @@ import class CItemEntity extends CEntity
 				if ( physicalActorindex == 0 && shapeIndex == 0 && ((CMovingAgentComponent)component).HasRagdoll() )
 					return false;
 					
-				owner.OnCollisionFromItem(victim, this);
+				owner.OnCollisionFromGiantWeapon(victim, this);
 			}
 			return true;
 		}	
@@ -136,7 +166,23 @@ class W3EffectItem extends CItemEntity
 	}
 }
 
-
+/*
+enum EUsableItemType
+{
+	UI_Torch,
+	UI_Horn,
+	UI_Bell,
+	UI_OilLamp,
+	UI_Mask,
+	UI_FiendLure,
+	UI_Meteor,
+	UI_None,
+	UI_Censer,
+	UI_Apple,
+	UI_Cookie,
+	UI_Basket
+}
+*/
 
 class W3UsableItem extends CItemEntity
 {
@@ -151,22 +197,22 @@ class W3UsableItem extends CItemEntity
 	{
 		if ( !wasOnHiddenCalled )
 		{
-			OnHidden( this );
+			OnHidden( GetParentEntity() );
 		}
 	}
 	event OnUsed( usedBy : CEntity )
 	{
 		var i : int;
 		
-		
-		
-		
-		blockedActions.PushBack( EIAB_Parry );
-		blockedActions.PushBack( EIAB_Counter );
-		
-		for( i = 0; i < blockedActions.Size(); i += 1)
+		if( usedBy == thePlayer )
 		{
-			thePlayer.BlockAction( blockedActions[i], 'UsableItem' );
+			blockedActions.PushBack( EIAB_Parry );
+			blockedActions.PushBack( EIAB_Counter );
+			
+			for( i = 0; i < blockedActions.Size(); i += 1)
+			{
+				thePlayer.BlockAction( blockedActions[i], 'UsableItem' );
+			}
 		}
 	}
 	
@@ -176,7 +222,10 @@ class W3UsableItem extends CItemEntity
 		
 		wasOnHiddenCalled = true;
 		
-		thePlayer.BlockAllActions( 'UsableItem', false );
+		if( hiddenBy == thePlayer )
+		{
+			thePlayer.BlockAllActions( 'UsableItem', false );
+		}
 	}
 	
 	function SetVisibility( isVisible : bool )
@@ -201,27 +250,70 @@ class W3UsableItem extends CItemEntity
 	
 class W3LightSource extends W3UsableItem
 {
+	var worldName : String;
+	
 	event OnUsed( usedBy : CEntity )
 	{
 		blockedActions.PushBack( EIAB_HeavyAttacks );
 		blockedActions.PushBack( EIAB_SpecialAttackHeavy );
 		
-		
 		super.OnUsed( usedBy );
 		
-		thePlayer.UnblockAction( EIAB_Signs, 'UsableItem' );
-
-		this.PlayEffect( 'light_on' );
-		thePlayer.AddTag(theGame.params.TAG_OPEN_FIRE);
+		worldName =  theGame.GetWorld().GetDepotPath();
+		if( StrFindFirst( worldName, "bob" ) < 0 )
+		{
+			this.PlayEffect( 'light_on' );
+		}
+		else
+		{
+			this.PlayEffect( 'light_on_bob' );
+		}
+		
+		if( usedBy == thePlayer )
+		{
+			thePlayer.UnblockAction( EIAB_Signs, 'UsableItem' );
+			thePlayer.AddTag( theGame.params.TAG_OPEN_FIRE );
+		}
 	}
 
 	event OnHidden( usedBy : CEntity )
 	{
-		thePlayer.RemoveTag(theGame.params.TAG_OPEN_FIRE);
+		if( usedBy == thePlayer )
+		{
+			thePlayer.RemoveTag( theGame.params.TAG_OPEN_FIRE );
+		}
 		
 		super.OnHidden ( usedBy );
-		this.StopEffect( 'light_on' );		
-	}	
+		this.StopEffect( 'light_on' );	
+		this.StopEffect( 'light_on_bob' );	
+	}
+}
+
+class W3ShieldUsableItem extends W3UsableItem
+{
+	editable var factAddedOnUse : string;
+	editable var factValue : int;
+	editable var factTimeValid : int;
+	editable var removeFactOnHide : bool;
+	
+	var i : int;
+	
+	event OnUsed( usedBy : CEntity )
+	{
+		for( i = 0; i < blockedActions.Size(); i += 1)
+		{
+			thePlayer.BlockAction( blockedActions[i], 'UsableItem' );
+		}
+		FactsAdd( factAddedOnUse, factValue, factTimeValid );
+	}
+	
+	event OnHidden( hiddenBy : CEntity )
+	{
+		if( removeFactOnHide )
+		{
+			FactsRemove( factAddedOnUse );		
+		}
+	}
 }
 
 class W3QuestUsableItem extends W3UsableItem
@@ -289,13 +381,13 @@ class W3MeteorItem extends W3QuestUsableItem
 		userPosition = usedBy.GetWorldPosition();
 		userRotation = usedBy.GetWorldRotation();
 		
-		
+		//spawn huge ass meteor and aim it to position of the user
 		meteorPosition = userPosition;
 		meteorPosition.Z += 50;
 		
 		meteorEntity = (W3MeteorProjectile)theGame.CreateEntity(meteorEntityTemplate, meteorPosition, userRotation);
 		
-		
+		// meteor shouldn't have owner, becouse we want to deal dmg to player
 		meteorEntity.Init(NULL);
 		meteorEntity.decreasePlayerDmgBy = 0.7;
 		meteorEntity.ShootProjectileAtPosition( meteorEntity.projAngle, meteorEntity.projSpeed, userPosition, 500, collisionGroups );
@@ -324,20 +416,20 @@ class W3EyeOfLoki extends W3QuestUsableItem
 	{
 		var environmentRes : CEnvironmentDefinition;
 	
-		
-		
-		
+		//blockedActions.PushBack( EIAB_Signs );
+		//blockedActions.PushBack( EIAB_CallHorse );
+		//blockedActions.PushBack( EIAB_Fists );
 		blockedActions.PushBack( EIAB_Roll );
-		
+		//blockedActions.PushBack( EIAB_ThrowBomb );
 		blockedActions.PushBack( EIAB_RunAndSprint );
-		
+		//blockedActions.PushBack( EIAB_Dive );
 		blockedActions.PushBack( EIAB_Parry );
-		
+		//blockedActions.PushBack( EIAB_Explorations );
 		blockedActions.PushBack( EIAB_Counter );
 		blockedActions.PushBack( EIAB_HeavyAttacks );
 		blockedActions.PushBack( EIAB_SpecialAttackHeavy );
-		
-		
+		//blockedActions.PushBack( EIAB_Crossbow );
+		//blockedActions.PushBack( EIAB_Climb );
 		blockedActions.PushBack( EIAB_Slide );
 	
 		super.OnUsed( usedBy );
@@ -429,7 +521,7 @@ class W3Potestaquisitor extends W3QuestUsableItem
 		{
 			registeredAnomalies.Clear();
 			ScanningAnomalies (0.0);
-			AddTimer('ScanningAnomalies',0.5,true);
+			AddTimer('ScanningAnomalies',0.5,true);//, , , true);
 		}
 		else
 		{
@@ -446,7 +538,7 @@ class W3Potestaquisitor extends W3QuestUsableItem
 		var currentClosestAnomaly : CGameplayEntity;
 		var dist : float;
 		
-		
+		//Find any anomalies in range and add them to registeredAnomalies, if they're not in there yet.
 		FindGameplayEntitiesInRange(foundAnomalies, thePlayer, detectableRange, 100000, detectableTag);
 		
 		foundAnomaliesSize = foundAnomalies.Size();
@@ -456,12 +548,12 @@ class W3Potestaquisitor extends W3QuestUsableItem
 			if(!registeredAnomalies.Contains(foundAnomalies[i]))
 				{
 					registeredAnomalies.PushBack(foundAnomalies[i]);
-					foundAnomalies[i].SetFocusModeSoundEffectType(soundEffectType);
+					foundAnomalies[i].SetFocusModeSoundEffectType(soundEffectType);//PlayEffect (detectableEffectName);
 					foundAnomalies[i].SoundEvent( "qu_nml_401_vacuum_detector_loop_start" );
 				} 
 		}
 		
-		
+		//Does anomaly still have detectableTag?
 		for ( i = 0; i < registeredAnomaliesSize; i += 1 )
 		{
 			if (!registeredAnomalies[i].HasTag(detectableTag)) 
@@ -475,7 +567,7 @@ class W3Potestaquisitor extends W3QuestUsableItem
 				
 		if ( registeredAnomaliesSize > 0 )
 		{
-			
+			// Remove all Anomalies which are no longer tagged detectableTag
 			for ( i = registeredAnomaliesSize -1; i > -1; i -= 1 )
 			{	
 				if (!registeredAnomalies[i].HasTag(detectableTag)) 
@@ -485,19 +577,19 @@ class W3Potestaquisitor extends W3QuestUsableItem
 			}	
 			foundAnomaliesSize = foundAnomalies.Size();
 			
-			
+			//Find the closest registered Anomaly and start tracking Geralt's distance to it.
 			for ( i = 0; i < registeredAnomaliesSize; i += 1 )
 			{
 				foundAnomaliesDistances[i] = VecDistance( registeredAnomalies[i].GetWorldPosition(), this.GetWorldPosition() );
 			}
 			closestAnomalyIndex = ArrayFindMinF( foundAnomaliesDistances );
 			
-			
+			//Setting anomalies to allow dynamic changing of closest anomalies
 			currentClosestAnomaly = registeredAnomalies[closestAnomalyIndex];
 
 			dist = foundAnomaliesDistances[closestAnomalyIndex];
 			
-			
+			//Stop old anomaly sounds if we switched
 			
 			if (previousClosestAnomaly.GetName() != currentClosestAnomaly.GetName()) 
 			{
@@ -573,7 +665,7 @@ class W3Potestaquisitor extends W3QuestUsableItem
 	}
 }
 
-
+//scares off sirens
 class W3HornvalHorn extends W3QuestUsableItem
 {
 	
@@ -592,7 +684,7 @@ class W3HornvalHorn extends W3QuestUsableItem
 		
 		super.OnUsed(usedBy);
 		
-		
+		//theGame.GetBehTreeReactionManager().CreateReactionEvent( thePlayer, 'FearsomeEvent', duration, range, 1, -1, true, true);
 		
 		params.effectType 	= EET_HeavyKnockdown;
 		params.creator 		= thePlayer;
@@ -610,7 +702,7 @@ class W3HornvalHorn extends W3QuestUsableItem
 	}	
 }
 
-
+//attracts bies / fiend
 class W3FiendLure extends W3QuestUsableItem
 {
 	editable var range 			: float;

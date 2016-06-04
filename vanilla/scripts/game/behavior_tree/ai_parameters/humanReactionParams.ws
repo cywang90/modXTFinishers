@@ -1,61 +1,56 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
+﻿/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// SOFT REACTIONS:
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-
-
-
-
+// Combat Soft Reaction Tree
 class CAICombatSoftReactionsTree extends CAISoftReactionTree
 {
 	default aiTreeName = "resdef:ai\reactions/soft_reactions_combat";
 };
 
-
+// Commoner Soft Reaction Tree
 class CAICommonerSoftReactionsTree extends CAISoftReactionTree
 {
 	default aiTreeName = "resdef:ai\reactions/soft_reactions_commoner";
 };
 
-
+// Guard Soft Reaction Tree
 class CAIGuardSoftReactionsTree extends CAISoftReactionTree
 {
 	default aiTreeName = "resdef:ai\reactions/soft_reactions_guard";
 };
 
-
+// Quest Soft Reaction Tree
 class CAIQuestSoftReactionsTree extends CAISoftReactionTree
 {
 	default aiTreeName = "resdef:ai\reactions/soft_reactions_quest";
 };
 
-
+// MainQuest Soft Reaction Tree
 class CAIMainQuestSoftReactionsTree extends CAISoftReactionTree
 {
 	default aiTreeName = "resdef:ai\reactions/soft_reactions_quest_main";
 };
 
-
+// Child Soft Reaction Tree
 class CAIChildSoftReactionsTree extends CAISoftReactionTree
 {
 	default aiTreeName = "resdef:ai\reactions/soft_reactions_child";
 };
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// HARD REACTIONS:
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
-
+// Base Reaction Tree
 class CAINpcReactionsTree extends CAIReactionTree
 {
 	default aiTreeName = "resdef:ai\reactions/npc_base_reactions";
 
-	
-	
-	
+	//editable var reactionCounterName : CName;
+	//editable var reactionCounterLowerBound : int;
+	//editable var reactionCounterUpperBound : int;
 	editable inlined var reactions : array< CAINpcActionSubtree >;
 	
 	protected function OverriderReactionsPriority( priority : int, optional priorityWhileActive : int )
@@ -76,11 +71,11 @@ class CAINpcReactionsTree extends CAIReactionTree
 
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// REACTION TREES:
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
-
+// Commoner Reactions Tree
 class CAICommonerReactionTree extends CAINpcReactionsTree
 {
 	function Init()
@@ -97,7 +92,7 @@ class CAICommonerReactionTree extends CAINpcReactionsTree
 		var combatNearby 	: CAIActionCombatNearby 	= new CAIActionCombatNearby in this;	
 		var gossip		 	: CAIActionGossip 			= new CAIActionGossip in this;
 		var question 		: CAIActionQuestion 		= new CAIActionQuestion in this;
-		
+		//var greeting 		: CAIActionGreeting 		= new CAIActionGreeting in this;
 		var barter 			: CAIActionBarter			= new CAIActionBarter in this;
 		var jump 			: CAIActionJump				= new CAIActionJump in this;
 
@@ -113,7 +108,7 @@ class CAICommonerReactionTree extends CAINpcReactionsTree
 		combatNearby	.OnCreated();
 		gossip			.OnCreated();
 		question		.OnCreated();
-		
+		//greeting		.OnCreated();
 		barter			.OnCreated();
 		jump			.OnCreated();
 		
@@ -136,13 +131,13 @@ class CAICommonerReactionTree extends CAINpcReactionsTree
 		reactions.PushBack( combatNearby );
 		reactions.PushBack( gossip );
 		reactions.PushBack( question );
-		
+		//reactions.PushBack( greeting );
 		reactions.PushBack( barter );
 		reactions.PushBack( jump );
 	}
 }
 
-
+// Commoner Reactions Tree
 class CAIChildReactionTree extends CAINpcReactionsTree
 {
 	function Init()
@@ -171,18 +166,18 @@ class CAIChildReactionTree extends CAINpcReactionsTree
 		bombExplosion	.OnCreated();
 		combatNearby	.OnCreated();
 		
-		reactions.PushBack( beingHit );			
-		reactions.PushBack( bump );				
-		reactions.PushBack( rain );				
-		reactions.PushBack( drawSword );		
-		reactions.PushBack( taunt );			
-		reactions.PushBack( attack );			
-		reactions.PushBack( castSign );			
-		reactions.PushBack( crossbowShot );		
-		reactions.PushBack( bombExplosion );	
-		reactions.PushBack( combatNearby );		
+		reactions.PushBack( beingHit );			//0
+		reactions.PushBack( bump );				//1
+		reactions.PushBack( rain );				//2
+		reactions.PushBack( drawSword );		//3
+		reactions.PushBack( taunt );			//4
+		reactions.PushBack( attack );			//5
+		reactions.PushBack( castSign );			//6
+		reactions.PushBack( crossbowShot );		//7
+		reactions.PushBack( bombExplosion );	//8
+		reactions.PushBack( combatNearby );		//9
 		
-		
+		// overrides
 		tempOverride = (CAINpcActionSubtree)reactions[3];
 		tempOverride.reactionLogicTree = new CAINpcReactionGetScared in this;
 		tempOverride.reactionLogicTree.OnCreated();
@@ -220,7 +215,7 @@ class CAIChildReactionTree extends CAINpcReactionsTree
 	}
 }
 
-
+// Drunk Commoner Reactions Tree
 class CAIDrunkCommonerReactionTree extends CAINpcReactionsTree
 {
 	function Init()
@@ -242,7 +237,7 @@ class CAIDrunkCommonerReactionTree extends CAINpcReactionsTree
 	}
 }
 
-
+// Guard Reactions Tree
 class CAIGuardReactionsTree extends CAINpcReactionsTree
 {
 	function Init()
@@ -260,7 +255,7 @@ class CAIGuardReactionsTree extends CAINpcReactionsTree
 		var jump 			: CAIActionJump				= new CAIActionJump in this;
 		var gossip		 	: CAIActionGossip 			= new CAIActionGossip in this;
 		var question 		: CAIActionQuestion 		= new CAIActionQuestion in this;
-		
+		//var greeting 		: CAIActionGreeting 		= new CAIActionGreeting in this;
 		
 		var tempOverride : CAINpcActionSubtree;
 		
@@ -277,20 +272,20 @@ class CAIGuardReactionsTree extends CAINpcReactionsTree
 		jump			.OnCreated();
 		gossip			.OnCreated();
 		question		.OnCreated();
+		//greeting		.OnCreated();
 		
+		reactions.PushBack( beingHit );			// 0
+		reactions.PushBack( combatNearby );		// 1
+		reactions.PushBack( bump );				// 2
+		reactions.PushBack( drawSword );		// 3
+		reactions.PushBack( attack );			// 4
+		reactions.PushBack( castSign );			// 5
+		reactions.PushBack( crossbowShot );		// 6
+		reactions.PushBack( bombExplosion );	// 7
+		reactions.PushBack( taunt );			// 8
+		reactions.PushBack( looting );			// 9		
 		
-		reactions.PushBack( beingHit );			
-		reactions.PushBack( combatNearby );		
-		reactions.PushBack( bump );				
-		reactions.PushBack( drawSword );		
-		reactions.PushBack( attack );			
-		reactions.PushBack( castSign );			
-		reactions.PushBack( crossbowShot );		
-		reactions.PushBack( bombExplosion );	
-		reactions.PushBack( taunt );			
-		reactions.PushBack( looting );			
-		
-		
+		// overrides
 		tempOverride = (CAINpcActionSubtree)reactions[0];
 		tempOverride.reactionLogicTree = new CAINpcReactionTurnHostile in this;
 		tempOverride.reactionLogicTree.OnCreated();
@@ -351,16 +346,16 @@ class CAIGuardReactionsTree extends CAINpcReactionsTree
 		
 		OverriderReactionsPriority( 60, 59 );
 		
-		
+		//we don't want to override jump reaction priority
 		reactions.PushBack( jump );
 		
 		
-		
+		// beingHit
 		tempOverride = (CAINpcActionSubtree)reactions[0];
 		tempOverride.changePriorityWhileActive = false;
 		tempOverride.reactionPriority = 62;
 		
-		
+		// combatNearby
 		tempOverride = (CAINpcActionSubtree)reactions[1];
 		tempOverride.changePriorityWhileActive = false;
 		tempOverride.reactionPriority = 61;
@@ -370,14 +365,14 @@ class CAIGuardReactionsTree extends CAINpcReactionsTree
 		tempOverride.reactionPriority = 58;
 		
 		
-		reactions.PushBack( gossip );			
+		reactions.PushBack( gossip );			//
 		reactions.PushBack( question );
-		
+		//reactions.PushBack( greeting );
 
 	}
 };
 
-
+// Combat NPC Reactions Tree
 class CAICombatNPCReactionsTree extends CAINpcReactionsTree
 {
 	function Init()
@@ -400,14 +395,14 @@ class CAICombatNPCReactionsTree extends CAINpcReactionsTree
 		bombExplosion	.OnCreated();
 		combatStarted	.OnCreated();
 		
-		reactions.PushBack( beingHit );			
-		reactions.PushBack( combatNearby );		
-		reactions.PushBack( bump );				
-		reactions.PushBack( taunt );			
-		reactions.PushBack( bombExplosion );	
-		reactions.PushBack( combatStarted );	
+		reactions.PushBack( beingHit );			// 0
+		reactions.PushBack( combatNearby );		// 1
+		reactions.PushBack( bump );				// 2
+		reactions.PushBack( taunt );			// 3
+		reactions.PushBack( bombExplosion );	// 4
+		reactions.PushBack( combatStarted );	// 5
 		
-		
+		// overrides
 		tempOverride = (CAINpcActionSubtree)reactions[0];
 		tempOverride.reactionLogicTree = new CAINpcReactionTurnHostile in this;
 		tempOverride.reactionLogicTree.OnCreated();
@@ -438,8 +433,8 @@ class CAICombatNPCReactionsTree extends CAINpcReactionsTree
 		
 		OverriderReactionsPriority( 60, 59 );
 		
-		
-		reactions.PushBack( jump ); 
+		//we don't want to override jump reaction priority
+		reactions.PushBack( jump ); // 6
 		
 		tempOverride = (CAINpcActionSubtree)reactions[0];
 		tempOverride.changePriorityWhileActive = false;
@@ -449,31 +444,31 @@ class CAICombatNPCReactionsTree extends CAINpcReactionsTree
 		
 		tempOverride = (CAINpcActionSubtree)reactions[3];
 		tempOverride.changePriorityWhileActive = false;
-		tempOverride.reactionPriority = 24; 
+		tempOverride.reactionPriority = 24; // lower than combat
 	}
 };
 
-
+// Quest NPC Reactions Tree
 class CAIQuestNPCReactionsTree extends CAINpcReactionsTree
 {
 	function Init()
 	{
 		var bombExplosion 	: CAIActionBombExplosion 	= new CAIActionBombExplosion in this;
-		
+		//var taunt		 	: CAIActionTaunt 			= new CAIActionTaunt in this;
 		
 		bombExplosion	.OnCreated();
-		
+		//taunt			.OnCreated();
 		
 		reactions.PushBack( bombExplosion );
-		
+		//reactions.PushBack( taunt );
 	}
 };
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// CUSTOM REACTION TREES:
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
-
+// Philippa Reactions Tree
 class CAIPhilippaReactionsTree extends CAINpcReactionsTree
 {
 	function Init()
@@ -487,24 +482,72 @@ class CAIPhilippaReactionsTree extends CAINpcReactionsTree
 	}
 };
 
+// Bruxa Commoner Reactions Tree
+class CAIBruxaCommonerReactionTree extends CAINpcReactionsTree
+{
+	function Init()
+	{
+		var beingHit		: CAIActionBruxaBeingHit				= new CAIActionBruxaBeingHit in this;
+		var drawSword		: CAIActionBruxaDrawSword 				= new CAIActionBruxaDrawSword in this;
+		var attack			: CAIActionBruxaAttack 					= new CAIActionBruxaAttack in this;
+		var friendlyAttack	: CAIActionBruxaFriendlyAttackAction 	= new CAIActionBruxaFriendlyAttackAction in this;
+		var castSign		: CAIActionBruxaCastSign 				= new CAIActionBruxaCastSign in this;
+		var crossbowShot 	: CAIActionBruxaCrossbowShot 			= new CAIActionBruxaCrossbowShot in this;
+		var bombExplosion 	: CAIActionBruxaBombExplosion 			= new CAIActionBruxaBombExplosion in this;
+		var playerPresence 	: CAIActionBruxaPlayerPresence 			= new CAIActionBruxaPlayerPresence in this;
+		var forcedSpawn 	: CAIActionBruxaPlayerPresenceForced 	= new CAIActionBruxaPlayerPresenceForced in this;
+		
+		
+		beingHit			.OnCreated();
+		drawSword			.OnCreated();
+		attack				.OnCreated();
+		friendlyAttack		.OnCreated();
+		castSign			.OnCreated();
+		crossbowShot		.OnCreated();
+		bombExplosion		.OnCreated();
+		playerPresence 		.OnCreated();
+		forcedSpawn 		.OnCreated();
+		
+		beingHit.forwardAvailabilityToReactionTree = true;
+		drawSword.forwardAvailabilityToReactionTree = true;
+		attack.forwardAvailabilityToReactionTree = true;
+		friendlyAttack.forwardAvailabilityToReactionTree = true;
+		castSign.forwardAvailabilityToReactionTree = true;
+		crossbowShot.forwardAvailabilityToReactionTree = true;
+		bombExplosion.forwardAvailabilityToReactionTree = true;
+		playerPresence.forwardAvailabilityToReactionTree = true;
+		forcedSpawn.forwardAvailabilityToReactionTree = true;
+		
+		reactions.PushBack( beingHit );
+		reactions.PushBack( drawSword );
+		reactions.PushBack( attack );
+		reactions.PushBack( friendlyAttack );
+		reactions.PushBack( castSign );
+		reactions.PushBack( crossbowShot );
+		reactions.PushBack( bombExplosion );
+		reactions.PushBack( playerPresence );
+		reactions.PushBack( forcedSpawn );
+	}
+}
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ACTIONS:
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// - BeingHit
+// - DrawSword
+// - Attack
+// - CastSign
+// - CrossbowShot
+// - BombExplosion
+// - CombatNearby
+// - Gossip
+// - Question
+// - Greeting
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// Base Action Subtree
 abstract class CAINpcActionSubtree extends CAISubTree
 {
 	default aiTreeName = "resdef:ai\reactions/npc_reaction";
@@ -531,18 +574,18 @@ abstract class CAINpcActionSubtree extends CAISubTree
 };
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+///////////////////////////
+// NOTES:
+//
+// Reaction Priorities:
+// 50-60 - will intterrupt work
+// 20-24 - rest
+///////////////////////////
 
-
-
-
-
-
-
-
-
-
+// BeingHit
 class CAIActionBeingHit extends CAINpcActionSubtree
 {
 	function Init()
@@ -558,7 +601,7 @@ class CAIActionBeingHit extends CAINpcActionSubtree
 	}
 };
 
-
+// Bump
 class CAIActionBumpTree extends CAINpcActionSubtree
 {
 	function Init()
@@ -578,7 +621,7 @@ class CAIActionBumpTree extends CAINpcActionSubtree
 	}
 };
 
-
+// CombatNearby
 class CAIActionCombatNearby extends CAINpcActionSubtree
 {
 	function Init()
@@ -596,7 +639,7 @@ class CAIActionCombatNearby extends CAINpcActionSubtree
 	}
 };
 
-
+// DrawSword
 class CAIActionDrawSword extends CAINpcActionSubtree
 {
 	function Init()
@@ -615,7 +658,7 @@ class CAIActionDrawSword extends CAINpcActionSubtree
 	}
 };
 
-
+// Attack
 class CAIActionAttack extends CAINpcActionSubtree
 {
 	function Init()
@@ -633,7 +676,7 @@ class CAIActionAttack extends CAINpcActionSubtree
 	}
 };
 
-
+// CastSign
 class CAIActionCastSign extends CAINpcActionSubtree
 {
 	function Init()
@@ -651,7 +694,7 @@ class CAIActionCastSign extends CAINpcActionSubtree
 	}
 };
 
-
+// CrossbowShot
 class CAIActionCrossbowShot extends CAINpcActionSubtree
 {
 	function Init()
@@ -670,7 +713,7 @@ class CAIActionCrossbowShot extends CAINpcActionSubtree
 	}
 };
 
-
+// BombExplosion
 class CAIActionBombExplosion extends CAINpcActionSubtree
 {
 	function Init()
@@ -685,7 +728,7 @@ class CAIActionBombExplosion extends CAINpcActionSubtree
 	}
 };
 
-
+// Looting
 class CAIActionLooting extends CAINpcActionSubtree
 {
 	function Init()
@@ -703,7 +746,7 @@ class CAIActionLooting extends CAINpcActionSubtree
 	}
 };
 
-
+// Taunt
 class CAIActionTaunt extends CAINpcActionSubtree
 {
 	function Init()
@@ -722,7 +765,7 @@ class CAIActionTaunt extends CAINpcActionSubtree
 	}
 };
 
-
+// rain
 class CAIActionRain extends CAINpcActionSubtree
 {
 	function Init()
@@ -742,7 +785,7 @@ class CAIActionRain extends CAINpcActionSubtree
 	}
 };
 
-
+// Jump
 class CAIActionJump extends CAINpcActionSubtree
 {
 	function Init()
@@ -761,7 +804,7 @@ class CAIActionJump extends CAINpcActionSubtree
 	}
 };
 
-
+// CombatStarted
 class CAIActionCombatStarted extends CAINpcActionSubtree
 {
 	function Init()
@@ -780,10 +823,10 @@ class CAIActionCombatStarted extends CAINpcActionSubtree
 };
 
 
+////////////////////////////////////////////////////
+// hard-soft reacitons
 
-
-
-
+// Gossip
 class CAIActionGossip extends CAINpcActionSubtree
 {
 	default aiTreeName = "resdef:ai\reactions\reaction_gossip_scene";
@@ -801,7 +844,7 @@ class CAIActionGossip extends CAINpcActionSubtree
 	}
 };
 
-
+// Question
 class CAIActionQuestion extends CAINpcActionSubtree
 {
 	default aiTreeName = "resdef:ai\reactions\reaction_question_scene";
@@ -819,7 +862,7 @@ class CAIActionQuestion extends CAINpcActionSubtree
 	}
 };
 
-
+// Greeting
 class CAIActionGreeting extends CAINpcActionSubtree
 {
 	default aiTreeName = "resdef:ai\reactions\reaction_greeting_scene";
@@ -837,7 +880,7 @@ class CAIActionGreeting extends CAINpcActionSubtree
 	}
 };
 
-
+// Greeting
 class CAIActionBarter extends CAINpcActionSubtree
 {
 	default aiTreeName = "resdef:ai\reactions\reaction_scene_barter";
@@ -855,7 +898,7 @@ class CAIActionBarter extends CAINpcActionSubtree
 	}
 };
 
-
+// PlayerPresence
 class CAIActionPlayerPresence extends CAINpcActionSubtree
 {
 	function Init()
@@ -864,7 +907,7 @@ class CAIActionPlayerPresence extends CAINpcActionSubtree
 		reactionLogicTree.OnCreated();
 		reactionLogicTree.voiceSet = "reaction_to_geralt";
 		
-		reactionPriority = 20; 
+		reactionPriority = 20; //less important then WORK
 		actionEventName = 'PlayerPresenceAction';
 		actionCooldownDistance = 0;
 		actionCooldownTimeout = 10;
@@ -876,7 +919,7 @@ class CAIActionPlayerPresence extends CAINpcActionSubtree
 	}
 };
 
-
+// QuestPlayerPresence
 class CAIQuestActionPlayerPresence extends CAIActionPlayerPresence
 {
 	function Init()
@@ -885,28 +928,196 @@ class CAIQuestActionPlayerPresence extends CAIActionPlayerPresence
 		((CAINpcReactionStopAndComment)reactionLogicTree).SetParams(100,-1);
 		actionCooldownTimeout = 0;
 	}
-}
+};
 
 
+////////////////////////////////////////////////////
+// custom reactions
 
+// BruxaBeingHit
+class CAIActionBruxaBeingHit extends CAINpcActionSubtree
+{
+	function Init()
+	{
+		reactionLogicTree = new CAINpcReactionBruxaSpawn in this;
+		reactionLogicTree.OnCreated();
+		
+		reactionPriority = 60;
+		actionEventName = 'BeingHitAction';
+		actionCooldownDistance = 0;
+		actionCooldownTimeout = 0;
+		disallowWhileOnHorse = false;
+		changePriorityWhileActive = true;
+		reactionPriorityWhileActive = 95;
+	}
+};
+// BruxaDrawSword
+class CAIActionBruxaDrawSword extends CAINpcActionSubtree
+{
+	function Init()
+	{
+		reactionLogicTree = new CAINpcReactionBruxaSpawn in this;
+		reactionLogicTree.OnCreated();
+		
+		reactionPriority = 24;
+		actionEventName = 'DrawSwordAction';
+		actionCooldownDistance = 0;
+		actionCooldownTimeout = 0.5;
+		actionFailedCooldown = 2.f;
+		changePriorityWhileActive = true;
+		reactionPriorityWhileActive = 95;
+	}
+};
 
+// BruxaAttack
+class CAIActionBruxaAttack extends CAINpcActionSubtree
+{
+	function Init()
+	{
+		reactionLogicTree = new CAINpcReactionBruxaSpawn in this;
+		reactionLogicTree.OnCreated();
+		
+		reactionPriority = 55;
+		actionEventName = 'AttackAction';
+		actionCooldownDistance = 0;
+		actionCooldownTimeout = 0.5f;
+		actionFailedCooldown = 2.f;
+		changePriorityWhileActive = true;
+		reactionPriorityWhileActive = 95;
+	}
+};
 
+// BruxaAttack
+class CAIActionBruxaFriendlyAttackAction extends CAINpcActionSubtree
+{
+	function Init()
+	{
+		reactionLogicTree = new CAINpcReactionBruxaSpawn in this;
+		reactionLogicTree.OnCreated();
+		
+		reactionPriority = 55;
+		actionEventName = 'FriendlyAttackAction';
+		actionCooldownDistance = 0;
+		actionCooldownTimeout = 0.5f;
+		actionFailedCooldown = 2.f;
+		changePriorityWhileActive = true;
+		reactionPriorityWhileActive = 95;
+	}
+};
 
+// BruxaCastSign
+class CAIActionBruxaCastSign extends CAINpcActionSubtree
+{
+	function Init()
+	{
+		reactionLogicTree = new CAINpcReactionBruxaSpawn in this;
+		reactionLogicTree.OnCreated();
+		
+		reactionPriority = 55;
+		actionEventName = 'CastSignActionFar';
+		actionCooldownDistance = 0;
+		actionCooldownTimeout = 0.5f;
+		actionFailedCooldown = 2.f;
+		changePriorityWhileActive = true;
+		reactionPriorityWhileActive = 95;
+	}
+};
 
+// BruxaCrossbowShot
+class CAIActionBruxaCrossbowShot extends CAINpcActionSubtree
+{
+	function Init()
+	{
+		reactionLogicTree = new CAINpcReactionBruxaSpawn in this;
+		reactionLogicTree.OnCreated();
+		
+		reactionPriority = 24;
+		actionEventName = 'CrossbowShotAction';
+		actionCooldownDistance = 0;
+		actionCooldownTimeout = 0.5f;
+		actionFailedCooldown = 2.f;
+		changePriorityWhileActive = true;
+		reactionPriorityWhileActive = 95;
+	}
+};
 
+// BruxaBombExplosion
+class CAIActionBruxaBombExplosion extends CAINpcActionSubtree
+{
+	function Init()
+	{
+		reactionLogicTree = new CAINpcReactionBruxaSpawn in this;
+		reactionLogicTree.OnCreated();
+		
+		reactionPriority = 56;
+		actionEventName = 'BombExplosionAction';
+		actionCooldownDistance = 0;
+		actionCooldownTimeout = 0;
+		changePriorityWhileActive = true;
+		reactionPriorityWhileActive = 95;
+	}
+};
 
+// BruxaPlayerPresence
+class CAIActionBruxaPlayerPresence extends CAINpcActionSubtree
+{
+	function Init()
+	{
+		reactionLogicTree = new CAINpcReactionBruxaSpawn in this;
+		reactionLogicTree.OnCreated();
+		
+		reactionPriority = 20; //less important then WORK
+		actionEventName = 'PlayerPresenceAction';
+		actionCooldownDistance = 0;
+		actionCooldownTimeout = 20;
+		forwardAvailabilityToReactionTree = true;
+		changePriorityWhileActive = true;
+		reactionPriorityWhileActive = 95;
+		
+		disableTalkInteraction = false;
+	}
+};
 
+// BruxaPlayerPresence
+class CAIActionBruxaPlayerPresenceForced extends CAINpcActionSubtree
+{
+	function Init()
+	{
+		reactionLogicTree = new CAINpcReactionBruxaSpawn in this;
+		reactionLogicTree.OnCreated();
+		
+		reactionPriority = 100;
+		actionEventName = 'ForceBruxaSpawn';
+		actionCooldownDistance = 0;
+		actionCooldownTimeout = 20;
+		forwardAvailabilityToReactionTree = true;
+		changePriorityWhileActive = true;
+		reactionPriorityWhileActive = 95;
+		
+		disableTalkInteraction = false;
+	}
+};
 
-
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// REACTIONS:
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// - GetScared
+// - StopAndComment
+// - JoinFight
+// - TurnHostile
+// - GuardWarn
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Base Reaction
 class CAINpcReaction extends CAISubTree
 {
 	editable var voiceSet : string;
 };
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
+// GetScared
 class CAINpcReactionGetScared extends CAINpcReaction
 {
 	default aiTreeName = "resdef:ai\reactions/reaction_get_scared";
@@ -929,13 +1140,13 @@ class CAINpcReactionGetScared extends CAINpcReaction
 	}
 };
 
-
+// GetScared
 class CAINpcReactionTaunt extends CAINpcReaction
 {
 	default aiTreeName = "resdef:ai\reactions/reaction_taunt";
 };
 
-
+// StopAndComment
 class CAINpcReactionStopAndComment extends CAINpcReaction
 {
 	default aiTreeName = "resdef:ai\reactions/reaction_stop_and_comment";
@@ -951,7 +1162,7 @@ class CAINpcReactionStopAndComment extends CAINpcReaction
 	}
 };
 
-
+// Surprise
 class CAINpcReactionSurprise extends CAINpcReaction
 {
 	default aiTreeName = "resdef:ai\reactions/reaction_surprise";
@@ -964,7 +1175,7 @@ class CAINpcReactionSurprise extends CAINpcReaction
 	}
 };
  
-
+// JoinFight
 class CAINpcReactionJoinFight extends CAINpcReaction
 {
 	default aiTreeName = "resdef:ai\reactions\reaction_join_fight";
@@ -976,7 +1187,7 @@ class CAINpcReactionJoinFight extends CAINpcReaction
 	}
 };
 
-
+// ObserveFight
 class CAINpcReactionObserveFight extends CAINpcReaction
 {
 	default aiTreeName = "resdef:ai\reactions\reaction_observe_fight";
@@ -989,7 +1200,7 @@ class CAINpcReactionObserveFight extends CAINpcReaction
 	}
 };
 
-
+// TurnHostile
 class CAINpcReactionTurnHostile extends CAINpcReaction
 {
 	default aiTreeName = "resdef:ai\reactions/reaction_turn_hostile";
@@ -1001,13 +1212,13 @@ class CAINpcReactionTurnHostile extends CAINpcReaction
 	}
 };
 
-
+// GuardWarn
 class CAINpcReactionGuardWarnSword extends CAINpcReaction
 {
 	default aiTreeName = "resdef:ai\reactions/reaction_guard_warn_sword";
 };
 
-
+// GuardLooting
 class CAINpcReactionGuardWarnGeneral extends CAINpcReaction
 {
 	default aiTreeName = "resdef:ai\reactions\reaction_guard_warn_general";
@@ -1020,14 +1231,14 @@ class CAINpcReactionGuardWarnGeneral extends CAINpcReaction
 	}
 };
 
-
+// Bump Reaction
 class CAINpcReactionBump extends CAINpcReaction
 {
 	default aiTreeName = "resdef:ai\reactions/reaction_bump";
 };
 
 
-
+// Rain Reaction
 class CAINpcReactionRain extends CAINpcReaction
 {
 	default aiTreeName = "resdef:ai\reactions/reaction_rain";
@@ -1041,12 +1252,25 @@ class CAINpcReactionRain extends CAINpcReaction
 		actionPointSelector.radius 			= 30;
 		actionPointSelector.chooseClosestAP = true;
 	}
-	
 };
 
+// BruxaSpawn
+class CAINpcReactionBruxaSpawn extends CAINpcReaction
+{
+	default aiTreeName = "dlc\bob\data\gameplay\trees\reaction_bruxa_spawn.w2behtree";
+	
+	editable var activationChance 		: int;		default activationChance = 100;
+	editable var distanceToInterrupt	: int;		default distanceToInterrupt = 15.f;
+	
+	function SetParams( _activationChance : int, _stopDuration : float )
+	{
+		activationChance = _activationChance;
+	}
+};
 
-
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// SCARED BRANCH:
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 abstract class CAIScaredSubTree extends CAISubTree
 {
@@ -1084,7 +1308,51 @@ class CAIRunOnlyScaredTree extends CAIScaredSubTree
 
 
 
+/* OLD STUFF
+class CAIScaredReactionTree extends CAISubTree
+{
+	default aiTreeName = "resdef:ai\reactions/npc_scared_reaction";
+}
 
+// Help
+class CAIActionHelp extends CAINpcActionSubtree
+{
+	function Init()
+	{
+		super.Init();
+		params = new CAINpcActionSubtreeParams in this;
+		params.OnCreated();
+		params.actionEventName = 'HelpAction';
+		params.reactionPriority = 100;
+		params.actionCooldownDistance = 5;
+		params.actionCooldownTimeout = 0.1;
+		params.reactionLogicTree = new CAINpcReactionGuardApproachAndHelp in this;
+		params.reactionLogicTree.OnCreated();
+		params.reactionLogicTree.params.voiceSet = "";
+	}
+};
+
+// Call Reinforcements
+class CAIActionCallReinforcements extends CAINpcActionSubtree
+{
+	function Init()
+	{
+		super.Init();
+		params = new CAINpcActionSubtreeParams in this;
+		params.OnCreated();
+		params.actionEventName = 'CallReinforcementsAction';
+		params.reactionPriority = 100;
+		params.actionCooldownDistance = 5;
+		params.actionCooldownTimeout = 0.1;
+		params.reactionLogicTree = new CAINpcReactionGuardApproachAndHelp in this;
+		params.reactionLogicTree.OnCreated();
+		params.reactionLogicTree.params.voiceSet = "";
+	}
+};
+
+
+
+*/
 
 
 

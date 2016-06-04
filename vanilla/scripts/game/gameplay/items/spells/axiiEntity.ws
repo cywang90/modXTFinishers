@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-struct SAxiiEffects
+﻿struct SAxiiEffects
 {
 	editable var castEffect		: name;
 	editable var throwEffect	: name;
@@ -101,14 +96,14 @@ statemachine class W3AxiiEntity extends W3SignEntity
 		}		
 	}
 	
-	
+	//PF: I know that this is hacky hack, but the time has come!
 	function OnHorseStarted()
 	{
 		Attach(true);
 		PlayEffect( effects[fireMode].castEffect );
 	}
 	
-	
+	//Checks if actor is a valid Axii target
 	private final function IsTargetValid(actor : CActor, isAdditionalTarget : bool) : bool
 	{
 		var npc : CNewNPC;
@@ -124,7 +119,7 @@ statemachine class W3AxiiEntity extends W3SignEntity
 				
 		attitude = GetAttitudeBetween(owner.GetActor(), actor);
 		
-		
+		//if using channeled axii then additional targets are not taken into consideration unless hostile
 		if(isAdditionalTarget && attitude != AIA_Hostile)
 			return false;
 		
@@ -133,18 +128,18 @@ statemachine class W3AxiiEntity extends W3SignEntity
 	
 		if(attitude == AIA_Friendly)
 		{
-			
+			//friendlies axiiable only if they have axiiable tag
 			if(npc.GetNPCType() == ENGT_Quest && !actor.HasTag(theGame.params.TAG_AXIIABLE_LOWER_CASE) && !actor.HasTag(theGame.params.TAG_AXIIABLE))
 				return false;
 		}
 					
-		
+		//exclude mounted horse, unless it's owner's horse
 		if(npc)
 		{
 			horse = npc.GetHorseComponent();				
-			if(horse && !horse.IsDismounted())	
+			if(horse && !horse.IsDismounted())	//mounted horse
 			{
-				if(horse.GetCurrentUser() != owner.GetActor())	
+				if(horse.GetCurrentUser() != owner.GetActor())	//mounted by other than sign owner
 					return false;
 			}
 		}
@@ -180,18 +175,18 @@ statemachine class W3AxiiEntity extends W3SignEntity
 		ownerActor = owner.GetActor();
 		ownerPos = ownerActor.GetWorldPosition();
 		
-		
+		//add remaining targets
 		actors = ownerActor.GetNPCsAndPlayersInCone(15, VecHeading(ownerActor.GetHeadingVector()), 120, 20, , FLAG_OnlyAliveActors + FLAG_TestLineOfSight);
 					
-		
+		//filter out invalid targets
 		for(i=actors.Size()-1; i>=0; i-=1)
 		{
-			
+			//remove self, slideTarget (already checked) and invalid targets
 			if(ownerActor == actors[i] || actor == actors[i] || !IsTargetValid(actors[i], true))
 				actors.Erase(i);
 		}
 		
-		
+		//sort targets by distance
 		if(actors.Size() > 0)
 			finalActors.PushBack(actors[0]);
 					
@@ -206,12 +201,12 @@ statemachine class W3AxiiEntity extends W3SignEntity
 				}
 			}
 			
-			
+			//if not inserted
 			if(j == finalActors.Size())
 				finalActors.PushBack(actors[i]);
 		}
 		
-		
+		//select final targets by distance
 		if(finalActors.Size() > 0)
 		{
 			for(i=0; i<projCount; i+=1)
@@ -219,7 +214,7 @@ statemachine class W3AxiiEntity extends W3SignEntity
 				if(finalActors[i])
 					targets.PushBack(finalActors[i]);
 				else
-					break;	
+					break;	//no more targets found
 			}
 		}
 	}
@@ -231,18 +226,18 @@ statemachine class W3AxiiEntity extends W3SignEntity
 		var spawnPos : Vector;
 		var spawnRot : EulerAngles;		
 		
-		
-		
+		// should select target first before releasing, because you can change target in the middle of the channel
+		//SelectTargets();
 				
-		
+		// set spawning position
 		spawnPos = GetWorldPosition();
 		spawnRot = GetWorldRotation();
 		
-		
+		// play effects		
 		StopEffect( effects[fireMode].castEffect );
 		PlayEffect('axii_sign_push');
 		
-		
+		//projectiles - they do only visuals!
 		for(i=0; i<targets.Size(); i+=1)
 		{
 			proj = (W3AxiiProjectile)theGame.CreateEntity( projTemplate, spawnPos, spawnRot );
@@ -269,13 +264,13 @@ statemachine class W3AxiiEntity extends W3SignEntity
 		ProcessThrow();
 		StopEffect(effects[fireMode].throwEffect);
 		
-		
+		//remove immobilize from targets
 		for(i=0; i<targets.Size(); i+=1)
 		{
 			RemoveMagic17Effect(targets[i]);
 		}
 		
-		
+		//also from orienttation target if targets were not set yet
 		RemoveMagic17Effect(orientationTarget);
 				
 		if(IsAlternateCast())
@@ -286,27 +281,27 @@ statemachine class W3AxiiEntity extends W3SignEntity
 		
 		if (targets.Size() > 0 )
 		{
-			
+			//base duration
 			duration = thePlayer.GetSkillAttributeValue(skillEnum, 'duration', false, true);
 			durationAnimal = thePlayer.GetSkillAttributeValue(skillEnum, 'duration_animals', false, true);
 			
 			duration.valueMultiplicative = 1.0f;
 			durationAnimal.valueMultiplicative = 1.0f;
 			
-			
-			
-			
+			//spell power bonus
+			//duration += casterActor.GetTotalSignSpellPower(skillEnum);
+			//durationAnimal += casterActor.GetTotalSignSpellPower(skillEnum);
 			if(owner.CanUseSkill(S_Magic_s19))
 			{
 				duration -= owner.GetSkillAttributeValue(S_Magic_s19, 'duration', false, true) * (3 - owner.GetSkillLevel(S_Magic_s19));
 				durationAnimal -= owner.GetSkillAttributeValue(S_Magic_s19, 'duration', false, true) * (3 - owner.GetSkillLevel(S_Magic_s19));
 			}
 			
-			
+			//final
 			dur = CalculateAttributeValue(duration);
 			durAnimals = CalculateAttributeValue(durationAnimal);
 			
-			
+			//params			
 			params.creator = casterActor;
 			params.sourceName = "axii_" + skillEnum;			
 			params.customPowerStatValue = casterActor.GetTotalSignSpellPower(skillEnum);
@@ -316,7 +311,7 @@ statemachine class W3AxiiEntity extends W3SignEntity
 			{
 				npcTarget = (CNewNPC)targets[i];
 				
-				
+				//different duration for animal targets and horses
 				if( targets[i].IsAnimal() || npcTarget.IsHorse() )
 				{
 					params.duration = durAnimals;
@@ -332,7 +327,7 @@ statemachine class W3AxiiEntity extends W3SignEntity
 				{
 					params.effectType = EET_AxiiGuardMe;
 				}
-				
+				//set buff for alternate mode depending on friendly or not
 				else if(IsAlternateCast() && owner.GetActor() == thePlayer && GetAttitudeBetween(targets[i], owner.GetActor()) == AIA_Friendly)
 				{
 					params.effectType = EET_Confusion;
@@ -342,7 +337,7 @@ statemachine class W3AxiiEntity extends W3SignEntity
 					params.effectType = actionBuffs[0].effectType;
 				}
 			
-				
+				//remove immobilize first
 				RemoveMagic17Effect(targets[i]);
 			
 				buff = targets[i].AddEffectCustom(params);
@@ -358,17 +353,17 @@ statemachine class W3AxiiEntity extends W3SignEntity
 				}
 				else
 				{
-					
+					//stagger if level 3 expression
 					if(owner.CanUseSkill(S_Magic_s17) && owner.GetSkillLevel(S_Magic_s17) == 3)
 					{
 						staggerParams = params;
 						staggerParams.effectType = EET_Stagger;
-						params.duration = 0;	
+						params.duration = 0;	//use default
 						targets[i].AddEffectCustom(staggerParams);					
 					}
 					else
 					{
-						
+						//cast resisted
 						owner.GetActor().SetBehaviorVariable( 'axiiResisted', 1.f );
 					}
 				}
@@ -386,7 +381,7 @@ statemachine class W3AxiiEntity extends W3SignEntity
 		super.OnSignAborted(force);
 	}
 	
-	
+	//because OnSignAborted is called from several different places in different circumstances and it is no longer a valid way of aborting sign
 	public function HAXX_AXII_ABORTED()
 	{
 		var i : int;
@@ -398,12 +393,12 @@ statemachine class W3AxiiEntity extends W3SignEntity
 		RemoveMagic17Effect(orientationTarget);
 	}
 	
-	
+	//called when display target changes
 	public function OnDisplayTargetChange(newTarget : CActor)
 	{
 		var buffParams : SCustomEffectParams;
 	
-		
+		//noskill
 		if(!owner.CanUseSkill(S_Magic_s17) || owner.GetSkillLevel(S_Magic_s17) == 0)
 			return;
 	 
@@ -444,26 +439,23 @@ state AxiiCast in W3AxiiEntity extends NormalCast
 {
 	event OnEnded(optional isEnd : bool)
 	{
-		var player : CR4Player;
-		var cost, stamina : float;
+		var player			: CR4Player;
 		
-		
+		//because signs are using parent instead of virtual_parent all over the place
 		parent.OnEnded(isEnd);
 		super.OnEnded(isEnd);
 			
 		player = caster.GetPlayer();
-		if(player == caster.GetActor() && player && player.CanUseSkill(S_Perk_09))
+		
+		if( player )
 		{
-			cost = player.GetStaminaActionCost(ESAT_Ability, SkillEnumToName( parent.skillEnum ), 0);
-			stamina = player.GetStat(BCS_Stamina, true);
-			
-			if(cost > stamina)
-				player.DrainFocus(1);
-			else
-				caster.GetActor().DrainStamina( ESAT_Ability, 0, 0, SkillEnumToName( parent.skillEnum ) );
+			parent.ManagePlayerStamina();
+			parent.ManageGryphonSetBonusBuff();
 		}
 		else
+		{
 			caster.GetActor().DrainStamina( ESAT_Ability, 0, 0, SkillEnumToName( parent.skillEnum ) );
+		}
 	}
 	
 	event OnEnterState( prevStateName : name )
@@ -476,7 +468,7 @@ state AxiiCast in W3AxiiEntity extends NormalCast
 	{
 		if( super.OnThrowing() )
 		{
-			
+			//parent.BreakAttachment();
 			caster.GetActor().SetBehaviorVariable( 'bStopSign', 1.f );
 		}
 	}
@@ -495,7 +487,7 @@ state AxiiChanneled in W3AxiiEntity extends Channeling
 {
 	event OnEnded(optional isEnd : bool)
 	{
-		
+		//because signs are using parent instead of virtual_parent all over the place
 		parent.OnEnded(isEnd);
 		super.OnEnded(isEnd);
 	}
@@ -512,8 +504,8 @@ state AxiiChanneled in W3AxiiEntity extends Channeling
 	{
 		if( eventName == 'axii_alternate_ready' )
 		{
-			
-			
+			//parent.BreakAttachment();
+			// It is never used... oh well
 		}
 		else
 		{

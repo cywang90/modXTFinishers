@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-class CBTTaskHasAbility extends IBehTreeTask
+﻿class CBTTaskHasAbility extends IBehTreeTask
 {
 	var abilityName : name;
 	var behVariableName : name;
@@ -39,7 +34,7 @@ class CBTTaskHasAbility extends IBehTreeTask
 			}
 			return true;
 		}
-		else if( failAnim && npc.IsAbilityBlocked(abilityName) )
+		else if( failAnim && npc.IsAbilityBlocked(abilityName) )//&& !turnOffOnDeactivate)
 		{
 			turnOffOnDeactivate = true;
 			return true;

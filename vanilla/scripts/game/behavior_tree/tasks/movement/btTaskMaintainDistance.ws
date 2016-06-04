@@ -1,23 +1,18 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
-
-
-
-
-
-
-
-
+﻿//>--------------------------------------------------------------------------
+// BTTaskMaintainDistance
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Uses the movement adjustor to keep the same distance to the target
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// R.Pergent - DD-Month-2015
+// Copyright © 2015 CD Projekt RED
+//---------------------------------------------------------------------------
 class BTTaskMaintainDistance extends IBehTreeTask
 {
-	
-	
-	
+	//>----------------------------------------------------------------------
+	// VARIABLES
+	//-----------------------------------------------------------------------
 	public var minDistance 			: float;
 	public var maxDistance			: float;
 	public var faceTarget			: bool;	
@@ -26,8 +21,8 @@ class BTTaskMaintainDistance extends IBehTreeTask
 	
 	private var m_Npc 				: CNewNPC;
 	
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	latent function Main() : EBTNodeStatus
 	{
 		var l_target			: CNode;
@@ -56,8 +51,8 @@ class BTTaskMaintainDistance extends IBehTreeTask
 		return BTNS_Active;
 	}
 	
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	private latent function SlideToTarget( optional duration : float )
 	{
 		var l_movementAdjustor	: CMovementAdjustor;
@@ -83,7 +78,7 @@ class BTTaskMaintainDistance extends IBehTreeTask
 		if( duration > 0 )
 		{
 			l_movementAdjustor.AdjustmentDuration( l_ticketDistance, duration );
-			
+			//l_movementAdjustor.BlendIn( l_ticketDistance, duration );
 		}
 		
 		l_movementAdjustor.SlideTowards(  l_ticketDistance , l_target, minDistance, maxDistance );
@@ -92,21 +87,21 @@ class BTTaskMaintainDistance extends IBehTreeTask
 		{
 			l_movementAdjustor.MaxRotationAdjustmentSpeed( l_ticketRotation, 1000000.f );
 			
-			
-			
+			// when it starts (also in the middle - it may mean that we switch between events)
+			// create request if there isn't any and always setup rotation rate
 			if ( !l_movementAdjustor.IsRequestActive( l_movementAdjustor.GetRequest( 'RotateToTarget' ) ) )
 			{
-				
+				// start rotation adjustment
 				l_ticketRotation = l_movementAdjustor.CreateNewRequest( 'RotateToTarget' );
 				
-				
+				// duration should never be set to 0 (it looks bad)
 				l_movementAdjustor.AdjustmentDuration( l_ticketRotation, 0.2f );
 				
-				
+				//l_movementAdjustor.DontUseSourceAnimation( l_ticketRotation ); // do not use source anim as it will use delta seconds from event
 			}
 			else
 			{
-				
+				// get existing ticket to update rotation rate
 				l_ticketRotation = l_movementAdjustor.GetRequest( 'RotateToTarget' );
 			}
 			
@@ -124,8 +119,8 @@ class BTTaskMaintainDistance extends IBehTreeTask
 
 }
 
-
-
+//>--------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 class BTTaskMaintainDistanceDef extends IBehTreeTaskDefinition
 {
 	default instanceClass = 'BTTaskMaintainDistance';

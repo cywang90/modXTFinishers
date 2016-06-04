@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-class CToadAcidPool extends CInteractiveEntity
+﻿class CToadAcidPool extends CInteractiveEntity
 {
 	editable var poisonDamage		: SAbilityAttributeValue;
 	editable var fxOnSpawn			: name;
@@ -138,7 +133,7 @@ class CToadAcidPool extends CInteractiveEntity
 			PlayEffect( 'toxic_gas_explosion' );
 			GCameraShake( 1.5, true, GetWorldPosition(), 20.0f );
 			
-			
+			//Change to another target if player is locked to barrel upon exploding
 			if ( thePlayer.IsCameraLockedToTarget() && thePlayer.GetDisplayTarget() == this )
 			{
 				thePlayer.OnForceSelectLockTarget();

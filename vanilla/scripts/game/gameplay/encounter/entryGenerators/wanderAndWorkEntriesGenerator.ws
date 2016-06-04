@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
+﻿
 
 struct SWanderWorkCetegoriesForCreatureDefinitionEntryGeneratorParam
 {
@@ -11,7 +6,7 @@ struct SWanderWorkCetegoriesForCreatureDefinitionEntryGeneratorParam
 	editable var categories			: array< SEncounterActionPointSelectorPairScr >;
 }
 
-
+//common 
 struct SWanderAndWorkEntryGeneratorCommon
 {
 	editable inlined var wanderParams 	: CAINpcHistoryWanderParams;
@@ -19,7 +14,7 @@ struct SWanderAndWorkEntryGeneratorCommon
 	editable var delay			: float;
 }
 
-
+//specyfic
 import struct SWanderAndWorkEntryGeneratorParams
 {
 	import editable var creatureEntry 	: SCreatureEntryEntryGeneratorNodeParam;
@@ -27,7 +22,7 @@ import struct SWanderAndWorkEntryGeneratorParams
 	import editable var work			: SWorkWanderSmartAIEntryGeneratorParam;
 }
 
-
+//specyfic
 import struct SWanderHistoryEntryGeneratorParams
 {
 	import editable var wanderPointsGroupTag 	: name;
@@ -92,12 +87,12 @@ import class CWanderAndWorkEntryGenerator extends CSpawnTreeBaseEntryGenerator
 		
 		params = (( CAINpcActiveIdle ) init.ai.idleTree ).params;
 		
-		
+		//wander
 		wanderTree 	= ( CAIWanderWithHistory ) params.wanderTree;				
 		wanderTree.params = commmonWaW.wanderParams;
 		wanderTree.params.wanderPointsGroupTag = cfg.wander.wanderPointsGroupTag;
 		
-		
+		//work
 		workTree = params.workTree;
 		sel 	= ( CWanderActionPointSelector ) workTree.actionPointSelector;
 		

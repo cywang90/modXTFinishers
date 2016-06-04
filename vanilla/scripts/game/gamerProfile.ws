@@ -1,19 +1,17 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file
+/***********************************************************************/
+/** Copyright © 2014
+/** Author :	 Tomek Kozera
 /***********************************************************************/
 
-
-
-
-
-
+//Handles gamer profile. Should use proper API on platforms such as XBOX, PS, Steam and our 
+//custom implementation on GOG
 
 class W3GamerProfile
 {
 	private var statistics : array<SStatistic>;
-	private var achievementDefinitions : array<SAchievement>;				
+	private var achievementDefinitions : array<SAchievement>;				//cached from XML achievement data
 	
 	public function AddAchievement(a : EAchievement)
 	{
@@ -21,7 +19,7 @@ class W3GamerProfile
 		LogAchievements("Achievement <<" + a + ">> unlocked!");
 	}
 	
-	
+	//Initializes the object
 	public function Init()
 	{
 		LoadXMLAchievementData();
@@ -29,10 +27,10 @@ class W3GamerProfile
 		RegisterAchievements();
 	}
 		
-	
+	//Sets up all statistics
 	public function InitStats()
 	{
-		
+		//gameplay
 		InitStat(ES_CharmedNPCKills);
 		InitStat(ES_AardFallKills);
 		InitStat(ES_EnvironmentKills);
@@ -52,10 +50,10 @@ class W3GamerProfile
 		InitStat(ES_SlideTime);
 	}
 	
-	
+	//Registers achievements to listen to stats
 	private function RegisterAchievements()
 	{
-		
+		//gameplay
 		RegisterAchievement(ES_CharmedNPCKills, EA_EnemyOfMyFriend);
 		RegisterAchievement(ES_AardFallKills, EA_FusSthSth);
 		RegisterAchievement(ES_EnvironmentKills, EA_EnvironmentUnfriendly);
@@ -88,17 +86,17 @@ class W3GamerProfile
 
 		for(i=0; i<main.subNodes.Size(); i+=1)
 		{
-			
+			//if XML def has no name ignore
 			if(!dm.GetCustomNodeAttributeValueName(main.subNodes[i], 'name_name', tmpName))
 				continue;
 				
 			achievement.type = AchievementNameToEnum(tmpName);
 			
-			
+			//if unknown achievement type
 			if(achievement.type == EA_Undefined)
 				continue;
 				
-			
+			//ok, get the required value
 			if(dm.GetCustomNodeAttributeValueInt(main.subNodes[i], 'requiredValue', tmpInt))
 				achievement.requiredValue = tmpInt;
 						
@@ -136,7 +134,7 @@ class W3GamerProfile
 		if(!witcher)
 			return;
 		
-		
+		//check mutagen skills
 		if(!witcher.IsAnyItemEquippedOnSlot(EES_SkillMutagen4))
 			return;
 		if(!witcher.IsAnyItemEquippedOnSlot(EES_SkillMutagen3))
@@ -149,11 +147,11 @@ class W3GamerProfile
 		AddAchievement(EA_TrialOfGrasses);
 	}
 		
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////  INT  ///////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
-	
-	
+	//Resets given stat to 0
 	public function ResetStat(statEnum : EStatistic)
 	{
 		var i, idx : int;
@@ -179,7 +177,7 @@ class W3GamerProfile
 		return FactsQuerySum(StatisticEnumToName(statEnum));
 	}
 	
-	
+	//Increases given int statistic
 	public function IncStat(statEnum : EStatistic)
 	{
 		var idx : int;
@@ -192,7 +190,7 @@ class W3GamerProfile
 		CheckProgress(statEnum);
 	}
 	
-	
+	//Increases given int statistic
 	public function SetStat(statEnum : EStatistic, val : int)
 	{
 		var idx : int;
@@ -205,7 +203,7 @@ class W3GamerProfile
 		CheckProgress(statEnum);
 	}
 	
-	
+	//Decreases given int statistic
 	public function DecStat(statEnum : EStatistic)
 	{
 		var idx : int;
@@ -217,7 +215,7 @@ class W3GamerProfile
 		FactsSubstract(StatisticEnumToName(statEnum), 1);
 	}
 	
-	
+	//checks given stat for perk & achievement progress
 	private function CheckProgress(statEnum : EStatistic)
 	{
 		var i, idx : int;
@@ -229,15 +227,15 @@ class W3GamerProfile
 		statName = StatisticEnumToName(statEnum);
 		currStatVal = FactsQuerySum(statName);
 		
-		
+		//check achievements
 		for(i=statistics[idx].registeredAchievements.Size()-1; i>=0; i-=1)
 		{
 			achievementType = statistics[idx].registeredAchievements[i].type;
 			
-			
+			//if statistic value reached or exceeded
 			if(statistics[idx].registeredAchievements[i].requiredValue <= currStatVal)
 			{
-				
+				//add achievement
 				AddAchievement(achievementType);
 			}
 		}		
@@ -251,7 +249,7 @@ class W3GamerProfile
 			CheckProgress( statistics[i].statType );
 	}
 	
-	
+	//Gets index of given int statistic object
 	private function GetStatisticIndex(statEnum : EStatistic) : int
 	{
 		var i : int;
@@ -265,7 +263,7 @@ class W3GamerProfile
 		return -1;
 	}
 		
-	
+	//Registers achievement to listen to given int stat
 	private function RegisterAchievement(statEnum : EStatistic, ac : EAchievement)
 	{
 		var idx, aInd : int;
@@ -286,12 +284,12 @@ class W3GamerProfile
 		statistics[idx].registeredAchievements.PushBack(achievementDefinitions[aInd]);
 	}
 	
-	
+	//Sets up statistic of int type, also called on game load
 	private function InitStat(statEnum : EStatistic)
 	{
 		var stat : SStatistic;
 	
-		if(FactsQuerySum(StatisticEnumToName(statEnum)) == -1)	
+		if(FactsQuerySum(StatisticEnumToName(statEnum)) == -1)	//not tracked anymore
 			return;
 		
 		stat.statType = statEnum;
@@ -309,7 +307,7 @@ class W3GamerProfile
 			theGame.LockAchievement(unlockedAchievments[i]);
 		}
 		
-		
+		//clear progress
 		SetStat(ES_CharmedNPCKills, 0);
 		SetStat(ES_AardFallKills, 0);
 		SetStat(ES_EnvironmentKills, 0);
@@ -320,6 +318,18 @@ class W3GamerProfile
 		SetStat(ES_FundamentalsFirstKills, 0);
 		SetStat(ES_ReadBooks, 0);
 		SetStat(ES_DestroyedNests, 0);
+	}
+	
+	public final function ClearAllAchievementsForEP2()
+	{
+		//same as for EP1
+		ClearAllAchievementsForEP1();
+		
+		//also clear progress of EP1 achievements
+		SetStat( ES_SelfArrowKills, 0 );
+		SetStat( ES_ActivePotions, 0 );
+		SetStat( ES_KilledCows, 0 );
+		SetStat( ES_SlideTime, 0 );
 	}
 	
 	public final function Debug_PrintAchievements()
@@ -334,7 +344,7 @@ class W3GamerProfile
 		LogAchievements("");
 		LogAchievements("Printing current achievements' status:");
 		
-		
+		//print the ones based on stats
 		for(i=0; i<statistics.Size(); i+=1)
 		{
 			for(j=0; j<statistics[i].registeredAchievements.Size(); j+=1)
@@ -345,13 +355,13 @@ class W3GamerProfile
 			}
 		}
 		
-		
+		//Explorer - find 100 FT, missing points
 		foundFTs = theGame.GetCommonMapManager().GetFastTravelPoints(true, false, false, true, true);
 		allFTs = theGame.GetCommonMapManager().GetFastTravelPoints(false, false, false, false, true);
 		LogAchievements(EA_Explorer + ", progress: " + foundFTs.Size() + "/100");
 		if(foundFTs.Size() < 100)
 		{
-			
+			//get list of missing FTs
 			for(i=allFTs.Size()-1; i>=0; i-=1)
 			{
 				for(j=0; j<foundFTs.Size(); j+=1)
@@ -364,7 +374,7 @@ class W3GamerProfile
 				}
 			}
 			
-			
+			//get all pins
 			areaMapPins = theGame.GetCommonMapManager().GetAreaMapPins();
 			LogAchievements("");
 			LogAchievements(EA_Explorer + ": missing " + (100 - foundFTs.Size()) + " FT points, coords:");
@@ -373,7 +383,7 @@ class W3GamerProfile
 			{
 				goto = false;
 				
-				
+				//find pin
 				for ( i = 0; i < areaMapPins.Size(); i += 1 )
 				{
 					entityMapPins.Clear();
@@ -393,7 +403,36 @@ class W3GamerProfile
 				}
 			}
 		}
-		
+		/* 
+			debug - print found FTs
+		else
+		{
+			areaMapPins = theGame.GetCommonMapManager().GetAreaMapPins();
+			for(k=0; k<foundFTs.Size(); k+=1)
+			{
+				goto = false;
+				
+				//find pin
+				for ( i = 0; i < areaMapPins.Size(); i += 1 )
+				{
+					entityMapPins.Clear();
+					entityMapPins = theGame.GetCommonMapManager().GetEntityMapPins( areaMapPins[ i ].worldPath );
+					for ( j = 0; j < entityMapPins.Size(); j += 1 )
+					{
+						if(entityMapPins[j].entityType == foundFTs[k].type && entityMapPins[j].entityName == foundFTs[k].tag && areaMapPins[i].areaType == foundFTs[k].area)
+						{
+							LogAchievements( SpaceFill(foundFTs[k].tag,35,ESFM_JustifyLeft) + " in   " + SpaceFill(foundFTs[k].area,30,ESFM_JustifyLeft) + " at:   x=" + SpaceFill(RoundMath(entityMapPins[j].entityPosition.X),5,ESFM_JustifyRight) + ", y=" + SpaceFill(RoundMath(entityMapPins[j].entityPosition.Y),5,ESFM_JustifyRight) + ", z=" + SpaceFill(RoundMath(entityMapPins[j].entityPosition.Z),5,ESFM_JustifyRight) );
+							goto = true;
+							break;
+						}
+					}
+					
+					if(goto)
+						break;
+				}
+			}
+		}
+		*/
 		
 		LogAchievements("");
 	}

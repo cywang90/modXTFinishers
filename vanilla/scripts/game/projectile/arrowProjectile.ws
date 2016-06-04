@@ -1,10 +1,5 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
+﻿//////////////////////////////////////////////////////////////
+// W3ArrowProjectile
 class W3ArrowProjectile extends W3AdvancedProjectile
 {
 	editable 	var defaultTrail 				: name;		default defaultTrail = 'arrow_trail';
@@ -22,10 +17,16 @@ class W3ArrowProjectile extends W3AdvancedProjectile
 	event OnProjectileShot( targetCurrentPosition : Vector, optional target : CNode )
 	{
 		super.OnProjectileShot(targetCurrentPosition,target);
+		
 		if ( !IsNameValid(activeTrail) )
 		{
+			if( ( W3PlayerWitcher ) GetOwner() && GetWitcherPlayer().IsMutationActive( EPMT_Mutation9 ) )
+			{
+				defaultTrail = 'arrow_trail_mutation_9';
+			}
+		
 			ActivateTrail( defaultTrail );
-			
+			//play sound
 			this.SoundEvent( "cmb_arrow_swoosh" );
 		}
 	}
@@ -33,7 +34,7 @@ class W3ArrowProjectile extends W3AdvancedProjectile
 	event OnRangeReached()
 	{
 		StopAllEffects();
-		
+		// If we don't have a timer set (meaning we didnt hit anything), schedule destruction
 		if( !isScheduledForDestruction )
 		{
 			AddTimer( 'TimeDestroy', 2, false );
@@ -41,11 +42,11 @@ class W3ArrowProjectile extends W3AdvancedProjectile
 		}
 	}
 	
-	
+	//----------------- COLLISION EVENT -----------------//
 	
 	event OnProjectileCollision( pos, normal : Vector, collidingComponent : CComponent, hitCollisionsGroups : array< name >, actorIndex : int, shapeIndex : int )
 	{
-		
+		//var victim 		: CGameplayEntity;
 		var actorVictim	: CActor;
 		var casterPos 	: Vector;
 		var parryInfo 	: SParryInfo;
@@ -54,6 +55,11 @@ class W3ArrowProjectile extends W3AdvancedProjectile
 		var abs 		: array<name>;
 		var isRolling	: bool;
 		var template 	: CEntityTemplate;
+		
+		var meshComponent 	: CMeshComponent;
+		var boundingBox 	: Box;
+		var arrowSize 		: Vector;
+		var hitPos 			: Vector;
 		
 		if ( yrdenAlternate )
 		{
@@ -94,12 +100,12 @@ class W3ArrowProjectile extends W3AdvancedProjectile
 			isActive = false;
 			StopActiveTrail();
 			
-			
-			AddTimer('TimeDestroy', 20, false);
+			// override the timer so the arrow is visible for a time period
+			AddTimer('TimeDestroy', 5, false);
 			isScheduledForDestruction = true;
 			
 			
-			arrowHitPos = pos + RotForward( this.GetWorldRotation() ) * 0.5f; 
+			arrowHitPos = pos + RotForward( this.GetWorldRotation() ) * 0.5f; // pierce the ground
 			Teleport( arrowHitPos );
 			
 			this.SoundEvent("cmb_arrow_impact_dirt");
@@ -112,26 +118,43 @@ class W3ArrowProjectile extends W3AdvancedProjectile
 				return false;
 			}
 			
-			
+			//play sound
 			SoundEvent("cmb_arrow_impact_water");
 			
 			CheckIfInfWater();
 			return true;
 		}	
-		else 
+		else //ignore collision
 		{
 			return false;
 		}
 		
-		if ( !actorVictim ) 
+		if ( !actorVictim ) // if not actor;
 		{
 			StopProjectile();
 			isActive = false;
 			StopActiveTrail();
 			
-			AddTimer('TimeDestroy', 20, false);
+			// override the timer so the arrow is visible for a time period
+			AddTimer('TimeDestroy', 5, false);
 			isScheduledForDestruction = true;
 			
+			// If this is bolt move it toward target position
+			if( StrFindFirst( this.GetName(), "bolt" ) != -1 )
+			{
+				// Compute exact pirce position based on component bounding box size
+				meshComponent = (CMeshComponent)GetComponentByClassName('CMeshComponent');
+				if( meshComponent )
+				{
+					boundingBox = meshComponent.GetBoundingBox();
+					arrowSize = boundingBox.Max - boundingBox.Min;
+					
+					hitPos = pos;
+					hitPos -= RotForward(  this.GetWorldRotation() ) * arrowSize.X * 0.7f; // pirce enemy a little
+					
+					Teleport( hitPos );
+				}
+			}
 			
 			ProcessDamageAction(victim, pos, boneName);
 			
@@ -149,10 +172,10 @@ class W3ArrowProjectile extends W3AdvancedProjectile
 			}
 			else if(thePlayer.HasAbility( 'Glyphword 1 _Stats', true ))
 			{
-				
+				//player fx
 				thePlayer.PlayEffect('glyphword_reflection');
 				
-				
+				//arrow fx
 				template = (CEntityTemplate)LoadResource('glyphword_1');
 				theGame.CreateEntity(template, GetWorldPosition(), thePlayer.GetWorldRotation(), , , true);
 			
@@ -177,7 +200,7 @@ class W3ArrowProjectile extends W3AdvancedProjectile
 			}
 			else if(thePlayer.CanParryAttack() && thePlayer.CanUseSkill(S_Sword_s10))
 			{			
-				
+				//player.SetBehaviorVariable( 'combatActionType', (int)CAT_Parry );
 				parryInfo = thePlayer.ProcessParryInfo(((CActor)caster),((CActor)victim),AST_Jab,ASD_NotSet,'attack_light',((CActor)caster).GetInventory().GetItemFromSlot('l_weapon'), true);
 				if ( thePlayer.PerformParryCheck(parryInfo) )
 				{
@@ -202,7 +225,7 @@ class W3ArrowProjectile extends W3AdvancedProjectile
 				}
 			}
 			
-			
+			//special item that can bounce arrows
 			if(!bounce)
 			{
 				abs = thePlayer.GetAbilities(true);				
@@ -241,7 +264,7 @@ class W3ArrowProjectile extends W3AdvancedProjectile
 				}
 			}
 		}
-		else if ( (CNewNPC)victim && ((CNewNPC)victim).IsShielded(caster) ) 
+		else if ( (CNewNPC)victim && ((CNewNPC)victim).IsShielded(caster) ) // hit shield
 		{
 			((CNewNPC)victim).SignalGameplayEvent('PerformAdditiveParry');
 			
@@ -270,16 +293,22 @@ class W3ArrowProjectile extends W3AdvancedProjectile
 			}
 			else if ( actorVictim.IsInAgony() )
 			{
-				
+				//abandon agony
 				actorVictim.SignalGameplayEvent('AbandonAgony');
-				
+				//enable ragdoll
 				actorVictim.SetKinematic(false);
 			}
 			
 			this.SoundEvent("cmb_arrow_impact_body");
 			
-			if(IsNameValid(boneName))
+			if( ShouldPierceVictim( actorVictim ) ) 
+			{
+				Mutation9HitFX( actorVictim );
+			}
+			else if(IsNameValid(boneName))
+			{
 				AttachArrowToRagdoll(actorVictim,pos,boneName);
+			}
 			else
 			{
 				StopProjectile();
@@ -291,9 +320,42 @@ class W3ArrowProjectile extends W3AdvancedProjectile
 		return true;
 	}
 	
+	public final function Mutation9HitFX( actorVictim : CActor )
+	{
+		var ent : CEntity;
+		
+		//mutation9
+		//ActivateTrail( 'red_arrow_trail_mutation_9' );
+		
+		GCameraShake( 0.2f );
+		
+		if(IsNameValid(boneName))
+		{
+			ent = actorVictim.CreateFXEntityAtBone( 'mutation9_hit', boneName, true );
+		}
+		else
+		{
+			ent = actorVictim.CreateFXEntityAtPelvis( 'mutation9_hit', true );
+		}
+		
+		ent.PlayEffect( 'hit_refraction' );
+		ent.SoundEvent( 'ep2_mutations_09_bolt_impact_armor_type' );
+	}
 	
+	protected function ShouldPierceVictim( victim : CActor ) : bool
+	{
+		//mutation causing bolts to pierce targets
+		if( victim && GetOwner() && (W3PlayerWitcher)GetOwner() && GetWitcherPlayer().IsMutationActive( EPMT_Mutation9 ) )
+		{
+			return true;
+		}
+		
+		return false;
+	}
 	
-	event OnAardHit( sign : W3AardProjectile )
+	//----------------- INTERACTION EVENTS -----------------//
+	
+	/*event OnAardHit( sign : W3AardProjectile )
 	{
 		var rigidMesh : CMeshComponent;
 		
@@ -313,7 +375,7 @@ class W3ArrowProjectile extends W3AdvancedProjectile
 			this.BounceOff(VecRand2D(),this.GetWorldPosition());
 			this.Init(thePlayer);
 		}
-	}
+	}*/
 	
 	event OnFireHit(source : CGameplayEntity)
 	{
@@ -324,7 +386,7 @@ class W3ArrowProjectile extends W3AdvancedProjectile
 		}
 	}
 	
-	
+	//----------------- FUNCTIONS -----------------//
 	
 	public function ToggleFire( toggle : bool )
 	{
@@ -352,7 +414,7 @@ class W3ArrowProjectile extends W3AdvancedProjectile
 		{
 			isUnderwater = false;
 			
-			
+			// to prevent shooting enemies from underwater exploit
 			this.isActive = false;
 			this.DestroyAfter(0.5);
 		}
@@ -375,7 +437,7 @@ class W3ArrowProjectile extends W3AdvancedProjectile
 		}
 	}
 	
-	
+	//----------------- TRAIL FUNCTIONS -----------------//
 	
 	function ActivateTrail( trailName : name )
 	{
@@ -443,7 +505,7 @@ class W3ArrowProjectile extends W3AdvancedProjectile
 		AddTimer( 'CheckIfInfWaterLoop', 0.05, true );
 	}
 	
-	
+	//----------------- ATTACH FUNCTIONS -----------------//
 	
 	function AttachArrowToShield( victim : CActor, pos : Vector )
 	{
@@ -466,26 +528,49 @@ class W3ArrowProjectile extends W3AdvancedProjectile
 	
 	function AttachArrowToRagdoll(victim : CActor, pos : Vector, boneName : name)
 	{
-		var bones 		: array<name>;
-		var res 		: bool;
-		var arrowHitPos : Vector;
-		var timerAmount : float;
+		var bones 				: array<name>;
+		var res 				: bool;
+		var arrowHitPos 		: Vector;
+		var timerAmount 		: float;
+		var shouldPierceVictim 	: bool;
 		
-		StopProjectile();
-		StopActiveTrail();
-		isActive = false;
+		var meshComponent		: CMeshComponent;
+		var arrowSize			: Vector;
+		var boundingBox			: Box;
+		
+		shouldPierceVictim = ShouldPierceVictim( victim );
+		if( !shouldPierceVictim )
+		{
+			StopProjectile();
+			StopActiveTrail();	
+			isActive = false;
+		}
 		
 		bones.PushBack( 'head' );
 		bones.PushBack( 'hroll' );
 		bones.PushBack( 'neck' );
 		
-		if ( ( victim == thePlayer && bones.Contains(boneName) ) || ((CNewNPC)victim).IsHorse() ) 
+		if ( ( victim == thePlayer && bones.Contains(boneName) ) || ( ((CNewNPC)victim).IsHorse() && !shouldPierceVictim ) ) // E3 hack condition, bug #31400
 		{
 			SmartDestroy();
 		}
-		else
+		else if( !shouldPierceVictim )
 		{
-			arrowHitPos = pos + RotForward( this.GetWorldRotation() ) * 0.3f; 
+			arrowHitPos = pos;
+			
+			// Compute exact pirce position based on component bounding box size
+			meshComponent = (CMeshComponent)GetComponentByClassName('CMeshComponent');
+			if( meshComponent )
+			{
+				boundingBox = meshComponent.GetBoundingBox();
+				arrowSize = boundingBox.Max - boundingBox.Min;
+				
+				// Arrow entity has different local placeement ( tip in center ), than bolts ( back in center )
+				if( StrFindFirst( this.GetName(), "arrow" ) != -1 )
+					arrowHitPos += RotForward(  this.GetWorldRotation() ) * arrowSize.X * 0.1f; // pirce enemy a little
+				else
+					arrowHitPos -= RotForward(  this.GetWorldRotation() ) * arrowSize.X * 0.7f; // pirce enemy a little
+			}
 			
 			if ( boneName )
 			{
@@ -503,7 +588,7 @@ class W3ArrowProjectile extends W3AdvancedProjectile
 				else if( victim == thePlayer )
 					timerAmount = 3;
 				else
-					timerAmount = 20;
+					timerAmount = 5;
 				
 				AddTimer('TimeDestroy', timerAmount, false);
 				isScheduledForDestruction = true;
@@ -514,7 +599,7 @@ class W3ArrowProjectile extends W3AdvancedProjectile
 		}
 	}
 	
-	
+	//----------------- DAMAGE FUNCTIONS -----------------//
 	
 	protected function ProcessDamageAction(victim : CGameplayEntity, pos : Vector, boneName : name)
 	{
@@ -524,7 +609,7 @@ class W3ArrowProjectile extends W3AdvancedProjectile
 		
 		action = new W3DamageAction in this;
 		action.Initialize((CGameplayEntity)caster,victim,this,caster.GetName(),EHRT_Light,CPS_AttackPower,false,true,false,false);				
-		if( isOnFire )		
+		if( isOnFire )		//FIXME - if on fire should deal fire damage not physical, also setting damage should give damage type to set to make e.g. frost/poison projectiles
 		{
 			action.AddEffectInfo(EET_Burning);
 			action.AddDamage(theGame.params.DAMAGE_NAME_FIRE, projDMG );
@@ -556,7 +641,7 @@ class W3ArrowProjectile extends W3AdvancedProjectile
 		collidedEntities.PushBack(victim);
 		delete action;
 		
-		
+		//quest
 		victimTags = victim.GetTags();
 		
 		attackerTags = caster.GetTags();

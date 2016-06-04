@@ -1,10 +1,6 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2012-2013 Patryk Fiutowski, Tomek Kozera
 /***********************************************************************/
-
-
 
 struct SAardEffects
 {
@@ -71,7 +67,7 @@ statemachine class W3AardEntity extends W3SignEntity
 	{
 		if(IsAlternateCast())
 		{
-			
+			//in case of 360 aard don't call super since we don't want any attachment done			
 			
 			if((CPlayer)owner.GetActor())
 				GetWitcherPlayer().FailFundamentalsFirstAchievementCondition();
@@ -86,7 +82,7 @@ statemachine class W3AardEntity extends W3SignEntity
 		projectileCollision.PushBack( 'Door' );
 		projectileCollision.PushBack( 'Static' );		
 		projectileCollision.PushBack( 'Character' );
-		projectileCollision.PushBack( 'ParticleCollider' ); 
+		projectileCollision.PushBack( 'ParticleCollider' ); //Added so it can collide with Aard, but Geralt isn't blocked. Used for QFM_Hit_By_Aard on otherwise non-colliding objects. DZ
 		
 		if ( owner.ChangeAspect( this, S_Magic_s01 ) )
 		{
@@ -99,11 +95,11 @@ statemachine class W3AardEntity extends W3SignEntity
 		}
 	}
 
-	
+	//ignore
 	event OnAardHit( sign : W3AardProjectile ) {}
 
-	
-	
+	// HACK: postponing ProcessThrow to MainTick
+	// We do this to avoid calling StaticTrace during physics fetch - ProcessThrow is triggered by animation event.
 	
 	var processThrow_alternateCast : bool;
 	
@@ -111,7 +107,7 @@ statemachine class W3AardEntity extends W3SignEntity
 	{
 		if ( owner.IsPlayer() )
 		{
-			
+			// player's ProcessThrow() is already called on MainTick
 			ProcessThrow_MainTick( alternateCast );
 		}
 		else
@@ -126,7 +122,22 @@ statemachine class W3AardEntity extends W3SignEntity
 		ProcessThrow_MainTick( processThrow_alternateCast );
 	}
 	
+	// HACK ends here
 	
+	public final function GetDistance() : float
+	{
+		if ( owner.CanUseSkill( S_Magic_s20 ) )
+		{
+			switch( owner.GetSkillLevel( S_Magic_s20 ) )
+			{
+				case 1 : return aspects[ fireMode ].distanceUpgrade1;
+				case 2 : return aspects[ fireMode ].distanceUpgrade2;
+				case 3 : return aspects[ fireMode ].distanceUpgrade3;
+			}
+		}
+		
+		return aspects[ fireMode ].distance;
+	}
 	
 	protected function ProcessThrow_MainTick( alternateCast : bool )
 	{
@@ -149,28 +160,8 @@ statemachine class W3AardEntity extends W3SignEntity
 			GCameraShake(effects[fireMode].cameraShakeStrength, true, this.GetWorldPosition(), 30.0f);
 		}
 		
-		
-		if ( owner.CanUseSkill( S_Magic_s20 ) )
-		{
-			switch(owner.GetSkillLevel(S_Magic_s20))
-			{
-				case 1 :
-					distance = aspects[fireMode].distanceUpgrade1;
-					break;
-				case 2 :
-					distance = aspects[fireMode].distanceUpgrade2;
-					break;
-				case 3 :
-					distance = aspects[fireMode].distanceUpgrade3;
-					break;
-				default :
-					LogAssert(false, "W3AardEntity.ProcessThrow: S_Magic_s20 skill level out of bounds!");
-			}
-		}
-		else
-		{
-			distance = aspects[fireMode].distance;
-		}	
+		//set distance 
+		distance = GetDistance();		
 		
 		if ( owner.HasCustomAttackRange() )
 		{
@@ -210,14 +201,14 @@ statemachine class W3AardEntity extends W3SignEntity
 				attackRange = theGame.GetAttackRangeForEntity( this, 'blast' );
 		}
 		
-		
+		// set spawning position
 		spawnPos = GetWorldPosition();
 		spawnRot = GetWorldRotation();
 		heading = this.GetHeadingVector();
 		
-		
-		
-		
+		//we move the projectile back as a hackfix for situations where:
+		// geralt would stand facing a wall and thus create projectile inside wall causing it to work on the other side of the collision
+		// geralt would stande close to a fireplace and his projectile would be created 'beyond' it and thus not work with it
 		if ( alternateCast )
 		{
 			spawnPos.Z -= 0.5;
@@ -234,7 +225,7 @@ statemachine class W3AardEntity extends W3SignEntity
 			projectile = (W3AardProjectile)theGame.CreateEntity( aspects[fireMode].projTemplate, spawnPos, spawnRot );				
 			projectile.ExtInit( owner, skillEnum, this );							
 			projectile.SetAttackRange( attackRange );
-			
+			// shoot cake 3.5 m height and 30 m/s fast
 			projectile.ShootCakeProjectileAtPosition( aspects[fireMode].cone, 3.5f, 0.0f, 30.0f, spawnPos + heading * distance, distance, projectileCollision );			
 		}
 		
@@ -243,7 +234,7 @@ statemachine class W3AardEntity extends W3SignEntity
 			staminaDrain = CalculateAttributeValue(ownerActor.GetAttributeValue('glyphword6_stamina_drain_perc'));
 			projectile.SetStaminaDrainPerc(staminaDrain);			
 		}
-		
+		//FX - different fx when hitting water
 		if(alternateCast)
 		{
 			movingAgent = (CMovingPhysicalAgentComponent)ownerActor.GetMovingAgentComponent();
@@ -255,13 +246,13 @@ statemachine class W3AardEntity extends W3SignEntity
 			waterCollTestPos.Z += waterTestOffsetZ;
 			collisionGroupNames.PushBack('Terrain');
 			
-			
+			//water Z
 			waterZ = theGame.GetWorld().GetWaterLevel(waterCollTestPos, true);
 			
-			
+			//terrain collision
 			if(theGame.GetWorld().StaticTrace(GetWorldPosition(), waterCollTestPos, collisionPos, collisionNormal, collisionGroupNames))
 			{
-				
+				//if water level is the highest of all
 				if(waterZ > collisionPos.Z && waterZ > waterCollTestPos.Z)
 					hitsWater = true;
 				else
@@ -269,7 +260,7 @@ statemachine class W3AardEntity extends W3SignEntity
 			}
 			else
 			{
-				
+				//no terrain - just water level check
 				hitsWater = (waterCollTestPos.Z <= waterZ);
 			}
 		}
@@ -279,10 +270,13 @@ statemachine class W3AardEntity extends W3SignEntity
 		AddTimer('DelayedDestroyTimer', 0.1, true, , , true);
 	}
 	
-	
+	//plays aard fx
 	public final function PlayAardFX(hitsWater : bool)
 	{
 		var dispersionLevel : int;
+		var hasMutation6 : bool;
+		
+		hasMutation6 = owner.GetPlayer().IsMutationActive(EPMT_Mutation6);
 		
 		if ( owner.CanUseSkill( S_Magic_s20 ) )
 		{
@@ -290,54 +284,66 @@ statemachine class W3AardEntity extends W3SignEntity
 			
 			if(dispersionLevel == 1)
 			{			
-				
+				//base
 				PlayEffect( effects[fireMode].baseCommonThrowEffectUpgrade1 );
 			
-				
-				if(hitsWater)
-					PlayEffect( effects[fireMode].throwEffectWaterUpgrade1 );
-				else
-					PlayEffect( effects[fireMode].throwEffectSoilUpgrade1 );
+				//terrain specific
+				if(!hasMutation6)
+				{
+					if(hitsWater)
+						PlayEffect( effects[fireMode].throwEffectWaterUpgrade1 );
+					else
+						PlayEffect( effects[fireMode].throwEffectSoilUpgrade1 );
+				}
 			}
 			else if(dispersionLevel == 2)
 			{			
-				
+				//base
 				PlayEffect( effects[fireMode].baseCommonThrowEffectUpgrade2 );
 			
-				
-				if(hitsWater)
-					PlayEffect( effects[fireMode].throwEffectWaterUpgrade2 );
-				else
-					PlayEffect( effects[fireMode].throwEffectSoilUpgrade2 );
+				//terrain specific
+				if(!hasMutation6)
+				{
+					if(hitsWater)
+						PlayEffect( effects[fireMode].throwEffectWaterUpgrade2 );
+					else
+						PlayEffect( effects[fireMode].throwEffectSoilUpgrade2 );
+				}
 			}
 			else if(dispersionLevel == 3)
 			{			
-				
+				//base
 				PlayEffect( effects[fireMode].baseCommonThrowEffectUpgrade3 );
 			
-				
-				if(hitsWater)
-					PlayEffect( effects[fireMode].throwEffectWaterUpgrade3 );
-				else
-					PlayEffect( effects[fireMode].throwEffectSoilUpgrade3 );
+				//terrain specific
+				if(!hasMutation6)
+				{
+					if(hitsWater)
+						PlayEffect( effects[fireMode].throwEffectWaterUpgrade3 );
+					else
+						PlayEffect( effects[fireMode].throwEffectSoilUpgrade3 );
+				}
 			}
 		}
 		else
 		{
-			
+			//base
 			PlayEffect( effects[fireMode].baseCommonThrowEffect );
 		
-			
-			if(hitsWater)
-				PlayEffect( effects[fireMode].throwEffectWater );
-			else
-				PlayEffect( effects[fireMode].throwEffectSoil );
+			//terrain specific
+			if(!hasMutation6)
+			{
+				if(hitsWater)
+					PlayEffect( effects[fireMode].throwEffectWater );
+				else
+					PlayEffect( effects[fireMode].throwEffectSoil );
+			}
 		}
 		
-		
+		//bonus sp fx
 		if(owner.CanUseSkill(S_Magic_s12))
 		{
-			
+			//different fx based on what is the current range of aard
 			switch(dispersionLevel)
 			{
 				case 0:
@@ -355,10 +361,10 @@ statemachine class W3AardEntity extends W3SignEntity
 			}
 		}
 		
-		
+		//bonus dmg fx
 		if(owner.CanUseSkill(S_Magic_s06))
 		{
-			
+			//different fx based on what is the current range of aard
 			switch(dispersionLevel)
 			{
 				case 0:
@@ -373,6 +379,23 @@ statemachine class W3AardEntity extends W3SignEntity
 				case 3:
 					PlayEffect( effects[fireMode].throwEffectDmgUpgrade3 );
 					break;
+			}
+		}
+		
+		//mutation 6 bonus cast blast fx
+		if( hasMutation6 )
+		{
+			thePlayer.PlayEffect( 'mutation_6_power' );
+			
+			if( fireMode == 0 )
+			{
+				PlayEffect( 'cone_ground_mutation_6' );
+			}
+			else
+			{
+				PlayEffect( 'blast_ground_mutation_6' );
+				
+				theGame.GetSurfacePostFX().AddSurfacePostFXGroup(GetWorldPosition(), 0.3f, 3.f, 2.f, GetDistance(), 0 );
 			}
 		}
 	}
@@ -412,26 +435,23 @@ state AardConeCast in W3AardEntity extends NormalCast
 {		
 	event OnThrowing()
 	{
-		var player : CR4Player;
-		var cost, stamina : float;
+		var player				: CR4Player;
 	
 		if( super.OnThrowing() )
 		{
 			parent.ProcessThrow( false );
 			
 			player = caster.GetPlayer();
-			if(player == caster.GetActor() && player && player.CanUseSkill(S_Perk_09))
+			
+			if( player )
 			{
-				cost = player.GetStaminaActionCost(ESAT_Ability, SkillEnumToName( parent.skillEnum ), 0);
-				stamina = player.GetStat(BCS_Stamina, true);
-				
-				if(cost > stamina)
-					player.DrainFocus(1);
-				else
-					caster.GetActor().DrainStamina( ESAT_Ability, 0, 0, SkillEnumToName( parent.skillEnum ) );
+				parent.ManagePlayerStamina();
+				parent.ManageGryphonSetBonusBuff();
 			}
 			else
+			{
 				caster.GetActor().DrainStamina( ESAT_Ability, 0, 0, SkillEnumToName( parent.skillEnum ) );
+			}
 		}
 	}
 }

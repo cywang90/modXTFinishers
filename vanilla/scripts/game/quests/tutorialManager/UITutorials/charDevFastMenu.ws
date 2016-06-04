@@ -1,10 +1,7 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2015
+/** Author : Tomek Kozera
 /***********************************************************************/
-
-
 
 state CharacterDevelopmentFastMenu in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
@@ -15,24 +12,16 @@ state CharacterDevelopmentFastMenu in W3TutorialManagerUIHandler extends TutHand
 		
 	event OnEnterState( prevStateName : name )
 	{
-		var highlights : array<STutorialHighlight>;
-	
 		super.OnEnterState(prevStateName);
 		
-		CloseHint(CHAR_DEV_OPEN);
+		theGame.GetTutorialSystem().HideTutorialHint( CHAR_DEV_OPEN );
 		
-		highlights.Resize(1);
-		highlights[0].x = 0.625;
-		highlights[0].y = 0.42;
-		highlights[0].width = 0.13;
-		highlights[0].height = 0.15;
-		
-		ShowHint(PANEL, 0.5, 0.7, ETHDT_Infinite, highlights);
+		ShowHint(PANEL, 0.5, 0.7, ETHDT_Infinite, GetHighlightHubMenuCharDev() );
 	}
 
 	event OnLeaveState( nextStateName : name )
 	{		
-		CloseHint(PANEL);
+		CloseStateHint(PANEL);
 		
 		super.OnLeaveState(nextStateName);
 	}		

@@ -1,11 +1,7 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-class CR4HudModuleMedallion extends CR4HudModuleBase 
+﻿class CR4HudModuleMedallion extends CR4HudModuleBase // #B Deprecated
 {	
 	private var		m_fxSetFocusPointsSFF			: CScriptedFlashFunction;
+	
 	private var		m_fxSetVitalitySFF				: CScriptedFlashFunction;
 	private var		m_fxSetMedallionActiveSFF		: CScriptedFlashFunction;
 	private var		m_fxSetMedallionThresholdSFF	: CScriptedFlashFunction;
@@ -25,7 +21,7 @@ class CR4HudModuleMedallion extends CR4HudModuleBase
 		m_medallionThreshold = 4.0;
 	}
 
-	 event OnConfigUI()
+	/* flash */ event OnConfigUI()
 	{		
 		var flashModule : CScriptedFlashSprite;
 
@@ -33,11 +29,13 @@ class CR4HudModuleMedallion extends CR4HudModuleBase
 
 		flashModule = GetModuleFlash();	
 		m_fxSetFocusPointsSFF			= flashModule.GetMemberFlashFunction( "setFocusPoints" );
+		
 		m_fxSetVitalitySFF				= flashModule.GetMemberFlashFunction( "setVitality" );
 		m_fxSetMedallionActiveSFF		= flashModule.GetMemberFlashFunction( "setMedallionActive" );
 		m_fxSetMedallionThresholdSFF	= flashModule.GetMemberFlashFunction( "setMedallionThreshold" );
-
 		
+
+		//ShowElement( true );
 	}
 
 	event OnTick( timeDelta : float )
@@ -63,12 +61,14 @@ class CR4HudModuleMedallion extends CR4HudModuleBase
 	{
 		var curFocusPoints : int = FloorF( GetWitcherPlayer().GetStat( BCS_Focus ) );
 		
+		
 		if ( m_focusPoints != curFocusPoints )
 		{
 			m_focusPoints = curFocusPoints;
 			
-			m_fxSetFocusPointsSFF.InvokeSelfOneArg( FlashArgInt( m_focusPoints) );
+			m_fxSetFocusPointsSFF.InvokeSelfOneArg( FlashArgInt( m_focusPoints ) );
 		}
+		
 	}
 	
 	private function UpdateVitality()

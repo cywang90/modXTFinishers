@@ -1,15 +1,10 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
+﻿
+// CExplorationStateSkateStopFast
+//------------------------------------------------------------------------------------------------------------------
+// Eduard Lopez Plans	( 17/02/2014 )	 
 
-
-
-
-
-
-
+//>-----------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------
 class CExplorationStateSkateStopFast extends CExplorationStateSkatingDrift
 {		
 	
@@ -18,7 +13,7 @@ class CExplorationStateSkateStopFast extends CExplorationStateSkatingDrift
 	private editable inlined	var speedStopCurve			: CCurve;
 	
 	
-	
+	//---------------------------------------------------------------------------------
 	private function InitializeSpecific( _Exploration : CExplorationStateManager )
 	{	
 		if( !IsNameValid( m_StateNameN ) )
@@ -28,11 +23,11 @@ class CExplorationStateSkateStopFast extends CExplorationStateSkatingDrift
 		
 		skateGlobal	= _Exploration.m_SharedDataO.m_SkateGlobalC;
 		
-		
+		// Set the type
 		m_StateTypeE	= EST_Skate;
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	private function AddDefaultStateChangesSpecific()
 	{		
 		AddStateToTheDefaultChangeList( 'SkateDashAttack' );
@@ -40,7 +35,7 @@ class CExplorationStateSkateStopFast extends CExplorationStateSkatingDrift
 		AddStateToTheDefaultChangeList( 'SkateJump' );
 	}
 
-	
+	//---------------------------------------------------------------------------------
 	function StateWantsToEnter() : bool
 	{	
 		var inputHeadingAbs	: float;
@@ -54,7 +49,7 @@ class CExplorationStateSkateStopFast extends CExplorationStateSkatingDrift
 		inputHeadingAbs	= AngleDistance( 180.0f, inputHeadingAbs );
 		inputHeadingAbs	= AbsF( inputHeadingAbs );
 		
-		if( !m_ExplorationO.m_InputO.IsModuleConsiderable() || inputHeadingAbs < inputRangeToEnter )
+		if( !m_ExplorationO.m_InputO.IsModuleConsiderable() || inputHeadingAbs < inputRangeToEnter )// AbsF( m_ExplorationO.m_InputO.GetHeadingDiffFromPlayerF() ) < inputRangeToEnter )
 		{
 			return m_ExplorationO.m_InputO.IsDriftPressed();
 		}
@@ -62,17 +57,17 @@ class CExplorationStateSkateStopFast extends CExplorationStateSkatingDrift
 		return false;
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	protected function StateUpdateSpecific( _Dt : float )
 	{		
 		var newVelocity	: Vector;
 		var coef		: float;
 		
 		
-		
+		// Attack
 		skateGlobal.UpdateRandomAttack();
 		
-		
+		// Movement
 		if( m_ExplorationO.GetStateTimeF() >= duration )
 		{
 			m_ExplorationO.m_MoverO.SetVelocity( Vector( 0,0,0 ) );

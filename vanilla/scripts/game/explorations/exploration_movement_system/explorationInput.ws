@@ -1,23 +1,18 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
+﻿// CExplorationInput
+//------------------------------------------------------------------------------------------------------------------
+// Eduard Lopez Plans	( 21/11/2013 )	 
+//------------------------------------------------------------------------------------------------------------------
 
 
-
-
-
-
-
-
-
+//>-----------------------------------------------------------------------------------------------------------------
+// Input for exploration
+//------------------------------------------------------------------------------------------------------------------
 class CExplorationInput
 {	
-	
+	// Objects
 	private				var		m_ExplorationO					: CExplorationStateManager;
 	
-	
+	// Movement
 	private 			var		m_InputMoveOnPadV				: Vector;
 	private 			var		m_InputMoveOnPlaneV				: Vector;
 	private 			var		m_InputMoveOnPadNormalizedV		: Vector;
@@ -29,20 +24,20 @@ class CExplorationInput
 	private	editable	var		m_InputMinModuleF				: float;				default	m_InputMinModuleF			= 0.1f;
 	private	editable	var		m_InputRunModuleF				: float;				default	m_InputRunModuleF			= 0.5f;
 	
-	
+	// Heading difference
 	private editable	var		m_InputHeadingDifMaxF			: float;				default	m_InputHeadingDifMaxF		= 50.0f;
 	private editable	var		m_InputHeadingDifReflectedF		: float;				default	m_InputHeadingDifReflectedF	= 90.0f;
 	
-	
+	// Actions	
 	protected editable	var		m_JumpTimeGapF					: float;				default	m_JumpTimeGapF				= 0.25f;
 	protected editable	var		m_RollTimePrevF					: float;				default	m_RollTimePrevF				= 0.3f;
 	
-	
+	// Double axis tap
 	private	editable	var		m_InputDoubleTapPressValF		: float;				default	m_InputDoubleTapPressValF	= 0.75f;
 	private	editable	var		m_InputDoubleTapUnPressValF		: float;				default	m_InputDoubleTapUnPressValF	= 0.3f;
 	private	editable	var		m_InputDoubleTapTimeGapF		: float;				default	m_InputDoubleTapTimeGapF	= 0.2f;
 	
-	
+	// Simple actions
 	public	editable	var		m_UseDoubleTapOnAxisB			: bool;					default	m_UseDoubleTapOnAxisB		= false;
 	private			 	var		m_InputLeftO					: CInputAxisDoubleTap;
 	private			 	var		m_InputRightO					: CInputAxisDoubleTap;
@@ -64,7 +59,7 @@ class CExplorationInput
 	private editable	var		m_SprintLastActivationTimeF		: float;
 	
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function Initialize( _ExplorationO : CExplorationStateManager )
 	{
 		m_ExplorationO	= _ExplorationO;
@@ -87,7 +82,7 @@ class CExplorationInput
 		m_SprintLastActivationTimeF	= 0.0f;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function Update( _Dt : float )
 	{
 		UpdateDirectionVectors();
@@ -99,10 +94,10 @@ class CExplorationInput
 			UpdateAxesDoubletaps();
 		}
 		
-		
+		//UpdateSimpleActions( _Dt );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	private function UpdateAxesDoubletaps()
 	{
 		m_InputLeftO.Update();
@@ -112,7 +107,7 @@ class CExplorationInput
 		m_SprintDoubletapO.Update();
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	private function UpdateSimpleActions( _Dt : float )
 	{
 		m_SprintLastActivationTimeF	+= _Dt;
@@ -126,21 +121,27 @@ class CExplorationInput
 		}
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	private function UpdateDirectionVectors()
 	{			
 		var	l_InputMoveOnCameraV	: Vector;
 		
+		/*
+		// No movement allowed, we don't consider input
+		if( !thePlayer.IsActionAllowed( EIAB_Movement ) )
+		{
+			SetZeroInput();
+			return;
+		}*/
 		
-		
-		
+		// Player Pad raw input	
 		m_InputMoveOnPadV.X		= theInput.GetActionValue( 'GI_AxisLeftX' );
 		m_InputMoveOnPadV.Y		= theInput.GetActionValue( 'GI_AxisLeftY' );
 		
 		m_InputMoveOnPadV.Z		= 0.0f;
 		m_InputMoveOnPadV.W		= 0.0f;
 		
-		
+		// Too small input
 		m_InputModuleF			= VecLengthSquared( m_InputMoveOnPadV );
 		if( m_InputModuleF < m_InputMinModuleF )
 		{
@@ -148,23 +149,23 @@ class CExplorationInput
 			return;
 		}
 		
-		
+		// Normalize input 
 		m_InputModuleF				= SqrtF( m_InputModuleF );
 		m_InputMoveOnPadNormalizedV	= m_InputMoveOnPadV / m_InputModuleF;
 		
-		
+		//(keyboard may provide >1 movement vector)
 		if( m_InputModuleF > 1.0f )
 		{
 			m_InputModuleF		=	1.0f;
 			m_InputMoveOnPadV	=	m_InputMoveOnPadNormalizedV;
 		}
 		
-		
+		// Get movement on camera space
 		l_InputMoveOnCameraV			= theCamera.GetCameraRight() 	* m_InputMoveOnPadV.X
 										+ theCamera.GetCameraForward()	* m_InputMoveOnPadV.Y;
 		m_InputMoveOnCameraNormalizedV	= VecNormalize( l_InputMoveOnCameraV );
 		
-		
+		// Get movement on plane space
 		m_InputMoveOnPlaneV				=	l_InputMoveOnCameraV;
 		m_InputMoveOnPlaneV.Z			=	0.0f;
 		
@@ -172,7 +173,7 @@ class CExplorationInput
 		m_InputMoveOnPlaneV				=	m_InputModuleF * m_InputMoveOnPlaneNormalizedV;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	private function SetZeroInput()
 	{
 		m_InputModuleF	= 0.0f;
@@ -183,34 +184,34 @@ class CExplorationInput
 		VecSetZeros( m_InputMoveOnPlaneNormalizedV );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	private function UpdateHeading()
 	{
 		var l_InputVectorV		: Vector;
 		var l_CharacterHeadingF	: float;
 		
 		
-		
+		// If there is no directional input, we go straight to the camera
 		if( m_InputModuleF < m_InputMinModuleF )
 		{
 			l_InputVectorV	= theCamera.GetCameraForwardOnHorizontalPlane();
 		}
-		
+		// Or get the real input
 		else
 		{
 			l_InputVectorV	= m_InputMoveOnPlaneV;
 		}
 		
-		
+		// Calc the difference
 		m_InputMoveHeadingOnPlaneF	= AngleNormalize180( VecHeading( l_InputVectorV ) );
 		l_CharacterHeadingF			= AngleNormalize180( m_ExplorationO.m_OwnerE.GetHeading() );
 		m_InputMoveDiffOnHeadingF	= AngleDistance( m_InputMoveHeadingOnPlaneF, l_CharacterHeadingF );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function PostUpdate( _Dt : float )
 	{
-		
+		// DoubleTaps
 		if( m_UseDoubleTapOnAxisB )
 		{
 			m_InputLeftO.ConsumeIfActivated();
@@ -221,92 +222,92 @@ class CExplorationInput
 		}
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function GetDoubleTapUp( ) : bool
 	{
 		return m_UseDoubleTapOnAxisB && m_InputUpO.IsActiveB();
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function GetDoubleTapDownB( ) : bool
 	{
 		return m_UseDoubleTapOnAxisB && m_InputDownO.IsActiveB();
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function GetDoubleTapLeftB( ) : bool
 	{
 		return m_UseDoubleTapOnAxisB && m_InputLeftO.IsActiveB();
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function GetDoubleTapRightB( ) : bool
 	{
 		return m_UseDoubleTapOnAxisB && m_InputRightO.IsActiveB();
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function GetDoubleTapRollB( ) : bool
 	{
 		return m_UseDoubleTapOnAxisB && m_SprintDoubletapO.IsActiveB();
 	}
 	
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function GetModuleF( ) : float
 	{
 		return m_InputModuleF;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function GetMovementOnPadV( ) : Vector
 	{
 		return m_InputMoveOnPadV;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function GetMovementOnPadNormalizedV( ) : Vector
 	{
 		return m_InputMoveOnPadNormalizedV;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function GetMovementOnCameraNormalizedV( ) : Vector
 	{
 		return m_InputMoveOnCameraNormalizedV;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function GetMovementOnPlaneV( ) : Vector
 	{
 		return m_InputMoveOnPlaneV;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function GetMovementOnPlaneNormalizedV( ) : Vector
 	{
 		return m_InputMoveOnPlaneNormalizedV;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function GetHeadingOnPadF() : float
 	{
 		return VecHeading( m_InputMoveOnPadV );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function GetHeadingOnPlaneF() : float
 	{
 		return m_InputMoveHeadingOnPlaneF;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function GetHeadingDiffFromPlayerF() : float
 	{
 		return m_InputMoveDiffOnHeadingF;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function GetHeadingDiffFromYawF( yaw : float ) : float
 	{
 		yaw	= AngleNormalize180( yaw );
@@ -314,13 +315,13 @@ class CExplorationInput
 		return AngleDistance( m_InputMoveHeadingOnPlaneF, yaw );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function ComputeHeadingDiffWithReflectionF( targetHeading : float, reflectAllow : bool, out diffReal : float, out diffPercent : float, out shouldReflect : bool, optional requireinputModule : bool )
 	{
 		var directionDiffAbs	: float;
 		
 		
-		
+		// Module check
 		if( requireinputModule )
 		{
 			if( !IsModuleConsiderable() )
@@ -332,12 +333,12 @@ class CExplorationInput
 			}
 		}
 		
-		
+		// Get the diff
 		targetHeading			= AngleNormalize180( targetHeading );
 		diffReal				= AngleDistance( m_InputMoveHeadingOnPlaneF, targetHeading );
 		directionDiffAbs		= AbsF( diffReal );
 		
-		
+		// Reflect
 		shouldReflect			= directionDiffAbs > m_InputHeadingDifReflectedF;
 		if( reflectAllow && shouldReflect )
 		{
@@ -345,18 +346,18 @@ class CExplorationInput
 			diffReal			= directionDiffAbs * SignF( diffReal );
 		}
 		
-		
+		// Clamp
 		if( directionDiffAbs > m_InputHeadingDifMaxF )
 		{
 			directionDiffAbs	= m_InputHeadingDifMaxF;
 			diffReal			= SignF( diffReal ) * m_InputHeadingDifMaxF;
 		}
 		
-		
+		// Set the perc
 		diffPercent				= diffReal / m_InputHeadingDifMaxF;
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	public function GetInputDirOnSlopeDot() : float
 	{
 		var slideDir		: Vector;
@@ -366,34 +367,34 @@ class CExplorationInput
 		var dot				: float;
 		
 		
-		
+		// Input not normalized to capture idle input
 		input			= GetMovementOnPlaneV();	
 		
-		
+		// slide dir has to be on plane and normalized, cause we only want direction		
 		m_ExplorationO.m_MoverO.GetSlideDirAndNormal( slideDir, slideNormal );
 		slideDir2D		= slideDir;
 		slideDir2D.Z	= 0.0f;
 		slideDir2D		= VecNormalize( slideDir2D );
 		
-		
+		// Get the dot
 		dot 			= VecDot( input, slideDir2D );
 		
 		return dot;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function IsModuleConsiderable() : bool
 	{
 		return m_InputModuleF	>= m_InputMinModuleF;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function IsModuleRunning() : bool
 	{
 		return m_InputModuleF >= m_InputRunModuleF;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function IsRollPressedInTime() : bool
 	{
 		if( !thePlayer.IsActionAllowed( EIAB_Roll ) )
@@ -404,7 +405,7 @@ class CExplorationInput
 		return theInput.GetLastActivationTime( m_ActionRollN ) < m_RollTimePrevF;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function  IsRollJustPressed() : bool
 	{
 		if( thePlayer.IsActionAllowed( EIAB_Roll ) )
@@ -415,7 +416,7 @@ class CExplorationInput
 		return false;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function  IsGuardPressed() : bool
 	{
 		if( thePlayer.IsActionAllowed( EIAB_Parry ) )
@@ -426,72 +427,72 @@ class CExplorationInput
 		return false;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function IsJumpPressedInTime( ) : bool
 	{
-		
-		
+		//if( thePlayer.IsActionAllowed( EIAB_Jump ) )
+		//{
 			return theInput.GetLastActivationTime( m_ActionJumpN ) < m_JumpTimeGapF;
+		//}
 		
-		
-		
+		//return false;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function  GetJumpLastJustPressedTime( ) : float
 	{
 		return theInput.GetLastActivationTime( m_ActionJumpN );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function GetJumpTimeGap() : float
 	{
 		return m_JumpTimeGapF;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function  IsJumpJustPressed() : bool
 	{
 		return theInput.IsActionJustPressed( m_ActionJumpN );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function  IsJumpJustReleased() : bool
 	{
 		return theInput.IsActionJustReleased( m_ActionJumpN );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function  IsJumpPressed() : bool
 	{
 		return theInput.IsActionPressed( m_ActionJumpN );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function IsExplorationJustPressed() : bool
 	{
 		return theInput.IsActionJustPressed( m_ActionExplorationN );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function IsInteractionJustPressed() : bool
 	{
 		return theInput.IsActionJustPressed( m_ActionInteractionN );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function IsExplorationPressed() : bool
 	{
 		return theInput.IsActionPressed( m_ActionExplorationN );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function GetExplorationLastJustPressedTime() : float
 	{
 		return theInput.GetLastActivationTime( m_ActionExplorationN );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function GetIsDebugKeyPressed() : bool
 	{
 		if( theGame.IsFinalBuild() )
@@ -502,7 +503,7 @@ class CExplorationInput
 		return theInput.IsActionPressed( 'DebugInput' );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function  IsSprintJustPressed() : bool
 	{
 		if( !thePlayer.IsActionAllowed( EIAB_RunAndSprint ) && thePlayer.IsActionAllowed( EIAB_Sprint ) )
@@ -512,7 +513,7 @@ class CExplorationInput
 		return theInput.IsActionJustPressed( m_ActionSprintN );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function  IsSprintPressed() : bool
 	{
 		if( !thePlayer.IsActionAllowed( EIAB_RunAndSprint ) && thePlayer.IsActionAllowed( EIAB_Sprint ) )
@@ -522,7 +523,7 @@ class CExplorationInput
 		return theInput.GetActionValue( m_ActionSprintN );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function IsSprintPressedInTime( time : float ) : bool
 	{
 		if( thePlayer.IsActionAllowed( EIAB_RunAndSprint ) && thePlayer.IsActionAllowed( EIAB_Sprint ) )
@@ -532,9 +533,19 @@ class CExplorationInput
 		
 		return false;
 	}
+	/*
+	//------------------------------------------------------------------------------------------------------------------
+	public function IsSprintReleasedInTime( timeGap : float ) : bool
+	{
+		if( !thePlayer.IsActionAllowed( EIAB_RunAndSprint ) && thePlayer.IsActionAllowed( EIAB_Sprint ) )
+		{
+			return false;
+		}
+		return m_SprintLastActivationTimeF <= timeGap;
+	}	
+	*/
 	
-	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function IsSkateJumpJustPressed() : bool
 	{
 		if( !thePlayer.IsActionAllowed( EIAB_Jump ) )
@@ -544,7 +555,7 @@ class CExplorationInput
 		return theInput.IsActionJustPressed( m_ActionSkateJumpN );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function  GetSkateJumpLastPressedTime(): float
 	{
 		if( !thePlayer.IsActionAllowed( EIAB_Jump ) )
@@ -554,7 +565,7 @@ class CExplorationInput
 		return theInput.GetLastActivationTime( m_ActionSkateJumpN );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function  IsDashJustPressed() : bool
 	{
 		if( !thePlayer.IsActionAllowed( EIAB_RunAndSprint ) )
@@ -565,7 +576,7 @@ class CExplorationInput
 		return theInput.IsActionJustPressed( m_ActionDashN );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function  IsDashPressed() : bool
 	{
 		if( !thePlayer.IsActionAllowed( EIAB_RunAndSprint ) )
@@ -575,7 +586,7 @@ class CExplorationInput
 		return theInput.GetActionValue( m_ActionDashN );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function	GetDashLastPressedTime() : float
 	{
 		if( !thePlayer.IsActionAllowed( EIAB_RunAndSprint ) )
@@ -585,7 +596,7 @@ class CExplorationInput
 		return theInput.GetLastActivationTime( m_ActionDashN );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function  IsDriftJustPressed() : bool
 	{
 		if( !thePlayer.IsActionAllowed( EIAB_RunAndSprint ) )
@@ -595,7 +606,7 @@ class CExplorationInput
 		return theInput.IsActionJustPressed( m_ActionDriftN );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function  IsDriftPressed() : bool
 	{
 		if( !thePlayer.IsActionAllowed( EIAB_RunAndSprint ) )
@@ -605,7 +616,7 @@ class CExplorationInput
 		return theInput.GetActionValue( m_ActionDriftN );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function  GetDriftLastPressedTime(): float
 	{
 		if( !thePlayer.IsActionAllowed( EIAB_RunAndSprint ) )
@@ -615,24 +626,33 @@ class CExplorationInput
 		return MinF( theInput.GetLastActivationTime( m_ActionDriftN ), theInput.GetLastActivationTime( m_ActionAttackAltN ) );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function  IsSkateAttackPressed() : bool
 	{
-		
+		/*if( !thePlayer.IsActionAllowed( EIAB_Attack ) )
+		{
+			return false;
+		}*/
 		return theInput.IsActionPressed( m_ActionAttackN ) || theInput.IsActionPressed( m_ActionAttackAltN );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function  IsSkateAttackJustPressed() : bool
 	{
-		
+		/*if( !thePlayer.IsActionAllowed( EIAB_Attack ) )
+		{
+			return false;
+		}*/
 		return theInput.IsActionJustPressed( m_ActionAttackN ) || theInput.IsActionJustPressed( m_ActionAttackAltN );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function IsSkateAttackPressedInTime( time : float ) : bool
 	{
-		
+		/*if( !thePlayer.IsActionAllowed( EIAB_Attack ) )
+		{
+			return false;
+		}*/
 		return theInput.GetLastActivationTime( m_ActionAttackN ) < time || theInput.GetLastActivationTime( m_ActionAttackAltN ) < time;
 	}
 }

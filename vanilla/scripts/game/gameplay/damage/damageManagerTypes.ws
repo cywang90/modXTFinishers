@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
+﻿// final calculated damage to deal, after resistances etc.
 import struct SProcessedDamage
 {
 	import var vitalityDamage	: Float;
@@ -12,14 +7,14 @@ import struct SProcessedDamage
 	import var staminaDamage	: Float;
 };
 
-
+// Raw (unprocessed) damage struct - type and value
 struct SRawDamage
 {
 	editable var dmgType : name;
 	editable var dmgVal	: Float;
 };
 
-
+// Returns true if provided damage type deals essence damage
 function DamageHitsEssence(damageName : name) : bool
 {
 	switch(damageName)
@@ -35,7 +30,7 @@ function DamageHitsEssence(damageName : name) : bool
 	}
 }
 
-
+// Returns true if provided damage type deals vitality damage
 function DamageHitsVitality(damageName : name) : bool
 {
 	switch(damageName)
@@ -48,20 +43,20 @@ function DamageHitsVitality(damageName : name) : bool
 	}
 }
 
-
+// Returns true if provided damage type deals morale damage
 function DamageHitsMorale(damageName : name) : bool
 {
-	
+	//return DamageHitsVitality( damageName ) || damageName == theGame.params.DAMAGE_NAME_MORALE;
 	return damageName == theGame.params.DAMAGE_NAME_MORALE;
 }
 
-
+// Returns true if provided damage type deals stamina damage
 function DamageHitsStamina(damageName : name) : bool
 {
 	return damageName == theGame.params.DAMAGE_NAME_STAMINA;
 }
 
-
+// Returns the attribute name that holds damage data. The name differs based on attack type
 function GetBasicAttackDamageAttributeName(attackType : name, damageName : name) : name
 {
 	if( DamageHitsVitality(damageName) )
@@ -74,6 +69,8 @@ function GetBasicAttackDamageAttributeName(attackType : name, damageName : name)
 				return 'heavy_attack_damage_vitality';
 			case theGame.params.ATTACK_NAME_SUPERHEAVY :
 				return 'super_heavy_attack_damage_vitality';
+			case theGame.params.ATTACK_NAME_SPEED_BASED :
+				return 'light_attack_damage_vitality';
 		}
 	}
 	else
@@ -86,10 +83,27 @@ function GetBasicAttackDamageAttributeName(attackType : name, damageName : name)
 				return 'heavy_attack_damage_essence';
 			case theGame.params.ATTACK_NAME_SUPERHEAVY :
 				return 'super_heavy_attack_damage_essence';
+			case theGame.params.ATTACK_NAME_SPEED_BASED :
+				return 'light_attack_damage_essence';
 		}
 	}
 	
 	return '';
+}
+
+function IsDamageTypeAnyPhysicalType( damageName : name ) : bool
+{
+	switch( damageName )
+	{
+		case theGame.params.DAMAGE_NAME_PIERCING :
+		case theGame.params.DAMAGE_NAME_BLUDGEONING :
+		case theGame.params.DAMAGE_NAME_PHYSICAL :
+		case theGame.params.DAMAGE_NAME_RENDING :
+		case theGame.params.DAMAGE_NAME_SILVER :
+		case theGame.params.DAMAGE_NAME_SLASHING :
+			return true;
+	}
+	return false;
 }
 
 

@@ -1,13 +1,11 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file - Preparation 
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author : Yaroslav Getsevich
 /***********************************************************************/
 
-
-
-
-
+// #J actionscript logic based on these values
 enum PreparationTrackType
 {
 	PrepTrackType_None = 0,
@@ -29,7 +27,7 @@ class CR4PreparationMenu extends CR4MenuBase
 	protected var _gridInv 	 : W3GuiPreparationInventoryComponent;
 	protected var _inv       : CInventoryComponent;
 	
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{
 		initMeditationState();
 		m_flashModule = GetMenuFlash();
@@ -52,12 +50,12 @@ class CR4PreparationMenu extends CR4MenuBase
 		sendTrackedMonsterInfo();
 	}
 	
-	event  OnCloseMenu()
+	event /*flash*/ OnCloseMenu()
 	{
 		var medd : W3PlayerWitcherStateMeditation;
 		var waitt : W3PlayerWitcherStateMeditationWaiting;
 		
-		theSound.SoundEvent( 'gui_global_quit' ); 
+		theSound.SoundEvent( 'gui_global_quit' ); // #B sound - quit
 		CloseMenu();
 		if( m_parentMenu )
 		{
@@ -87,14 +85,14 @@ class CR4PreparationMenu extends CR4MenuBase
 		}
 	}
 	
-	event  OnGuiSceneEntitySpawned(entity : CEntity)
+	event /* C++ */ OnGuiSceneEntitySpawned(entity : CEntity)
 	{
 		Event_OnGuiSceneEntitySpawned();
 
 		UpdateItemsFromEntity(entity);
 	}
 	
-	event  OnGuiSceneEntityDestroyed()
+	event /* C++ */ OnGuiSceneEntityDestroyed()
 	{
 		Event_OnGuiSceneEntityDestroyed();
 	}
@@ -150,7 +148,7 @@ class CR4PreparationMenu extends CR4MenuBase
 		for( i = 0; i < itemsNames.Size(); i += 1 )
 		{
 			l_flashObject = m_flashValueStorage.CreateTempFlashObject("red.game.witcher3.menus.common.ItemDataStub");
-			l_flashObject.SetMemberFlashInt( "id", i + 1 ); 
+			l_flashObject.SetMemberFlashInt( "id", i + 1 ); // ERRR
 			l_flashObject.SetMemberFlashInt( "quantity", 1 );
 			l_flashObject.SetMemberFlashString( "iconPath",  dm.GetItemIconPath( itemsNames[i] ) );
 			l_flashObject.SetMemberFlashInt( "gridPosition", i );
@@ -178,7 +176,7 @@ class CR4PreparationMenu extends CR4MenuBase
 		journalManager = theGame.GetJournalManager();
 		currentlyTrackedQuest = journalManager.GetTrackedQuest();
 		
-		if (currentlyTrackedQuest.GetType() == MonsterHunt) 
+		if (currentlyTrackedQuest.GetType() == MonsterHunt) /*QuestType_MonsterHunt*/
 		{
 			currentlyTrackedCreatureName = currentlyTrackedQuest.GetHuntingQuestCreatureTag();
 			currentlyTrackedCreature = (CJournalCreature)journalManager.GetEntryByTag(currentlyTrackedCreatureName);
@@ -205,7 +203,7 @@ class CR4PreparationMenu extends CR4MenuBase
 	
 	function SetButtons()
 	{
-		
+		//AddInputBinding("panel_button_common_exit", "escape-gamepad_B", IK_Escape);
 		AddInputBinding("panel_button_common_navigation", "gamepad_L3");		
 		super.SetButtons();
 	}
@@ -251,7 +249,7 @@ class CR4PreparationMenu extends CR4MenuBase
 			
 			monsterData.SetMemberFlashString("monsterIconPath", "icons/monsters/" + currentlyTrackedCreature.GetImage());
 			monsterData.SetMemberFlashString("monsterName", GetLocStringById( currentlyTrackedCreature.GetNameStringId() ) );
-			monsterData.SetMemberFlashString("bgImgPath", currentlyTrackedCreature.GetImage()); 
+			monsterData.SetMemberFlashString("bgImgPath", currentlyTrackedCreature.GetImage()); // #J Deprecated as we use render to texture now
 			monsterData.SetMemberFlashString("txtDesc", GetDescription(currentlyTrackedCreature));
 			
 			itemsFlashArray = CreateItems(currentlyTrackedCreature.GetItemsUsedAgainstCreature());
@@ -266,7 +264,7 @@ class CR4PreparationMenu extends CR4MenuBase
 				m_flashValueStorage.SetFlashBool("journal.rewards.panel.visible", false);
 			}
 			
-			ShowRenderToTexture("");
+			ShowRenderToTexture(""/*currentlyTrackedCreature.GetEntityTemplateFilename()*/);
 		}
 		else
 		{
@@ -279,7 +277,7 @@ class CR4PreparationMenu extends CR4MenuBase
 		m_flashValueStorage.SetFlashObject("preparation.tracked.monster.info", monsterData);
 	}
 	
-	function GetDescription( currentCreature : CJournalCreature ) : string 
+	function GetDescription( currentCreature : CJournalCreature ) : string // #J copied from glossaryBestiaryMenu.ws, try to keep both same or merge into common codebase
     {
 		var journalManager : CWitcherJournalManager;
 		var i : int;
@@ -317,12 +315,12 @@ class CR4PreparationMenu extends CR4MenuBase
 		return str;
 	}
 
-	
+	// #Y remove
 	private function initMeditationState()
 	{
 		var medState : W3PlayerWitcherStateMeditation;
 		medState = (W3PlayerWitcherStateMeditation)GetMenuInitData();
-		
+		//medState.meditationMenu = this;
 	}
 	
 	protected function equipTypeToTabIndex(equipId:int):PreparationMenuTabIndexes
@@ -369,7 +367,7 @@ class CR4PreparationMenu extends CR4MenuBase
 		return PIT_Undefined;
 	}
 	
-	event  OnTabDataRequested(tabIndex : int )
+	event /*flash*/ OnTabDataRequested(tabIndex : int )
 	{
 		PopulateTabData(tabIndex);
 	}
@@ -434,12 +432,12 @@ class CR4PreparationMenu extends CR4MenuBase
 		RootMenu = (CR4CommonMenu)GetRootMenu();
 		if ( RootMenu )
 		{
-			
-			
+			//RootMenu.SetSingleMode("PREPARATION","1", "", -1);
+			//RootMenu.EnableMenuTab('PreparationMenu');
 		}
 	}
 	
-	event  OnSelectInventoryItem(itemId:SItemUniqueId, slot:int) : void
+	event /*flash*/ OnSelectInventoryItem(itemId:SItemUniqueId, slot:int) : void
 	{
 		if (_inv.IsIdValid(itemId))
 		{
@@ -447,12 +445,12 @@ class CR4PreparationMenu extends CR4MenuBase
 		}
 	}
 	
-	event  OnEquipItemPrep( item : SItemUniqueId, equipID : int)
+	event /*flash*/ OnEquipItemPrep( item : SItemUniqueId, equipID : int)
 	{
 		var itemOnSlot : SItemUniqueId;
 		var weaponId : SItemUniqueId;		
 				
-		
+		// Start with oil logic since it is custom
 		if (equipID == EES_SilverSword)
 		{
 			if (_inv.IsIdValid(item) && _inv.GetItemEquippedOnSlot(EES_SilverSword, weaponId))
@@ -471,7 +469,7 @@ class CR4PreparationMenu extends CR4MenuBase
 		{
 			GetWitcherPlayer().GetItemEquippedOnSlot(equipID, itemOnSlot);
 			
-			
+			// Start buy unequipping current slot
 			if (_inv.IsIdValid(itemOnSlot))
 			{
 				_gridInv.UnequipItem(itemOnSlot);
@@ -485,7 +483,7 @@ class CR4PreparationMenu extends CR4MenuBase
 		UpdateToxicityBar();
 	}
 	
-	event  OnUnequipItemPrep( equipID : int )
+	event /*flash*/ OnUnequipItemPrep( equipID : int )
 	{
 		var itemOnSlot : SItemUniqueId;
 	
@@ -495,18 +493,18 @@ class CR4PreparationMenu extends CR4MenuBase
 		{
 			LogChannel('PREPARATION'," OnUnequipItem");
 			GetWitcherPlayer().UnequipItemFromSlot( equipID, false );
+			//_gridInv.UnequipItem( itemOnSlot );
 			
-			
-			
+			// TODO: Per-item update
 			PopulateTabData(equipTypeToTabIndex(equipID));
 			updateSlotsItems();
 		}
 	}
 	
-	
-	
-	
-	
+	//
+	// WARNING: CODE DUBLICATION, check inventoryMenu.ws
+	// REFACT ASAP!!!
+	//
 	
 	private function GetLocItemOilCategory(item : SItemUniqueId) : string
 	{
@@ -535,7 +533,7 @@ class CR4PreparationMenu extends CR4MenuBase
 				}
 			}
 			
-			
+			// # Don't add a prefix if its steel and silver oil
 			if (steelOil && !silverOil)
 			{
 				typeStr = GetLocStringByKeyExt("panel_inventory_paperdoll_slotname_steel_oil");
@@ -574,7 +572,7 @@ class CR4PreparationMenu extends CR4MenuBase
 		
 		if( !_inv.IsIdValid(item) )
 		{
-			
+			// Todo: here we must probably hide our tooltip
 			return false;
 		}
 		
@@ -584,7 +582,7 @@ class CR4PreparationMenu extends CR4MenuBase
 		itemName = GetLocStringByKeyExt(itemName);
 		resultData.SetMemberFlashString("ItemName", itemName);
 		
-		if( _inv.GetItemName(item) != _inv.GetItemName(compareItem) ) 
+		if( _inv.GetItemName(item) != _inv.GetItemName(compareItem) ) // #B by name because they could be in different inventoryComponents, and then they have different id
 		{
 			_inv.GetItemStats(compareItem, compareItemStats);
 		}
@@ -594,7 +592,7 @@ class CR4PreparationMenu extends CR4MenuBase
 		resultData.SetMemberFlashArray("StatsList", statsList);
 		resultData.SetMemberFlashString("PriceValue", _inv.GetItemPrice(item));
 		
-		if( _inv.ItemHasTag(item, 'Quest') || _inv.IsItemIngredient(item) || _inv.IsItemAlchemyItem(item) ) 
+		if( _inv.ItemHasTag(item, 'Quest') || _inv.IsItemIngredient(item) || _inv.IsItemAlchemyItem(item) ) // #B item weight check
 		{
 			weight = 0;
 		}
@@ -639,8 +637,8 @@ class CR4PreparationMenu extends CR4MenuBase
 		m_flashValueStorage.SetFlashObject("context.tooltip.data", resultData);
 	}
 	
-	
-	event  OnGetEmptyPaperdollTooltip(equipID:int, isLocked:bool) : void
+	// #J WARNING this is more else a dupplicate of the code in InventoryMenu.ws Make sure to change both
+	event /*flash*/ OnGetEmptyPaperdollTooltip(equipID:int, isLocked:bool) : void
 	{
 		var statsList			: CScriptedFlashArray;
 		var resultData 			: CScriptedFlashObject;
@@ -661,7 +659,7 @@ class CR4PreparationMenu extends CR4MenuBase
 		resultData.SetMemberFlashString("WeightValue", 0);
 		resultData.SetMemberFlashString("ItemRarity", "");
 		
-		
+		// In preparation, though these slots are tied to the swords, they actually represent the oils that can be applied to them
 		if (equipID == EES_SilverSword || equipID == EES_SteelSword)
 		{
 			resultData.SetMemberFlashString("ItemType", GetLocStringByKeyExt("panel_inventory_paperdoll_slotname_oils") );
@@ -680,26 +678,27 @@ class CR4PreparationMenu extends CR4MenuBase
 		m_flashValueStorage.SetFlashObject("context.tooltip.data", resultData);
 	}
 	
-	event  OnGetAppliedOilTooltip(equipID:int) : void
+	event /*flash*/ OnGetAppliedOilTooltip(equipID:int) : void
 	{
-		var oilName : name;
-		var statsList			: CScriptedFlashArray;
-		var resultData 			: CScriptedFlashObject;
+		var oilName 		: name;
+		var statsList		: CScriptedFlashArray;
+		var resultData 		: CScriptedFlashObject;
+		var buff 			: W3Effect_Oil;
+		var id				: SItemUniqueId;
 		
-		if (equipID == EES_SilverSword)
-		{
-			oilName = _inv.GetOilNameOnSword(false);
-		}
-		else if (equipID == EES_SteelSword)
-		{
-			oilName = _inv.GetOilNameOnSword(true);
-		}
-		else
+		if( !GetWitcherPlayer().GetItemEquippedOnSlot( equipID, id ) )
 		{
 			return false;
 		}
 		
-		if (oilName == '')
+		buff = _inv.GetOldestOilAppliedOnItem( id, false );
+		if( !buff )
+		{
+			return false;
+		}
+		
+		oilName = buff.GetOilItemName();
+		if( oilName == '' )
 		{
 			return false;
 		}
@@ -708,12 +707,12 @@ class CR4PreparationMenu extends CR4MenuBase
 		resultData = m_flashValueStorage.CreateTempFlashObject();
 		
 		resultData.SetMemberFlashString("ItemName", GetLocStringByKeyExt(_inv.GetItemLocalizedNameByName(oilName)));
-		resultData.SetMemberFlashArray("StatsList", statsList); 
+		resultData.SetMemberFlashArray("StatsList", statsList); //#J TODO, fetch the oil stats
 		resultData.SetMemberFlashString("PriceValue", 0);
 		resultData.SetMemberFlashString("WeightValue", 0);
 		resultData.SetMemberFlashString("ItemRarity", "");
 		
-		
+		// In preparation, though these slots are tied to the swords, they actually represent the oils that can be applied to them
 		if (equipID == EES_SilverSword)
 		{
 			resultData.SetMemberFlashString("ItemType", GetLocStringByKeyExt("panel_inventory_paperdoll_slotname_silver_oil") );
@@ -749,7 +748,7 @@ class CR4PreparationMenu extends CR4MenuBase
 			l_flashObject.SetMemberFlashString("name",itemStats[i].attributeName);
 			l_flashObject.SetMemberFlashString("color",itemStats[i].attributeColor);
 			
-			
+			//HERE, WE'RE COMPARING STATS AGAINST POSSIBLE OVERLAPS WITH A POSSIBLY EQUIPPED SIMILAR ITEM IN ORDER TO SHOW BENEFIT DIFFERENCE
 			for( j = 0; j < compareItemStats.Size(); j += 1 )
 			{
 				if( itemStats[j].attributeName == compareItemStats[i].attributeName )
@@ -757,24 +756,24 @@ class CR4PreparationMenu extends CR4MenuBase
 					nDifference = itemStats[j].value - compareItemStats[i].value;
 					percentDiff = AbsF(nDifference/itemStats[j].value);
 					
-					
+					//better
 					if(nDifference > 0)
 					{
-						if(percentDiff < 0.25) 
+						if(percentDiff < 0.25) //1 arrow
 							strDifference = "better";
-						else if(percentDiff > 0.75) 
+						else if(percentDiff > 0.75) //3 arrows
 							strDifference = "wayBetter";
-						else						
+						else						//2 arrows
 							strDifference = "reallyBetter";
 					}
-					
+					//worse
 					else if(nDifference < 0)
 					{
-						if(percentDiff < 0.25) 
+						if(percentDiff < 0.25) //1 arrow
 							strDifference = "worse";
-						else if(percentDiff > 0.75) 
+						else if(percentDiff > 0.75) //3 arrows
 							strDifference = "wayWorse";
-						else						
+						else						//2 arrows
 							strDifference = "reallyWorse";					
 					}
 					break;					
@@ -805,7 +804,7 @@ class CR4PreparationMenu extends CR4MenuBase
 		return GetItemRarityDescriptionFromInt(itemQuality);
 	}
 	
-	
+	//----------
 	
 
 }

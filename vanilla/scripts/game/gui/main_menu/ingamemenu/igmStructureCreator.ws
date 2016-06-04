@@ -1,11 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file - Logic for Ingame Menu layout generation
 /***********************************************************************/
-
-
-
+/** Copyright © 2015 CDProjektRed
+/** Author : Jason Slama
+/***********************************************************************/
 
 
 class IngameMenuStructureCreator
@@ -65,14 +63,16 @@ class IngameMenuStructureCreator
 		{
 			if (hasSaveDataToLoad())
 			{
-				
+				// --------------------------------- Continue ---------------------------------
 				l_DataFlashObject = CreateMenuItem("continue", "panel_continue", NameToFlashUInt('Continue'), IGMActionType_LoadLastSave, true);
 				l_DataFlashArray.PushBackFlashObject(l_DataFlashObject);
-				
+				// ======================================================================================================================================================
 			}
 			
-			
-			if ((theGame.CanStartStandaloneDLC('ep1') && theGame.GetDLCManager().IsEP1Available()) || theGame.GetDLCManager().IsNewGamePlusAvailable())
+			// --------------------------------- New Game ---------------------------------
+			if ( ( theGame.CanStartStandaloneDLC('ep1') && theGame.GetDLCManager().IsEP1Available() ) ||
+				(  theGame.CanStartStandaloneDLC('bob_000_000') && theGame.GetDLCManager().IsEP2Available() ) ||
+				   theGame.GetDLCManager().IsNewGamePlusAvailable() )
 			{
 				l_DataFlashObject = CreateMenuItem("NewGame", "panel_newgame", NameToFlashUInt('NewGame'), IGMActionType_MenuHolder, false, "panel_newgame");
 				l_ChildMenuFlashArray = CreateNewGameListArray();
@@ -84,19 +84,19 @@ class IngameMenuStructureCreator
 			}
 			l_DataFlashObject.SetMemberFlashArray( "subElements", l_ChildMenuFlashArray );
 			l_DataFlashArray.PushBackFlashObject(l_DataFlashObject);
-			
+			// ======================================================================================================================================================
 		}
 		else
 		{
-			
+			// --------------------------------- Resume ---------------------------------
 			l_DataFlashObject = CreateMenuItem("resume", "panel_resume", NameToFlashUInt('Resume'), IGMActionType_Close, true);
 			l_DataFlashArray.PushBackFlashObject(l_DataFlashObject);
-			
+			// ======================================================================================================================================================
 		}
 		
 		if (!parentMenu.isMainMenu)
 		{
-			
+			// --------------------------------- Save Game ---------------------------------
 			if (theGame.GetPlatform() == Platform_Xbox1)
 			{
 				l_titleString = "panel_mainmenu_savegame_x1";
@@ -112,81 +112,81 @@ class IngameMenuStructureCreator
 			
 			l_DataFlashObject = CreateMenuItem("mainmenu_savegame", l_titleString, NameToFlashUInt('SaveGame'), IGMActionType_Save, true);
 			l_DataFlashArray.PushBackFlashObject(l_DataFlashObject);
-			
+			// ======================================================================================================================================================
 		}
 		
 		if (hasSaveDataToLoad())
 		{
-			
+			// --------------------------------- Load Game ---------------------------------
 			l_DataFlashObject = CreateMenuItem("mainmenu_loadgame", "panel_mainmenu_loadgame", NameToFlashUInt('LoadGame'), IGMActionType_Load, true);
 			l_DataFlashArray.PushBackFlashObject(l_DataFlashObject);
-			
+			// ======================================================================================================================================================
 		}
 		
-		
+		// --------------------------------- Options ---------------------------------
 		l_DataFlashObject = CreateMenuItem("mainmenu_options", "panel_mainmenu_options", NameToFlashUInt('Options'), IGMActionType_Options, true);
 		l_DataFlashArray.PushBackFlashObject(l_DataFlashObject);
-		
+		// ======================================================================================================================================================
 		
 		if (!parentMenu.isMainMenu)
 		{
 			if( thePlayer.IsActionAllowed( EIAB_OpenGlossary ))
 			{
-				
+				// --------------------------------- Tutorials ---------------------------------
 				l_DataFlashObject = CreateMenuItem("mainmenu_Tutorials", "panel_mainmenu_tutorials", NameToFlashUInt('Tutorials'), IGMActionType_Tutorials, true);
 				l_DataFlashArray.PushBackFlashObject(l_DataFlashObject);
-				
+				// ======================================================================================================================================================
 			}
 			
-			
+			// --------------------------------- gwent ---------------------------------
 			if (theGame.GetGwintManager().GetHasDoneTutorial() || theGame.GetGwintManager().HasLootedCard())
 			{
 				l_DataFlashObject = CreateMenuItem("mainmenu_Gwent", "panel_mainmenu_gwent", NameToFlashUInt('Gwent'), IGMActionType_Gwint, true);
 				l_DataFlashArray.PushBackFlashObject(l_DataFlashObject);
 			}
-			
+			// ======================================================================================================================================================
 			
 		}
 		
-		
+		// --------------------------------- Help ---------------------------------
 		if (theGame.GetPlatform() == Platform_Xbox1)
 		{
 			l_DataFlashObject = CreateMenuItem("mainmenu_help", "panel_mainmenu_help", NameToFlashUInt('Help'), IGMActionType_Help, true);
 			l_DataFlashArray.PushBackFlashObject(l_DataFlashObject);
 		}
-		
+		// ======================================================================================================================================================
 		
 		if (!parentMenu.isMainMenu)
 		{
-			
+			// --------------------------------- Quit Game ---------------------------------
 			l_DataFlashObject = CreateMenuItem("button_common_quittomainmenu", "panel_button_common_quittomainmenu", NameToFlashUInt('DLC'), IGMActionType_Quit, true);
 			l_DataFlashArray.PushBackFlashObject(l_DataFlashObject);
-			
+			// ======================================================================================================================================================
 		}
 		else if (theGame.GetDLCManager().IsAnyDLCAvailable())
 		{
-			
+			// --------------------------------- DLC ---------------------------------
 			l_DataFlashObject = CreateMenuItem("panel_dlc", "panel_dlc", NameToFlashUInt('QuitGame'), IGMActionType_MenuHolder, false);
 			l_ChildMenuFlashArray = CreateDLCSubElements();
 			l_DataFlashObject.SetMemberFlashArray( "subElements", l_ChildMenuFlashArray );
 			l_DataFlashArray.PushBackFlashObject(l_DataFlashObject);
-			
+			// ======================================================================================================================================================
 		}
 		
 		if (theGame.GetPlatform() == Platform_PC)
 		{
-			
+			// --------------------------------- Close Game ---------------------------------
 			l_DataFlashObject = CreateMenuItem("button_closeGame", "menu_main_quit", NameToFlashUInt('CloseGame'), IGMActionType_CloseGame, true);
 			l_DataFlashArray.PushBackFlashObject(l_DataFlashObject);
-			
+			// ======================================================================================================================================================
 		}
 		
 		if ( parentMenu.isMainMenu && theGame.IsDebugQuestMenuEnabled() && !theGame.IsFinalBuild() )
 		{
-			
+			// --------------------------------- CHEAT ---------------------------------
 			l_DataFlashObject = CreateMenuItem("debug_menu", "DBG Quest Menu", NameToFlashUInt('DebugMenu'), IGMActionType_DebugStartQuest, true);
 			l_DataFlashArray.PushBackFlashObject(l_DataFlashObject);
-			
+			// ======================================================================================================================================================
 		}
 		
 		return l_DataFlashArray;
@@ -200,16 +200,16 @@ class IngameMenuStructureCreator
 		
 		l_optionChildList = m_flashValueStorage.CreateTempFlashArray();
 		
-		
+		// --------------------------------- New Game ---------------------------------
 		l_DataFlashObject = CreateMenuItem("NewGame", "new_game_tw3", NameToFlashUInt('NewGame'), IGMActionType_MenuHolder, false, "newgame_difficulty");
 		l_ChildMenuFlashArray = CreateDifficultyListArray(0);
 		l_DataFlashObject.SetMemberFlashArray( "subElements", l_ChildMenuFlashArray );
 		l_DataFlashObject.SetMemberFlashString( "description", GetLocStringByKeyExt("panel_mainmenu_start_newgame_description") );
 		
 		l_optionChildList.PushBackFlashObject(l_DataFlashObject);
+		// ======================================================================================================================================================
 		
-		
-		
+		// --------------------------------- EP1 ---------------------------------
 		if (theGame.CanStartStandaloneDLC('ep1') && theGame.GetDLCManager().IsEP1Available())
 		{
 			l_DataFlashObject = CreateMenuItem("NewGame", "new_game_ep1", NameToFlashUInt('NewGameEP1'), IGMActionType_MenuHolder, false, "newgame_difficulty");
@@ -219,7 +219,17 @@ class IngameMenuStructureCreator
 			
 			l_optionChildList.PushBackFlashObject(l_DataFlashObject);
 		}
-		
+		// ======================================================================================================================================================
+		if (theGame.CanStartStandaloneDLC('bob_000_000') && theGame.GetDLCManager().IsEP2Available())
+		{
+			l_DataFlashObject = CreateMenuItem("NewGame", "new_game_ep2", NameToFlashUInt('NewGameEP2'), IGMActionType_MenuHolder, false, "newgame_difficulty");
+			l_ChildMenuFlashArray = CreateDifficultyListArray(IGMC_EP2_Save);
+			l_DataFlashObject.SetMemberFlashArray( "subElements", l_ChildMenuFlashArray );
+			l_DataFlashObject.SetMemberFlashString( "description", GetLocStringByKeyExt("panel_mainmenu_start_ep2_description") );
+			
+			l_optionChildList.PushBackFlashObject(l_DataFlashObject);
+		}
+		// ======================================================================================================================================================
 		
 		if (theGame.GetDLCManager().IsNewGamePlusAvailable())
 		{
@@ -256,7 +266,11 @@ class IngameMenuStructureCreator
 		
 		var lastHolder 				: bool;
 		
-		if ((tag & IGMC_EP1_Save) == IGMC_EP1_Save)
+		if ((tag & IGMC_EP2_Save) == IGMC_EP2_Save)
+		{
+			lastHolder = true;
+		}
+		else if ((tag & IGMC_EP1_Save) == IGMC_EP1_Save)
 		{
 			lastHolder = true;
 		}
@@ -325,7 +339,7 @@ class IngameMenuStructureCreator
 		var l_DataFlashObject 		: CScriptedFlashObject;
 		var currentTag : int;
 		
-		
+		// -------------------------- On -------------------------
 		
 		l_DataFlashObject = m_flashValueStorage.CreateTempFlashObject();
 		l_DataFlashObject.SetMemberFlashString( "id", "mainmenu_Tutorials");
@@ -342,7 +356,7 @@ class IngameMenuStructureCreator
 		
 		parentArray.PushBackFlashObject(l_DataFlashObject);
 		
-		
+		// -------------------------- Off -------------------------
 		
 		l_DataFlashObject = m_flashValueStorage.CreateTempFlashObject();
 		l_DataFlashObject.SetMemberFlashString( "id", "mainmenu_Tutorials");
@@ -366,7 +380,7 @@ class IngameMenuStructureCreator
 		var savesToImport : array< SSavegameInfo >;
 		var currentTag : int;
 		
-		
+		// -------------------------- On -------------------------
 		
 		l_DataFlashObject = m_flashValueStorage.CreateTempFlashObject();
 		l_ChildMenuFlashArray = m_flashValueStorage.CreateTempFlashArray();
@@ -392,7 +406,7 @@ class IngameMenuStructureCreator
 		
 		parentArray.PushBackFlashObject(l_DataFlashObject);
 		
-		
+		// -------------------------- Off -------------------------
 		
 		l_DataFlashObject = m_flashValueStorage.CreateTempFlashObject();
 		l_ChildMenuFlashArray = m_flashValueStorage.CreateTempFlashArray();
@@ -417,7 +431,7 @@ class IngameMenuStructureCreator
 		
 		parentArray.PushBackFlashObject(l_DataFlashObject);
 		
-		
+		// -------------------------- Import -------------------------
 		if (theGame.GetPlatform() == Platform_PC)
 		{
 			theGame.ListW2SavedGames( savesToImport );
@@ -454,7 +468,7 @@ class IngameMenuStructureCreator
 		var l_ChildMenuFlashArray	: CScriptedFlashArray;
 		var l_DataFlashObject 		: CScriptedFlashObject;
 		
-		
+		// -------------------------- On -------------------------
 		
 		l_DataFlashObject = m_flashValueStorage.CreateTempFlashObject();
 		l_DataFlashObject.SetMemberFlashString( "id", "panel_common_ok");

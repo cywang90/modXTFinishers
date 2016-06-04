@@ -1,10 +1,7 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2013 - 2014
+/** Author : Tomek Kozera
 /***********************************************************************/
-
-
 
 class CDamageAreaEntity extends CInteractiveEntity
 {
@@ -121,7 +118,7 @@ class CDamageAreaEntity extends CInteractiveEntity
 		}
 		
 		actorsInRange = GetActorsInRange( this, range, -1, , true);
-		
+		//thePlayer.GetVisualDebug().AddSphere( 'DamageAreaRadius', range, this.GetWorldPosition(), true,,5 );
 		
 		if(buffParams.effectType == EET_Undefined)
 		{

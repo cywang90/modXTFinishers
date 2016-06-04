@@ -1,13 +1,8 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-class CR4HudModuleTimeLeft extends CR4HudModuleBase
+﻿class CR4HudModuleTimeLeft extends CR4HudModuleBase
 {	
 	private	var m_fxSetTimeOutPercent				: CScriptedFlashFunction;
 	
-	 event OnConfigUI()
+	/* flash */ event OnConfigUI()
 	{
 		var flashModule : CScriptedFlashSprite;
 		var hud : CR4ScriptedHud;
@@ -38,15 +33,19 @@ class CR4HudModuleTimeLeft extends CR4HudModuleBase
 		{
 			Show( timeOut );
 		}
-		else
+		else if ( action == EHTOA_Stop )
 		{
 			Hide();
+		}
+		else if ( action == EHTOA_Add )
+		{
+			AddTime( timeOut );
 		}
 	}
 
 	public function Show( timeOut : float )
 	{
-		
+		// TODO save timeout in player
 		thePlayer.SetInitialTimeOut( timeOut );
 		thePlayer.SetCurrentTimeOut( timeOut );
 		
@@ -61,6 +60,26 @@ class CR4HudModuleTimeLeft extends CR4HudModuleBase
 		ShowElement( false );
 	}
 
+	public function AddTime( timeOut : float )
+	{
+		var currentTimeOut : float;
+		var newTimeOut : float;
+		
+		currentTimeOut = thePlayer.GetCurrentTimeOut();
+		if ( currentTimeOut <= 0 )
+		{
+			// there'e no time left anyway
+			return;
+		}
+		newTimeOut = currentTimeOut + timeOut;
+		if ( newTimeOut > thePlayer.GetInitialTimeOut() )
+		{
+			// not more than the initial timeout
+			newTimeOut = thePlayer.GetInitialTimeOut();
+		}
+		thePlayer.SetCurrentTimeOut( newTimeOut );
+	}
+	
 	event OnTick(timeDelta : float)
 	{
 		var currentTimeOut : float;

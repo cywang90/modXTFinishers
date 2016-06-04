@@ -1,16 +1,14 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file - Information Popup Window
 /***********************************************************************/
-
-
-
+/** Copyright © 2014 CDProjektRed
+/** Author : Shadi Dadenji
+/***********************************************************************/
 
 class CR4InformationPopupMenu extends CR4MenuBase
 {	
 
-	event  OnConfigUI() 
+	event /*flash*/ OnConfigUI() 
 	{	
 		super.OnConfigUI();
 
@@ -23,8 +21,8 @@ class CR4InformationPopupMenu extends CR4MenuBase
 	}
 	
 
-	
-	public function SetFirstButton(buttonIcon:string, buttonLabel:string) : void 
+	//optional functions to modify the buttons (by default, the popup will have one OK button)
+	public function SetFirstButton(buttonIcon:string, buttonLabel:string) : void //need to find a way to specify what the buttons actually do
 	{
 		var l_flashObject			: CScriptedFlashObject;
 		var l_flashArray			: CScriptedFlashArray;
@@ -56,14 +54,14 @@ class CR4InformationPopupMenu extends CR4MenuBase
 
 		m_flashValueStorage.SetFlashArray("popup.info.button2", l_flashArray);
 	}
-	
+	//////////////////////////////////////////////////////////////////////////////////////////
 
-	event  OnFirstButtonPress()
+	event /*flash*/ OnFirstButtonPress()
 	{
 		CloseMenu();		
 	}
 
-	event  OnSecondButtonPress()
+	event /*flash*/ OnSecondButtonPress()
 	{
 		CloseMenu();		
 	}

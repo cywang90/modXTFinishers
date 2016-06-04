@@ -1,44 +1,39 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
-
-
-
-
-
-
-
+﻿// CBTTaskBoatAttack
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Manage boat attack of the siren
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// R.Pergent - 12-June-2014
+// Copyright © 2014 CD Projekt RED
+//---------------------------------------------------------------------------
 class CBTTaskBoatAttack extends IBehTreeTask
 {
-	
-	
-	
+	//>--------------------------------------------------------------------------
+	// VARIABLES
+	//---------------------------------------------------------------------------
 	private var m_TargetBoat 			: CEntity;
 	private var m_LockedSlot			: name;
 	
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function OnDeactivate()
 	{
 		FreeGrabSlot();		
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function OnGameplayEvent( _EventName : name ) : bool
 	{	
 		if( _EventName == 'BeingHit' )
 		{
-			GetNPC().Kill();
+			GetNPC().Kill( 'Hit when on boat' );
 		}
 		
 		return true;
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function OnListenedGameplayEvent( _EventName : name ) : bool
 	{	
 		var l_slotFound			: bool;
@@ -53,8 +48,8 @@ class CBTTaskBoatAttack extends IBehTreeTask
 		
 		return true;
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo ) : bool
 	{		
 		if ( animEventName == 'Detach')
@@ -70,8 +65,8 @@ class CBTTaskBoatAttack extends IBehTreeTask
 		
 		return true;
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	private final function GetBoat() : CEntity
 	{
 		if( !m_TargetBoat )
@@ -81,8 +76,8 @@ class CBTTaskBoatAttack extends IBehTreeTask
 		
 		return m_TargetBoat;
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	private function FreeGrabSlot()
 	{		
 		var l_destructionComp 	: CBoatDestructionComponent;
@@ -90,8 +85,8 @@ class CBTTaskBoatAttack extends IBehTreeTask
 		l_destructionComp.FreeGrabSlot( m_LockedSlot );
 		l_destructionComp.DetachSiren( GetNPC() );
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	private function DamageBoat( _Amount : float )
 	{
 		var l_npc 				: CNewNPC = GetNPC();
@@ -106,13 +101,13 @@ class CBTTaskBoatAttack extends IBehTreeTask
 	}
 	
 }
-
-
+//>--------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 class CBTTaskBoatAttackDef extends IBehTreeTaskDefinition
 {	
 	default instanceClass = 'CBTTaskBoatAttack';
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function InitializeEvents()
 	{
 		super.InitializeEvents();

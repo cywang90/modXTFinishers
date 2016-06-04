@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-class W3ClueCorpse extends W3MonsterClue
+﻿class W3ClueCorpse extends W3MonsterClue
 {
 	editable var woundName : name;
 
@@ -31,7 +26,7 @@ class W3ClueCorpse extends W3MonsterClue
 		UpdateVisibility();			
 	}
 	
-	
+	//Focus visiblity function changed to update dismemberment as well
 	function UpdateVisibility()
 	{
 		var component : CDismembermentComponent;

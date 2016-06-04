@@ -1,18 +1,15 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2014-2015
+/** Author : Tomek Kozera
 /***********************************************************************/
-
-
 
 state Alchemy in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
-	private const var INGREDIENTS, COOKED_ITEM_DESC, CATEGORIES, SELECT_SOMETHING, SELECT_THUNDERBOLT, COOK, POTIONS, PREPARATION_GO_TO : name;	
+	private const var INGREDIENTS, COOKED_ITEM_DESC, CATEGORIES, SELECT_SOMETHING, SELECT_THUNDERBOLT, COOK, POTIONS, PREPARATION_GO_TO : name;	//hints
 	private const var RECIPE_THUNDERBOLT : name;
-	private const var POTIONS_JOURNAL : name;	
+	private const var POTIONS_JOURNAL : name;	//journal entry
 	private var isClosing : bool;
-	private var isForcedTunderbolt : bool;		
+	private var isForcedTunderbolt : bool;		//if it's forced Thunderbolt tutorial or normal one
 	private var currentlySelectedRecipe, requiredRecipeName, selectRecipe : name;
 	
 		default INGREDIENTS 		= 'TutorialAlchemyIngredients';
@@ -23,13 +20,11 @@ state Alchemy in W3TutorialManagerUIHandler extends TutHandlerBaseState
 		default COOK 				= 'TutorialAlchemyCook';
 		default POTIONS				= 'TutorialPotionCooked';
 		default POTIONS_JOURNAL		= 'TutorialJournalPotions';
-		default PREPARATION_GO_TO	= 'TutorialInventoryGoTo'; 
+		default PREPARATION_GO_TO	= 'TutorialInventoryGoTo'; //inventory since preparation panel got removed 'TutorialPreparationGoTo';
 		default RECIPE_THUNDERBOLT  = 'Recipe for Thunderbolt 1';
 		
 	event OnEnterState( prevStateName : name )
 	{
-		var highlights : array<STutorialHighlight>;
-		
 		super.OnEnterState(prevStateName);
 		
 		isClosing = false;
@@ -41,10 +36,10 @@ state Alchemy in W3TutorialManagerUIHandler extends TutHandlerBaseState
 			requiredRecipeName = RECIPE_THUNDERBOLT;
 			selectRecipe = SELECT_THUNDERBOLT;
 			
-			
+			//cannot leave panel
 			theGame.GetTutorialSystem().uiHandler.LockLeaveMenu(true);
 			
-			
+			//add recipe and ingredients for thunderbolt
 			AddThunderBoltIngredients();
 			
 			theGame.GetTutorialSystem().UnmarkMessageAsSeen(INGREDIENTS);
@@ -60,34 +55,28 @@ state Alchemy in W3TutorialManagerUIHandler extends TutHandlerBaseState
 			selectRecipe = SELECT_SOMETHING;
 		}
 		
-		highlights.Resize(1);
-		highlights[0].x = 0.41;
-		highlights[0].y = 0.51;
-		highlights[0].width = 0.27;
-		highlights[0].height = 0.13;
-		
-		ShowHint(INGREDIENTS, theGame.params.TUT_POS_ALCHEMY_X, theGame.params.TUT_POS_ALCHEMY_Y, , highlights);
+		ShowHint( INGREDIENTS, POS_ALCHEMY_X, POS_ALCHEMY_Y, , GetHighlightAlchemyIngredients() );
 	}
 			
 	event OnLeaveState( nextStateName : name )
 	{
 		isClosing = true;
 		
-		CloseHint(INGREDIENTS);
-		CloseHint(COOKED_ITEM_DESC);
-		CloseHint(CATEGORIES);
-		CloseHint(selectRecipe);
-		CloseHint(COOK);
-		CloseHint(POTIONS);
-		CloseHint(PREPARATION_GO_TO);
+		CloseStateHint(INGREDIENTS);
+		CloseStateHint(COOKED_ITEM_DESC);
+		CloseStateHint(CATEGORIES);
+		CloseStateHint(selectRecipe);
+		CloseStateHint(COOK);
+		CloseStateHint(POTIONS);
+		CloseStateHint(PREPARATION_GO_TO);
 		
 		theGame.GetTutorialSystem().MarkMessageAsSeen(INGREDIENTS);
 		
 		if(isForcedTunderbolt)
 		{			
-			
-			theGame.GetTutorialSystem().uiHandler.UnregisterUIHint('Alchemy');
-			theGame.GetTutorialSystem().uiHandler.UnregisterUIHint('Alchemy');
+			//remove both handlers for alchemy (if we do forced but never did regular one)
+			theGame.GetTutorialSystem().uiHandler.UnregisterUIState('Alchemy');
+			theGame.GetTutorialSystem().uiHandler.UnregisterUIState('Alchemy');
 		}
 		else
 		{
@@ -99,47 +88,42 @@ state Alchemy in W3TutorialManagerUIHandler extends TutHandlerBaseState
 	
 	event OnTutorialClosed(hintName : name, closedByParentMenu : bool)
 	{
-		var highlights : array<STutorialHighlight>;
+		var menu : CR4AlchemyMenu;
 		
 		if(closedByParentMenu || isClosing)
 			return true;
 			
 		if(hintName == INGREDIENTS)
 		{
-			highlights.Resize(1);
-			highlights[0].x = 0.68;
-			highlights[0].y = 0.13;
-			highlights[0].width = 0.25;
-			highlights[0].height = 0.5;
-			
-			ShowHint(COOKED_ITEM_DESC, theGame.params.TUT_POS_ALCHEMY_X, 0.65, , highlights);
+			ShowHint( COOKED_ITEM_DESC, POS_ALCHEMY_X, POS_ALCHEMY_Y, , GetHighlightAlchemyItemDesc() );
 		}
 		else if(hintName == COOKED_ITEM_DESC)
 		{
-			highlights.Resize(1);
-			highlights[0].x = 0.065;
-			highlights[0].y = 0.15;
-			highlights[0].width = 0.35;
-			highlights[0].height = 0.65;
-			
-			ShowHint(CATEGORIES, theGame.params.TUT_POS_ALCHEMY_X, theGame.params.TUT_POS_ALCHEMY_Y, , highlights);
+			ShowHint( CATEGORIES, POS_ALCHEMY_X, POS_ALCHEMY_Y, , GetHighlightAlchemyList() );
 		}
 		else if(hintName == CATEGORIES)
 		{
 			if(currentlySelectedRecipe == requiredRecipeName)
-				ShowHint(COOK, theGame.params.TUT_POS_ALCHEMY_X, theGame.params.TUT_POS_ALCHEMY_Y, ETHDT_Infinite);
+				ShowHint(COOK, POS_ALCHEMY_X, POS_ALCHEMY_Y, ETHDT_Infinite);
 			else
-				ShowHint(selectRecipe, theGame.params.TUT_POS_ALCHEMY_X, theGame.params.TUT_POS_ALCHEMY_Y, ETHDT_Infinite);
+				ShowHint(selectRecipe, POS_ALCHEMY_X, POS_ALCHEMY_Y, ETHDT_Infinite);
 		}
 		else if(hintName == POTIONS)
-		{
-			CloseHint(POTIONS);
-			ShowHint(PREPARATION_GO_TO, theGame.params.TUT_POS_ALCHEMY_X, theGame.params.TUT_POS_ALCHEMY_Y, ETHDT_Infinite);
-			
+		{		
 			if(isForcedTunderbolt)
-			{				
-				
+			{
+				ShowHint(PREPARATION_GO_TO, POS_ALCHEMY_X, POS_ALCHEMY_Y, ETHDT_Infinite);
+			
+				//we don't unlock leaving menu as that only blocks (B) button but not switching panels with RB/LB
 				thePlayer.UnblockAction(EIAB_OpenInventory, 'tut_forced_preparation');
+			}
+			else
+			{
+				menu = (CR4AlchemyMenu) ((CR4MenuBase)theGame.GetGuiManager().GetRootMenu()).GetLastChild();
+				if( menu && !menu.IsInShop() )
+				{
+					ShowHint(PREPARATION_GO_TO, POS_ALCHEMY_X, POS_ALCHEMY_Y, ETHDT_Infinite);
+				}
 			}
 		}
 	}
@@ -150,14 +134,14 @@ state Alchemy in W3TutorialManagerUIHandler extends TutHandlerBaseState
 		
 		if(IsCurrentHint(selectRecipe) && IsRecipeOk(recipeName, canCook))
 		{
-			CloseHint(selectRecipe);
-			ShowHint(COOK, theGame.params.TUT_POS_ALCHEMY_X, theGame.params.TUT_POS_ALCHEMY_Y, ETHDT_Infinite);
+			CloseStateHint(selectRecipe);
+			ShowHint(COOK, POS_ALCHEMY_X, POS_ALCHEMY_Y, ETHDT_Infinite);
 		}		
 		else if(IsCurrentHint(COOK) && !IsRecipeOk(recipeName, canCook))
 		{
-			
-			CloseHint(COOK);
-			ShowHint(selectRecipe, theGame.params.TUT_POS_ALCHEMY_X, theGame.params.TUT_POS_ALCHEMY_Y, ETHDT_Infinite);
+			//had good selection but changed it
+			CloseStateHint(COOK);
+			ShowHint(selectRecipe, POS_ALCHEMY_X, POS_ALCHEMY_Y, ETHDT_Infinite);
 		}
 	}
 	
@@ -177,26 +161,26 @@ state Alchemy in W3TutorialManagerUIHandler extends TutHandlerBaseState
 	{
 		if(isForcedTunderbolt && recipeName != requiredRecipeName)
 		{
-			
+			//cooking item other than thunderbolt while in thunderbolt tutorial - add ings if missing
 			AddThunderBoltIngredients();
 		}
 		else 
 		{
-			isClosing = true;	
-			CloseHint(INGREDIENTS);
-			CloseHint(COOKED_ITEM_DESC);
-			CloseHint(CATEGORIES);
-			CloseHint(selectRecipe);
-			CloseHint(COOK);
+			isClosing = true;	//to avoid other tutorials openning as a result of closing one of the below tuts
+			CloseStateHint(INGREDIENTS);
+			CloseStateHint(COOKED_ITEM_DESC);
+			CloseStateHint(CATEGORIES);
+			CloseStateHint(selectRecipe);
+			CloseStateHint(COOK);
 			isClosing = false;
 		
-			ShowHint(POTIONS, theGame.params.TUT_POS_ALCHEMY_X, theGame.params.TUT_POS_ALCHEMY_Y);
+			ShowHint(POTIONS, POS_ALCHEMY_X, POS_ALCHEMY_Y);
 			theGame.GetTutorialSystem().ActivateJournalEntry(POTIONS_JOURNAL);
 		}
 
 	}
 	
-	
+	//adds missing ingredients for thunderbolt and recipe if missing
 	private final function AddThunderBoltIngredients()
 	{
 		var i, k, currQuantity, addQuantity, tmpInt : int;
@@ -212,7 +196,7 @@ state Alchemy in W3TutorialManagerUIHandler extends TutHandlerBaseState
 		if(!memoryWaste.Contains(RECIPE_THUNDERBOLT))
 			witcher.AddAlchemyRecipe(RECIPE_THUNDERBOLT);
 			
-		
+		//add all ings used by recipe if missing
 		dm = theGame.GetDefinitionsManager();
 		main = dm.GetCustomDefinition('alchemy_recipes');		
 		

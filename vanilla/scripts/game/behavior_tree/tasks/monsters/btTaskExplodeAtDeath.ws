@@ -1,31 +1,26 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
-
-
-
-
-
-
-
-
+﻿//>--------------------------------------------------------------------------
+// BTTaskExplodeAtDeath
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// NPC body explodes on  death
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// R.Pergent - 02-September-2014
+// Copyright © 2014 CD Projekt RED
+//---------------------------------------------------------------------------
 class BTTaskExplodeAtDeath extends IBehTreeTask
 {
-	
-	
-	
+	//>----------------------------------------------------------------------
+	// VARIABLES
+	//-----------------------------------------------------------------------
 	public  var requiredAbility		: name;
 	public 	var damageRadius		: float;
 	public  var damageValue			: float;
 	public  var weaponSlot			: name;
 	
 	private var m_hasExploded		: bool;
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function OnListenedGameplayEvent( eventName : name ) : bool
 	{
 		if( IsNameValid( requiredAbility ) && !GetNPC().HasAbility( requiredAbility ) )
@@ -36,8 +31,8 @@ class BTTaskExplodeAtDeath extends IBehTreeTask
 		}
 		return true;
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	private function Explode()
 	{
 		var l_actor 				: CActor;	
@@ -117,13 +112,13 @@ class BTTaskExplodeAtDeath extends IBehTreeTask
 }
 
 
-
-
+//>----------------------------------------------------------------------
+//-----------------------------------------------------------------------
 class BTTaskExplodeAtDeathDef extends IBehTreeTaskDefinition
 {
 	default instanceClass = 'BTTaskExplodeAtDeath';
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	private editable var requiredAbility	: name;
 	private editable var damageRadius		: float;
 	private editable var damageValue		: float;
@@ -133,8 +128,8 @@ class BTTaskExplodeAtDeathDef extends IBehTreeTaskDefinition
 	default damageValue 	= 50;
 	
 	hint damageValue = "damage if weapon slot is not set";
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function InitializeEvents()
 	{
 		super.InitializeEvents();

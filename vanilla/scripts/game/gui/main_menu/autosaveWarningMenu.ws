@@ -1,25 +1,23 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file - Autosave Warning Menu
 /***********************************************************************/
-
-
-
+/** Copyright © 2014 CDProjektRed
+/** Author : Jason Slama
+/***********************************************************************/
 
 class CR4AutosaveWarningMenu extends CR4MenuBase
 {	
 	protected var m_fxSetDuration : CScriptedFlashFunction;
 	protected var m_fxSetAutosaveMessage : CScriptedFlashFunction;
 	
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{
 		super.OnConfigUI();
 		
 		m_fxSetDuration = GetMenuFlash().GetMemberFlashFunction("setShowTimerDuration");
 		m_fxSetAutosaveMessage = GetMenuFlash().GetMemberFlashFunction("setAutosaveMessage");
 		
-		m_fxSetDuration.InvokeSelfOneArg(FlashArgInt(5000)); 
+		m_fxSetDuration.InvokeSelfOneArg(FlashArgInt(5000)); // in milliseconds
 		
 		SetAutosaveMessageText();
 	}
@@ -43,7 +41,7 @@ class CR4AutosaveWarningMenu extends CR4MenuBase
 		}
 	}
 	
-	event  OnClosingMenu()
+	event /* C++ */ OnClosingMenu()
 	{
 		super.OnClosingMenu();
 	}

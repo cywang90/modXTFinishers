@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-struct SItemGenericStat
+﻿struct SItemGenericStat
 {
 	var statName   : string;
 	var value	   : float;
@@ -39,10 +34,12 @@ class W3TooltipComponent
 	
 	public function setCrafter(craftsmanComponent : W3CraftsmanComponent):void
 	{
-		
+		// dummy
 	}
 	
-	
+	/*
+		Empty tooltips
+	*/
 	
 	public function GetEmptySlotData( equipID : int ) : CScriptedFlashObject
 	{
@@ -67,7 +64,7 @@ class W3TooltipComponent
 			tooltipData.SetMemberFlashString("Description", GetLocStringByKeyExt("panel_inventory_tooltip_empty_slot"));
 		}
 		
-		
+		// In preparation, though these slots are tied to the swords, they actually represent the oils that can be applied to them
 		if (equipID == EES_SilverSword || equipID == EES_SteelSword)
 		{
 			tooltipData.SetMemberFlashString("ItemType", GetLocStringByKeyExt("panel_inventory_paperdoll_slotname_oils") );
@@ -80,7 +77,9 @@ class W3TooltipComponent
 		return tooltipData;
 	}
 	
-	
+	/*	
+		Get item's tooltip data for inventory, blacksmith, etc
+	*/
 	
 	public function GetBaseItemData( item : SItemUniqueId, itemInvComponent : CInventoryComponent, optional isShopItem : bool, optional compareWithItem : SItemUniqueId, optional compareItemInv : CInventoryComponent ) : CScriptedFlashObject
 	{
@@ -124,9 +123,9 @@ class W3TooltipComponent
 		var durabilityRatio     : float;
 		
 		var armorType			: string;
+		//var notForSaleText		: string;
 		
-		
-		var enableComparing     : bool;
+		//var enableComparing     : bool;
 		var itemStats 			: array<SAttributeTooltip>;
 		var compStats			: array<SAttributeTooltip>;
 		var isWeaponOrArmor		: bool;
@@ -150,17 +149,20 @@ class W3TooltipComponent
 		var craftSchematic        : SCraftingSchematic;
 		var craftItemName	      : name;
 		var craftItemCategory     : name;
-		var craftItemSlot     	  : EEquipmentSlots;
+		
 		
 		var ignorePrimaryStat	  : bool;
 		var itemAttributePrefix	  : string;
 		
 		var rarityColor : string;
 		var canBeCompared  : bool;		
-		var itemLevel : int;
+		var itemLevel, craftedItemLevel : int;
 		
 		var armorTypeGlyphWordBonus : bool;
 		var armorEnumType : EArmorType;
+		
+		var ammo, ammoBonus : float;
+		var additionalRarityDescription : string;
 		
 		var definitionsMgr : CDefinitionsManagerAccessor;
 		
@@ -175,7 +177,7 @@ class W3TooltipComponent
 			return NULL;
 		}		
 		
-		
+		// ---------------- INIT ----------------
 		
 		
 		if (!compareItemInv)
@@ -190,12 +192,12 @@ class W3TooltipComponent
 		socketsList = tooltipData.CreateFlashArray();
 		statsList = tooltipData.CreateFlashArray();
 		
-		isArmorOrWeapon = itemInvComponent.IsItemAnyArmor(item) || itemInvComponent.IsItemWeapon(item) ;		
+		isArmorOrWeapon = itemInvComponent.IsItemAnyArmor(item) || itemInvComponent.IsItemWeapon(item) /*|| itemInvComponent.IsItemBomb(item)*/;		
 		itemName = itemInvComponent.GetItemName(item);		
 		itemLabel = GetLocStringByKeyExt(itemInvComponent.GetItemLocalizedNameByUniqueID(item));
 		itemSlot = itemInvComponent.GetSlotForItemId(item);
 		
-		
+		// ---------------- BASE INFO ------------
 		
 		categoryName =  itemInvComponent.GetItemCategory(item);
 		additionalDescription = "";
@@ -214,17 +216,29 @@ class W3TooltipComponent
 		}
 		if (craftItemName != '')
 		{
-			
+			// override target equipment, add crafting-specific description
 			craftItemCategory = definitionsMgr.GetItemCategory(craftItemName);
 			itemInvComponent.GetItemStatsFromName(craftItemName, itemStats);
+			if ( FactsQuerySum("NewGamePlus") > 0 )
+			{
+				IncreaseNGPPrimaryStatValue( craftItemCategory, itemStats );
+			}
 			wplayer.GetItemEquippedOnSlot(GetSlotForItemByCategory(craftItemCategory), equipedItem);
 			additionalDescription = "<br/><br/><font size = '21' color = '#B58D45'>";
 			additionalDescription += StrUpperUTF(GetLocStringByKeyExt(m_playerInv.GetItemLocalizedNameByName(craftItemName))) + "</font>";
 			
 			if (categoryName == 'crafting_schematic' && craftItemCategory != 'upgrade' && craftItemCategory != 'junk' && !definitionsMgr.ItemHasTag(craftItemName, 'CraftingIngredient'))
 			{
+				craftedItemLevel = definitionsMgr.GetItemLevelFromName( craftItemName );
+				if ( FactsQuerySum("NewGamePlus") > 0 )
+				{
+					if ( theGame.params.NewGamePlusLevelDifference() > 0 )
+					{
+						craftedItemLevel += theGame.params.NewGamePlusLevelDifference();
+					}
+				}
 				additionalDescription += "<br/>";
-				additionalDescription += itemInvComponent.GetItemLevelColor( definitionsMgr.GetItemLevelFromName( craftItemName ) ) + GetLocStringByKeyExt( 'panel_inventory_item_requires_level' ) + " " + definitionsMgr.GetItemLevelFromName( craftItemName ) + "</font><br>"; 
+				additionalDescription += itemInvComponent.GetItemLevelColor( craftedItemLevel ) + GetLocStringByKeyExt( 'panel_inventory_item_requires_level' ) + " " + craftedItemLevel + "</font><br>"; 
 			}
 			
 			ignorePrimaryStat = false;
@@ -263,19 +277,24 @@ class W3TooltipComponent
 			additionalDescription += "<br/><font color=\"#19D900\">" + GetLocStringByKeyExt("book_already_known") + "</font>";
 		}
 		
+		if( isShopItem )
+		{
+			addRecipeInfo( item, itemInvComponent, additionalDescription );
+		}
 		
+		// ---------------- ATTRIBUTES LIST ------------
 		
-		AddItemStats(itemStats, statsList, tooltipData, ignorePrimaryStat, itemAttributePrefix);
+		AddItemStats(itemStats, statsList, tooltipData, ignorePrimaryStat, itemAttributePrefix, isArmorOrWeapon);
 		AddBuffStats(item, itemInvComponent, statsList, tooltipData);
 		
-		
+		// ---------------- PRIMARY STAT --------------- 
 		
 		primaryStatDiff = "none";
 		primaryStatDiffValue = 0;
 		primaryStatDiffStr = "";
 		eqPrimaryStatValue = 0;
 		
-		if (compareItemInv.IsIdValid(equipedItem))
+		if( compareItemInv.IsIdValid( equipedItem ) && !( equipedItem == item && compareItemInv == itemInvComponent ) )
 		{
 			equipedItemName = compareItemInv.GetItemName(equipedItem);
 			
@@ -291,7 +310,7 @@ class W3TooltipComponent
 			canBeCompared = isArmorOrWeapon;
 		}
 		else
-		{
+		{		
 			canBeCompared = false;
 		}
 		
@@ -304,12 +323,58 @@ class W3TooltipComponent
 			itemInvComponent.GetItemPrimaryStat(item, primaryStatLabel, primaryStatOriginValue);
 		}
 		
+		if( itemInvComponent.IsItemSingletonItem( item ) && ( itemInvComponent.SingletonItemGetMaxAmmo(item) > 0 ) )
+		{
+			if( itemInvComponent.IsItemOil( item ) )
+			{
+				ammo = CalculateAttributeValue( itemInvComponent.GetItemAttributeValue(item, 'ammo') );
+				
+				if( thePlayer.CanUseSkill( S_Alchemy_s06 ) )
+				{
+					ammoBonus = CalculateAttributeValue( thePlayer.GetSkillAttributeValue( S_Alchemy_s06, 'ammo_bonus', false, false ) );
+					ammoBonus = ammo * (1 + ammoBonus * thePlayer.GetSkillLevel( S_Alchemy_s06 ) ) - ammo;
+					tooltipData.SetMemberFlashString( "charges", NoTrailZeros( ammo ) + " ( +" + NoTrailZeros( ammoBonus ) + " )" + GetLocStringByKeyExt( "inventory_tooltip_charges" ) );
+				}
+				else
+				{
+					tooltipData.SetMemberFlashString( "charges", NoTrailZeros( ammo ) + " " + GetLocStringByKeyExt( "inventory_tooltip_charges" ) );
+				}
+			}
+			else
+			{
+				tooltipData.SetMemberFlashString( "charges", itemInvComponent.SingletonItemGetAmmo( item ) + "/" + itemInvComponent.SingletonItemGetMaxAmmo( item )+ " " + GetLocStringByKeyExt( "inventory_tooltip_charges" ) );
+			}
+		}
+		else if( itemInvComponent.GetItemName( item ) == 'q705_tissue_extractor' )
+		{
+			tooltipData.SetMemberFlashString( "charges", thePlayer.GetTissueExtractorChargesCurr() + "/" + thePlayer.GetTissueExtractorChargesMax() + " " + GetLocStringByKeyExt( "inventory_tooltip_charges" ) );
+		}
+		
+		// Aerondight Custom scalable damage
+		if( itemInvComponent.ItemHasTag( item, 'Aerondight' ) )
+		{
+			if( itemInvComponent.GetItemModifierFloat( item, 'PermDamageBoost' ) >= 0.f )
+			{
+				primaryStatOriginValue += itemInvComponent.GetItemModifierFloat( item, 'PermDamageBoost' );
+			}
+		}
+		
 		if (isArmorOrWeapon)
 		{
 			primaryStatValue = RoundMath(primaryStatOriginValue);
-			eqPrimaryStatValue = RoundMath(eqPrimaryStatValue);
+			
+			if (canBeCompared)
+			{
+				eqPrimaryStatValue = RoundMath(eqPrimaryStatValue);
+			}
+			else
+			{
+				eqPrimaryStatValue = primaryStatValue;
+			}
+			
 			primaryStatDiff = GetStatDiff(primaryStatValue, eqPrimaryStatValue);
 			primaryStatDiffValue = primaryStatValue - eqPrimaryStatValue;
+			
 			if (primaryStatDiffValue > 0)
 			{
 				primaryStatDiffStr = "<font color=\"#19D900\">+" + NoTrailZeros(primaryStatDiffValue) + "</font>";
@@ -322,8 +387,13 @@ class W3TooltipComponent
 			if (itemInvComponent.IsItemEnchanted(item))
 			{
 				AddEnchantmentData(item, itemInvComponent, tooltipData);
-			}			
+			}
 		}
+		
+		if( ( isArmorOrWeapon || categoryName == 'mask' ) && itemInvComponent.IsItemSetItem( item ) )
+		{
+			AddSetAttributes( item, itemInvComponent, tooltipData );
+		}		
 		
 		if (itemInvComponent.IsItemWeapon(item))
 		{
@@ -334,7 +404,7 @@ class W3TooltipComponent
 			tooltipData.SetMemberFlashNumber("PrimaryStatDelta", 0);
 		}
 		
-		
+		// ---------------- CATEGORY / DESCRIPTION / TYPE ---------------- 
 		
 		weightValue = itemInvComponent.GetItemEncumbrance( item );
 
@@ -357,11 +427,22 @@ class W3TooltipComponent
 		{
 			uniqueDescription = GetLocStringByKeyExt( itemInvComponent.GetItemLocalizedDescriptionByUniqueID(item) );
 		}
-		
+		if ( theGame.GetGuiManager().GetShowItemNames() )
+		{
+			uniqueDescription = "<font color=\"#FFDB00\">Item name: '" + itemName + "'</font><br>" + uniqueDescription;
+		}
+		// #Y Unique Sword
 		if (itemInvComponent.ItemHasTag(item, 'OlgierdSabre'))
 		{
 			uniqueDescription = GetLocStringByKeyExt( "attribute_name_double_strike" );
 		}
+		
+		// Aerondight - Unique sword EP2
+		if( itemInvComponent.ItemHasTag( item, 'Aerondight' ) )
+		{
+			uniqueDescription = GetAerondightTooltipDescription( item );
+		}
+		
 		uniqueDescription += additionalDescription;
 		
 		if (categoryName == 'armor'|| categoryName == 'pants' || categoryName == 'boots' || categoryName == 'gloves')
@@ -395,7 +476,7 @@ class W3TooltipComponent
 		if ( itemInvComponent.IsItemAnyArmor(item) || itemInvComponent.IsItemBolt(item) || itemInvComponent.IsItemWeapon(item) )
 		{
 			itemLevel = itemInvComponent.GetItemLevel( item );
-			requiredLevel = itemInvComponent.GetItemLevelColorById( item ) + " " + GetLocStringByKeyExt( 'panel_inventory_item_requires_level' ) + " " + itemLevel + "</font>";
+			requiredLevel = itemInvComponent.GetItemLevelColorById( item ) + GetLocStringByKeyExt( 'panel_inventory_item_requires_level' ) + " " + itemLevel + "</font>";
 		}
 		else
 		{
@@ -406,7 +487,7 @@ class W3TooltipComponent
 		
 		if (categoryName == 'alchemy_recipe' )
 		{
-			
+			// #Y OMG! Maybe we should keep it only for shop??
 			m_recipeList     = GetWitcherPlayer().GetAlchemyRecipes();
 			itemInvComponent.GetAllItems( allItems );
 			for( j = 0; j < m_recipeList.Size(); j+= 1 )
@@ -422,7 +503,7 @@ class W3TooltipComponent
 		}
 		else if (categoryName == 'crafting_schematic' )
 		{
-			
+			// #Y OMG! Maybe we should keep it only for shop??
 			m_schematicList = GetWitcherPlayer().GetCraftingSchematicsNames();			
 			itemInvComponent.GetAllItems( allItems );
 			for( j = 0; j < m_schematicList.Size(); j+= 1 )
@@ -435,11 +516,38 @@ class W3TooltipComponent
 			}
 		}
 		
-		
+		// ---------------- PROPERTIES LIST ---------------- 
 		
 		AddOilInfo(item, itemInvComponent, tooltipData);
 		AddSocketsInfo(item, itemInvComponent, socketsList);
 		
+		tmpStr = FloatToStringPrec( weightValue, 2 );
+		addGFxItemStat(propsList, "weight", tmpStr, "attribute_name_weight");
+		
+		durMult = 1;
+		if ( isArmorOrWeapon && !itemInvComponent.IsItemBolt( item ) )
+		{
+			durabilityRatio = itemInvComponent.GetItemDurabilityRatio(item);
+			if( durabilityRatio != -1 )
+			{
+				durabilityValue = RoundMath( durabilityRatio * 100);
+				durabilityStrValue = IntToString(durabilityValue) + " %";
+				durabilityLabel = GetLocStringByKeyExt("panel_inventory_tooltip_durability");
+				if (durabilityValue < 100)
+				{
+					durabilityStrValue = "<font color='#E70000'>" + durabilityStrValue + "</font>";
+					durabilityLabel = "<font color='#E70000'>" + durabilityLabel + "</font>";
+					tooltipData.SetMemberFlashString("DurabilityDescription", GetLocStringByKeyExt("tooltip_durability_description"));
+				}
+				addGFxItemStat(propsList, "repair", durabilityStrValue, durabilityLabel, true);
+				
+				durMult = theGame.params.GetDurabilityMultiplier( durabilityRatio, itemInvComponent.IsItemWeapon(item));
+				if (durMult < 1)
+				{
+					primaryStatDurabilityPenalty = primaryStatValue - RoundMath( primaryStatOriginValue * durMult );
+				}
+			}
+		}
 		if ( m_shopInv )
 		{
 			if ( isShopItem == true )
@@ -453,7 +561,7 @@ class W3TooltipComponent
 					invItemPriceString += " (" + (m_shopInv.GetItemQuantity(item) * invItemPrice) + ")";
 				}
 				
-				addGFxItemStat( propsList, "price", invItemPriceString, "panel_inventory_item_price" );
+				addGFxItemStat( propsList, "price", "<font color ='#FFFFFF' font face=\"$BoldFont\">" + invItemPriceString + "</font>", "panel_inventory_item_price" );
 			}
 			else
 			{
@@ -473,7 +581,7 @@ class W3TooltipComponent
 					{
 						invItemPriceString += " (" + (m_playerInv.GetItemQuantity(item) * invItemPrice) + ")";
 					}
-					addGFxItemStat( propsList, "price", invItemPriceString, "panel_inventory_item_price" );
+					addGFxItemStat( propsList, "price", "<font color ='#FFFFFF'>" + invItemPriceString + "</font>", "panel_inventory_item_price" );
 				}
 			}
 		}
@@ -487,45 +595,20 @@ class W3TooltipComponent
 				invItemPriceString += " (" + (itemInvComponent.GetItemQuantity(item) * invItemPrice) + ")";
 			}
 			
-			addGFxItemStat( propsList, "price", invItemPriceString, "panel_inventory_item_price" );
+			addGFxItemStat( propsList, "price", "<font color ='#FFFFFF'>" + invItemPriceString + "</font>", "panel_inventory_item_price" );
 		}
 		
-		tmpStr = FloatToStringPrec( weightValue, 2 );
-		addGFxItemStat(propsList, "weight", tmpStr, "attribute_name_weight");
+		// ---------------- SETUP GFx DATA ---------------- 
 		
-		durMult = 1;
-		if (isArmorOrWeapon && !itemInvComponent.ItemHasTag(item, 'bolt'))
+		if( compareItemInv.IsIdValid( compareWithItem ) )
 		{
-			durabilityRatio = itemInvComponent.GetItemDurability(item) / itemInvComponent.GetItemMaxDurability(item);
-			durabilityValue = RoundMath( durabilityRatio * 100);
-			durabilityStrValue = IntToString(durabilityValue) + " %";
-			durabilityLabel = GetLocStringByKeyExt("panel_inventory_tooltip_durability");
-			if (durabilityValue <= theGame.params.ITEM_DAMAGED_DURABILITY)
-			{
-				durabilityStrValue = "<font color='#E70000'>" + durabilityStrValue + "</font>";
-				durabilityLabel = "<font color='#E70000'>" + durabilityLabel + "</font>";
-				tooltipData.SetMemberFlashString("DurabilityDescription", GetLocStringByKeyExt("tooltip_durability_description"));
-			}
-			addGFxItemStat(propsList, "repair", durabilityStrValue, durabilityLabel, true);
-			
-			durMult = theGame.params.GetDurabilityMultiplier( durabilityRatio, itemInvComponent.IsItemWeapon(item));
-			if (durMult < 1)
-			{
-				primaryStatDurabilityPenalty = primaryStatValue - RoundMath( primaryStatOriginValue * durMult );
-			}
-		}
-		
-		
-		
-		
-		if (m_playerInv.IsIdValid(compareWithItem))
-		{
-			tooltipData.SetMemberFlashString("EquippedTitle", GetLocStringByKeyExt("panel_blacksmith_equipped"));
+			tooltipData.SetMemberFlashString( "EquippedTitle", GetLocStringByKeyExt( "panel_blacksmith_equipped" ) );
 		}	
 		
 		tooltipData.SetMemberFlashUInt("ItemId", ItemToFlashUInt(item));
 		tooltipData.SetMemberFlashString("ItemType", typeDesc);
-		tooltipData.SetMemberFlashString("ItemRarity", GetItemRarityDescription(item, itemInvComponent, rarityColor ) );
+		tooltipData.SetMemberFlashString("ItemRarity", GetItemRarityDescription(item, itemInvComponent, rarityColor ) + additionalRarityDescription );
+		tooltipData.SetMemberFlashInt("ItemRarityIdx", itemInvComponent.GetItemQuality(item));
 		tooltipData.SetMemberFlashString("ItemName", rarityColor + itemLabel + "</font>");
 		tooltipData.SetMemberFlashString("IconPath", itemInvComponent.GetItemIconPathByUniqueID(item) );
 		tooltipData.SetMemberFlashString("ItemCategory", categoryLabel);		
@@ -545,6 +628,154 @@ class W3TooltipComponent
 		tooltipData.SetMemberFlashBool("EnableFullScreenInfo", isArmorOrWeapon);
 		
 		return tooltipData;
+	}
+	
+	private function addRecipeInfo( item: SItemUniqueId, itemInvComponent : CInventoryComponent, out description : string )
+	{
+		var schematic 		 	 : SCraftingSchematic;		
+		var recipe 			 	 : SAlchemyRecipe;
+		var enchantment			 : SEnchantmentSchematic;
+		var pinnedRecipe         : name;
+		var locPinnedRecipeName	 : name;
+		var itemName			 : name;
+		var text 				 : string;
+		var index	 			 : int;
+		var count	 			 : int;
+		var curItemPart			 : SItemParts;
+		var ingredients			 : array<SItemParts>;
+		var resultString		 : string;
+		var i 					 : int;
+		var itemQuantity		 : int;
+		var tempLocName			 : string;
+		var title				 : string;
+		var fontColor	 		 : string;
+
+		pinnedRecipe = theGame.GetGuiManager().PinnedCraftingRecipe;
+		
+		if (pinnedRecipe)
+		{
+			itemName = itemInvComponent.GetItemName( item );
+			schematic = getCraftingSchematicFromName(pinnedRecipe);
+			
+			if(schematic.schemName != '')
+			{
+				ingredients = schematic.ingredients;
+				locPinnedRecipeName = schematic.craftedItemName;
+			}			
+			else 
+			{
+				recipe = getAlchemyRecipeFromName(pinnedRecipe);
+				if(recipe.recipeName != '')
+				{
+					ingredients = recipe.requiredIngredients;
+					locPinnedRecipeName = recipe.cookedItemName;
+				}
+				else
+				{
+					enchantment = getEnchantmentSchematicFromName(pinnedRecipe);
+					if(enchantment.schemName != '')
+					{
+						ingredients = enchantment.ingredients;
+						locPinnedRecipeName = enchantment.schemName;
+					}
+				}
+			}
+			
+			count = ingredients.Size();
+			for( i = 0; i < count; i += 1 )
+			{
+				curItemPart = ingredients[i];
+				
+				if( curItemPart.itemName == itemName)
+				{
+					title = "<font color=\"#FBEDCF\">" + GetLocStringByKeyExt("panel_shop_title_pinned_recipe")+ "</font>";
+					
+					
+					tempLocName = GetLocStringByKeyExt( m_playerInv.GetItemLocalizedNameByName( locPinnedRecipeName ) );
+					itemQuantity = m_playerInv.GetItemQuantityByName(itemName);
+					if(curItemPart.quantity > itemQuantity)
+					{
+						fontColor = "<font color=\"#FF0000\">";
+					}
+					else
+					{
+						fontColor = "<font color=\"#00FF00\">";
+					}
+					description = description+ "<br/>" + "<br/>" + title  + "<br/>" + tempLocName + "<br/>" + fontColor + itemQuantity+ " / " + curItemPart.quantity + " " + GetLocStringByKeyExt( m_playerInv.GetItemLocalizedNameByName(curItemPart.itemName ) ) + "</font>";
+					
+					return;
+				}
+			}
+		}
+	}
+	
+	//
+	private final function IncreaseNGPPrimaryStatValue( category : name, out itemStats : array<SAttributeTooltip> )
+	{
+		var min, max : SAbilityAttributeValue;
+		var i : int;
+		
+		if ( category == 'steelsword' ) // STEEL SWORD
+		{	
+			theGame.GetDefinitionsManager().GetAbilityAttributeValue('autogen_fixed_steel_dmg', 'SlashingDamage', min, max);
+			for (i=0; i < itemStats.Size(); i+=1)
+			{
+				if ( itemStats[i].originName == 'SlashingDamage' )
+				{
+					itemStats[i].value += RoundMath((theGame.params.GetNewGamePlusLevel() - theGame.params.NEW_GAME_PLUS_MIN_LEVEL) * max.valueBase);
+					break;
+				}
+			}
+		}
+		else if ( category == 'silversword' ) // SILVER SWORD
+		{
+			theGame.GetDefinitionsManager().GetAbilityAttributeValue('autogen_fixed_silver_dmg', 'SilverDamage', min, max);
+			for (i=0; i < itemStats.Size(); i+=1)
+			{
+				if ( itemStats[i].originName == 'SilverDamage' )
+				{
+					itemStats[i].value += RoundMath((theGame.params.GetNewGamePlusLevel() - theGame.params.NEW_GAME_PLUS_MIN_LEVEL) * max.valueBase);
+					break;
+				}
+			}
+		}
+		else if ( category == 'armor' ) // Armor
+		{	
+			theGame.GetDefinitionsManager().GetAbilityAttributeValue('autogen_fixed_armor_armor', 'armor', min, max);
+			for (i=0; i < itemStats.Size(); i+=1)
+			{
+				if ( itemStats[i].originName == 'armor' )
+				{
+					itemStats[i].value += RoundMath((theGame.params.GetNewGamePlusLevel() - theGame.params.NEW_GAME_PLUS_MIN_LEVEL) * max.valueBase);
+					break;
+				}
+			}
+			
+		}
+		else if ( category == 'boots' || category == 'pants' ) // Pants and boots
+		{				
+			theGame.GetDefinitionsManager().GetAbilityAttributeValue('autogen_fixed_pants_armor', 'armor', min, max);
+			for (i=0; i < itemStats.Size(); i+=1)
+			{
+				if ( itemStats[i].originName == 'armor' )
+				{
+					itemStats[i].value += RoundMath((theGame.params.GetNewGamePlusLevel() - theGame.params.NEW_GAME_PLUS_MIN_LEVEL) * max.valueBase);
+					break;
+				}
+			}
+		}
+		else if ( category == 'gloves' ) // Gloves
+		{			
+			theGame.GetDefinitionsManager().GetAbilityAttributeValue('autogen_fixed_gloves_armor', 'armor', min, max);
+			for (i=0; i < itemStats.Size(); i+=1)
+			{
+				if ( itemStats[i].originName == 'armor' )
+				{
+					itemStats[i].value += RoundMath((theGame.params.GetNewGamePlusLevel() - theGame.params.NEW_GAME_PLUS_MIN_LEVEL) * max.valueBase);
+					break;
+				}
+			}
+		}	
 	}
 	
 	private function AddEnchantmentData(itemId : SItemUniqueId, itemInvComponent : CInventoryComponent, out flashDataObj : CScriptedFlashObject):void
@@ -569,6 +800,66 @@ class W3TooltipComponent
 		}
 	}
 	
+	private function AddSetAttributes( itemId : SItemUniqueId, itemInvComponent : CInventoryComponent, out flashDataObj : CScriptedFlashObject ):bool
+	{
+		var setAttributesList : CScriptedFlashArray;
+		var setAttribute  	  : CScriptedFlashObject;
+		var currentCount	  : int;
+		var requiredCount	  : int;
+		var desc1			  : string;
+		var desc2			  : string;
+		var counterText		  : string;
+		var isActive1		  : bool;
+		var isActive2		  : bool;
+		var setType			  : EItemSetType;
+		
+		setType = GetWitcherPlayer().GetSetBonusStatus( itemId, desc1, desc2, isActive1, isActive2 );
+		
+		if( setType != EIST_Undefined )
+		{
+			currentCount = GetWitcherPlayer().GetSetPartsEquipped( setType );
+			requiredCount = theGame.params.ITEMS_REQUIRED_FOR_MAJOR_SET_BONUS;
+			
+			counterText = currentCount + "/" + requiredCount;
+			
+			flashDataObj.SetMemberFlashString( "SetCounter", counterText);
+			
+			setAttributesList = flashDataObj.CreateFlashArray();
+			
+			if ( !itemInvComponent.ItemHasTag( itemId, theGame.params.ITEM_SET_TAG_BONUS ) )
+			{
+				setAttribute = flashDataObj.CreateFlashObject();
+				setAttribute.SetMemberFlashString( "value", "" );
+				setAttribute.SetMemberFlashString( "name", GetLocStringByKeyExt( "tooltip_set_bonus_not_avilable_yet" ) );
+				setAttribute.SetMemberFlashBool( "active", true );
+				setAttributesList.PushBackFlashObject( setAttribute );
+			}
+			
+			// 1
+			setAttribute = flashDataObj.CreateFlashObject();
+			setAttribute.SetMemberFlashString( "value", theGame.params.ITEMS_REQUIRED_FOR_MINOR_SET_BONUS );
+			setAttribute.SetMemberFlashString( "name", desc1 );
+			setAttribute.SetMemberFlashBool( "active", isActive1 );
+			setAttributesList.PushBackFlashObject( setAttribute );
+			
+			if( desc2 != "" )
+			{
+				// 2
+				setAttribute = flashDataObj.CreateFlashObject();
+				setAttribute.SetMemberFlashString( "value", theGame.params.ITEMS_REQUIRED_FOR_MAJOR_SET_BONUS );
+				setAttribute.SetMemberFlashString( "name", desc2 );
+				setAttribute.SetMemberFlashBool( "active", isActive2 );
+				setAttributesList.PushBackFlashObject( setAttribute );
+			}
+			
+			flashDataObj.SetMemberFlashArray( "SetStatsList", setAttributesList );
+			
+			return true;
+		}
+		
+		return false;
+	}
+	
 	private function GetCrossbowPrimatyStat(itemId : SItemUniqueId, itemInvComponent : CInventoryComponent, out primaryStatLabel : string, out primaryStatValue : float):void
 	{
 		var itemOnSlot 			  : SItemUniqueId;
@@ -579,7 +870,7 @@ class W3TooltipComponent
 		crossbowStatValueMult = crossbowPower.valueMultiplicative;
 		if (crossbowStatValueMult == 0)
 		{
-			
+			// show only bolt damage
 			crossbowStatValueMult = 1;
 		}
 		GetWitcherPlayer().GetItemEquippedOnSlot(EES_Bolt, itemOnSlot);
@@ -596,7 +887,7 @@ class W3TooltipComponent
 		primaryStatLabel = GetLocStringByKeyExt("panel_inventory_tooltip_damage");
 	}
 	
-	
+	// show only first rune stat
 	private function AddSocketsInfo(itemId : SItemUniqueId, itemInvComponent : CInventoryComponent, out flashDataObj : CScriptedFlashArray):void
 	{
 		var socketsCount		: int;
@@ -607,10 +898,13 @@ class W3TooltipComponent
 		var curUpgradeName		: name;
 		var curUpgradeLocName   : string;
 		
+		var upgradeBonusDesc  : string;
 		var upgradeBonusValue : string;
 		var upgradeBonus 	  : float;
 		var upgradeStats 	  : array<SAttributeTooltip>;
 		var upgradeStatFirst  : SAttributeTooltip;
+		
+		var tmpDataObject : CScriptedFlashObject;
 		
 		socketsCount = itemInvComponent.GetItemEnhancementSlotsCount( itemId );
 		usedSocketsCount = itemInvComponent.GetItemEnhancementCount( itemId );
@@ -622,33 +916,51 @@ class W3TooltipComponent
 			curUpgradeName = socketItems[idx];
 			curUpgradeLocName = GetLocStringByKeyExt(itemInvComponent.GetItemLocalizedNameByName(curUpgradeName));
 			itemInvComponent.GetItemStatsFromName(curUpgradeName, upgradeStats);
-			if (upgradeStats.Size() > 0)
+			
+			tmpDataObject = m_flashValueStorage.CreateTempFlashObject();
+			
+			if( upgradeStats.Size() > 0 )
 			{
 				upgradeStatFirst = upgradeStats[0];
-				if( upgradeStatFirst.percentageValue )
+				
+				if( upgradeStatFirst.attributeName != "" )
 				{
-					upgradeBonusValue = "<font color=\"#ACACAC\">+" + RoundMath(upgradeStatFirst.value * 100) + " %</font>";
+					if( upgradeStatFirst.percentageValue )
+					{
+						upgradeBonusValue = "<font color=\"#fcda63\">+" + RoundMath(upgradeStatFirst.value * 100) + " %</font>";
+					}
+					else
+					{
+						upgradeBonusValue = "<font color=\"#fcda63\">+" + RoundMath(upgradeStatFirst.value) + "</font>";
+					}
+					
+					upgradeBonusDesc = upgradeStatFirst.attributeName + "<br/><font color=\"#7e785f\">" + curUpgradeLocName + "</font>";
+					tmpDataObject.SetMemberFlashString("value", upgradeBonusValue);
+					tmpDataObject.SetMemberFlashString("name", upgradeBonusDesc);
 				}
-				else
-				{
-					upgradeBonusValue = "<font color=\"#ACACAC\">+" + RoundMath(upgradeStatFirst.value) + "</font>";
-				}
-				upgradeBonusValue += "<font color=\"#B69A68\"> " + upgradeStatFirst.attributeName + " (" + curUpgradeLocName + ")</font>";
-				addGFxItemStat(flashDataObj, "equipped", upgradeBonusValue);
 			}
 			else
 			{
-				addGFxItemStat(flashDataObj, "equipped", curUpgradeLocName);
+				tmpDataObject.SetMemberFlashString("value", "");
+				tmpDataObject.SetMemberFlashString("name", "<font color=\"#7e785f\">" + curUpgradeLocName + "</font>");
 			}
+			
+			tmpDataObject.SetMemberFlashString("type", "equipped");
+			flashDataObj.PushBackFlashObject(tmpDataObject);
 		}
-		upgradeBonusValue = "<font color=\"#515151\">" + GetLocStringByKeyExt("panel_blacksmith_empty_socket") + "</font>";
+		
+		upgradeBonusValue = "<font color=\"#5e5946\">" + GetLocStringByKeyExt("panel_blacksmith_empty_socket") + "</font>";
+		
 		for (idx = 0; idx < emptySocketsCount; idx+=1)
 		{
-			addGFxItemStat(flashDataObj, "empty", upgradeBonusValue);
+			tmpDataObject = m_flashValueStorage.CreateTempFlashObject();
+			tmpDataObject.SetMemberFlashString("type", "empty");
+			tmpDataObject.SetMemberFlashString("value", upgradeBonusValue);
+			flashDataObj.PushBackFlashObject(tmpDataObject);
 		}
 	}
 	
-	
+	// show only first oil stat
 	private function AddOilInfo(itemId : SItemUniqueId, itemInvComponent : CInventoryComponent, out flashDataObj : CScriptedFlashObject):void
 	{
 		var oilName		  : name;
@@ -659,33 +971,55 @@ class W3TooltipComponent
 		var oilStats 	  : array<SAttributeTooltip>;
 		var oilStatFirst  : SAttributeTooltip;
 		var oilBonusValue : string;
+		var i, count	  : int;
 		
-		oilName = itemInvComponent.GetSwordOil(itemId);
-		if (oilName != '')
+		var appliedOilsList : array< W3Effect_Oil >;
+		var appliedOil    	: W3Effect_Oil;
+		
+		appliedOilsList = itemInvComponent.GetOilsAppliedOnItem( itemId );
+		count = appliedOilsList.Size();
+		
+		for( i = 0; i < count; i+=1 )
 		{
-			oilLocName = GetLocStringByKeyExt(itemInvComponent.GetItemLocalizedNameByName(oilName));
-			oilCharges = itemInvComponent.GetItemModifierInt(itemId, 'oil_charges');
-			oilMaxCharges = itemInvComponent.GetItemModifierInt(itemId, 'oil_max_charges');			
-			itemInvComponent.GetItemStatsFromName(oilName, oilStats);
-			if (oilStats.Size() > 0)
+			appliedOil = appliedOilsList[i];
+			oilName = appliedOil.GetOilItemName();
+			
+			if (oilName != '')
 			{
-				oilStatFirst = oilStats[0];
-				if( oilStatFirst.percentageValue )
+				oilLocName = GetLocStringByKeyExt( itemInvComponent.GetItemLocalizedNameByName( oilName ) );
+				oilCharges = appliedOil.GetAmmoCurrentCount();
+				oilMaxCharges = appliedOil.GetAmmoMaxCount();		
+				itemInvComponent.GetItemStatsFromName( oilName, oilStats );
+				
+				if (oilStats.Size() > 0)
 				{
-					oilBonusValue = "<font color=\"#ACACAC\">+" + RoundMath(oilStatFirst.value * 100) + " %</font>";
+					oilStatFirst = oilStats[0];
+					if( oilStatFirst.percentageValue )
+					{
+						oilBonusValue = "+" + RoundMath(oilStatFirst.value * 100) + " %";
+					}
+					else
+					{
+						oilBonusValue = "+" + RoundMath(oilStatFirst.value);
+					}
+				}
+				
+				if(oilCharges <=0)
+				{
+					oilBonusValue = "<font color=\"#FF0000\">" + oilBonusValue +  " " + oilStatFirst.attributeName + " (" + oilLocName + ")(" + oilCharges + "/" + oilMaxCharges + ")"+ "</font>";
 				}
 				else
 				{
-					oilBonusValue = "<font color=\"#ACACAC\">+" + RoundMath(oilStatFirst.value) + "</font>";
+					oilBonusValue = oilBonusValue +  " " + oilStatFirst.attributeName + " (" + oilLocName + ")(" + oilCharges + "/" + oilMaxCharges + ")";
 				}
+				
+				flashDataObj.SetMemberFlashString("appliedOilInfo" +(string)(i + 1), oilBonusValue);
 			}
-			oilBonusValue = oilBonusValue +  "<font color=\"#B69A68\"> " + oilStatFirst.attributeName + " (" + oilLocName + ")(" + oilCharges + "/" + oilMaxCharges + ")</font>";
-			flashDataObj.SetMemberFlashString("appliedOilInfo", oilBonusValue);
 		}
 	}
 	
-	
-	private function AddItemStats(itemStats : array<SAttributeTooltip>, out resultGFxArray : CScriptedFlashArray, rootGFxObject : CScriptedFlashObject, ignorePrimaryStat : bool, defaultPrefix : string):void
+	// Add all items stats to the GFx data obj
+	private function AddItemStats(itemStats : array<SAttributeTooltip>, out resultGFxArray : CScriptedFlashArray, rootGFxObject : CScriptedFlashObject, ignorePrimaryStat : bool, defaultPrefix : string, isArmorOrWeapon : bool):void
 	{
 		var l_flashObject : CScriptedFlashObject;
 		var currentStat	  : SAttributeTooltip;
@@ -701,20 +1035,27 @@ class W3TooltipComponent
 			currentStat = itemStats[i];
 			if (!ignorePrimaryStat || !currentStat.primaryStat)
 			{
-				
+				// hack to display mutagen's toxicity_offset as toxicity
 				if (currentStat.originName == 'toxicity_offset')
 				{
 					currentStat.attributeName = GetAttributeNameLocStr('toxicity', false);
 					currentStat.originName = 'toxicity';
-					
 					currentStat.percentageValue = false;
 				}
-				
 				if (currentStat.originName == 'toxicity')
 				{
-					maxToxicity = RoundMath(thePlayer.GetStatMax( BCS_Toxicity ));
-					valuePrefix = "";
-					valuePostfix = "/" + maxToxicity;
+					if (!isArmorOrWeapon)
+					{
+						maxToxicity = RoundMath(thePlayer.GetStatMax( BCS_Toxicity ));
+						valuePrefix = "";
+						valuePostfix = "/" + maxToxicity;
+					}
+					else
+					{
+						valuePrefix = "+";
+						valuePostfix = "";
+						currentStat.attributeName = GetLocStringByKeyExt("panel_common_statistics_tooltip_current_maximum");
+					}
 				}
 				else
 				if (currentStat.originName == 'duration')
@@ -767,13 +1108,15 @@ class W3TooltipComponent
 				l_flashObject.SetMemberFlashString("name", currentStat.attributeName);
 				l_flashObject.SetMemberFlashString("color", currentStat.attributeColor);				
 				l_flashObject.SetMemberFlashString("value", valuePrefix + valueString + valuePostfix);
+				l_flashObject.SetMemberFlashString("valuePrefix", valuePrefix);
+				l_flashObject.SetMemberFlashBool("isPercentageValue", currentStat.percentageValue);
 				l_flashObject.SetMemberFlashNumber("floatValue", currentStat.value);
 				resultGFxArray.PushBackFlashObject(l_flashObject);
 			}
 		}
 	}
 	
-	
+	// Add stats from bufs from food and bombs
 	private function AddBuffStats(itemId : SItemUniqueId, itemInvComponent : CInventoryComponent, out resultGFxArray : CScriptedFlashArray, rootGFxObject : CScriptedFlashObject) : void
 	{
 		var min, max 		 : SAbilityAttributeValue;
@@ -848,7 +1191,10 @@ class W3TooltipComponent
 		}
 	}
 	
-	
+	/*	
+		Get item's data for extended fullscreen tooltip
+		#Y [WIP] DEL?
+	*/
 	
 	public function GetExItemData( item : SItemUniqueId, optional isShopItem : bool ) : CScriptedFlashObject
 	{
@@ -862,7 +1208,9 @@ class W3TooltipComponent
 		return GetBaseItemData(item, m_itemInv, isShopItem);
 	}
 	
-	
+	/*
+		Get tooltip data
+	*/
 	
 	public function GetTooltipData( itemId : SItemUniqueId, isShopItem : bool, compareItem : bool) : CScriptedFlashObject
 	{
@@ -935,7 +1283,9 @@ class W3TooltipComponent
 		return selectedItemData;
 	}
 	
-	
+	/*
+		Generic stats
+	*/
 	
 	protected function GetGenStatsGFxData( itemStats : array<SItemGenericStat>, comparingItemsStats : array<SItemGenericStat>, enableCompare : bool) : CScriptedFlashArray
 	{
@@ -983,7 +1333,7 @@ class W3TooltipComponent
 				if ( curStat.statName == "toxicity_offset" ) 
 					curStatData.SetMemberFlashString("type", "toxicity"); else
 					curStatData.SetMemberFlashString("type", curStat.statName); 
-				
+				// curStat.statName == "ExplosionRadius" - add ?
 				
 				if (curStat.statName == "toxicity" || curStat.statName == "toxicity_offset" )
 				{
@@ -1000,7 +1350,7 @@ class W3TooltipComponent
 				}
 				else
 				{
-					curStatData.SetMemberFlashString("icon", compValue); 
+					curStatData.SetMemberFlashString("icon", compValue); // #Y name?
 				}
 				statListData.PushBackFlashObject(curStatData);
 			}
@@ -1068,7 +1418,7 @@ class W3TooltipComponent
 					attrMult = (float)theGame.tooltipSettings.GetValueAt(4, i);
 					attrValue = GetAttributeValue(item, attributes[j], inv) * attrMult;
 					
-					if (attrType == "duration") 
+					if (attrType == "duration") // #Y Warning: duration don't stack
 					{
 						AppendGenericStat(genStats, attrType, attrValue, true);
 					}
@@ -1165,7 +1515,9 @@ class W3TooltipComponent
 		return statValue;
 	}
 	
-	
+	/*
+		Underhood
+	*/
 	
 	protected function IsInited():bool
 	{
@@ -1205,35 +1557,35 @@ class W3TooltipComponent
 		switch(itemQuality)
 		{
 			case 1:
-				htmlColor = "<font color='#7b7877'>";
+				htmlColor = "<font color='#a2a2a2'>"; // gray
 				return htmlColor + GetLocStringByKeyExt("panel_inventory_item_rarity_type_common")+"</font>";
 			case 2:
-				htmlColor = "<font color='#3661dc'>";
+				htmlColor = "<font color='#2b7bff'>"; // blue
 				return htmlColor + GetLocStringByKeyExt("panel_inventory_item_rarity_type_masterwork")+"</font>";
 			case 3:
-				htmlColor = "<font color='#959500'>";
+				htmlColor = "<font color='#e1d401'>";//yellow
 				return htmlColor + GetLocStringByKeyExt("panel_inventory_item_rarity_type_magic")+"</font>";
 			case 4:
-				htmlColor = "<font color='#934913'>";
+				htmlColor = "<font color='#ca610c'>";//orange
 				return htmlColor + GetLocStringByKeyExt("panel_inventory_item_rarity_type_relic")+"</font>";
 			case 5:
-				htmlColor = "<font color='#197319'>";
+				htmlColor = "<font color='#01b701'>";//green
 				return htmlColor + GetLocStringByKeyExt("panel_inventory_item_rarity_type_set")+"</font>";
 			default:
-				return "ERROR";
+				return "";
 		}
 	}
 	
 	
-	
-	
-	
+	// #Y <Moved from InventoryMenu> 
+	// TODO: remove some params, refact
+	// TODO: Check if we can refact this code, see GetStatDiff	
 	private function CompareItemsStats(itemStats : array<SAttributeTooltip>, compareItemStats : array<SAttributeTooltip>, out compResult : CScriptedFlashArray, rootGFxObject : CScriptedFlashObject, optional dontCompare : bool, optional extendedData:bool )
 	{
 		CalculateStatsComparance(itemStats, compareItemStats, rootGFxObject, compResult, true, dontCompare, extendedData);
 	}
 	
-	
+	// #Y TODO: Discuss and implement
 	private function getCategoryDescription(itemCategory : name):string
 	{
 		switch (itemCategory)
@@ -1293,11 +1645,14 @@ class W3TooltipComponent
 		case GwintFaction_Scoiatael:
 			cardString += "<font color='#076807'>" + GetLocStringByKeyExt("gwint_faction_name_scoiatael") + "</font>";
 			break;
+		case GwintFaction_Skellige:
+			cardString += "<font color='#076807'>" + GetLocStringByKeyExt("gwint_faction_name_skellige") + "</font>";
+			break;
 		}
 		
 		cardString += "<br/>" + GetLocStringByKeyExt("gwint_tooltip_card_type") + ": ";
 		
-		if (cardDefinition.index >= 1000) 
+		if (cardDefinition.index >= 1000) // Leader cards
 		{
 			cardString += "<font color='#7b7877'>" + GetLocStringByKeyExt("gwint_tooltip_card_type_leader") + "</font>";
 			
@@ -1391,7 +1746,7 @@ class W3TooltipComponent
 				tempStr = StrReplaceAll(tempStr, "<br>", "");
 				cardString += "<font color='#7b7877'>" + tempStr;
 				
-				if ((cardDefinition.typeFlags & GwintType_Ranged) == GwintType_Ranged) 
+				if ((cardDefinition.typeFlags & GwintType_Ranged) == GwintType_Ranged) // For Agile
 				{
 					tempStr = GetLocStringByKeyExt("gwint_tutorial_unit_range_long");
 					tempStr = StrReplaceAll(tempStr, "<br>", "");
@@ -1422,9 +1777,9 @@ class W3TooltipComponent
 				switch (cardDefinition.effectFlags[0])
 				{
 				case GwintEffect_MeleeScorch:
-					
-					
-					
+					//TODO, Marcin has WIP changelist to add this ability to creature
+					//abilityName = GetLocStringByKeyExt("gwint_card_tooltip_agile_title"); 
+					//abilityDescription = GetLocStringByKeyExt("gwint_card_tooltip_agile");
 					break;
 				case GwintEffect_SummonClones:
 					abilityName = GetLocStringByKeyExt("gwint_card_tooltip_summon_clones_title");
@@ -1549,7 +1904,7 @@ class W3TooltipComponent
 				if(dm.GetCustomNodeAttributeValueInt(main.subNodes[i], 'price', tmpInt))
 					schem.baseCraftingPrice = tmpInt;
 				 
-				
+				//ingredients
 				ingredients = dm.GetCustomDefinitionSubNode(main.subNodes[i],'ingredients');					
 				for(k=0; k<ingredients.subNodes.Size(); k+=1)
 				{
@@ -1570,8 +1925,8 @@ class W3TooltipComponent
 		return schem;
 	}
 	
-	
-	
+	// #Y WARNING copy-paste from alchemyManager
+	// TODO: We should refact alchemy / crafting managers and move all not crafter-entity specific functions to the utils
 	public function GetRecipeDataFromXML(recipeName:name):SAlchemyRecipe
 	{
 		var dm : CDefinitionsManagerAccessor;
@@ -1604,7 +1959,7 @@ class W3TooltipComponent
 				if(dm.GetCustomNodeAttributeValueInt(main.subNodes[i], 'cookedItemQuantity', tmpInt))
 					rec.cookedItemQuantity = tmpInt;
 				
-				
+				//ingredients
 				ingredients = dm.GetCustomDefinitionSubNode(main.subNodes[i],'ingredients');					
 				for(k=0; k<ingredients.subNodes.Size(); k+=1)
 				{		
@@ -1621,7 +1976,7 @@ class W3TooltipComponent
 				
 				rec.recipeName = recipeName;
 				
-				
+				// this info must be taken directly from item definition
 				rec.cookedItemIconPath			= dm.GetItemIconPath( rec.cookedItemName );
 				rec.recipeIconPath				= dm.GetItemIconPath( rec.recipeName );
 				break;
@@ -1630,11 +1985,59 @@ class W3TooltipComponent
 		return rec;
 	}
 	
+	public function GetAerondightTooltipDescription( sword : SItemUniqueId ) : string
+	{
+		var uniqueDesc		: string;
+		var argsString		: array<string>;
+		var val_1, val_2	: float;
+		var min, max		: SAbilityAttributeValue;
+		var dm				: CDefinitionsManagerAccessor = theGame.GetDefinitionsManager();
+		
+		dm.GetAbilityAttributeValue( 'AerondightEffect', 'dmg_bonus', min, max );		
+		argsString.PushBack( NoTrailZeros( RoundF( min.valueMultiplicative * 100 ) ) );
+		uniqueDesc = GetLocStringByKeyExtWithParams( "attribute_name_aerondight",,, argsString );
+		
+		argsString.Clear();
+		
+		//Perma damage boost displayment
+		val_1 = thePlayer.inv.GetItemModifierFloat( sword, 'PermDamageBoost' );
+		
+		// Perm Damage boost equals -1 if bonus is not increased - that's why it's being set to 0
+		if( val_1 > 0 )
+		{
+			argsString.PushBack( "<font color='#ffffff'>" + FloatToString( val_1 ) + "</font>" );
+		}
+		else
+		{
+			argsString.PushBack( "<font color='#ffffff'>" + FloatToString( 0 ) + "</font>" );
+		}
+		
+		// Getting the bonus damage cap
+		val_2 = thePlayer.GetLevel() - thePlayer.inv.GetItemLevel( sword ) + 1;
+		
+		dm.GetAbilityAttributeValue( 'AerondightEffect', 'stacks_per_level', min, max );		
+		val_2 *= min.valueAdditive;
+		
+		dm.GetAbilityAttributeValue( 'AerondightEffect', 'perm_dmg_boost', min, max );		
+		val_2 *= min.valueAdditive;
+		
+		argsString.PushBack( "<font color='#ffffff'>" + FloatToString( val_2 ) + "</font>" );
+		
+		
+		uniqueDesc += "<br>" + "<br>";
+		
+		uniqueDesc += GetLocStringByKeyExtWithParams( "attribute_name_aerondight_counter",,,argsString );
+		
+		return uniqueDesc;
+	}
+	
 }
 
+/*
+	Global functions
+*/
 
-
-
+// used only for alchemy / crafting
 function CalculateStatsComparance(itemStats : array<SAttributeTooltip>, compareItemStats : array<SAttributeTooltip>, rootGFxObject : CScriptedFlashObject, out compResult : CScriptedFlashArray, optional ignorePrimStat : bool, optional dontCompare : bool, optional extendedData:bool)
 {
 	var l_flashObject	: CScriptedFlashObject;
@@ -1677,7 +2080,7 @@ function CalculateStatsComparance(itemStats : array<SAttributeTooltip>, compareI
 			
 			statToCompareExist = false;
 			
-			
+			//HERE, WE'RE COMPARING STATS AGAINST POSSIBLE OVERLAPS WITH A POSSIBLY EQUIPPED SIMILAR ITEM IN ORDER TO SHOW BENEFIT DIFFERENCE
 			if (!dontCompare)
 			{			
 				for( j = 0; j < compareItemStats.Size(); j += 1 )
@@ -1698,23 +2101,37 @@ function CalculateStatsComparance(itemStats : array<SAttributeTooltip>, compareI
 							percentDiff = AbsF( nDifference / RoundMath(itemStats[i].value) );
 						}
 						
-						
+						//better
 						if(nDifference > 0)
 						{
 							strDiffPrefix = "<font color=\"#19D900\"> +";
 							strDiffPostfix = "</font>";
 							
 							strDifference = "better";
-							
+							/*
+							if(percentDiff < 0.25) //1 arrow
+								strDifference = "better";
+							else if(percentDiff > 0.75) //3 arrows
+								strDifference = "wayBetter";
+							else						//2 arrows
+								strDifference = "reallyBetter";
+							*/
 						}
-						
+						//worse
 						else if(nDifference < 0)
 						{
 							strDiffPrefix = "<font color=\"#E00000\"> ";
 							strDiffPostfix = "</font>";
 							
 							strDifference = "worse";
-							
+							/*
+							if(percentDiff < 0.25) //1 arrow
+								strDifference = "worse";
+							else if(percentDiff > 0.75) //3 arrows
+								strDifference = "wayWorse";
+							else						//2 arrows
+								strDifference = "reallyWorse";
+							*/
 						}
 						else
 						{
@@ -1727,7 +2144,7 @@ function CalculateStatsComparance(itemStats : array<SAttributeTooltip>, compareI
 							else
 								strDiffValue = strDiffPrefix + RoundMath(nDifference) + strDiffPostfix;
 						}
-						
+						// equal
 						else
 						{
 							strDiffPrefix = "";
@@ -1739,7 +2156,7 @@ function CalculateStatsComparance(itemStats : array<SAttributeTooltip>, compareI
 					}
 				}
 				
-				
+				// stat exist only in selected item
 				if (strDiffValue == "" && !statToCompareExist)
 				{
 					strDifference = "better";
@@ -1775,7 +2192,7 @@ function CalculateStatsComparance(itemStats : array<SAttributeTooltip>, compareI
 				valuePostfix = " " + GetLocStringByKeyExt("per_second");
 			}
 			else
-			if (ignorePrimStat) 
+			if (ignorePrimStat) // if we have prim stat, adding "+" before other stats
 			{
 				valuePrefix = "+";
 				valuePostfix = "";
@@ -1802,10 +2219,10 @@ function CalculateStatsComparance(itemStats : array<SAttributeTooltip>, compareI
 		}
 	}
 	
-	
+	// stats we don't have at selected item
 	if (!dontCompare)
 	{
-		if (ignorePrimStat) 
+		if (ignorePrimStat) // if we have prim stat, adding "+" before other stats
 		{
 			valuePrefix = "+";
 		}
@@ -1843,7 +2260,7 @@ function CalculateStatsComparance(itemStats : array<SAttributeTooltip>, compareI
 	}
 }
 
-
+// #Y DEL?
 function GetItemAttributeComparison(attrName:string, attrValue:float, equipedItemStats: array<SAttributeTooltip>):string
 {
 	var i, statsCount : int;
@@ -1858,8 +2275,8 @@ function GetItemAttributeComparison(attrName:string, attrValue:float, equipedIte
 	return "better";
 }
 
-
-
+// #Y Now returns only "better" and "worse", without intermediate values
+// done to simplify visuals
 function GetStatDiff(a : float, b : float):string
 {
 	var nDifference   : float;
@@ -1871,20 +2288,34 @@ function GetStatDiff(a : float, b : float):string
 	
 	strDifference = "none";
 	
-	
+	//better
 	if(nDifference > 0)
 	{
 		strDifference = "better";
 		
-		
+		/*
+		if(percentDiff < 0.25) //1 arrow
+			strDifference = "better";
+		else if(percentDiff > 0.75) //3 arrows
+			strDifference = "wayBetter";
+		else						//2 arrows
+			strDifference = "reallyBetter";
+		*/
 	}
 	
-	
+	//worse
 	else if(nDifference < 0)
 	{
 		strDifference = "worse";
 		
-		
+		/*
+		if(percentDiff < 0.25) //1 arrow
+			strDifference = "worse";
+		else if(percentDiff > 0.75) //3 arrows
+			strDifference = "wayWorse";
+		else						//2 arrows
+			strDifference = "reallyWorse";
+		*/
 	}
 	
 	return strDifference;

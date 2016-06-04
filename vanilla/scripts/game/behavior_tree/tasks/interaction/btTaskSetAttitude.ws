@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
+﻿//PF
 
 class CBTTaskSetAttitude extends IBehTreeTask
 {
@@ -15,7 +10,6 @@ class CBTTaskSetAttitude extends IBehTreeTask
 	
 	private var petard			: W3Petard;
 	
-	protected var storageHandler 		: CAIStorageHandler;
 	protected var reactionDataStorage 	: CAIStorageReactionData;
 	
 	function IsAvailable() : bool
@@ -44,7 +38,7 @@ class CBTTaskSetAttitude extends IBehTreeTask
 		
 		
 		if ( sender == thePlayer )
-			return true;
+			return true;//for breakpoint
 		
 		return true;
 	}
@@ -105,9 +99,7 @@ class CBTTaskSetAttitude extends IBehTreeTask
 	{
 		if ( !reactionDataStorage )
 		{
-			storageHandler = new CAIStorageHandler in this;
-			storageHandler.Initialize( 'ReactionData', '*CAIStorageReactionData', this );
-			reactionDataStorage = (CAIStorageReactionData)storageHandler.Get();
+			reactionDataStorage = (CAIStorageReactionData)RequestStorageItem( 'ReactionData', 'CAIStorageReactionData' );
 		}
 	}
 }

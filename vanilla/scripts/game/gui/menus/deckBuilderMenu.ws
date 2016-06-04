@@ -1,11 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file - gwint deck builder
 /***********************************************************************/
-
-
-
+/** Copyright © 2014 CDProjektRed
+/** Author : Jason Slama
+/***********************************************************************/
 
 class CR4DeckBuilderMenu extends CR4GwintBaseMenu
 {
@@ -18,14 +16,14 @@ class CR4DeckBuilderMenu extends CR4GwintBaseMenu
 	function EnableJournalTutorialEnries()
 	{
 		var tutSystem : CR4TutorialSystem;
-		
+		// Journal - Enable Gwent tutorial entries
 		tutSystem = theGame.GetTutorialSystem();
 		tutSystem.ActivateJournalEntry('deckpanelMERGEDNEW');
 		tutSystem.ActivateJournalEntry('deckcompositionNEW');
-		
+		//tutSystem.ActivateJournalEntry('leadercardsMERGED'); // uncommenting this will lead to 2x almost the same entry in journal	
 	}
 	
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{
 		var selectedDeckIndex : eGwintFaction;
 		var tutSystem : CR4TutorialSystem;		
@@ -39,7 +37,12 @@ class CR4DeckBuilderMenu extends CR4GwintBaseMenu
 		
 		m_fxSetPassiveAbilString.InvokeSelfOneArg(FlashArgString(GetLocStringByKeyExt("gwint_passive_ability")));	
 		
-		selectedDeckIndex = gwintManager.GetSelectedPlayerDeck();
+		selectedDeckIndex = gwintManager.GetForcedFaction();
+		if (selectedDeckIndex == GwintFaction_Neutral)
+		{
+			selectedDeckIndex = gwintManager.GetSelectedPlayerDeck();
+		}
+		
 		m_fxSetSelectedDeck.InvokeSelfOneArg(FlashArgInt(selectedDeckIndex));
 		m_fxSetGwintGamePending.InvokeSelfOneArg(FlashArgBool(gwintManager.gameRequested));
 		
@@ -66,7 +69,7 @@ class CR4DeckBuilderMenu extends CR4GwintBaseMenu
 		}
 	}
 	
-	event  OnClosingMenu()
+	event /* C++ */ OnClosingMenu()
 	{
 		super.OnClosingMenu();
 		
@@ -82,6 +85,9 @@ class CR4DeckBuilderMenu extends CR4GwintBaseMenu
 		else
 		{
 			theSound.LeaveGameState( ESGS_Gwent );
+			
+			// Reset any forced factions.
+			theGame.GetGwintManager().SetForcedFaction( GwintFaction_Neutral );
 		}
 	}
 	
@@ -89,6 +95,13 @@ class CR4DeckBuilderMenu extends CR4GwintBaseMenu
 	{
 		if (gwintManager.gameRequested)
 		{
+			if (!gwintManager.testMatch && theGame.isUserSignedIn())
+			{
+				theGame.FadeOutAsync( 0 );
+				theGame.SetFadeLock( "Gwint_EndFadeOut" );
+			}
+			gwintManager.testMatch = false;
+			
 			gwintManager.gameRequested = false;
 			thePlayer.SetGwintMinigameState( EMS_End_PlayerLost );
 		}
@@ -104,25 +117,36 @@ class CR4DeckBuilderMenu extends CR4GwintBaseMenu
 		
 		deckListArray = m_flashValueStorage.CreateTempFlashArray();
 		
-		if (gwintManager.GetFactionDeck(GwintFaction_NothernKingdom, currentDeckInfo) && currentDeckInfo.unlocked)
+		if (gwintManager.GetFactionDeck(GwintFaction_NothernKingdom, currentDeckInfo) && currentDeckInfo.unlocked && 
+			(gwintManager.GetForcedFaction() == GwintFaction_Neutral || gwintManager.GetForcedFaction() == GwintFaction_NothernKingdom))
 		{
 			deckInfo = CreateDeckDefinitionFlash(currentDeckInfo);
 			deckListArray.PushBackFlashObject(deckInfo);
 		}
 		
-		if (gwintManager.GetFactionDeck(GwintFaction_Nilfgaard, currentDeckInfo) && currentDeckInfo.unlocked)
+		if (gwintManager.GetFactionDeck(GwintFaction_Nilfgaard, currentDeckInfo) && currentDeckInfo.unlocked && 
+			(gwintManager.GetForcedFaction() == GwintFaction_Neutral || gwintManager.GetForcedFaction() == GwintFaction_Nilfgaard))
 		{
 			deckInfo = CreateDeckDefinitionFlash(currentDeckInfo);
 			deckListArray.PushBackFlashObject(deckInfo);
 		}
 		
-		if (gwintManager.GetFactionDeck(GwintFaction_Scoiatael, currentDeckInfo) && currentDeckInfo.unlocked)
+		if (gwintManager.GetFactionDeck(GwintFaction_Scoiatael, currentDeckInfo) && currentDeckInfo.unlocked && 
+			(gwintManager.GetForcedFaction() == GwintFaction_Neutral || gwintManager.GetForcedFaction() == GwintFaction_Scoiatael))
 		{
 			deckInfo = CreateDeckDefinitionFlash(currentDeckInfo);
 			deckListArray.PushBackFlashObject(deckInfo);
 		}
 		
-		if (gwintManager.GetFactionDeck(GwintFaction_NoMansLand, currentDeckInfo) && currentDeckInfo.unlocked)
+		if (gwintManager.GetFactionDeck(GwintFaction_NoMansLand, currentDeckInfo) && currentDeckInfo.unlocked && 
+			(gwintManager.GetForcedFaction() == GwintFaction_Neutral || gwintManager.GetForcedFaction() == GwintFaction_NoMansLand))
+		{
+			deckInfo = CreateDeckDefinitionFlash(currentDeckInfo);
+			deckListArray.PushBackFlashObject(deckInfo);
+		}
+
+		if (theGame.GetDLCManager().IsEP2Available() && gwintManager.GetFactionDeck(GwintFaction_Skellige, currentDeckInfo) && currentDeckInfo.unlocked && 
+			(gwintManager.GetForcedFaction() == GwintFaction_Neutral || gwintManager.GetForcedFaction() == GwintFaction_Skellige))
 		{
 			deckInfo = CreateDeckDefinitionFlash(currentDeckInfo);
 			deckListArray.PushBackFlashObject(deckInfo);
@@ -151,26 +175,26 @@ class CR4DeckBuilderMenu extends CR4GwintBaseMenu
 		m_flashValueStorage.SetFlashArray("gwint.deckbuilder.leaderList", colList);
 	}
 	
-	event  OnTabChanged(tabIndex:int)
+	event /*flash*/ OnTabChanged(tabIndex:int)
 	{
 	}
 	
-	event  OnCardAddedToDeck(factionID:int, cardId:int)
+	event /*flash*/ OnCardAddedToDeck(factionID:int, cardId:int)
 	{
 		gwintManager.AddCardToDeck(factionID, cardId);
 	}
 	
-	event  OnCardRemovedFromDeck(factionID:int, cardId:int)
+	event /*flash*/ OnCardRemovedFromDeck(factionID:int, cardId:int)
 	{
 		gwintManager.RemoveCardFromDeck(factionID, cardId);
 	}
 	
-	event  OnSelectedDeckChanged(factionID:int)
+	event /*flash*/ OnSelectedDeckChanged(factionID:int)
 	{
 		gwintManager.SetSelectedPlayerDeck(factionID);
 	}
 	
-	event  OnLeaderChanged(factionID:int, leaderID:int)
+	event /*flash*/ OnLeaderChanged(factionID:int, leaderID:int)
 	{
 		var deckDefinition : SDeckDefinition;
 		
@@ -182,7 +206,7 @@ class CR4DeckBuilderMenu extends CR4GwintBaseMenu
 		}
 	}
 	
-	event  OnLackOfUnitsError(numCards:int)
+	event /*flash*/ OnLackOfUnitsError(numCards:int)
 	{
 		var errorString:string;
 		var argsInt : array<int>;
@@ -195,7 +219,7 @@ class CR4DeckBuilderMenu extends CR4GwintBaseMenu
 		OnPlaySoundEvent("gui_global_denied");
 	}
 	
-	event  OnTooManySpecialCards()
+	event /*flash*/ OnTooManySpecialCards()
 	{
 		showNotification(GetLocStringByKeyExt("gwint_special_card_limit"));
 		OnPlaySoundEvent("gui_global_denied");

@@ -1,11 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** CBTTaskSpawnFXEntity
 /***********************************************************************/
-
-
-
+/** Copyright © 2014
+/** Author : Wojciech Żerek, Andrzej Kwiatkowski
+/***********************************************************************/
 
 class CBTTaskSpawnFXEntity extends IBehTreeTask
 {
@@ -16,46 +14,139 @@ class CBTTaskSpawnFXEntity extends IBehTreeTask
 	var useTargetInsteadOfOwner			: bool;
 	var useCombatTarget					: bool;
 	var baseOffsetOnCasterRotation		: bool;
+	var receiveRotationFromGameplayEvent: bool;
+	var rotateEntityToTarget 			: bool;
+	var capRotationFromOwnerToTarget 	: float;
+	var zeroPitchAndRoll 				: bool;
 	var attachToSlotName				: name;
+	var teleportToComponentName 		: name;
+	var toComponentOnWeapon 			: bool;
+	var teleportToBoneName 				: name;
+	var continuousTeleport 				: bool;
+	var snapToGround 					: bool;
 	var resourceName					: name;
 	var spawnAfter						: float;
 	var spawnOnAnimEvent				: name;
 	var spawnOnGameplayEvent			: name;
+	var delayEntitySpawn 				: float;
 	var fxNameOnSpawn					: name;
+	var continuousPlayEffectInInterval 	: float;
 	var fxEntityTag						: name;
 	var destroyEntityAfter				: float;
 	var destroyEntityOnAnimEvent		: name;
 	var destroyEntityOnDeact			: bool;
+	var stopAllEffectsOnDeact 			: bool;
 	var stopAllEffectsAfter				: float;
+	var zToleranceFromActorRoot 		: float;
 	var offsetVector	 				: Vector;
 	var additionalRotation				: EulerAngles;
 	
 	protected var attachedTo 			: CEntity;
 	protected var entity 				: CEntity;
 	protected var entityTemplate		: CEntityTemplate;
+	protected var timeStamp 			: float;
+	protected var fxRotation 			: float;
 	private   var spawned				: bool;
+	private   var eventReceived 		: bool;
+	private   var receivedRotationEvent : bool;
+	private   var stopped 				: bool;
+	private   var boneIdx 				: int;
 	
 	function OnActivate() : EBTNodeStatus
 	{
 		spawned = false;
+		eventReceived = false;
+		stopped = false;
+		receivedRotationEvent = false;
+		
+		if ( IsNameValid( teleportToBoneName ) )
+		{
+			boneIdx = GetActor().GetBoneIndex( teleportToBoneName );
+		}
 		
 		return BTNS_Active;
 	}
 	
 	latent function Main() : EBTNodeStatus
 	{
+		var spawnPos : Vector;
+		var spawnRot : EulerAngles;
+		
+		
 		entityTemplate = (CEntityTemplate)LoadResourceAsync( resourceName );
 		
 		if( entityTemplate && !IsNameValid( spawnOnGameplayEvent ) && !IsNameValid( spawnOnAnimEvent ) && spawnAfter <= 0 )
 		{
+			timeStamp = GetLocalTime();
+			while ( receiveRotationFromGameplayEvent && !receivedRotationEvent )
+			{
+				SleepOneFrame();
+			}
+			if ( delayEntitySpawn > 0 )
+			{
+				while ( GetLocalTime() < timeStamp + delayEntitySpawn )
+				{
+					SleepOneFrame();
+				}
+			}
 			SpawnEntity();
 		}
 		
 		if( spawnAfter > 0 )
 		{
 			Sleep( spawnAfter );
+			timeStamp = GetLocalTime();
+			while ( receiveRotationFromGameplayEvent && !receivedRotationEvent )
+			{
+				SleepOneFrame();
+			}
 			if( entityTemplate && !spawned )
+			{
+				if ( delayEntitySpawn > 0 )
+				{
+					while ( GetLocalTime() < timeStamp + delayEntitySpawn )
+					{
+						SleepOneFrame();
+					}
+				}
 				SpawnEntity();
+			}
+		}
+		else if ( IsNameValid( spawnOnAnimEvent ) || IsNameValid( spawnOnGameplayEvent ) )
+		{
+			while ( !eventReceived )
+			{
+				SleepOneFrame();
+			}
+			while ( receiveRotationFromGameplayEvent && !receivedRotationEvent )
+			{
+				SleepOneFrame();
+			}
+			if ( delayEntitySpawn > 0 )
+			{
+				while ( GetLocalTime() < timeStamp + delayEntitySpawn )
+				{
+					SleepOneFrame();
+				}
+			}
+			SpawnEntity();
+		}
+		if ( IsNameValid( fxNameOnSpawn ) && ( continuousPlayEffectInInterval > 0 || continuousTeleport ) )
+		{
+			while ( !stopped )
+			{
+				if ( continuousPlayEffectInInterval > 0 && spawned && GetLocalTime() > timeStamp + continuousPlayEffectInInterval )
+				{
+					entity.PlayEffect( fxNameOnSpawn );
+					timeStamp = GetLocalTime();
+				}
+				if ( continuousTeleport && entity )
+				{
+					EvaluatePos( spawnPos, spawnRot );
+					entity.TeleportWithRotation( spawnPos, spawnRot );
+				}
+				SleepOneFrame();
+			}
 		}
 		
 		return BTNS_Active;
@@ -63,6 +154,10 @@ class CBTTaskSpawnFXEntity extends IBehTreeTask
 	
 	function OnDeactivate()
 	{
+		if( stopAllEffectsOnDeact )
+		{
+			entity.StopAllEffects();
+		}
 		if( destroyEntityOnDeact && destroyEntityAfter <= 0.0 && entity )
 		{
 			entity.StopAllEffects();
@@ -76,9 +171,17 @@ class CBTTaskSpawnFXEntity extends IBehTreeTask
 		
 		if( IsNameValid( spawnOnAnimEvent ) && animEventName == spawnOnAnimEvent )
 		{
-			if( entityTemplate && !spawned )
+			if( entityTemplate )
 			{
-				SpawnEntity();
+				if ( spawned && animEventType == AET_DurationEnd )
+				{
+					stopped = true;
+				}
+				else
+				{
+					eventReceived = true;
+					timeStamp = GetLocalTime();
+				}
 			}
 			return true;
 		}
@@ -99,23 +202,39 @@ class CBTTaskSpawnFXEntity extends IBehTreeTask
 		{
 			if( entityTemplate && !spawned )
 			{
-				SpawnEntity();
+				eventReceived = true;
+				timeStamp = GetLocalTime();
 			}
 			return true;
+		}
+		if ( receiveRotationFromGameplayEvent && eventName == 'FxRotation' )
+		{
+			receivedRotationEvent = true;
+			fxRotation = this.GetEventParamFloat(0);
 		}
 		
 		return false;
 	}
 	
-	function SpawnEntity()
+	final latent function SpawnEntity()
 	{
 		var spawnPos : Vector;
+		var ownerPos : Vector;
 		var spawnRot : EulerAngles;
+		var z 		 : float;
 		
 		if ( useOnlyOneFXEntity && entity )
 			return;
 		
 		EvaluatePos( spawnPos, spawnRot );
+		ownerPos = GetActor().GetWorldPosition();
+		z = AbsF( spawnPos.Z - ownerPos.Z );
+		
+		if ( zToleranceFromActorRoot > 0 && AbsF( spawnPos.Z - ownerPos.Z ) > zToleranceFromActorRoot )
+		{
+			return;
+		}
+		
 		entity = theGame.CreateEntity( entityTemplate, spawnPos, spawnRot );
 		
 		if ( entity )
@@ -135,21 +254,23 @@ class CBTTaskSpawnFXEntity extends IBehTreeTask
 				entity.StopAllEffectsAfter( stopAllEffectsAfter );
 			}
 			
-			if( IsNameValid( fxNameOnSpawn ) )
-			{
-				entity.PlayEffect( fxNameOnSpawn );
-			}
-			
 			if ( attachToActor || IsNameValid( attachToSlotName ) )
 			{
 				Attach( attachToSlotName );
 			}
 			
+			if( IsNameValid( fxNameOnSpawn ) )
+			{
+				SleepOneFrame(); // delay after teleport to fix issues with fxes
+				entity.PlayEffect( fxNameOnSpawn );
+			}
+			
+			timeStamp = GetLocalTime();
 			spawned = true;
 		}
 	}
 	
-	function EvaluatePos( out pos : Vector, out rot : EulerAngles )
+	final function EvaluatePos( out pos : Vector, out rot : EulerAngles )
 	{
 		var spawnPos	: Vector;
 		var spawnRot	: EulerAngles;
@@ -157,8 +278,9 @@ class CBTTaskSpawnFXEntity extends IBehTreeTask
 		var target		: CActor = GetCombatTarget();
 		var node 		: CNode; 
 		var entMat		: Matrix;
+		var normal 		: Vector;
+		var angleDist 	: float;
 		
-		var damageAreaEntity : CDamageAreaEntity;
 		
 		if( useNodeWithTag && referenceNodeTag != 'None' )
 		{
@@ -169,6 +291,14 @@ class CBTTaskSpawnFXEntity extends IBehTreeTask
 				spawnPos = node.GetWorldPosition();
 				spawnRot = node.GetWorldRotation();
 			}
+		}
+		else if ( IsNameValid( teleportToBoneName ) )
+		{
+			TeleportToBoneName( teleportToBoneName, spawnPos, spawnRot );
+		}
+		else if ( IsNameValid( teleportToComponentName ) && TeleportToComponentName( teleportToComponentName, spawnPos, spawnRot ) )
+		{
+			//
 		}
 		else if( useTargetInsteadOfOwner )
 		{
@@ -200,44 +330,204 @@ class CBTTaskSpawnFXEntity extends IBehTreeTask
 			spawnPos = VecTransform( entMat, offsetVector );
 		}
 		
+		if ( rotateEntityToTarget )
+		{
+			if ( useCombatTarget )
+			{
+				spawnRot = VecToRotation( target.GetWorldPosition() - spawnPos );
+			}
+			else
+			{
+				spawnRot = VecToRotation( GetActionTarget().GetWorldPosition() - spawnPos );
+			}
+		}
+		
+		if ( receiveRotationFromGameplayEvent )
+		{
+			spawnRot.Yaw = fxRotation;
+		}
+		
+		if ( snapToGround )
+		{
+			theGame.GetWorld().StaticTrace( spawnPos + Vector(0,0,1), spawnPos - Vector(0,0,10), spawnPos, normal );
+		}
+		
+		/*
+		if( useOffsetRelativeToHeading )
+		{
+			spawnPos += offsetVector.X * ( VecFromHeading( spawnRot.Yaw + 90.0 ));
+			spawnPos += offsetVector.Y * ( VecFromHeading( spawnRot.Yaw ));
+			spawnPos.Z += offsetVector.Z;
+		}
+		else
+		{
+			spawnPos += offsetVector;
+		}
+		*/
+		
+		if ( zeroPitchAndRoll )
+		{
+			spawnRot.Pitch = 0;
+			spawnRot.Roll = 0;
+		}
+		
+		if ( capRotationFromOwnerToTarget > 0 )
+		{
+			angleDist = AngleDistance( spawnRot.Yaw, actor.GetHeading() );
+			if ( AbsF( angleDist ) > capRotationFromOwnerToTarget )
+			{
+				if ( angleDist > 0 )
+				{
+					spawnRot.Yaw = actor.GetHeading() + capRotationFromOwnerToTarget;
+				}
+				else
+				{
+					spawnRot.Yaw = actor.GetHeading() - capRotationFromOwnerToTarget;
+				}
+			}
+		}
+		
 		spawnRot.Pitch += additionalRotation.Pitch;
 		spawnRot.Yaw += additionalRotation.Yaw;
 		spawnRot.Roll += additionalRotation.Roll;
 		
 		pos = spawnPos;
 		rot = spawnRot;
+		
+		actor.GetVisualDebug().AddSphere( 'fxPos', 1.0, pos, true, Color( 0,0,255 ), 5 );
 	}
 	
-	function Attach( slot : name )
+	final function TeleportToBoneName( bone : name, out pos : Vector, out rot : EulerAngles )
+	{
+		var owner 	: CActor = GetActor();
+		
+		if ( boneIdx != -1 )
+		{
+			owner.GetBoneWorldPositionAndRotationByIndex( boneIdx, pos, rot );
+			owner.GetVisualDebug().AddSphere( 'fxPos2', 1.0, pos, true, Color( 255,0,0 ), 5 );
+		}
+		else
+		{
+			pos = owner.GetWorldPosition();
+			rot = owner.GetWorldRotation();
+			if ( zeroPitchAndRoll )
+			{
+				rot.Pitch = 0;
+				rot.Roll = 0;
+			}
+			
+			rot.Pitch += additionalRotation.Pitch;
+			rot.Yaw += additionalRotation.Yaw;
+			rot.Roll += additionalRotation.Roll;
+		}
+	}
+	
+	final function Attach( slot : name )
 	{
 		var loc 	: Vector;
 		var rot		: EulerAngles;	
 		var owner 	: CActor = GetActor();
+		var target  : CActor = GetCombatTarget();
 		
 		if ( IsNameValid( slot ) )
 		{
-			if ( owner.HasSlot( slot, true ) )
+			if ( useTargetInsteadOfOwner )
 			{
-				entity.CreateAttachment( owner, slot );
+				if ( target.HasSlot( slot, true ) )
+				{
+					entity.CreateAttachment( target, slot );
+				}
+				else
+				{
+					entity.CreateAttachment( target, slot );
+				}
 			}
 			else
 			{
-				entity.CreateAttachment( owner, slot );
+				if ( owner.HasSlot( slot, true ) )
+				{
+					entity.CreateAttachment( owner, slot );
+				}
+				else
+				{
+					entity.CreateAttachment( owner, slot );
+				}
 			}
 			attachedTo = NULL;
 		}
 		else
 		{
-			attachedTo = owner;	
+			if ( useTargetInsteadOfOwner )
+			{
+				attachedTo = target;
+			}
+			else
+			{
+				attachedTo = owner;
+			}
 		}
 		
 		if ( attachedTo )
 		{
 			loc = attachedTo.GetWorldPosition();
 			rot = attachedTo.GetWorldRotation();
+			if ( zeroPitchAndRoll )
+			{
+				rot.Pitch = 0;
+				rot.Roll = 0;
+			}
+			
+			rot.Pitch += additionalRotation.Pitch;
+			rot.Yaw += additionalRotation.Yaw;
+			rot.Roll += additionalRotation.Roll;
 			
 			entity.TeleportWithRotation( loc, rot );
 		}
+	}
+	
+	final function TeleportToComponentName( componentName : name, out componentPos : Vector, out componentRot : EulerAngles ) : bool
+	{
+		var weaponId 		: SItemUniqueId;
+		var weapon 			: CItemEntity;
+		var actor 			: CActor = GetActor();
+		var component 		: CComponent;
+		
+		if ( toComponentOnWeapon )
+		{
+			weaponId = actor.GetInventory().GetItemFromSlot( 'r_weapon' );
+			weapon = actor.GetInventory().GetItemEntityUnsafe( weaponId );
+			if ( !weapon )
+			{
+				weaponId = actor.GetInventory().GetItemFromSlot( 'l_weapon' );
+				weapon = actor.GetInventory().GetItemEntityUnsafe( weaponId );
+			}
+			if ( !weapon )
+			{
+				return false;
+			}
+			
+			component = weapon.GetComponent(componentName);
+			if( !component )
+			{
+				return false;
+			}
+			
+			componentPos   = weapon.GetWorldPosition() + component.GetLocalPosition();
+			componentRot   = weapon.GetWorldRotation();
+		}
+		else
+		{
+			component = actor.GetComponent(componentName);		
+			if( !component )
+			{
+				return false;
+			}
+			
+			componentPos   = actor.GetWorldPosition() + component.GetLocalPosition();
+			componentRot   = actor.GetWorldRotation();
+		}
+		
+		return true;
 	}
 };
 
@@ -245,26 +535,39 @@ class CBTTaskSpawnFXEntityDef extends IBehTreeTaskDefinition
 {
 	default instanceClass = 'CBTTaskSpawnFXEntity';
 
-	editable var resourceName				: name;
-	editable var attachToActor				: bool;
-	editable var useNodeWithTag				: bool;
-	editable var useOnlyOneFXEntity			: bool;
-	editable var referenceNodeTag			: name;
-	editable var useTargetInsteadOfOwner	: bool;
-	editable var useCombatTarget			: bool;
-	editable var attachToSlotName			: name;
-	editable var spawnAfter					: float;
-	editable var spawnOnAnimEvent			: name;
-	editable var spawnOnGameplayEvent		: name;
-	editable var fxNameOnSpawn				: name;
-	editable var fxEntityTag				: name;
-	editable var destroyEntityAfter			: float;
-	editable var destroyEntityOnAnimEvent	: name;
-	editable var destroyEntityOnDeact		: bool;
-	editable var stopAllEffectsAfter		: float;
-	editable var offsetVector	 			: Vector;
-	editable var additionalRotation			: EulerAngles;
-	editable var baseOffsetOnCasterRotation	: bool;
+	editable var resourceName					: name;
+	editable var attachToActor					: bool;
+	editable var useNodeWithTag					: bool;
+	editable var useOnlyOneFXEntity				: bool;
+	editable var referenceNodeTag				: name;
+	editable var useTargetInsteadOfOwner		: bool;
+	editable var useCombatTarget				: bool;
+	editable var attachToSlotName				: name;
+	editable var teleportToBoneName 			: name;
+	editable var teleportToComponentName 		: name;
+	editable var toComponentOnWeapon 			: bool;
+	editable var snapToGround 					: bool;
+	editable var continuousTeleport 			: bool;
+	editable var spawnAfter						: float;
+	editable var spawnOnAnimEvent				: name;
+	editable var spawnOnGameplayEvent			: name;
+	editable var delayEntitySpawn 				: float;
+	editable var fxNameOnSpawn					: name;
+	editable var continuousPlayEffectInInterval : float;
+	editable var fxEntityTag					: name;
+	editable var destroyEntityAfter				: float;
+	editable var destroyEntityOnAnimEvent		: name;
+	editable var destroyEntityOnDeact			: bool;
+	editable var stopAllEffectsOnDeact 			: bool;
+	editable var stopAllEffectsAfter			: float;
+	editable var zToleranceFromActorRoot 		: float;
+	editable var offsetVector	 				: Vector;
+	editable var additionalRotation				: EulerAngles;
+	editable var baseOffsetOnCasterRotation		: bool;
+	editable var rotateEntityToTarget 			: bool;
+	editable var capRotationFromOwnerToTarget 	: float;
+	editable var receiveRotationFromGameplayEvent: bool;
+	editable var zeroPitchAndRoll 				: bool;
 	
 	default useCombatTarget = true;
 	
@@ -274,8 +577,9 @@ class CBTTaskSpawnFXEntityDef extends IBehTreeTaskDefinition
 };
 
 
-
-
+/***********************************************************************/
+/** CBTTaskManageSpawnFXEntity
+/***********************************************************************/
 
 class CBTTaskManageSpawnFXEntity extends CBTTaskSpawnFXEntity
 {

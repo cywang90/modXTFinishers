@@ -1,18 +1,13 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
-
-
-
-
-
-
-
-
+﻿//>--------------------------------------------------------------------------
+// W3QuestCond_PlayerInRunAnimation
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Check if the player is actually in the Run behavior graph state
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// R.Pergent - 15-May-2014
+// Copyright © 2014 CD Projekt RED
+//---------------------------------------------------------------------------
 class W3QuestCond_PlayerInRunAnimation extends CQuestScriptedCondition
 {
 	function Evaluate() : bool

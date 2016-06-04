@@ -1,21 +1,16 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
-
-
-
-
-
-
+﻿//>---------------------------------------------------------------------
+// Witcher Script file - Duration Obstacle 
+//----------------------------------------------------------------------
+// Spawned by witch2 special attack
+//----------------------------------------------------------------------
+// Andrzej Kwiatkowski - 01-August-2014
+// Copyright © 2014 CDProjektRed
+//----------------------------------------------------------------------
 class W3WitchBoilingWaterObstacle extends W3DurationObstacle
 {
-	
-	
-	
+	//>---------------------------------------------------------------------
+	// VARIABLES
+	//----------------------------------------------------------------------
 	private editable var		applyDebuffType					: EEffectType;	default applyDebuffType = EET_Undefined;
 	private editable var		debuffDuration					: float;		default debuffDuration = 0.2;
 	private editable var		simpleDamageAction				: bool;			default simpleDamageAction = true;
@@ -31,6 +26,7 @@ class W3WitchBoilingWaterObstacle extends W3DurationObstacle
 	private editable var		loopedAttack					: bool;
 	private editable var 		playAttackEffectOnlyWhenHit 	: bool;
 	private editable var		useSeperateAttackEffectEntity 	: CEntityTemplate;
+	private editable var 		onAttackEffectCameraShakeStrength: float;
 	private editable var 		onHitCameraShakeStrength 		: float;
 	
 	private			 var 		fxEntity 						: CEntity;
@@ -39,8 +35,8 @@ class W3WitchBoilingWaterObstacle extends W3DurationObstacle
 	private			 var		effectComponent					: CComponent;
 	
 	
-	
-	
+	//>---------------------------------------------------------------------
+	//----------------------------------------------------------------------
 	event OnSpawned( spawnData : SEntitySpawnData )
 	{	
 		super.OnSpawned( spawnData );
@@ -58,8 +54,8 @@ class W3WitchBoilingWaterObstacle extends W3DurationObstacle
 			AddTimer( 'ScaleEffect', 0.01f, true );
 		}
 	}
-	
-	
+	//>---------------------------------------------------------------------
+	//----------------------------------------------------------------------
 	private timer function Appear( _Delta : float, optional id : int)
 	{
 		var i						: int;
@@ -88,6 +84,11 @@ class W3WitchBoilingWaterObstacle extends W3DurationObstacle
 			{
 				PlayEffect(attackEffectName);
 			}
+			
+			if ( onAttackEffectCameraShakeStrength > 0 )
+			{
+				GCameraShake( onAttackEffectCameraShakeStrength, true, l_actor.GetWorldPosition(), 30.0f );
+			}
 		}
 		
 		FindGameplayEntitiesInRange( l_entitiesInRange, this, attackRadius, 1000);
@@ -114,7 +115,7 @@ class W3WitchBoilingWaterObstacle extends W3DurationObstacle
 						delete l_damage;
 						
 						if ( onHitCameraShakeStrength > 0 )
-							GCameraShake(onHitCameraShakeStrength, true, l_actor.GetWorldPosition(), 30.0f);
+							GCameraShake( onHitCameraShakeStrength, true, l_actor.GetWorldPosition(), 30.0f );
 					}
 					if ( applyDebuffType != EET_Undefined )
 					{
@@ -193,7 +194,7 @@ class W3WitchBoilingWaterObstacle extends W3DurationObstacle
 	
 	private function SpecificDisappear()
 	{
-		
+		//stop dealing damage on disappear timer
 		damageValue = 0;
 	}
 }

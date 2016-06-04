@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-class W3MagicalThing extends CProjectileTrajectory
+﻿class W3MagicalThing extends CProjectileTrajectory
 {
 	private var dmg : float;
 
@@ -16,7 +11,7 @@ class W3MagicalThing extends CProjectileTrajectory
 	
 	function ThrowAt( target : CActor )
 	{
-		this.ShootProjectileAtNode( 3.0f, 3.0f,  thePlayer);
+		this.ShootProjectileAtNode( 3.0f, 3.0f, /*1000.0f,*/ thePlayer);
 		PlayEffect( 'concentration' );
 	}
 
@@ -28,14 +23,14 @@ class W3MagicalThing extends CProjectileTrajectory
 		if(collidingComponent)
 			victim = (CActor)collidingComponent.GetEntity();
 		
-		
+		// by default we dont collide with caster
 		if( victim && victim != caster )
 		{
 			LogChannel( 'CustomCustom', " I collided :) " + victim );
 		
 			StopProjectile();
 			
-
+//			victim.TakeDamage( dmg, NULL, GetDamageType('W3NoneDamageType'), NULL, pos );
 			
 			StopAllEffects();
 			

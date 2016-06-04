@@ -1,14 +1,9 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-class W3VisualFx extends CEntity
+﻿class W3VisualFx extends CEntity
 {
 	editable var effectName : name;
 	editable var destroyEffectTime : float;
 	
-	private var timedFxDestroyName : name;			
+	private var timedFxDestroyName : name;			//name of the fx that will trigger Destroy() once not playing anymore
 	private var parentActorHandle : EntityHandle;
 	
 	event OnSpawned( spawnData : SEntitySpawnData )

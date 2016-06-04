@@ -1,23 +1,18 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
-
-
-
-
-
-
-
-
+﻿//>--------------------------------------------------------------------------
+// BTTaskFrostAreaAttack
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Generate a frost area from which spike of ice will attack the target
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// R.Pergent - 26-June-2014
+// Copyright © 2014 CD Projekt RED
+//---------------------------------------------------------------------------
 class BTTaskFrostAreaAttack extends IBehTreeTask
 {
-	
-	
-	
+	//>--------------------------------------------------------------------------
+	// VARIABLES
+	//---------------------------------------------------------------------------	
 	public 	var duration							: SRangeF;
 	public  var spreadingSpeed						: float;
 	public  var maxRadius							: float;
@@ -29,7 +24,7 @@ class BTTaskFrostAreaAttack extends IBehTreeTask
 	public  var spawnAttackOnTargetDelay			: SRangeF;
 	public 	var spawnedEntityTemplates				: array<CEntityTemplate>;
 	public 	var frostWallReloadDelay				: float;
-	
+	// private
 	private var m_Npc								: CNewNPC;
 	private var m_MinAttackRange					: float;
 	private var m_FrostRange						: float;
@@ -38,15 +33,15 @@ class BTTaskFrostAreaAttack extends IBehTreeTask
 	
 	default m_MinAttackRange = 3;
 	
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function Initialize()
 	{
 		m_Npc				= GetNPC();
 		m_PostFxOnGroundCmp = (W3PostFXOnGroundComponent) GetNPC().GetComponentByClassName( 'W3PostFXOnGroundComponent' );
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	latent function Main() : EBTNodeStatus
 	{	
 		var i							: int;
@@ -62,7 +57,7 @@ class BTTaskFrostAreaAttack extends IBehTreeTask
 		var l_radiusPercentage			: float;
 		var l_timeToReachMaxRadius		: float;		
 		
-		
+		// Arena variables
 		var l_arenaRange				: float;
 		var l_arenaPerimeter			: float;
 		var l_spawnedEntityRadius		: float;
@@ -85,14 +80,14 @@ class BTTaskFrostAreaAttack extends IBehTreeTask
 		}
 		m_TimeToAttackOnTarget	= RandRangeF( spawnAttackOnTargetDelay.max, spawnAttackOnTargetDelay.min );		
 		
-		
+		// Stop the current post fx
 		if( m_PostFxOnGroundCmp ) m_PostFxOnGroundCmp.StopTicking();
 		
-		
+		// Create a new one with the new parameters
 		l_npcPos = m_Npc.GetWorldPosition();
 		l_gameplayFX.AddSurfacePostFXGroup( l_npcPos, l_timeToReachMaxRadius, l_timeLeft, 1.0f,  maxRadius * 4, 0 );
 		
-		
+		// Play the marker effect
 		m_Npc.PlayEffect('marker');
 		
 		m_FrostRange = 0;
@@ -101,12 +96,12 @@ class BTTaskFrostAreaAttack extends IBehTreeTask
 			m_FrostRange = maxRadius;
 		}
 		
-		
+		// Create arena
 		if( createArena )
 		{
 			l_arenaRange			= m_FrostRange * 1.0f;
 			l_spawnedEntityRadius 	= 3.0f;
-			
+			// Perimeter of the full circle, times percentage of the circle taken
 			l_arenaPerimeter 		= ( 2 * l_arenaRange * Pi() );
 			l_arenaPerimeter		*= ( arenaAngle / 360);
 			l_arenaSpawnQt			= l_arenaPerimeter / l_spawnedEntityRadius;
@@ -120,7 +115,7 @@ class BTTaskFrostAreaAttack extends IBehTreeTask
 			{
 				l_spawnPos 		= l_npcPos + VecConeRand( l_startHeading + i * l_angleBetweenSpikes, l_spawnedEntityRadius , l_arenaRange * 0.5f, l_arenaRange );
 				
-				l_forwardVector = l_npcPos - l_spawnPos; 
+				l_forwardVector = l_npcPos - l_spawnPos; // Turned towards the spawner
 				l_rotation 		= VecToRotation( l_forwardVector );
 				
 				CreateEntity( l_spawnPos, l_rotation );
@@ -156,7 +151,7 @@ class BTTaskFrostAreaAttack extends IBehTreeTask
 				{
 					SpawnAttack();
 				}
-				
+				// The bigger the radius, the closer we are to the fastest spawn speed
 				l_timeUntilNextAttack 	= RandRangeF( spawnAttackDelay.max + ( 1 - l_radiusPercentage ) * spawnAttackDelay.max * 0.5f , spawnAttackDelay.min + ( 1 - l_radiusPercentage ) * spawnAttackDelay.min * 0.5f  );
 			}
 			
@@ -178,8 +173,8 @@ class BTTaskFrostAreaAttack extends IBehTreeTask
 		
 		return BTNS_Completed;
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	private function SpawnDefenseWall()
 	{
 		var i					: int;
@@ -213,8 +208,8 @@ class BTTaskFrostAreaAttack extends IBehTreeTask
 			CreateEntity( l_spawnPos, l_rotation );
 		}
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	private function SpawnAttack()
 	{
 		var l_npcPos			: Vector;
@@ -229,7 +224,7 @@ class BTTaskFrostAreaAttack extends IBehTreeTask
 		l_npcPos 	= m_Npc.GetWorldPosition();
 		l_targetPos = l_target.GetWorldPosition();
 		
-		
+		// Chance to attack closely to target every certain amount of time (But only if I can see it)
 		if( spawnAttackOnTargetDelay.max >= 0 && m_TimeToAttackOnTarget <= 0 && VecDistance2D( l_targetPos, l_npcPos ) < m_FrostRange && theGame.GetWorld().NavigationLineTest( l_npcPos, l_targetPos, m_Npc.GetRadius())) 
 		{
 			
@@ -244,7 +239,7 @@ class BTTaskFrostAreaAttack extends IBehTreeTask
 		else
 		{
 			l_spawnPos = l_npcPos + VecRingRand( m_MinAttackRange, m_FrostRange );
-			
+			// if we already have a timer to force attack close to the player, cancel the random ones close to him
 			if ( VecDistance2D( l_spawnPos, l_targetPos ) < 2 )
 			{
 				return;
@@ -256,8 +251,8 @@ class BTTaskFrostAreaAttack extends IBehTreeTask
 		
 		CreateEntity( l_spawnPos, l_rotation );
 	}	
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function CreateEntity( _SpawnPos : Vector, _Rotation : EulerAngles ) : CEntity
 	{		
 		var l_spawnedEntity 			: CEntity;
@@ -287,21 +282,21 @@ class BTTaskFrostAreaAttack extends IBehTreeTask
 		
 		return l_spawnedEntity;
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function OnDeactivate()
 	{
 		if( m_PostFxOnGroundCmp ) m_PostFxOnGroundCmp.StartTicking();
 		m_Npc.StopEffect('marker');
 	}
 }
-
-
+//>--------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 class BTTaskFrostAreaAttackDef extends IBehTreeTaskDefinition
 {
 	default instanceClass = 'BTTaskFrostAreaAttack';
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	private editable var spawnedEntities				: array<name>;
 	private editable var duration						: SRangeF;
 	private editable var spreadingSpeed					: float;
@@ -323,8 +318,8 @@ class BTTaskFrostAreaAttackDef extends IBehTreeTaskDefinition
 	hint arenaAngle 						= "angle of a circle to block behind the target";
 	hint scaleSpawnQuantityWithRadius 		= "spawnAtOnce indicate the value when the range is at max and will be scale down when the radius is smaller";
 	hint frostWallReloadDelay 				= "-1 means to not use the frost wall defense";
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function OnSpawn( taskGen : IBehTreeTask )
 	{
 		var i		: int;
