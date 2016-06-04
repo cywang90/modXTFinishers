@@ -173,6 +173,8 @@ statemachine class W3SyncAnimationManager
 			}
 			case 'DeathFinisher':
 			{
+				// modXTFinishers BEGIN
+				/*
 				// MASTER SETUP
 				if( ((CActor)slave).WillBeUnconscious() )
 				{
@@ -183,8 +185,8 @@ statemachine class W3SyncAnimationManager
 				{
 					syncAnimName = GetFinisherSynAnimName();
 				}
+				*/
 				
-				// modXTFinishers BEGIN
 				isDeathFinisher = true;
 				syncAnimName = thePlayer.actionContext.finisher.animName;
 				// modXTFinishers END
