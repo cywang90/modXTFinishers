@@ -225,18 +225,41 @@ class XTFinishersDefaultFinisherHandler extends XTFinishersAbstractReactionStart
 	}
 	
 	protected function SelectFinisherAnimName(context : XTFinishersActionContext) : name {
+		var actorVictim : CActor;
 		var animNames : array<name>;
 		
-		if (thePlayer.forceFinisher && thePlayer.forceFinisherAnimName != '') {
-			return thePlayer.forceFinisherAnimName;
-		}
+		actorVictim = (CActor)context.action.victim;
 		
-		if (thePlayer.GetCombatIdleStance() <= 0.f) {
-			animNames = theGame.xtFinishersMgr.finisherModule.params.allowedLeftSideFinisherAnimNames;
-		} else {
-			animNames = theGame.xtFinishersMgr.finisherModule.params.allowedRightSideFinisherAnimNames;
+		if(actorVictim.WillBeUnconscious()) { // nonlethal finisher
+			if (thePlayer.GetCombatIdleStance() <= 0.f) {
+				if (actorVictim.HasAbility('ForceHiltFinisher')) {
+					return theGame.xtFinishersMgr.consts.FINISHER_NONLETHAL_STANCE_LEFT_HILT;
+				} else if (actorVictim.HasAbility('ForceHeadbuttFinisher' )) {
+					return theGame.xtFinishersMgr.consts.FINISHER_NONLETHAL_STANCE_LEFT_HEAD;
+				} else {
+					animNames = theGame.xtFinishersMgr.finisherModule.params.allowedLeftSideNonLethalFinisherAnimNames;
+				}
+			} else {
+				if (actorVictim.HasAbility('ForceHiltFinisher')) {
+					return theGame.xtFinishersMgr.consts.FINISHER_NONLETHAL_STANCE_RIGHT_HILT;
+				} else if (actorVictim.HasAbility('ForceHeadbuttFinisher')) {
+					return theGame.xtFinishersMgr.consts.FINISHER_NONLETHAL_STANCE_RIGHT_HEAD;
+				} else {
+					animNames = theGame.xtFinishersMgr.finisherModule.params.allowedRightSideNonLethalFinisherAnimNames;
+				}
+			}
+		} else { // lethal finisher
+			if (thePlayer.forceFinisher && thePlayer.forceFinisherAnimName != '') {
+				return thePlayer.forceFinisherAnimName;
+			}
+			
+			if (thePlayer.GetCombatIdleStance() <= 0.f) {
+				animNames = theGame.xtFinishersMgr.finisherModule.params.allowedLeftSideFinisherAnimNames;
+			} else {
+				animNames = theGame.xtFinishersMgr.finisherModule.params.allowedRightSideFinisherAnimNames;
+			}
 		}
-		
+
 		return animNames[RandRange(animNames.Size(), 0)];
 	}
 	

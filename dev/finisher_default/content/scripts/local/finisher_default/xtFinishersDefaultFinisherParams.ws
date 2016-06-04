@@ -54,6 +54,7 @@ class XTFinishersDefaultFinisherParams {
 	public var autoFinisherEffectTypes, instantKillFinisherEffectTypes : array<EEffectType>;
 	
 	public var allowedLeftSideFinisherAnimNames, allowedRightSideFinisherAnimNames : array<name>;
+	public var allowedLeftSideNonLethalFinisherAnimNames, allowedRightSideNonLethalFinisherAnimNames : array<name>;
 	
 	public function Init() {
 		var dlcFinishers : array<CR4FinisherDLC>;
@@ -116,5 +117,17 @@ class XTFinishersDefaultFinisherParams {
 			allowedRightSideFinisherAnimNames.PushBack(theGame.xtFinishersMgr.consts.FINISHER_DLC_STANCE_RIGHT_HEAD);
 			allowedRightSideFinisherAnimNames.PushBack(theGame.xtFinishersMgr.consts.FINISHER_DLC_STANCE_RIGHT_NECK);
 		}
+		
+		//===============================
+		// NON-LETHAL FINISHER ANIMATIONS
+		//===============================
+		
+		// load allowed non-lethal finisher animations (comment to disable, uncomment to enable)
+		
+		allowedLeftSideNonLethalFinisherAnimNames.PushBack(theGame.xtFinishersMgr.consts.FINISHER_NONLETHAL_STANCE_LEFT_HEAD);
+		allowedLeftSideNonLethalFinisherAnimNames.PushBack(theGame.xtFinishersMgr.consts.FINISHER_NONLETHAL_STANCE_LEFT_HILT);
+		
+		allowedRightSideNonLethalFinisherAnimNames.PushBack(theGame.xtFinishersMgr.consts.FINISHER_NONLETHAL_STANCE_RIGHT_HEAD);
+		allowedRightSideNonLethalFinisherAnimNames.PushBack(theGame.xtFinishersMgr.consts.FINISHER_NONLETHAL_STANCE_RIGHT_HILT);
 	}
 }
