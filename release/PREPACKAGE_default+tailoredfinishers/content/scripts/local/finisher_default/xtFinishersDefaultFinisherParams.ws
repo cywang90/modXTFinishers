@@ -4,9 +4,10 @@ class XTFinishersDefaultFinisherParams {
 	//==================
 	
 	// REGULAR finishers
-	public const var FINISHER_REQUIRE_NO_AGGRO, FINISHER_REQUIRE_NAV_CHECK : bool;
+	public const var FINISHER_REQUIRE_NO_AGGRO, FINISHER_REQUIRE_NAV_CHECK, FINISHER_IGNORE_IMMUNITY : bool;
 		default FINISHER_REQUIRE_NO_AGGRO = true;					// if TRUE -> REGULAR finishers will not trigger if Geralt has aggro.
 		default FINISHER_REQUIRE_NAV_CHECK = true;					// if TRUE -> REGULAR finishers will not trigger if there are obstacles (walls, cliffs, objects, etc.) near Geralt.
+		default FINISHER_IGNORE_IMMUNITY = false;					// if TRUE -> REGULAR finishers will trigger even on enemies that are normally immune to finishers
 	public const var FINISHER_CHANCE_OVERRIDE : bool;
 		default FINISHER_CHANCE_OVERRIDE = false;					// if TRUE -> the mod will override the vanilla game's formula for calculating the chance to perform REGULAR finishers.
 	public const var FINISHER_CHANCE_BASE, FINISHER_CHANCE_LEVEL_BONUS, FINISHER_CHANCE_LEVEL_PENALTY : float;
@@ -20,18 +21,20 @@ class XTFinishersDefaultFinisherParams {
 		default FINISHER_AUTO_CHANCE_CRIT = 0.0;					// Chance to perform an AUTOMATIC finisher on critical hits.
 		default FINISHER_AUTO_CHANCE_REND = 0.0;					// Chance to perform an AUTOMATIC dismember on a Rend attack.
 		default FINISHER_AUTO_CHANCE_LAST_ENEMY = 100.0;			// Chance to perform an AUTOMATIC finisher when the LAST enemy in combat is killed.
-	public const var FINISHER_AUTO_REQUIRE_NO_AGGRO, FINISHER_AUTO_REQUIRE_NAV_CHECK : bool;
+	public const var FINISHER_AUTO_REQUIRE_NO_AGGRO, FINISHER_AUTO_REQUIRE_NAV_CHECK, FINISHER_AUTO_IGNORE_IMMUNITY : bool;
 		default FINISHER_AUTO_REQUIRE_NO_AGGRO = false;				// if TRUE -> AUTOMATIC finishers will not trigger if Geralt has aggro.
 		default FINISHER_AUTO_REQUIRE_NAV_CHECK = false;			// if TRUE -> AUTOMATIC finishers will not trigger if there are obstacles (walls, cliffs, objects, etc.) near Geralt.
+		default FINISHER_AUTO_IGNORE_IMMUNITY = false;				// if TRUE -> REGULAR finishers will trigger even on enemies that are normally immune to finishers
 	
 	// INSTANT-KILL finishers
 	public const var FINISHER_INSTANTKILL_CHANCE_EFFECTS, FINISHER_INSTANTKILL_CHANCE_CRIT, FINISHER_INSTANTKILL_CHANCE_LAST_ENEMY : float;
 		default FINISHER_INSTANTKILL_CHANCE_EFFECTS = 100.0;		// Chance to perform an INSTANT-KILL finisher when target has certain effects. Use the Init() function to define which effects.
 		default FINISHER_INSTANTKILL_CHANCE_CRIT = 0.0;				// Chance to perform an INSTANT-KILL finisher on critical hits.
 		default FINISHER_INSTANTKILL_CHANCE_LAST_ENEMY = 0.0;		// Chance to perform an INSTANT-KILL finisher when the LAST enemy in combat is killed.
-	public const var FINISHER_INSTANTKILL_REQUIRE_NO_AGGRO, FINISHER_INSTANTKILL_REQUIRE_NAV_CHECK : bool;
+	public const var FINISHER_INSTANTKILL_REQUIRE_NO_AGGRO, FINISHER_INSTANTKILL_REQUIRE_NAV_CHECK, FINISHER_INSTANTKILL_IGNORE_IMMUNITY : bool;
 		default FINISHER_INSTANTKILL_REQUIRE_NO_AGGRO = false;		// if TRUE -> INSTANT-KILL finishers will not trigger if Geralt has aggro.
 		default FINISHER_INSTANTKILL_REQUIRE_NAV_CHECK = false;		// if TRUE -> INSTANT-KILL finishers will not trigger if there are obstacles (walls, cliffs, objects, etc.) near Geralt.
+		default FINISHER_INSTANTKILL_IGNORE_IMMUNITY = false;		// if TRUE -> REGULAR finishers will trigger even on enemies that are normally immune to finishers
 	
 	//======================
 	// FINISHER CAM SETTINGS
@@ -51,6 +54,7 @@ class XTFinishersDefaultFinisherParams {
 	public var autoFinisherEffectTypes, instantKillFinisherEffectTypes : array<EEffectType>;
 	
 	public var allowedLeftSideFinisherAnimNames, allowedRightSideFinisherAnimNames : array<name>;
+	public var allowedLeftSideNonLethalFinisherAnimNames, allowedRightSideNonLethalFinisherAnimNames : array<name>;
 	
 	public function Init() {
 		var dlcFinishers : array<CR4FinisherDLC>;
@@ -113,5 +117,17 @@ class XTFinishersDefaultFinisherParams {
 			allowedRightSideFinisherAnimNames.PushBack(theGame.xtFinishersMgr.consts.FINISHER_DLC_STANCE_RIGHT_HEAD);
 			allowedRightSideFinisherAnimNames.PushBack(theGame.xtFinishersMgr.consts.FINISHER_DLC_STANCE_RIGHT_NECK);
 		}
+		
+		//===============================
+		// NON-LETHAL FINISHER ANIMATIONS
+		//===============================
+		
+		// load allowed non-lethal finisher animations (comment to disable, uncomment to enable)
+		
+		allowedLeftSideNonLethalFinisherAnimNames.PushBack(theGame.xtFinishersMgr.consts.FINISHER_NONLETHAL_STANCE_LEFT_HEAD);
+		allowedLeftSideNonLethalFinisherAnimNames.PushBack(theGame.xtFinishersMgr.consts.FINISHER_NONLETHAL_STANCE_LEFT_HILT);
+		
+		allowedRightSideNonLethalFinisherAnimNames.PushBack(theGame.xtFinishersMgr.consts.FINISHER_NONLETHAL_STANCE_RIGHT_HEAD);
+		allowedRightSideNonLethalFinisherAnimNames.PushBack(theGame.xtFinishersMgr.consts.FINISHER_NONLETHAL_STANCE_RIGHT_HILT);
 	}
 }

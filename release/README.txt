@@ -8,10 +8,10 @@ Author: aznricepuff
 VERSION
 -------
 
-This README is for Release 11, which includes the following components:
+This README is for Release 12, which includes the following components:
 
-BASE		eXTensible Finishers 		v4.3.0
-MODULE		finisher_default 			v2.2.1
+BASE		eXTensible Finishers 		v4.4.0
+MODULE		finisher_default 			v2.3.0
 MODULE		dismember_default 			v2.2.1
 MODULE		slowdown_default 			v2.3.1
 MODULE		camshake_default			v3.2.1
@@ -21,8 +21,8 @@ MODULE		slowdown_tailoredfinishers	v2.0.1
 REQUIREMENTS
 ------------
 
-- The Witcher 3: Wild Hunt Patch 1.12
-	- (Patch 1.10/1.11 users can choose to install using the compatibility files, which may not contain the latest features and bug fixes.)
+- The Witcher 3: Wild Hunt Patch 1.21
+	- (Patch 1.10/1.11/1.12 users can choose to install using the compatibility files, which may not contain the latest features and bug fixes.)
 
 ------------
 INSTALLATION
@@ -39,9 +39,9 @@ OPTION 1: NEXUS MOD MANAGER
 Download the mod from Nexus Mods using the "Download with Manager" option. Then...
 
 1. Use NMM to install the mod by selecting the mod in the Mods panel and clicking the "Install" button (green check mark on the left).
-2. A pop-up will appear 
-3. Under the section "Choose Installation Type" select your preferred installation type. Select the option text to see a description in the window on the right.
-4. If and only if you are running an older patch that is not supported by the latest version of the mod, check the appropriate box under "Compatibility Options" to install a version of the mod that is compatible with your patch. Note that by choosing to install a compatibility version, you may not receive the latest features and bug fixes for the mod.
+2. A pop-up will appear...
+3. "Choose Installation Type": Select your preferred installation type. Select the option text to see a description in the window on the right.
+4. "Compatibility Options": Choose between either the latest version of the mod or versions compatible with older game patches. If you are running the latest game patch, use the default option ("Latest version").
 
 If you wish to switch between installation types or choose a different compatibility setting after installation is complete, you must uninstall and re-install the mod in NMM. Simply disabling and re-enabling the mod will not work.
 
@@ -131,6 +131,7 @@ Configuration options provided by this module include:
 	- Options to disable certain checks that often block finishers from triggering in the vanilla game:
 		- Geralt must not be under attack by enemies other than the target.
 		- Geralt must be clear of terrain/object obstacles within a certain distance.
+		- Enemy is not immune to finishers.
 	- Options to choose which finisher animations the game is allowed to play.
 	- Options to define chance to trigger cinematic finishers.
 	- Options to disable certain checks that often block cinematic finishers from triggering in the vanilla game:

@@ -49,6 +49,14 @@ class XTFinishersConsts {
 		default FINISHER_DLC_STANCE_RIGHT_HEAD = 'man_finisher_dlc_head_rp';
 		default FINISHER_DLC_STANCE_RIGHT_NECK = 'man_finisher_dlc_neck_rp';
 		
+	public const var FINISHER_NONLETHAL_STANCE_LEFT_HEAD, FINISHER_NONLETHAL_STANCE_LEFT_HILT : name;
+		default FINISHER_NONLETHAL_STANCE_LEFT_HEAD = 'man_finisher_head_01_lp';
+		default FINISHER_NONLETHAL_STANCE_LEFT_HILT = 'man_finisher_hilt_01_lp';
+	
+	public const var FINISHER_NONLETHAL_STANCE_RIGHT_HEAD, FINISHER_NONLETHAL_STANCE_RIGHT_HILT : name;
+		default FINISHER_NONLETHAL_STANCE_RIGHT_HEAD = 'man_finisher_head_01_rp';
+		default FINISHER_NONLETHAL_STANCE_RIGHT_HILT = 'man_finisher_hilt_01_rp';
+		
 	// Listener priorities
 	public const var VANILLA_FINISHER_QUERY_DISPATCHER_PRIORITY, VANILLA_DISMEMBER_QUERY_DISPATCHER_PRIORITY : int;
 		default VANILLA_FINISHER_QUERY_DISPATCHER_PRIORITY = 0;

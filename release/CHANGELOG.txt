@@ -3,6 +3,32 @@ eXTensible Finishers Changelog
 ==============================
 
 ---------------------
+Release 12 (16/06/04)
+---------------------
+
+Includes
+--------
+BASE		eXTensible Finishers		v4.4.0
+MODULE		finisher_default			v2.3.0
+MODULE		dismember_default			v2.2.1
+MODULE		slowdown_default			v2.3.1
+MODULE		camshake_default			v3.2.1
+MODULE		slowdown_tailoredfinishers	v2.0.1
+
+Compatibility
+-------------
+- BASE eXTensible Finishers and MODULE finisher_default
+	- Now requires The Witcher 3: Wild Hunt Patch 1.21.
+- MODULE finisher_default
+	- Now requires BASE eXTensible Finishers v4.4.0 (or later).
+
+Features
+--------
+-MODULE finisher_default
+	- Added new configuration option to ignore immunity-to-finishers check on enemies.
+	- Now supports non-lethal finishers.
+	
+---------------------
 Release 11 (16/01/16)
 ---------------------
 
