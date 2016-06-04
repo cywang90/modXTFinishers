@@ -1,10 +1,7 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2014
+/** Author : Tomek Kozera
 /***********************************************************************/
-
-
 
 class W3DragonsDream extends W3Petard
 {
@@ -24,6 +21,19 @@ class W3DragonsDream extends W3Petard
 			gasEntity.SetExplodingTargetDamages(GetExplodingTargetDamages());
 			gasEntity.SetFromBomb(GetOwner());
 			gasEntity.SetIsFromClusterBomb(isCluster);
+			gasEntity.SetFriendlyFire( friendlyFire );
+
+			// Perk 16 - Player is immune to effects of his own bombs & bolts
+			if( GetWitcherPlayer().CanUseSkill( S_Perk_16 ) )
+			{
+				gasEntity.SetWasPerk16Active( true );
+			}
+			
+			//Perk 20 - decreases amount of bombs in stack, but increases their damage
+			if( (W3PlayerWitcher)GetOwner() && GetWitcherPlayer().CanUseSkill(S_Perk_20) )
+			{
+				gasEntity.SetPerk20DamageMultiplierOn();
+			}
 		}
 	}
 	
@@ -51,7 +61,7 @@ class W3DragonsDream extends W3Petard
 		return ret;
 	}
 	
-	
+	//Loads info about damage types and values for exploding target (level 3 special effect)
 	private function GetExplodingTargetDamages() : array<SRawDamage>
 	{
 		var dmg : SRawDamage;

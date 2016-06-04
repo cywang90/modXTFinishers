@@ -1,10 +1,7 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2013-2014
+/** Author : Patryk Fiutowski, Tomek Kozera
 /***********************************************************************/
-
-
 
 class W3Effect_Pull extends W3ImmobilizeEffect
 {
@@ -38,12 +35,12 @@ class W3Effect_Pull extends W3ImmobilizeEffect
 		
 		if ( this.isOnPlayer )
 		{
+			//block player input
+			//theInput.Supp
+			//rotate the player
+			//pull the player to owner
 			
-			
-			
-			
-			
-			
+			//theInput.SuppressSendingEvents(true);
 			
 			if(GetCreator())
 				headingVector = GetCreator().GetWorldPosition() - target.GetWorldPosition();
@@ -69,8 +66,8 @@ class W3Effect_Pull extends W3ImmobilizeEffect
 	{
 		target.StopEffect('web');
 		
-		
-		
+		//if ( isOnPlayer )
+		//	theInput.SuppressSendingEvents(false);
 			
 		target.SetBehaviorVariable( 'bCriticalStopped', 1 );
 		
@@ -88,7 +85,7 @@ class W3Effect_Pull extends W3ImmobilizeEffect
 			actor.SignalGameplayEvent('SlideFinish');
 			
 		timeLeft = 0;
-		
+		//timeLeft = 0.4f;
 	}	
 }
 
@@ -121,7 +118,7 @@ class W3Effect_Tangled extends W3ImmobilizeEffect
 	
 		super.OnEffectAdded(customParams);
 		
-		
+		//target.PlayEffectSingle('web');
 	
 		if ( ((CR4Player)target).IsUsingHorse() )
 			target.PlayEffectSingle('black_spider_web_break');
@@ -130,7 +127,22 @@ class W3Effect_Tangled extends W3ImmobilizeEffect
 		
 		theInput.ForceDeactivateAction('CastSignHold');
 		
+		/*effectEntityTemplate = (CEntityTemplate) LoadResource( "tangled_effect" );
+		torsoBoneIndex = target.GetBoneIndex( 'torso2' );
 		
+		if ( torsoBoneIndex > 0 )
+		{
+			boneMatrix = target.GetBoneWorldMatrixByIndex( torsoBoneIndex );
+			pos = MatrixGetTranslation(boneMatrix);
+			rot = MatrixGetRotation(boneMatrix);
+			particleEnt = (W3VisualFx)theGame.CreateEntity( effectEntityTemplate, pos, rot );
+			particleEnt.CreateAttachmentAtBoneWS( target, 'torso2', pos, rot  );
+		}
+		else
+		{
+			particleEnt = (W3VisualFx)theGame.CreateEntity( effectEntityTemplate, target.GetWorldPosition() , target.GetWorldRotation() );
+			particleEnt.CreateAttachment( target );		
+		}*/
 	}
 	
 	event OnEffectRemoved()

@@ -1,14 +1,12 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file
 /***********************************************************************/
-
-
-
-
-
-
+/** Copyright © 2014 CDProjektRed
+/** Author : R.Pergent - 07-March-2014
+/***********************************************************************/
+//>---------------------------------------------------------------
+// Check the number of summoned creature alive. NPC needs the summonerComponent
+//----------------------------------------------------------------
 class BTCondNumberOfSummonedCreaturesAlive extends IBehTreeTask
 {
 	var value : float;

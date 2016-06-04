@@ -1,12 +1,8 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
+﻿
 class TaskManageCapsuleCollision extends IBehTreeTask
 {
 	var collision				: bool;
+	var allCollisionTypes 		: bool;
 	var overrideForThisTaskOnly	: bool;
 	var onActivate 				: bool;
 	var onDeactivate 			: bool;
@@ -14,8 +10,8 @@ class TaskManageCapsuleCollision extends IBehTreeTask
 	var switchVulnerability		: bool;
 	var effectLinkedToCollision	: name;
 	
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function OnActivate() : EBTNodeStatus
 	{
 		if ( overrideForThisTaskOnly )
@@ -29,8 +25,8 @@ class TaskManageCapsuleCollision extends IBehTreeTask
 			
 		return BTNS_Active;
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function OnDeactivate()
 	{
 		if ( overrideForThisTaskOnly  )
@@ -42,8 +38,8 @@ class TaskManageCapsuleCollision extends IBehTreeTask
 			EnableCol( collision );
 		}
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo ) : bool
 	{		
 		if( !onAnimEvent ) return false;
@@ -64,16 +60,31 @@ class TaskManageCapsuleCollision extends IBehTreeTask
 			}
 			
 		}
+		else if ( animEventName == 'EnableCollisionDuration' )//This event will turn ON collision when started and turn it OFF when ended.
+		{
+			if( animEventType == AET_DurationStart )
+			{
+				EnableCol( true );
+			}
+			else if( animEventType == AET_DurationEnd )
+			{
+				EnableCol( false );
+			}
+		}
 		
 		return true;
 	}
 		
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	private function EnableCol( _Enable : bool )
 	{
 		var l_npc : CNewNPC = GetNPC();
 		l_npc.EnableCharacterCollisions( _Enable );
+		if ( allCollisionTypes )
+		{
+			l_npc.EnableCollisions( _Enable );
+		}
 		
 		if( switchVulnerability )
 		{
@@ -85,7 +96,7 @@ class TaskManageCapsuleCollision extends IBehTreeTask
 			{
 				l_npc.SetImmortalityMode( AIM_Invulnerable, AIC_Combat );
 			}
-			
+			//GetNPC().GetVisualDebug().AddText( 'invulnerability', GetNPC().GetImmortalityMode(), Vector(0,0,1) );
 		}
 		
 		if( IsNameValid( effectLinkedToCollision ) )
@@ -107,6 +118,7 @@ class TaskManageCapsuleCollisionDef extends IBehTreeTaskDefinition
 	default instanceClass = 'TaskManageCapsuleCollision';
 
 	editable var collision					: bool;
+	editable var allCollisionTypes 			: bool;
 	editable var overrideForThisTaskOnly	: bool;
 	editable var onActivate 				: bool;
 	editable var onDeactivate 				: bool;

@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-abstract class IBehTreePlayerTaskDefinition extends IBehTreeTaskDefinition
+﻿abstract class IBehTreePlayerTaskDefinition extends IBehTreeTaskDefinition
 {
 };
 
@@ -27,7 +22,7 @@ class CBTTaskPlayerActionDecorator extends IBehTreeTask
 		return BTNS_Active;
 	}
 	
-	
+	//not very elegant solution but i don't know how to make it better without big changes to contexts
 	latent function Main() : EBTNodeStatus
 	{
 		while( true )
@@ -71,7 +66,10 @@ class CBTTaskPlayerActionDecorator extends IBehTreeTask
 		if( IsNameValid( contextName ) )
 		{
 			theInput.SetContext( contextName );
-			
+			/*if( contextName == 'Horse' && theInput.GetActionValue( 'Sprint' ) == 1 )
+			{
+				((W3HorseComponentStateExploration)thePlayer.GetUsedHorseComponent().GetState( 'Exploration' )).GallopPressed();
+			}*/
 		}
 	}
 	

@@ -1,13 +1,8 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
+﻿//////////////////////////////////////////////////////////////
+// BASE:
+//////////////////////////////////////////////////////////////
 
-
-
-
-
+// CAIAnimalBase
 class CAIAnimalBase extends CAIBaseTree
 {
 	default aiTreeName = "resdef:ai\animal_base";
@@ -21,11 +16,11 @@ class CAIAnimalBase extends CAIBaseTree
 	}
 };
 
+//////////////////////////////////////////////////////////////
+// DEFAULTS:
+//////////////////////////////////////////////////////////////
 
-
-
-
-
+// CAIAnimalDefaults
 class CAIAnimalDefaults extends CAIDefaults
 {
 	editable inlined 	var combatTree 			: CAIAnimalCombat;
@@ -73,7 +68,7 @@ class CAIAnimalQuestDefaults extends CAIDefaults
 	}
 };
 
-
+// CAIHorseDefaults
 class CAIHorseDefaults extends CAIAnimalDefaults
 {
 	editable var isMount 			: Bool;
@@ -94,7 +89,7 @@ class CAIHorseDefaults extends CAIAnimalDefaults
 	}
 };
 
-
+// CAIRaceHorseDefaults
 class CAIRaceHorseDefaults extends CAIHorseDefaults
 {
 	default isMount 				= true;
@@ -107,7 +102,7 @@ class CAIRaceHorseDefaults extends CAIHorseDefaults
 	}
 };
 
-
+// CAIWildHorseDefaults
 class CAIWildHorseDefaults extends CAIHorseDefaults
 {
 	editable var isWildHorse	: bool;
@@ -155,7 +150,7 @@ class CAIWildHorseDefaults extends CAIHorseDefaults
 	}
 };
 
-
+// CAIDeerDefaults
 class CAIDeerLeaderDefaults extends CAIDeerDefaults
 {
 	function Init()
@@ -170,7 +165,7 @@ class CAIDeerLeaderDefaults extends CAIDeerDefaults
 };
 
 
-
+// CAIDeerRoeDefaults
 class CAIDeerDefaults extends CAIAnimalDefaults
 {
 	function Init()
@@ -214,7 +209,7 @@ class CAIDeerDefaults extends CAIAnimalDefaults
 };
 
 
-
+// CAIHareDefaults
 class CAIHareDefaults extends CAIAnimalDefaults
 {
 	function Init()
@@ -234,7 +229,7 @@ class CAIHareDefaults extends CAIAnimalDefaults
 	}
 };
 
-
+// CAIDogDefaults
 class CAIDogDefaults extends CAIAnimalDefaults
 {
 	function Init()
@@ -288,7 +283,7 @@ class CAIDogDefaults extends CAIAnimalDefaults
 	}
 };
 
-
+// CAIGoatDefaults
 class CAIGoatDefaults extends CAIAnimalDefaults
 {
 	function Init()
@@ -337,7 +332,7 @@ class CAIGoatDefaults extends CAIAnimalDefaults
 	}
 };
 
-
+// CAIGoatQuestDefaults
 class CAIGoatQuestDefaults extends CAIAnimalDefaults
 {
 	function Init()
@@ -349,7 +344,7 @@ class CAIGoatQuestDefaults extends CAIAnimalDefaults
 
 
 
-
+// CAIPigDefaults
 class CAIPigDefaults extends CAIAnimalDefaults
 {
 	function Init()
@@ -407,7 +402,7 @@ class CAIPigDefaults extends CAIAnimalDefaults
 	}
 };
 
-
+// CAISheepDefaults
 class CAISheepDefaults extends CAIAnimalDefaults
 {
 	function Init()
@@ -444,7 +439,7 @@ class CAISheepDefaults extends CAIAnimalDefaults
 	}
 };
 
-
+// CAIGooseDefaults
 class CAIGooseDefaults extends CAIAnimalDefaults
 {
 	function Init()
@@ -474,7 +469,7 @@ class CAIGooseDefaults extends CAIAnimalDefaults
 };
 
 
-
+// CAICowDefaults
 class CAICowDefaults extends CAIAnimalDefaults
 {
 	function Init()
@@ -510,11 +505,11 @@ class CAICowDefaults extends CAIAnimalDefaults
 		
 		idleDecoratorTree.params.searchFoodTree = searchFood;
 		
-		
+		//deathTree.params.disableCollision 	= false;
 	}
 };
 
-
+// CAIChickenDefaults
 class CAIChickenDefaults extends CAIAnimalDefaults
 {
 	function Init()
@@ -536,7 +531,7 @@ class CAIChickenDefaults extends CAIAnimalDefaults
 	}
 }
 
-
+// CAIRoosterDefaults
 class CAIRoosterDefaults extends CAIAnimalDefaults
 {
 	function Init()
@@ -564,7 +559,7 @@ class CAIRoosterDefaults extends CAIAnimalDefaults
 	}
 };
 
-
+// CAICatDefaults
 class CAICatDefaults extends CAIAnimalDefaults
 {
 	function Init()
@@ -594,11 +589,11 @@ class CAICatDefaults extends CAIAnimalDefaults
 	}
 };
 
+//////////////////////////////////////////////////////////////
+// DEATH:
+//////////////////////////////////////////////////////////////
 
-
-
-
-
+// CAIAnimalDeath
 class CAIAnimalDeath extends CAINpcDeath
 {
 	function Init()
@@ -608,7 +603,7 @@ class CAIAnimalDeath extends CAINpcDeath
 	}
 };
 
-
+// CAIAnimalDeathParams
 class CAIAnimalDeathParams extends CAINpcDeathParams
 {	
 	default createReactionEvent			= 'AnimalDeath';
@@ -624,11 +619,11 @@ class CAIAnimalDeathParams extends CAINpcDeathParams
 		
 };
 
+//////////////////////////////////////////////////////////////
+// COMBAT:
+//////////////////////////////////////////////////////////////
 
-
-
-
-
+// CAIAnimalCombat
 class CAIAnimalCombat extends CAICombatTree
 {
 	default aiTreeName = "resdef:ai\combat/animal_combat";
@@ -655,24 +650,24 @@ class CAIAnimalCombat extends CAICombatTree
 };
 
 
-
+// CAIAnimalCombatFlee
 class CAIAnimalCombatFlee extends CAICombatTree
 {
 	default aiTreeName = "resdef:ai\combat/animal_flee";
 };
 
-
+// CAIAnimalCombatCurious
 class CAIAnimalCombatCurious extends CAICombatTree
 {
 	default aiTreeName = "resdef:ai\combat/animal_curious";
 };
-
+// CAIHorseShakeRider
 class CAIHorseShakeRider extends CAICombatTree
 {
 	default aiTreeName = "resdef:ai\combat/horse_shake_rider";
 };
 
-
+// CAIAnimalCombatParams
 class CAIAnimalQuestCombatParams extends CAICombatParameters
 {
 };
@@ -688,7 +683,7 @@ class CAIAnimalQuestScaredBehaviour extends CAICombatQuestTree
 
 }
 
-
+// CAIAnimalCombatDog
 class CAIAnimalCombatDog extends CAIAnimalCombat
 {	
 	default	scaredIfTargetRuns				= false;
@@ -700,7 +695,7 @@ class CAIAnimalCombatDog extends CAIAnimalCombat
 	default neutralIsDanger					= false;
 };
 
-
+// CAIAnimalCombatPig
 class CAIAnimalCombatPig extends CAIAnimalCombat
 {		
 	default scaredIfTargetRuns				= true;
@@ -709,7 +704,7 @@ class CAIAnimalCombatPig extends CAIAnimalCombat
 	default neutralIsDanger					= false;
 };
 
-
+// CAIAnimalCombatRooster
 class CAIAnimalCombatRooster extends CAIAnimalCombat
 {		
 	default scaredIfTargetRuns				= true;
@@ -721,7 +716,7 @@ class CAIAnimalCombatRooster extends CAIAnimalCombat
 	default stopFleeingDistance 			= 6.0f;
 };
 
-
+// CAIAnimalCombatGoose
 class CAIAnimalCombatGoose extends CAIAnimalCombat
 {		
 	default scaredIfTargetRuns				= true;
@@ -733,7 +728,7 @@ class CAIAnimalCombatGoose extends CAIAnimalCombat
 	default stopFleeingDistance 			= 25.0f;
 };
 
-
+// CAIAnimalCombatCat
 class CAIAnimalCombatCat extends CAIAnimalCombat
 {	
 	default scaredIfTargetRuns				= false;
@@ -745,7 +740,7 @@ class CAIAnimalCombatCat extends CAIAnimalCombat
 	default stopFleeingDistance 			= 25.0f;
 	default neutralIsDanger					= false;
 };
-
+// CAIAnimalCombatCow
 class CAIAnimalCombatCow extends CAIAnimalCombat
 {	
 	default scaredIfTargetRuns				= false;
@@ -754,7 +749,7 @@ class CAIAnimalCombatCow extends CAIAnimalCombat
 	default neutralIsDanger					= false;
 };
 
-
+// CAIAnimalCombatGoat
 class CAIAnimalCombatGoat extends CAIAnimalCombat
 {
 	default scaredIfTargetRuns			= true;
@@ -764,7 +759,7 @@ class CAIAnimalCombatGoat extends CAIAnimalCombat
 	default maxFleeWalkDistance			= 30;
 	default stopFleeingDistance 		= 40.0f;
 };
-
+// CAIAnimalCombatSheep
 class CAIAnimalCombatSheep extends CAIAnimalCombat
 {	
 	default scaredIfTargetRuns				= true;
@@ -775,7 +770,7 @@ class CAIAnimalCombatSheep extends CAIAnimalCombat
 	default stopFleeingDistance 			= 20.0f;
 };
 
-
+// CAIAnimalCombatHare
 class CAIAnimalCombatHare extends CAIAnimalCombat
 {	
 	default chanceOfBeingScared 		= 0.90;
@@ -787,7 +782,7 @@ class CAIAnimalCombatHare extends CAIAnimalCombat
 };
 
 
-
+// CAIAnimalCombatHare
 class CAIAnimalCombatDeer extends CAIAnimalCombat
 {	
 	default chanceOfBeingScared 			= 0.8f;
@@ -798,7 +793,7 @@ class CAIAnimalCombatDeer extends CAIAnimalCombat
 	default stopFleeingDistance 			= 50;
 };
    
-
+// CAIAnimalCombatHorse
 class CAIAnimalCombatHorse extends CAIAnimalCombat
 { 
 	default aiTreeName = "resdef:ai\combat/horse_combat";
@@ -820,14 +815,14 @@ class CAIAnimalCombatHorse extends CAIAnimalCombat
 	}
 };
 
-
+// CAIAnimalCharmed
 class CAIAnimalCharmed extends CAIIdleTree
 {
 	default aiTreeName = "resdef:ai\idle/animal_charmed_idle";
 	editable var charmedGotoDistance 		: float;
 	default charmedGotoDistance 			= 3.0f;
 };
-
+// CAIHorseCharmed
 class CAIHorseCharmed extends CAIAnimalCharmed
 {	
 	function Init()
@@ -836,7 +831,7 @@ class CAIHorseCharmed extends CAIAnimalCharmed
 		charmedGotoDistance = 5.0f;
 	}
 };
-
+// CAICowCharmed
 class CAICowCharmed extends CAIAnimalCharmed
 {
 	function Init()
@@ -846,8 +841,8 @@ class CAICowCharmed extends CAIAnimalCharmed
 	}
 };
 
-
-
+///////////////////////////////////////////////
+// CAnimalIdleDecoratorTree
 class CAnimalIdleDecoratorTree extends CAIMainTree
 {
 	default aiTreeName = "resdef:ai\idle/animal_idle_decorator";
@@ -858,8 +853,8 @@ class CAnimalIdleDecoratorTree extends CAIMainTree
 	}
 };
 
-
-
+///////////////////////////////////////////////
+// CHorseIdleDecoratorTree
 class CHorseIdleDecoratorTree extends CAIMonsterIdleDecorator
 {
 	default aiTreeName 								= "resdef:ai\idle/horse_idle_decorator";

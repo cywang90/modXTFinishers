@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
+﻿
 class CR4LocomotionSwimToStop extends CR4LocomotionDirectControllerScript
 {
 	var player 		: CR4Player;
@@ -17,11 +12,11 @@ class CR4LocomotionSwimToStop extends CR4LocomotionDirectControllerScript
 		
 		player		= (CR4Player)agent.GetEntity();
 		
-		
+		// Where do we want to orient to?
 		exploration	= thePlayer.substateManager.m_SharedDataO.GetLastExploration();
 		targetPoint	= exploration.pointOnEdge;
 		
-		
+		// Init data
 		closeEnough	= false;
 		
 		
@@ -41,9 +36,9 @@ class CR4LocomotionSwimToStop extends CR4LocomotionDirectControllerScript
 		var directionYaw	: float;
 		
 		
+		//previousSpeed = player.GetBehaviorVariable( 'playerSpeed');
 		
-		
-		
+		// Get the target orientation
 		direction		= targetPoint - player.GetWorldPosition();
 		directionYaw	= VecHeading( direction );
 		directionYaw	= AngleNormalize180( AngleDistance( player.GetHeading(), directionYaw ) );
@@ -51,8 +46,8 @@ class CR4LocomotionSwimToStop extends CR4LocomotionDirectControllerScript
 		closeEnough		= AbsF( directionYaw ) < 0.3f;
 		
 		player.GetMovingAgentComponent().ResetMoveRequests();
-		
-		
+		//player.SetBehaviorVariable( 'playerDir', directionYaw);
+		//player.SetBehaviorVariable( 'playerInputAngSpeed', angularInputSpeed);
 	}
 	
 	public function GetIsCloseEnough() : bool

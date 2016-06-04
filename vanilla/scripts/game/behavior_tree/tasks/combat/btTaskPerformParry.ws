@@ -1,28 +1,32 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** 
 /***********************************************************************/
-
-
-
+/** Copyright © 2012
+/** Author : Patryk Fiutowski, Andrzej Kwiatkowski
+/***********************************************************************/
 
 class CBTTaskPerformParry extends CBTTaskPlayAnimationEventDecorator
 {
-	var activationTimeLimitBonusHeavy : float;
-	var activationTimeLimitBonusLight : float;
+	public var activationTimeLimitBonusHeavy 	: float;
+	public var activationTimeLimitBonusLight 	: float;
+	public var checkParryChance 				: bool;
+	public var interruptTaskToExecuteCounter 	: bool;
+	public var allowParryOverlap 				: bool;
 	
-	var activationTimeLimit : float;
-	var action : CName;
+	private var activationTimeLimit 			: float;
+	private var action 							: CName;
+	private var runMain 						: bool;
+	private var parryChance 					: float;
+	private var counterChance 					: float;
+	private var counterMultiplier 				: float;
+	private var hitsToCounter 					: int;
+	private var swingType 						: int;
+	private var swingDir 						: int;
 	
-	var runMain : bool;
-	
-	var counterChance : float;
-	var hitsToCounter : int;
-		
 	default activationTimeLimit = 0.0;
 	default action = '';
 	default runMain = false;
+	default allowParryOverlap = true;
 	
 	
 	function IsAvailable() : bool
@@ -56,11 +60,21 @@ class CBTTaskPerformParry extends CBTTaskPlayAnimationEventDecorator
 	
 	function OnActivate() : EBTNodeStatus
 	{
-		InitializeCombatDataStorage();
-		GetNPC().SetParryEnabled(true);
-		LogChannel( 'HitReaction', "TaskActivated. ParryEnabled" );
+		var npc : CNewNPC = GetNPC();
 		
-		GetStats();
+		// choosing parry animation
+		if ( swingDir != -1 )
+		{
+			npc.SetBehaviorVariable( 'HitSwingDirection', swingDir );
+		}
+		if ( swingType != -1 )
+		{
+			npc.SetBehaviorVariable( 'HitSwingType', swingType );
+		}
+		
+		InitializeCombatDataStorage();
+		npc.SetParryEnabled(true);
+		LogChannel( 'HitReaction', "TaskActivated. ParryEnabled" );
 		
 		if ( action == 'ParryPerform' )
 		{
@@ -70,6 +84,13 @@ class CBTTaskPerformParry extends CBTTaskPlayAnimationEventDecorator
 				RunMain();
 			}
 			action = '';
+		}
+		
+		if ( CheckCounter() && interruptTaskToExecuteCounter )
+		{
+			npc.DisableHitAnimFor(0.1);
+			activationTimeLimit = 0.0;
+			return BTNS_Completed;
 		}
 		
 		return BTNS_Active;
@@ -101,6 +122,8 @@ class CBTTaskPerformParry extends CBTTaskPlayAnimationEventDecorator
 		runMain = false;
 		activationTimeLimit = 0;
 		action = '';
+		swingType = -1;
+		swingDir = -1;
 		
 		((CHumanAICombatStorage)combatDataStorage).ResetParryCount();
 		
@@ -109,16 +132,53 @@ class CBTTaskPerformParry extends CBTTaskPlayAnimationEventDecorator
 		LogChannel( 'HitReaction', "PerformParry Task Deactivated" );
 	}
 	
+	private function CheckCounter() : bool
+	{
+		var npc : CNewNPC = GetNPC();
+		var defendCounter : int;
+		
+		defendCounter = npc.GetDefendCounter();
+		if ( defendCounter >= hitsToCounter )
+		{
+			if( Roll( counterChance ) )
+			{
+				npc.SignalGameplayEvent('CounterFromDefence');
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
 	private function GetStats()
 	{
-		counterChance = MaxF(0, 100*CalculateAttributeValue(GetActor().GetAttributeValue('counter_chance')));
-		hitsToCounter = (int)MaxF(0, CalculateAttributeValue(GetActor().GetAttributeValue('hits_to_roll_counter')));
+		var actor : CActor = GetActor();
+		
+		parryChance = MaxF(0, 100*CalculateAttributeValue(actor.GetAttributeValue('parry_chance')));
+		counterChance = MaxF(0, 100*CalculateAttributeValue(actor.GetAttributeValue('counter_chance')));
+		counterMultiplier = (int)MaxF(0, 100*CalculateAttributeValue(actor.GetAttributeValue('counter_chance_per_hit')));
+		hitsToCounter = (int)MaxF(0, CalculateAttributeValue(actor.GetAttributeValue('hits_to_roll_counter')));
+		counterChance += Max( 0, actor.GetDefendCounter() ) * counterMultiplier;
 		
 		if ( hitsToCounter < 0 )
 		{
 			hitsToCounter = 65536;
 		}
+	}
+	
+	private function CanParry() : bool
+	{
+		if ( checkParryChance )
+		{
+			if ( RandRange(100) < parryChance )
+			{
+				return true;
+			}
+			
+			return false;
+		}
 		
+		return true;
 	}
 	
 	private function TryToParry(optional counter : bool) : bool
@@ -126,7 +186,7 @@ class CBTTaskPerformParry extends CBTTaskPlayAnimationEventDecorator
 		var npc : CNewNPC = GetNPC();
 		var mult : float;
 		
-		if ( isActive && npc.CanParryAttack() )
+		if ( isActive && npc.CanParryAttack() && allowParryOverlap )
 		{
 			LogChannel( 'HitReaction', "Parried" );
 			
@@ -134,7 +194,13 @@ class CBTTaskPerformParry extends CBTTaskPlayAnimationEventDecorator
 			
 			mult = theGame.params.HEAVY_STRIKE_COST_MULTIPLIER;
 			
-			if ( npc.RaiseEvent('ParryPerform') )
+			/*if( counter && npc.RaiseEvent('CounterParryPerform'))
+			{
+				activationTimeLimit = GetLocalTime() + 0.5;
+				npc.SignalGameplayEvent('CounterParryPerformed');
+				npc.DrainStamina( ESAT_Counterattack, 0, 0, '', 0 );
+			}
+			else */if ( npc.RaiseEvent('ParryPerform') )
 			{
 				if( counter )
 				{
@@ -145,6 +211,7 @@ class CBTTaskPerformParry extends CBTTaskPlayAnimationEventDecorator
 					npc.DrainStamina( ESAT_Parry, 0, 0, '', 0, mult );
 				
 				((CHumanAICombatStorage)combatDataStorage).IncParryCount();
+				npc.IncDefendCounter();
 				activationTimeLimit = GetLocalTime() + 0.5;
 			}
 			else
@@ -160,7 +227,7 @@ class CBTTaskPerformParry extends CBTTaskPlayAnimationEventDecorator
 			Complete(false);
 			activationTimeLimit = 0.0;
 		}
-		
+		//activationTimeLimit = 0.0;
 		
 		return false;
 	}
@@ -185,30 +252,50 @@ class CBTTaskPerformParry extends CBTTaskPlayAnimationEventDecorator
 		
 		InitializeCombatDataStorage();
 		
-		
-		if ( eventName == 'ParryStart' )
+		if ( eventName == 'swingType' )
 		{
-			isHeavy = GetEventParamInt(-1);
-		
-			if ( isHeavy )
-				activationTimeLimit = GetLocalTime() + activationTimeLimitBonusHeavy;
-			else
-				activationTimeLimit = GetLocalTime() + activationTimeLimitBonusLight;
-			
-			if ( GetNPC().HasShieldedAbility() )
-			{
-				GetNPC().SetParryEnabled(true);
-			}
-			
-			return true;
+			swingType = this.GetEventParamInt(-1);
+		}
+		if ( eventName == 'swingDir' )
+		{
+			swingDir = this.GetEventParamInt(-1);
 		}
 		
-		
+		//we can parry from now on
+		if ( eventName == 'ParryStart' )
+		{
+			GetStats();
+			
+			if ( interruptTaskToExecuteCounter && CheckCounter() && !GetNPC().IsCountering() )
+			{
+				GetNPC().DisableHitAnimFor(0.1);
+				activationTimeLimit = 0.0;
+				Complete(true);
+				return false;
+			}
+			
+			if ( CanParry() )
+			{
+				isHeavy = GetEventParamInt(-1);
+				
+				if ( isHeavy )
+					activationTimeLimit = GetLocalTime() + activationTimeLimitBonusHeavy;
+				else
+					activationTimeLimit = GetLocalTime() + activationTimeLimitBonusLight;
+				
+				if ( GetNPC().HasShieldedAbility() )
+				{
+					GetNPC().SetParryEnabled(true);
+				}
+			}
+			return true;
+		}
+		//we parried
 		else if ( eventName == 'ParryPerform' )
 		{
 			if( AdditiveParry() )
 				return true;
-
+			
 			if( !isActive )
 				return false;
 			
@@ -225,7 +312,7 @@ class CBTTaskPerformParry extends CBTTaskPlayAnimationEventDecorator
 			}		
 			return true;
 		}
-		
+		//perform counter without chance check
 		else if ( eventName == 'CounterParryPerform' )
 		{
 			if ( TryToParry(true) )
@@ -235,7 +322,7 @@ class CBTTaskPerformParry extends CBTTaskPlayAnimationEventDecorator
 			}
 			return true;
 		}
-		
+		//should play parry stagger and lower guard
 		else if( eventName == 'ParryStagger' )
 		{
 			if( !isActive )
@@ -254,7 +341,7 @@ class CBTTaskPerformParry extends CBTTaskPlayAnimationEventDecorator
 			}
 			return true;
 		}
-		
+		//we cannot parry anymore
 		else if ( eventName == 'ParryEnd' )
 		{
 			activationTimeLimit = 0.0;
@@ -279,6 +366,7 @@ class CBTTaskPerformParry extends CBTTaskPlayAnimationEventDecorator
 	function ShouldCounter(isHeavy : bool) : bool
 	{
 		var playerTarget : W3PlayerWitcher;
+		var temp, temp2		:int;
 		
 		if ( GetActor().HasAbility('DisableCounterAttack') )
 			return false;
@@ -290,7 +378,9 @@ class CBTTaskPerformParry extends CBTTaskPlayAnimationEventDecorator
 		
 		if ( isHeavy && !GetActor().HasAbility('ablCounterHeavyAttacks') )
 			return false;
-		
+			
+		temp = ((CHumanAICombatStorage)combatDataStorage).GetParryCount();
+		temp2 = hitsToCounter;
 		return ((CHumanAICombatStorage)combatDataStorage).GetParryCount() >= hitsToCounter && Roll(counterChance);
 	}
 	
@@ -298,8 +388,7 @@ class CBTTaskPerformParry extends CBTTaskPlayAnimationEventDecorator
 	{
 		if ( !combatDataStorage )
 		{
-			storageHandler = InitializeCombatStorage();
-			combatDataStorage = (CHumanAICombatStorage)storageHandler.Get();
+			combatDataStorage = (CHumanAICombatStorage)InitializeCombatStorage();
 		}
 	}
 }
@@ -308,10 +397,16 @@ class CBTTaskPerformParryDef extends CBTTaskPlayAnimationEventDecoratorDef
 {
 	default instanceClass = 'CBTTaskPerformParry';
 
-	editable var activationTimeLimitBonusHeavy : CBehTreeValFloat;
-	editable var activationTimeLimitBonusLight : CBehTreeValFloat;
+	editable var activationTimeLimitBonusHeavy 		: CBehTreeValFloat;
+	editable var activationTimeLimitBonusLight 		: CBehTreeValFloat;
+	editable var checkParryChance 					: bool;
+	editable var interruptTaskToExecuteCounter 		: bool;
+	editable var allowParryOverlap 					: bool;
 
 	default finishTaskOnAllowBlend = false;
+	default allowParryOverlap = true;
+	
+	hint checkParryChance = "added 18.01.2016, previously npc's used only raise guard chance";
 	
 	function InitializeEvents()
 	{
@@ -325,6 +420,8 @@ class CBTTaskPerformParryDef extends CBTTaskPlayAnimationEventDecoratorDef
 		listenToGameplayEvents.PushBack( 'WantsToPerformDodgeAgainstHeavyAttack' );
 		listenToGameplayEvents.PushBack( 'IgniShieldUp' );
 		listenToGameplayEvents.PushBack( 'IgniShieldDown' );
+		listenToGameplayEvents.PushBack( 'swingType' );
+		listenToGameplayEvents.PushBack( 'swingDir' );
 	}
 }
 

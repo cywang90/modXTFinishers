@@ -1,20 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-import class CAIStorageHandler extends IScriptable
-{
-	
-	
-	import public final function Initialize( itemName : name, classId : name, owner : IScriptable ) : bool;
-	
-	import public final function InitializeExternal( itemName : name, classId : name, actor : CActor ) : bool;
-	
-	import public final function Get() : IScriptable;
-};
-
+﻿// handler for accessing storage objects
 struct CriticalStateStruct
 {
 	var CSType			:	ECriticalStateType;
@@ -22,35 +6,36 @@ struct CriticalStateStruct
 	var lastTimeActive	: 	float;
 }
 
-
-class CBaseAICombatStorage extends CObject
+// base combat storage class
+class CBaseAICombatStorage extends IScriptable
 {
-	
+	// basic states
 	private var isAttacking 		: 	bool;
 	private var isCharging 			: 	bool;
 	private var isTaunting			:	bool;
 	private var isShooting			:	bool;
 	private var isAiming			:	bool;
+	private var isInImportantAnim 	:   bool; 		// for preventing task interruption by ie. combat target selection
 	private var preCombatWarning	:	bool;		default preCombatWarning = true;
 	
-	
+	//timeStamps
 	protected var atackTimeStamp		: 	float;
 	protected var tauntTimeStamp		: 	float;
 
-	
+	// critical states
 	private var CSArray			: 	array<CriticalStateStruct>;
 	
-	
+	// setters and getters for basic states
 	function SetIsAttacking( value : bool, optional timeStamp : float ) 	
 	{ 
 		isAttacking = value; 
 		if ( value && timeStamp )
 			atackTimeStamp = timeStamp;
 	}
-	function GetIsAttacking() : bool 			{ return isAttacking; }
+	function GetIsAttacking() : bool 				{ return isAttacking; }
 	
-	function SetIsCharging( value : bool )		{ isCharging = value; }
-	function GetIsCharging() : bool 			{ return isCharging; }
+	function SetIsCharging( value : bool )			{ isCharging = value; }
+	function GetIsCharging() : bool 				{ return isCharging; }
 	
 	function SetIsTaunting( value : bool, optional timeStamp : float )
 	{ 
@@ -58,19 +43,21 @@ class CBaseAICombatStorage extends CObject
 		if ( value && timeStamp )
 			tauntTimeStamp = timeStamp;
 	}
-	function GetIsTaunting() : bool 			{ return isTaunting; }
+	function GetIsTaunting() : bool 				{ return isTaunting; }
 	
-	function GetTauntTimeStamp() : float		{ return tauntTimeStamp; }
+	function GetTauntTimeStamp() : float			{ return tauntTimeStamp; }
 	
-	function SetIsShooting( value : bool ) 		{ isShooting = value; }
-	function SetIsAiming( value : bool ) 		{ isAiming = value; }
-	function GetIsShooting() : bool 			{ return isShooting; }
-	function GetIsAiming() : bool 				{ return isAiming; }
+	function SetIsShooting( value : bool ) 			{ isShooting = value; }
+	function SetIsAiming( value : bool ) 			{ isAiming = value; }
+	function SetIsInImportantAnim( value : bool ) 	{ isInImportantAnim = value; }
+	function GetIsShooting() : bool 				{ return isShooting; }
+	function GetIsAiming() : bool 					{ return isAiming; }
+	function GetIsInImportantAnim() : bool 			{ return isInImportantAnim; }
 	
-	function SetPreCombatWarning( value : bool ) 		{ preCombatWarning = value; }
-	function GetPreCombatWarning() : bool 				{ return preCombatWarning; }
+	function SetPreCombatWarning( value : bool ) 	{ preCombatWarning = value; }
+	function GetPreCombatWarning() : bool 			{ return preCombatWarning; }
 	
-	
+	// setters and getters for critical states
 	function SetCriticalState( cstate : ECriticalStateType, value : bool, timeOfChange : float )
 	{
 		var i : int;
@@ -80,7 +67,7 @@ class CBaseAICombatStorage extends CObject
 			if( CSArray[i].CSType == cstate )
 			{
 				CSArray[i].isActive = value;
-				if( !value ) 
+				if( !value ) // on deactivation save time
 				{
 					CSArray[i].lastTimeActive = timeOfChange;
 				}
@@ -118,7 +105,7 @@ class CBaseAICombatStorage extends CObject
 		return 0;
 	}
 	
-	
+	// initializer for critical states
 	function Init()
 	{
 		var temp : CriticalStateStruct;
@@ -192,15 +179,20 @@ class CBaseAICombatStorage extends CObject
 		temp.isActive = false;
 		temp.lastTimeActive = 0;
 		CSArray.PushBack( temp );
+		
+		temp.CSType = ECST_Trap;
+		temp.isActive = false;
+		temp.lastTimeActive = 0;
+		CSArray.PushBack( temp );
 	}
 }
 
-
+// human opponent combat storage class
 class CHumanAICombatStorage extends CBaseAICombatStorage
 {
 	private var parryCount		: 	int;
 	
-	
+	// combat styles
 	private var activeStyle 			: EBehaviorGraph;
 	private var preferedStyle 			: EBehaviorGraph;
 	private var leaveCurrentStyle 		: bool;
@@ -216,11 +208,11 @@ class CHumanAICombatStorage extends CBaseAICombatStorage
 	function GetParryCount() : int									{ return parryCount; }
 	function ResetParryCount() 										{ parryCount = 0; }
 	
-	
+	// this is just preferedstyle, to leave current one you need to call LeaveCurrentCombatStyle()
 	function SetPreferedCombatStyle ( newStyle : EBehaviorGraph )	{ preferedStyle = newStyle; }
 	function GetPreferedCombatStyle() : EBehaviorGraph				{ return preferedStyle; } 
 	
-	
+	//called only on StyleActivation!!!
 	function SetActiveCombatStyle( newStyle : EBehaviorGraph )
 	{
 		activeStyle = newStyle;
@@ -229,18 +221,14 @@ class CHumanAICombatStorage extends CBaseAICombatStorage
 	
 	function GetActiveCombatStyle() : EBehaviorGraph				{ return activeStyle; }
 	
-	
+	// if there is no prefered style it will activate next on the list, it won't be left if there is no other style
 	function LeaveCurrentCombatStyle() 								{ leaveCurrentStyle = true; }
 	function StopLeavingCurrentCombatStyle() 						{ leaveCurrentStyle = false; }
 	function IsLeavingStyle() : bool								{ return leaveCurrentStyle; }
 	
 	function CalculateCombatStylePriority( combatStyle : EBehaviorGraph ) : int
 	{
-		if ( combatStyle == EBG_Combat_Undefined )
-		{
-			return -1;
-		}
-		else if ( combatStyle == activeStyle )
+		if ( combatStyle == activeStyle )
 		{
 			if ( leaveCurrentStyle )
 				return 10;
@@ -251,22 +239,26 @@ class CHumanAICombatStorage extends CBaseAICombatStorage
 		{
 			return 60;
 		}
+		else if ( combatStyle == EBG_Combat_Undefined )
+		{
+			return -1;//no activation;
+		}
 		
 		return 50;
 		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
+		//switch(combatStyle)
+		//{
+		//	case EBG_Combat_Default 		: return 0;
+		//	case EBG_Combat_Shield 			: return 50;
+		//	case EBG_Combat_Mage 			: return 50;
+		//	case EBG_Combat_1Handed_Sword 	: return 50;
+		//	case EBG_Combat_2Handed_Sword 	: return 50;
+		//	case EBG_Combat_2Handed_Axe 	: return 50;
+		//	case EBG_Combat_Fists 			: return 50;
+		//	case EBG_Combat_Active 			: return 50;
+		//	case EBG_Combat_Bow				: return 50;
+		//	default : return 50;
+		//}
 		
 	}
 	
@@ -316,9 +308,9 @@ class CHumanAICombatStorage extends CBaseAICombatStorage
 	function SetProtectedByQuen(toggle : bool)				{ protectedByQuen = toggle; }
 	function IsProtectedByQuen() : bool						{ return protectedByQuen;}
 	
-	
-	
-	
+	/////////////////////////////////////////////////
+	//Follower Section
+	/////////////////////////////////////////////////
 	
 	private var followerAttackCooldown 			: float;		default followerAttackCooldown 			= 10.f;
 	private var followerKeepDistanceToPlayer 	: bool;			default followerKeepDistanceToPlayer 	= true;
@@ -361,7 +353,7 @@ class CHumanAICombatStorage extends CBaseAICombatStorage
 	}
 };
 
-
+// boss opponent combat storage class
 class CBossAICombatStorage extends CHumanAICombatStorage
 {
 	private var isLightbringerAvailable : bool;
@@ -491,7 +483,7 @@ class CBossAICombatStorage extends CHumanAICombatStorage
 	}	
 };
 
-
+// extended combat storage class
 class CExtendedAICombatStorage extends CBaseAICombatStorage
 {
 	private var attackInfos	: array<AttackInfo>;
@@ -543,6 +535,15 @@ class CExtendedAICombatStorage extends CBaseAICombatStorage
 		else 
 			return 0;
 	}
+};
+
+class CArchesporeAICombatStorage extends IScriptable
+{
+	public var myBaseEntities : array<CGameplayEntity>;
+	public var noBulbAreas : array<CAreaComponent>;
+	public var currentlyUsedBase : CGameplayEntity;
+	public var wasInitialized : bool;
+	public var manualBulbCleanup : bool;
 };
 
 struct AttackInfo

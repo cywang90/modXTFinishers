@@ -1,11 +1,6 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
-
+﻿/////////////////////////////////////////////
+//POI dispenser class
+/////////////////////////////////////////////
 class W3PointOfInterestEntity extends CGameplayEntity
 {
 	editable var toDestroy : bool;
@@ -182,7 +177,7 @@ statemachine class W3POIDispenser extends CGameplayEntity
 			{
 				spawnedPOIs.Erase(i);
 				
-				if(entity)		
+				if(entity)		//will be null after first destroy call
 					entity.Destroy();
 			}
 		}
@@ -269,5 +264,6 @@ state Inactive in W3POIDispenser
 		parent.AddTimer('DespawnAllPOIs', parent.onExitDespawnAllAfter, false );
 	}
 }
-
-
+/////////////////////////////////////////////
+// POI dispenser end
+/////////////////////////////////////////////

@@ -1,10 +1,7 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2012
+/** Author : Rafal Jarczeswki, Tomasz Kozera
 /***********************************************************************/
-
-
 
 enum ESpendablePointType
 {
@@ -23,6 +20,5 @@ struct SLevelDefinition
 	var number : int;
 	var requiredTotalExp : int;
 	var addedSkillPoints : int;
-	var addedMutationPoints : int;
-	var addedKnowledgePoints : int;
+	var requiredExp : int;
 };

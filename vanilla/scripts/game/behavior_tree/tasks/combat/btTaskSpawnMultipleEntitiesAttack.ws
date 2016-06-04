@@ -1,18 +1,13 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
-
-
-
-
-
-
-
-
+﻿//>--------------------------------------------------------------------------
+// CBTTaskSpawnMultipleEntitiesAttack
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Attack that spawn multiple entities on 'SpawnEntity' event
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// R.Pergent - 31-March-2014
+// Copyright © 2014 CD Projekt RED
+//---------------------------------------------------------------------------
 enum ESpawnPositionPattern
 {
 	ESPP_AroundTarget,
@@ -31,9 +26,9 @@ enum ESpawnRotation
 
 class CBTTaskSpawnMultipleEntitiesAttack extends CBTTaskSpawnEntityAttack
 {
-	
-	
-	
+	//>--------------------------------------------------------------------------
+	// VARIABLES
+	//---------------------------------------------------------------------------
 	var		numberToSpawn				: int;
 	var		numberOfCircles				: int;
 	var		randomnessInCircles			: float;
@@ -48,7 +43,7 @@ class CBTTaskSpawnMultipleEntitiesAttack extends CBTTaskSpawnEntityAttack
 	var		delayBetweenSpawn			: float;
 	var		spawnOnGround				: bool;
 	
-	
+	// privates
 	var m_dodgeDistance			: float;
 	var m_dodgeSafeAreaRadius	: float;
 	var m_shouldSpawn			: bool;
@@ -58,8 +53,8 @@ class CBTTaskSpawnMultipleEntitiesAttack extends CBTTaskSpawnEntityAttack
 	default m_dodgeDistance = 1;
 	default m_dodgeSafeAreaRadius = 2.0f;
 	
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	latent function Main() : EBTNodeStatus
 	{
 		if ( !entityTemplate )
@@ -92,8 +87,8 @@ class CBTTaskSpawnMultipleEntitiesAttack extends CBTTaskSpawnEntityAttack
 		return BTNS_Active;
 			
 	}	
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo ) : bool
 	{
 		finishTaskOnAllowBlend = false;
@@ -105,14 +100,14 @@ class CBTTaskSpawnMultipleEntitiesAttack extends CBTTaskSpawnEntityAttack
 		return super.OnAnimEvent( animEventName, animEventType, animInfo );
 		
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function SpawnEntity()
 	{
 		m_shouldSpawn = true;
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	latent function LatentSpawnEntity()
 	{
 		var i 						: int;
@@ -270,8 +265,8 @@ class CBTTaskSpawnMultipleEntitiesAttack extends CBTTaskSpawnEntityAttack
 			}
 		}
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function CreateEntity( _SpawnPos : Vector, _Rotation : EulerAngles ) : CEntity
 	{
 		var	l_npc						: CNewNPC = GetNPC();
@@ -307,23 +302,24 @@ class CBTTaskSpawnMultipleEntitiesAttack extends CBTTaskSpawnEntityAttack
 		
 		return l_entity;
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function OnDeactivate()
 	{
 		m_shouldSpawn = false;
 		m_canComplete = false;
+		m_entitiesSpawned = 0;
 	}
 }
 
-
-
+//>--------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 class CBTTaskSpawnMultipleEntitiesAttackDef extends CBTTaskSpawnEntityAttackDef
 {
 	default instanceClass = 'CBTTaskSpawnMultipleEntitiesAttack';
-	
-	
-	
+	//>--------------------------------------------------------------------------
+	// VARIABLES
+	//---------------------------------------------------------------------------
 	editable var		numberToSpawn					: int;
 	editable var		numberOfCircles					: int;
 	editable var		spawnPositionPattern			: ESpawnPositionPattern;
@@ -357,14 +353,14 @@ class CBTTaskSpawnMultipleEntitiesAttackDef extends CBTTaskSpawnEntityAttackDef
 };
 
 
-
-
-
+//>--------------------------------------------------------------------------
+// 3StateAttack
+//---------------------------------------------------------------------------
 class CBTTaskSpawnMultipleEntities3StateAttack extends CBTTaskSpawnMultipleEntitiesAttack
 {
-	
-	
-	
+	//>--------------------------------------------------------------------------
+	// VARIABLES
+	//---------------------------------------------------------------------------
 	var		delayActivationTime						: float;
 	var		loopTime								: float;
 	var		endTime									: float;
@@ -374,12 +370,12 @@ class CBTTaskSpawnMultipleEntities3StateAttack extends CBTTaskSpawnMultipleEntit
 	var		spawnAdditionalEntityOnTargetPos		: bool;
 
 	
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	
 	function OnActivate() : EBTNodeStatus
 	{
-		
+		// reset 3StateAttack variable for beh graph node
 		GetNPC().SetBehaviorVariable( 'AttackEnd', 0, true );
 		
 		return super.OnActivate();
@@ -387,6 +383,15 @@ class CBTTaskSpawnMultipleEntities3StateAttack extends CBTTaskSpawnMultipleEntit
 	
 	latent function Main() : EBTNodeStatus
 	{
+		if ( !entityTemplate )
+		{
+			entityTemplate = ( CEntityTemplate ) LoadResourceAsync( ressourceName );
+		}
+		
+		if ( !entityTemplate )
+		{
+			return BTNS_Failed;
+		}
 		
 		while( !m_shouldSpawn )
 		{
@@ -412,7 +417,7 @@ class CBTTaskSpawnMultipleEntities3StateAttack extends CBTTaskSpawnMultipleEntit
 			
 		}
 		
-		
+		// 3StateAttack variable for beh graph node
 		GetNPC().SetBehaviorVariable( 'AttackEnd', 1, true );
 		
 		if( m_entitiesSpawned >= numberToSpawn )
@@ -422,27 +427,27 @@ class CBTTaskSpawnMultipleEntities3StateAttack extends CBTTaskSpawnMultipleEntit
 		
 		return BTNS_Active;
 	}	
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo ) : bool
 	{
 		if ( animEventName == 'AllowBlend' && animEventType == AET_DurationStart )
 		{
-			
+			// 3StateAttack variable for beh graph node
 			GetNPC().SetBehaviorVariable( 'AttackEnd', 1, true );
 			m_canComplete = true;
 		}
 		
 		return super.OnAnimEvent( animEventName, animEventType, animInfo );
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function SpawnEntity()
 	{
 		m_shouldSpawn = true;
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	latent function LatentSpawnEntity()
 	{
 		var i 						: int;
@@ -608,19 +613,19 @@ class CBTTaskSpawnMultipleEntities3StateAttack extends CBTTaskSpawnMultipleEntit
 			}
 		}
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function CreateEntity( _SpawnPos : Vector, _Rotation : EulerAngles ) : CEntity
 	{
 		var l_entity 	: CEntity;
 		var l_newPos	: Vector;
+		var l_loopTime 	: float;
 		
 		if ( !theGame.GetWorld().NavigationFindSafeSpot( _SpawnPos, spawnEntityRadius, spawnEntityRadius*3, l_newPos ) )
 		{
 			if ( decreaseLoopTimePerFailedCreateEntity > 0 )
 			{
-				loopTime -= decreaseLoopTimePerFailedCreateEntity;
-				endTime = localTime + loopTime;
+				endTime -= decreaseLoopTimePerFailedCreateEntity;
 			}
 			Log("Not enough space to spawn FX entity from TaskSpawnMultipleEntitiesAttack.");
 			return NULL;
@@ -630,25 +635,26 @@ class CBTTaskSpawnMultipleEntities3StateAttack extends CBTTaskSpawnMultipleEntit
 		
 		return l_entity;
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function OnDeactivate()
 	{
-		
+		// 3StateAttack variable for beh graph node
 		GetNPC().SetBehaviorVariable( 'AttackEnd', 1, true );
 		m_shouldSpawn = false;
 		m_canComplete = false;
+		m_entitiesSpawned = 0;
 	}
 }
 
-
-
+//>--------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 class CBTTaskSpawnMultipleEntities3StateAttackDef extends CBTTaskSpawnMultipleEntitiesAttackDef
 {
 	default instanceClass = 'CBTTaskSpawnMultipleEntities3StateAttack';
-	
-	
-	
+	//>--------------------------------------------------------------------------
+	// VARIABLES
+	//---------------------------------------------------------------------------
 	editable var		delayActivationTime						: float;
 	editable var		loopTime								: float;
 	editable var		spawnInterval							: float;

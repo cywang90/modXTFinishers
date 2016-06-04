@@ -1,10 +1,7 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2014
+/** Author : 
 /***********************************************************************/
-
-
 
 class W3Mutagen16_Effect extends W3Mutagen_Effect
 {
@@ -21,7 +18,7 @@ class W3Mutagen16_Effect extends W3Mutagen_Effect
 	{	
 		super.OnEffectRemoved();
 		
-		
+		//needs to be called after supper as encumbrance checks if we have this buff on character or not
 		UpdateEncumbrance();
 	}	
 	

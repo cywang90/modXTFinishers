@@ -1,11 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file - death screen module
 /***********************************************************************/
-
-
-
+/** Copyright © 2014 CDProjektRed
+/** Author : Bartosz Bigaj
+/***********************************************************************/
 
 class CR4HudModuleDeathScreen extends CR4HudModuleBase
 {
@@ -14,18 +12,18 @@ class CR4HudModuleDeathScreen extends CR4HudModuleBase
 	public var hasSaveData : bool;	
 	public var isOpened : bool;
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	///////////////////////////////////////////////////////////////////////////////////////////
+	//    W           W       A      TTTTTTTT   CCCC   H   H           OOOO  U    U TTTTTTT
+	//    W           W      A A        T      C    c  H   H          O    O U    U    T
+	//     W    W    W      A   A       T      C       HHHHH          O    O U    U    T
+	//      W  W  W W      A AAA A      T      C    c  H   H          O    O U    U    T
+	//        W    W      A       A     T       CCCC   H   H           OOOO   UUUU     T
+	///////////////////////////////////////////////////////////////////////////////////////////
+	// This file is deprecated system. Looting moved to DeathScreenMenu.ws. Did not delete to 
+	// avoid breaking things. Also used a reference to how it worked before in case anything broke.
+	///////////////////////////////////////////////////////////////////////////////////////////
 
-	event  OnConfigUI()
+	event /* flash */ OnConfigUI()
 	{
 		var flashModule : CScriptedFlashSprite;
 		
@@ -100,7 +98,7 @@ class CR4HudModuleDeathScreen extends CR4HudModuleBase
 		}
 	}
 
-	event  OnPress( tag : name )
+	event /* flash */ OnPress( tag : name )
 	{
 		switch( tag )
 		{
@@ -109,16 +107,16 @@ class CR4HudModuleDeathScreen extends CR4HudModuleBase
 				break;
 			case 'Respawn' :
 				OnRespawn();
-				
+				//ShowElement();
 				break;
 			case 'Quit' :
 				OnQuit();
-				
+				//CloseMenu();
 				break;
 		}
 	}
 	
-	event  OnOpened( opened : bool )
+	event /* flash */ OnOpened( opened : bool )
 	{	
 		var tutorialPopupRef  : CR4TutorialPopup;
 		if ( opened )
@@ -142,20 +140,20 @@ class CR4HudModuleDeathScreen extends CR4HudModuleBase
 		isOpened = opened;
 	}		
 
-	event  OnLoad()
+	event /* flash */ OnLoad()
 	{
 		var initData : W3MenuInitData = new W3MenuInitData in this;
 		initData.setDefaultState('LoadGame');
 		theGame.RequestMenuWithBackground( 'IngameMenu', 'CommonIngameMenu', initData );
 	}		
 
-	event  OnQuit()
+	event /* flash */ OnQuit()
 	{
 		theGame.GetGuiManager().TryQuitGame();
 		isOpened = false;
 	}		
 	
-	event  OnRespawn()
+	event /* flash */ OnRespawn()
 	{
 		theGame.SetIsRespawningInLastCheckpoint();
 		theGame.LoadLastGameInit( true );

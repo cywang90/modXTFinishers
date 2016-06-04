@@ -1,9 +1,6 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
+﻿/*
+	Swarm will pursue player and NPCs but will not wander off too far from origin point.
+*/
 statemachine class W3BeeSwarm extends CGameplayEntity
 {
 	editable var damageVal			: SAbilityAttributeValue;
@@ -17,16 +14,16 @@ statemachine class W3BeeSwarm extends CGameplayEntity
 	editable var excludedEntitiesTags : array<name>;
 	editable var factOnDestruction : string;
 	
-	private var originEntity		: CGameplayEntity;						
-	private var originPoint 		: Vector;								
-	private var victims 			: array<SSwarmVictim>;					
+	private var originEntity		: CGameplayEntity;						//origin entity to attach to (optional), bees will not wander too far from it (maxChaseDistance)
+	private var originPoint 		: Vector;								//origin point, used if swarm is not attached to origin entity
+	private var victims 			: array<SSwarmVictim>;					//actors in damage area
 	private var buffParams 			: SCustomEffectParams;
-	private var targets				: array<CGameplayEntity>;				
-	private var activeDistanceSquared : float;								
+	private var targets				: array<CGameplayEntity>;				//currently found pursuable targets
+	private var activeDistanceSquared : float;								//actual activity distance squared
 	
-	public const var PLAYER_PRESENCE_CHECK_DISTANCE : float;				
-	public const var PRESENCE_CHECK_DT : float;								
-	public const var TARGETS_CHECK_DT : float;								
+	public const var PLAYER_PRESENCE_CHECK_DISTANCE : float;				//distance from player when we start checking bee logic
+	public const var PRESENCE_CHECK_DT : float;								//time frequency of checking player proximity
+	public const var TARGETS_CHECK_DT : float;								//how often we check for pursuable targets
 
 		default destroyEntAfter = 2.0;
 		default velocity = 3.0;
@@ -83,7 +80,7 @@ statemachine class W3BeeSwarm extends CGameplayEntity
 		}
 	}
 	
-	
+	//checks if player is too far away and we can shut down the logic
 	public function IsPlayerTooFar() : bool
 	{
 		var originToPlayerDistSq : float;
@@ -120,16 +117,16 @@ statemachine class W3BeeSwarm extends CGameplayEntity
 	}
 	
 	
-	
+	//sets origin entity to attach to
 	public function SetSwarmOriginEntity(e : CGameplayEntity)
 	{
 		originEntity = e;
 	}
 	
-	
+	//Gets position of origin
 	public function GetOriginPoint() : Vector
 	{
-		
+		//if attached to something
 		if(originEntity)
 			return originEntity.GetWorldPosition();
 			
@@ -233,7 +230,7 @@ statemachine class W3BeeSwarm extends CGameplayEntity
 			buffParams.vibratePadHighFreq = 0.2;			
 			buffParams.effectType = EET_Swarm;
 			buffParams.creator = this;
-			buffParams.sourceName = "beeSwarm";
+			buffParams.sourceName = "bee_swarm";
 			buffParams.duration = 1;
 			buffParams.effectValue = damageVal;			
 			buffParams.buffSpecificParams = specParams;
@@ -246,7 +243,7 @@ statemachine class W3BeeSwarm extends CGameplayEntity
 				
 			victims[i].timeInSwarm += deltaTime;
 			
-			
+			//for NPCs: CS for first 3 secs every 15 secs, otherwise just damage
 			if( (CPlayer)victims[i].actor || CeilF(victims[i].timeInSwarm) % 15 < 3)
 			{
 				victims[i].actor.AddEffectCustom(buffParams);
@@ -274,30 +271,30 @@ statemachine class W3BeeSwarm extends CGameplayEntity
 		var distSq : float;
 		var orig : Vector;
 		
-		
+		//targets in 'AI' range
 		targets.Clear();
 		FindGameplayEntitiesInCylinder(targets, GetWorldPosition(), AIReactionRange, 10, 10000, '', FLAG_OnlyAliveActors + FLAG_TestLineOfSight);
 		
-		
+		//filtering
 		distSq = (maxChaseDistance - 1) * (maxChaseDistance - 1);
 		orig = GetOriginPoint();
 		for(i=targets.Size()-1; i>=0; i-=1)
 		{
-			
+			//remove targets which are too far away from origin
 			if(VecDistanceSquared(targets[i].GetWorldPosition(), orig) > distSq)
 			{
 				targets.Erase(i);
 				continue;
 			}
 				
-			
+			//attitude filters
 			if(ignoreNPCsFriendlyToPlayer && targets[i] != thePlayer && GetAttitudeBetween(targets[i], thePlayer) == AIA_Friendly)
 			{
 				targets.Erase(i);
 				continue;
 			}
 			
-			
+			//tag filters
 			for(j=0; j<excludedEntitiesTags.Size(); j+=1)
 			{
 				if(targets[i].HasTag(excludedEntitiesTags[j]))
@@ -324,8 +321,8 @@ statemachine class W3BeeSwarm extends CGameplayEntity
 		victims.Clear();
 	}
 }
-
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//While having target and player is close
 state ReturnToOrigin in W3BeeSwarm
 {
 	event OnEnterState( prevStateName : name )
@@ -361,8 +358,8 @@ state ReturnToOrigin in W3BeeSwarm
 		}
 	}
 }
-
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//While having target and player is close
 state PursueTarget in W3BeeSwarm
 {
 	event OnEnterState( prevStateName : name )
@@ -411,7 +408,7 @@ state PursueTarget in W3BeeSwarm
 				}
 			}
 
-			
+			//don't teleport if distance is small (performance when target is standing in place) or too far
 			orPoint = virtual_parent.GetOriginPoint();
 			distanceToOrigin = VecDistance(targetPos, orPoint);
 			
@@ -425,8 +422,8 @@ state PursueTarget in W3BeeSwarm
 		virtual_parent.GotoState('ReturnToOrigin');
 	}
 }
-
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//While being close to player but there is noone to chase
 state BeeSwarm_Idle in W3BeeSwarm
 {
 	event OnEnterState( prevStateName : name )
@@ -436,7 +433,7 @@ state BeeSwarm_Idle in W3BeeSwarm
 	
 	entry function BeeSwarm_Idle_Loop()
 	{
-		
+		//will not move ever
 		if(virtual_parent.velocity <= 0.01)
 			return;
 			
@@ -454,8 +451,8 @@ state BeeSwarm_Idle in W3BeeSwarm
 		}
 	}
 }
-
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//While being far away from player
 state FarFromPlayer in W3BeeSwarm
 {
 	event OnEnterState( prevStateName : name )
@@ -479,8 +476,8 @@ state FarFromPlayer in W3BeeSwarm
 		virtual_parent.GotoState('BeeSwarm_Idle');
 	}
 }
-
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Disabled
 state Disabled in W3BeeSwarm
 {
 	event OnEnterState( prevStateName : name )
@@ -492,8 +489,8 @@ state Disabled in W3BeeSwarm
 	}
 }
 
-
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Does not move
 state Stationary in W3BeeSwarm
 {
 	event OnEnterState( prevStateName : name )

@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-state RecipePinning in W3TutorialManagerUIHandler extends TutHandlerBaseState
+﻿state RecipePinning in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
 	private const var PIN, SHOP : name;
 	private var isClosing : bool;
@@ -17,15 +12,15 @@ state RecipePinning in W3TutorialManagerUIHandler extends TutHandlerBaseState
 		
 		isClosing = false;
 		
-		ShowHint(PIN, theGame.params.TUT_POS_ALCHEMY_X, theGame.params.TUT_POS_ALCHEMY_Y);
+		ShowHint(PIN, POS_ALCHEMY_X, POS_ALCHEMY_Y);
 	}
 	
 	event OnLeaveState( nextStateName : name )
 	{
 		isClosing = true;
 		
-		CloseHint(PIN);
-		CloseHint(SHOP);
+		CloseStateHint(PIN);
+		CloseStateHint(SHOP);
 		
 		super.OnLeaveState(nextStateName);
 	}
@@ -34,7 +29,7 @@ state RecipePinning in W3TutorialManagerUIHandler extends TutHandlerBaseState
 	{
 		super.OnMenuClosing(menuName);
 		
-		
+		//prevent alchemy from opening once again
 		if(menuName == 'AlchemyMenu')
 			theGame.GameplayFactsAdd("tutorial_alchemy_pin_done", 1);
 		else if(menuName == 'CraftingMenu')
@@ -50,7 +45,7 @@ state RecipePinning in W3TutorialManagerUIHandler extends TutHandlerBaseState
 			
 		if(hintName == PIN)
 		{
-			ShowHint(SHOP, theGame.params.TUT_POS_ALCHEMY_X, theGame.params.TUT_POS_ALCHEMY_Y);
+			ShowHint(SHOP, POS_ALCHEMY_X, POS_ALCHEMY_Y);
 		}		
 	}	
 }

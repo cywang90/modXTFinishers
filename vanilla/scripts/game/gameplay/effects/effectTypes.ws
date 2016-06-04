@@ -1,29 +1,26 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2012-2014
+/** Author : Rafal Jarczewski, Tomek Kozera
 /***********************************************************************/
 
-
-
-
+//class to be derived from to pass custom buff data to buffs (case-by-case)
 class W3BuffCustomParams {}
 
-
+//struct for passing custom params to buffs
 struct SCustomEffectParams
 {
-	var effectType 				: EEffectType;				
-	var creator 				: CGameplayEntity;			
-	var sourceName				: string;					
-	var duration				: float;					
-	var effectValue				: SAbilityAttributeValue;	
-	var customAbilityName		: name;						
-	var customFXName			: name;						
-	var isSignEffect			: bool;						
-	var customPowerStatValue	: SAbilityAttributeValue;	
-	var buffSpecificParams		: W3BuffCustomParams;		
-	var vibratePadLowFreq 		: float;					
-	var vibratePadHighFreq 		: float;					
+	var effectType 				: EEffectType;				//effect type
+	var creator 				: CGameplayEntity;			//object that created and applies the buff
+	var sourceName				: string;					//source name - same source names will cumulate, different will stack
+	var duration				: float;					//buff duration, -1 for infinite
+	var effectValue				: SAbilityAttributeValue;	//custom value of the effect to pass. Usage depends on buff
+	var customAbilityName		: name;						//ability name to be used instead of default ability. Most likely will override duration and effect value
+	var customFXName			: name;						//special effect name to be used of default fx.
+	var isSignEffect			: bool;						//set to true if buff is added by sign
+	var customPowerStatValue	: SAbilityAttributeValue;	//custom value of Power Stat to use (other than the one got from creator)
+	var buffSpecificParams		: W3BuffCustomParams;		//struct for passing buff-specific params
+	var vibratePadLowFreq 		: float;					//pad vibration
+	var vibratePadHighFreq 		: float;					//pad vibration
 };
 
 struct SCurrentBuffFX
@@ -37,7 +34,7 @@ class W3PotionParams extends W3BuffCustomParams
 	var potionItemName : name;
 }
 
-
+//struct with params passed when initializing buff
 struct SEffectInitInfo
 {
 	var owner : CGameplayEntity;
@@ -46,85 +43,96 @@ struct SEffectInitInfo
 	var sourceName : string;
 	var targetEffectManager : W3EffectManager;
 
-	
+	//optional
 	var powerStatValue : SAbilityAttributeValue;
 	var customEffectValue : SAbilityAttributeValue;
 	var customAbilityName : name;
 	var customFXName : name;
 	var isSignEffect : bool;
-	var vibratePadLowFreq 		: float;					
-	var vibratePadHighFreq 		: float;					
+	var vibratePadLowFreq 		: float;					//pad vibration
+	var vibratePadHighFreq 		: float;					//pad vibration
 };
 
-
+// Struct to pass required effect data from action to effect manager when applying effects from action.
 struct SEffectInfo
 {
 	editable var effectType : EEffectType;
 	editable var effectDuration : float;
-	editable var effectAbilityName : name;						
+	editable var effectAbilityName : name;						//optional custom ability
 	editable var customFXName : name;
-	editable var effectCustomValue : SAbilityAttributeValue;	
+	editable var effectCustomValue : SAbilityAttributeValue;	//custom effect value
 	editable var effectCustomParam : W3BuffCustomParams;
-	editable var applyChance : float;							
+	editable var applyChance : float;							//chance to apply buff [0..1]
 	
 		hint effectDutation = "Set -1 for infinite";
 };
 
-
+// Struct holds cached damages to be dealt by effects in a given tick (e.g. poison, toxicity)
 struct SEffectCachedDamage
 {
 	saved var dmgType : name;	
-	saved var attacker : EntityHandle;					
-	saved var carrier : CBaseGameplayEffect;			
+	saved var attacker : EntityHandle;					//attacker entity (for DM)	#DynSave
+	saved var carrier : CBaseGameplayEffect;			//carrier entity (for DM)
 	saved var dmgVal	: float;
-	saved var dt : float;								
+	saved var dt : float;								//dt used by DoT damage, otherwise 0 (if not DoT)
 	saved var dontShowHitParticle : bool;
-	saved var powerStatType : ECharacterPowerStats;		
-	saved var isEnvironment : bool;						
-	saved var sourceName : string;						
+	saved var powerStatType : ECharacterPowerStats;		//power stat to be used for damage calculation
+	saved var isEnvironment : bool;						//if buff is from environment source
+	saved var sourceName : string;						//buff sourcename
 };
 
-
+//used by Damage over Time buffs to store its damage types
 struct SDoTDamage
 {
-	saved var damageTypeName : name;					
-	saved var hitsVitality  : bool;						
-	saved var hitsEssence  : bool;						
-	saved var resistance : ECharacterDefenseStats;		
+	saved var damageTypeName : name;					//damage type name
+	saved var hitsVitality  : bool;						//cached
+	saved var hitsEssence  : bool;						//cached
+	saved var resistance : ECharacterDefenseStats;		//cached
 };
 
-
+//map for effect icon types and their paths 
 struct SEffectIconType
 {
 	var typeName : name;
 	var path : string;
 };
 
-
+//Interactions between buffs
 enum EEffectInteract
 {
-	EI_Undefined,			
-	EI_Deny,				
-	EI_Override,			
-	EI_Pass,				
-	EI_Cumulate				
+	EI_Undefined,			//not set
+	EI_Deny,				//new effect cannot be added
+	EI_Override,			//new effect overrides old effect (old one is removed)
+	EI_Pass,				//new effect passes interaction (it can be overriden, passed or cumulated based on the other effect's preference)
+	EI_Cumulate				//some old effect will cumulate with this effect (old one will be changed, new will not be applied)
 }
 
+function EffectInteractionSuccessfull( e : EEffectInteract ) : bool
+{
+	if( e == EI_Undefined || e == EI_Deny )
+	{
+		return false;
+	}
+	
+	return true;
+}
 
-
-
-
+//Effects
+//if you add any new one add handling to:
+// * GameEffectManager.CacheEffect()
+// * EffectNameToType() global func
+// * EffectTypeToName() global func
 enum EEffectType
 {
-	EET_Undefined,		
+	EET_Undefined,		//default
 
-	
+	// AUTO REGENS
 	EET_AutoVitalityRegen,
 	EET_AutoStaminaRegen,
 	EET_AutoEssenceRegen,
 	EET_AutoMoraleRegen,
 		
-	
+	// CRITICAL
 	EET_Confusion,
 	EET_HeavyKnockdown,
 	EET_Hypnotized,
@@ -137,17 +145,17 @@ enum EEffectType
 	EET_Blindness,
 	EET_PoisonCritical,
 				
-	
+	// DAMAGE OVER TIME
 	EET_Bleeding,
 	EET_BleedingTracking,
 	EET_Burning,
 	EET_Poison,
 	EET_DoTHPRegenReduce,
 		
-	
+	//DRAIN	
 	EET_Toxicity,
 		
-	
+	// POTIONS
 	EET_BlackBlood,
 	EET_Blizzard,
 	EET_Cat,
@@ -163,11 +171,11 @@ EET_Unused1,
 	EET_WhiteRaffardDecoction,
 	EET_KillerWhale,
 	
-	
+	// SKILLS
 	EET_AxiiGuardMe,
 	EET_IgnorePain,
 	
-	
+	//OTHER	
 	EET_StaggerAura,
 	EET_OverEncumbered,
 	EET_Edible,	
@@ -177,30 +185,30 @@ EET_Unused1,
 	EET_WellFed,
 	EET_SlowdownFrost,
 	
-	
-	EET_LongStagger,				
+	//NEW
+	EET_LongStagger,				//stagger type
 	EET_WellHydrated,
-	EET_BattleTrance,				
+	EET_BattleTrance,				//skill
 	EET_YrdenHealthDrain,
 	EET_AdrenalineDrain,
 	EET_WeatherBonus,
-	EET_Swarm,						
-	EET_Pull,						
-	EET_AbilityOnLowHealth,			
+	EET_Swarm,						//swarm critical
+	EET_Pull,						//web pull critical
+	EET_AbilityOnLowHealth,			//adds ability when hp is below given level
 	EET_Oil,
 	EET_CounterStrikeHit,	
 	EET_Drowning,
 	EET_Snowstorm,	
 	EET_AutoAirRegen,
 	
-	
+	//SHRINES
 	EET_ShrineAard,
 	EET_ShrineAxii,
 	EET_ShrineIgni,
 	EET_ShrineQuen,
 	EET_ShrineYrden,
 	
-	
+	//NEW
 	EET_Ragdoll,	
 	EET_AutoPanicRegen,	
 	EET_VitalityDrain,
@@ -210,7 +218,7 @@ EET_Unused1,
 	EET_AirDrain,
 	EET_SilverDust,
 
-	
+	// MUTAGENS
 	EET_Mutagen01,
 	EET_Mutagen02,
 	EET_Mutagen03,
@@ -240,7 +248,7 @@ EET_Unused1,
 	EET_Mutagen27,
 	EET_Mutagen28,
 	
-	
+	//new pack
 	EET_AirDrainDive,
 	EET_BoostedStaminaRegen,
 	EET_WitchHypnotized,
@@ -263,11 +271,39 @@ EET_Unused1,
 	EET_WeakeningAura,
 	EET_Weaken,
 	
-	EET_Tangled,					
-	EET_Runeword8
+	EET_Tangled,					//web tangle critical
+	EET_Runeword8,
+	EET_LynxSetBonus,
+	EET_GryphonSetBonus,
+	EET_GryphonSetBonusYrden,
+	EET_POIGorA10,
+	EET_Mutation7Buff,
+	EET_Mutation7Debuff,
+	EET_Mutation10,
+	EET_Perk21InternalCooldown,
+	EET_Mutation11Buff,
+	EET_Mutation11Debuff,	
+	EET_Acid,						// Mutation 4 Acidous Blood - it works against all enemies
+	EET_WellRested,
+	EET_HorseStableBuff,
+	EET_BookshelfBuff,
+	EET_PolishedGenitals,
+	EET_Mutation12Cat,
+	EET_Mutation11Immortal,
+	EET_Aerondight,
+	EET_Trap,
+	EET_Mutation3,
+	EET_Mutation4,
+	EET_Mutation5,
+	EET_ToxicityVenom,
+	EET_BasicQuen,
+	
+	//always add new buffs BEFORE those 2 entries
+EET_EffectTypesSize,
+EET_ForceEnumTo16Bit = 10000
 }
 
-
+//returns an array of all possible Minor Shrine Buffs
 function GetMinorShrineBuffs() : array<EEffectType>
 {
 	var ret : array<EEffectType>;
@@ -281,10 +317,10 @@ function GetMinorShrineBuffs() : array<EEffectType>
 	return ret;
 }
 
-
+// Structure holding buff immunity info
 import struct CBuffImmunity
 {
-	
+	//immunity flags - buff types
 	import var  potion : Bool ;
 	import var  positive  : Bool ;
 	import var 	neutral : bool;
@@ -293,17 +329,17 @@ import struct CBuffImmunity
 	import var  confuse : Bool ;
 	import var  damage : Bool ;
 	
-	
-	import var  immunityTo : array<int>;		
+	//single, particular buffs
+	import var  immunityTo : array<int>;		//EEffectType but must be int since it's passed from code and enum is defined in the scripts (and it should be since it'll change a lot)
 }
 
-
+//spawns of applicator auras' data
 struct SApplicatorSpawnEffect
 {		
-	saved var spawnAbilityName : name;											
-	saved var spawnType : EEffectType;											
-	saved var spawnFlagsHostile, spawnFlagsNeutral, spawnFlagsFriendly : bool;	
-	saved var spawnSourceName : string;											
+	saved var spawnAbilityName : name;											//custom ability's name
+	saved var spawnType : EEffectType;											//spawned buff's type
+	saved var spawnFlagsHostile, spawnFlagsNeutral, spawnFlagsFriendly : bool;	//spawned buff's hostility flags
+	saved var spawnSourceName : string;											//spawned buff's source name, MUST BE DEFINED BY CHILD CLASS
 };
 
 struct SPausedAutoEffect
@@ -332,7 +368,14 @@ struct SBuffPauseLock
 	saved var counter 		: int;
 };
 
-
+/*
+	Function picks proper 'hit severity' buff based on target's special effects that
+	reduce hit severity (e.g. changes Knockdown to Stagger)
+	
+	type - initial buff type
+	
+	@returns - final buff type
+*/
 function ModifyHitSeverityBuff(target : CActor, type : EEffectType) : EEffectType
 {
 	var severityReduction, severity : int;
@@ -342,7 +385,7 @@ function ModifyHitSeverityBuff(target : CActor, type : EEffectType) : EEffectTyp
 
 	severityReduction = RoundMath(CalculateAttributeValue(target.GetAttributeValue('hit_severity')));
 		
-	
+	//get severity
 	switch(type)
 	{
 		case EET_HeavyKnockdown : 	severity = 4; break;
@@ -352,20 +395,20 @@ function ModifyHitSeverityBuff(target : CActor, type : EEffectType) : EEffectTyp
 		default :					severity = 0; break;
 	}
 	
-	
+	//severity reduction
 	severity -= severityReduction;
 	
-	
+	//quen
 	if(target.HasAlternateQuen())		
 	{
 		if( (CNewNPC)target )
 		{
-			
+			//npc reduces severity by 1
 			severity -= 1;
 		}
 		else
 		{
-			
+			//player only if he didn't get any damage (quen blocked all)
 			witcher = (W3PlayerWitcher)target;
 			if(witcher)
 			{
@@ -378,13 +421,13 @@ function ModifyHitSeverityBuff(target : CActor, type : EEffectType) : EEffectTyp
 		}
 	}
 	
-	
+	//immunes
 	if(severity == 4 && target.IsImmuneToBuff(EET_HeavyKnockdown))		severity = 3;
 	if(severity == 3 && target.IsImmuneToBuff(EET_Knockdown))			severity = 2;
 	if(severity == 2 && target.IsImmuneToBuff(EET_LongStagger))			severity = 1;
 	if(severity == 1 && target.IsImmuneToBuff(EET_Stagger))				severity = 0;
 			
-	
+	//return
 	if(severity >= 4)
 		return EET_HeavyKnockdown;
 	else if(severity == 3)
@@ -434,6 +477,7 @@ function IsCriticalEffectType(type : EEffectType) : bool
 		case EET_PoisonCritical :
 		case EET_Frozen :
 		case EET_Tornado :
+		case EET_Trap :
 		case EET_Swarm :
 		case EET_Snowstorm :
 		case EET_SnowstormQ403 :
@@ -469,7 +513,7 @@ function IsNegativeEffectType(type : EEffectType) : bool
 			return false;
 	}
 }
-
+//returns critical state type for given buff
 function GetBuffCriticalType(buff : CBaseGameplayEffect) : ECriticalStateType
 {
 	var crit : W3CriticalEffect;
@@ -516,7 +560,7 @@ function CriticalBuffIsDestroyedOnInterrupt(buff : CBaseGameplayEffect) : bool
 	return false;
 }
 
-
+// Checks if given hit type is allowed by current critical buff
 function CriticalBuffIsHitAllowed(buff : CBaseGameplayEffect, hit : EHitReactionType) : bool
 {
 	var crit : W3CriticalEffect;
@@ -545,7 +589,7 @@ function IsCriticalEffect(e : CBaseGameplayEffect) : bool
 	if(!e)
 		return false;
 		
-	return ((W3CriticalEffect)e) || ((W3CriticalDOTEffect)e);
+	return ((W3CriticalEffect)e) || ((W3CriticalDOTEffect)e) || e.GetEffectType() == EET_KnockdownTypeApplicator;
 }
 
 function IsDoTEffect(e : CBaseGameplayEffect) : bool
@@ -626,12 +670,12 @@ function CriticalBuffUsesFullBodyAnim(buff : CBaseGameplayEffect) : bool
 }
 
 
-
+//handling cases for various tricky situations of critical buffs
 enum ECriticalHandling
 {
-	ECH_HandleNow,			
-	ECH_Postpone,			
-	ECH_Abort				
+	ECH_HandleNow,			//effect will start the animation anyway (force)
+	ECH_Postpone,			//effect will postopne the animation. When it will be possible to play it it will do so if buff will still exist
+	ECH_Abort				//effect will be deleted and not applied at all
 }
 
 struct SBuffImmunity

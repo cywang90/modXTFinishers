@@ -1,10 +1,14 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
+﻿enum EMutationFeedbackType
+{
+	MFT_PlayHide,
+	MFT_PlayOnce,
+	MFT_PlayRepeat
+	
+}
+	
 class CR4HudModuleWolfHead extends CR4HudModuleBase
-{	
+{
+	
 	private	var m_fxSetVitality						: CScriptedFlashFunction;
 	private	var m_fxSetStamina						: CScriptedFlashFunction;
 	private	var m_fxSetToxicity						: CScriptedFlashFunction;
@@ -13,17 +17,16 @@ class CR4HudModuleWolfHead extends CR4HudModuleBase
 	private	var m_fxSetDeadlyToxicity				: CScriptedFlashFunction;
 	private	var m_fxShowStaminaNeeded				: CScriptedFlashFunction;
 	private	var m_fxSwitchWolfActivation			: CScriptedFlashFunction;
-	private var m_fxSetPositiveEffectsCounterSFF	: CScriptedFlashFunction;
-	private var m_fxSetNegativeEffectsCounterSFF	: CScriptedFlashFunction;
 	private var m_fxSetSignIconSFF					: CScriptedFlashFunction;
 	private var m_fxSetSignTextSFF					: CScriptedFlashFunction;
 	private var m_fxSetFocusPointsSFF				: CScriptedFlashFunction;
+	private var	m_fxSetFocusProgressSFF				: CScriptedFlashFunction;
 	private var m_fxLockFocusPointsSFF				: CScriptedFlashFunction;	
 	private var m_fxSetCiriAsMainCharacter			: CScriptedFlashFunction;
 	private var m_fxSetCoatOfArms					: CScriptedFlashFunction;
 	private var m_fxSetShowNewLevelIndicator		: CScriptedFlashFunction;
 	private var m_fxSetAlwaysDisplayed				: CScriptedFlashFunction;
-	private var m_fxDisplayOverloadedIcon			: CScriptedFlashFunction;
+	private var m_fxshowMutationFeedback			: CScriptedFlashFunction;
 	
 	private	var	m_LastVitality				: float;
 	private	var	m_LastMaxVitality			: float;
@@ -38,6 +41,7 @@ class CR4HudModuleWolfHead extends CR4HudModuleBase
 	private	var	m_medallionActivated		: bool;
 	private var m_oveloadedIconVisible		: bool;
 	private var m_focusPoints				: int;
+	private var m_focusProgress				: float;
 	private var m_iCurrentPositiveEffectsSize : int;
 	private var m_iCurrentNegativeEffectsSize : int;
 	private var m_signIconName 				: string;
@@ -55,7 +59,7 @@ class CR4HudModuleWolfHead extends CR4HudModuleBase
 	default m_iCurrentNegativeEffectsSize = 0;
 	default m_IsPlayerCiri				  = false;
 
-	 event OnConfigUI()
+	/* flash */ event OnConfigUI()
 	{
 		var flashModule : CScriptedFlashSprite;
 		var hud : CR4ScriptedHud;
@@ -74,17 +78,16 @@ class CR4HudModuleWolfHead extends CR4HudModuleBase
 		m_fxSetDeadlyToxicity				= flashModule.GetMemberFlashFunction( "setDeadlyToxicity" );
 		m_fxShowStaminaNeeded				= flashModule.GetMemberFlashFunction( "showStaminaNeeded" );
 		m_fxSwitchWolfActivation			= flashModule.GetMemberFlashFunction( "switchWolfActivation" );
-		m_fxSetPositiveEffectsCounterSFF	= flashModule.GetMemberFlashFunction( "setPositiveEffectsCounter" );
-		m_fxSetNegativeEffectsCounterSFF 	= flashModule.GetMemberFlashFunction( "setNegativeEffectsCounter" );
 		m_fxSetSignIconSFF 					= flashModule.GetMemberFlashFunction( "setSignIcon" );
 		m_fxSetSignTextSFF 					= flashModule.GetMemberFlashFunction( "setSignText" );
 		m_fxSetFocusPointsSFF				= flashModule.GetMemberFlashFunction( "setFocusPoints" );
+		m_fxSetFocusProgressSFF				= flashModule.GetMemberFlashFunction( "UpdateFocusPointsBar" );
 		m_fxLockFocusPointsSFF				= flashModule.GetMemberFlashFunction( "lockFocusPoints" );
 		m_fxSetCiriAsMainCharacter			= flashModule.GetMemberFlashFunction( "setCiriAsMainCharacter" );
 		m_fxSetCoatOfArms					= flashModule.GetMemberFlashFunction( "setCoatOfArms" );
 		m_fxSetShowNewLevelIndicator		= flashModule.GetMemberFlashFunction( "setShowNewLevelIndicator" );
 		m_fxSetAlwaysDisplayed				= flashModule.GetMemberFlashFunction( "setAlwaysDisplayed" );
-		m_fxDisplayOverloadedIcon 			= flashModule.GetMemberFlashFunction( "displayOverloadedIcon" );
+		m_fxshowMutationFeedback			= flashModule.GetMemberFlashFunction( "showMutationFeedback" );
 		
 		m_CurrentSelectedSign = thePlayer.GetEquippedSign();
 		m_fxSetSignIconSFF.InvokeSelfOneArg(FlashArgString(GetSignIcon()));
@@ -98,6 +101,11 @@ class CR4HudModuleWolfHead extends CR4HudModuleBase
 		DisplayNewLevelIndicator();
 		
 		UpdateCoatOfArms();
+	}
+	
+	public function DisplayMutationFeedback( value : EMutationFeedbackType )
+	{
+		m_fxshowMutationFeedback.InvokeSelfOneArg(FlashArgInt( value ));
 	}
 	
 	function DisplayNewLevelIndicator()
@@ -135,12 +143,10 @@ class CR4HudModuleWolfHead extends CR4HudModuleBase
 		
 		UpdateExperience();
 		UpdateMedallion();
-		
 		UpdateFocusPoints();
 		UpdateStateByPlayer();
 		
-		
-		
+		//always wolf's head when combat music is playing OR if our toxicity is above 0 OR if our health is below MAX
 		if ( thePlayer.IsCombatMusicEnabled() || (m_curToxicity > 0.f || m_lockedToxicity > 0.f) || (m_curVitality < m_maxVitality) )
 			SetAlwaysDisplayed( true );
 		else
@@ -159,7 +165,7 @@ class CR4HudModuleWolfHead extends CR4HudModuleBase
 
 		if( l_currentVitality != m_LastVitality ||  l_currentMaxVitality != m_LastMaxVitality )
 		{
-			
+			//Percentage is between 0 and 1
 			m_fxSetVitality.InvokeSelfOneArg( FlashArgNumber(  l_currentVitality / l_currentMaxVitality ) );
 			m_LastVitality = l_currentVitality;
 			m_LastMaxVitality = l_currentMaxVitality;
@@ -183,18 +189,18 @@ class CR4HudModuleWolfHead extends CR4HudModuleBase
 			m_LastStamina 	 = l_curStamina;
 			m_LastMaxStamina = l_curMaxStamina;
 			
-			if ( l_curStamina <= l_curMaxStamina*0.60 ) 
+			if ( l_curStamina <= l_curMaxStamina*0.60 ) // if 60% of stamina play soundcue
 				playStaminaSoundCue = true;
 				
 			if ( l_curStamina <= 0 )
 			{
 				thePlayer.SoundEvent("gui_no_stamina");
-				theGame.VibrateControllerVeryLight(); 
+				theGame.VibrateControllerVeryLight(); // no stamina
 			}
 			else if ( l_curStamina >= l_curMaxStamina && playStaminaSoundCue )
 			{
 				thePlayer.SoundEvent("gui_stamina_recharged");
-				theGame.VibrateControllerVeryLight(); 
+				theGame.VibrateControllerVeryLight(); // stamina recharged
 				playStaminaSoundCue = false;
 			}
 		}
@@ -208,7 +214,7 @@ class CR4HudModuleWolfHead extends CR4HudModuleBase
 
 	public function UpdateToxicity() : void
 	{
-		var curToxicity 	: float;	
+		var curToxicity 	: float;	//current toxicity WITHOUT offset lock
 		var curMaxToxicity 	: float;
 		var curLockedToxicity: float;
 		var damageThreshold	: float;
@@ -218,13 +224,13 @@ class CR4HudModuleWolfHead extends CR4HudModuleBase
 		
 		curLockedToxicity = thePlayer.GetStat(BCS_Toxicity) - curToxicity;
 		
-		
+		//need to keep track of these for displaying/hiding the module
 		m_curToxicity = curToxicity;
 		m_lockedToxicity = curLockedToxicity;
 		
 		if ( m_LastToxicity != curToxicity || m_LastMaxToxicity != curMaxToxicity || m_LastLockedToxicity != curLockedToxicity )
 		{
-			
+			//update locked toxicity if lock or max changed
 			if( m_LastLockedToxicity != curLockedToxicity || m_LastMaxToxicity != curMaxToxicity)
 			{
 				m_fxSetLockedToxicity.InvokeSelfOneArg( FlashArgNumber( ( curLockedToxicity )/ curMaxToxicity ) );
@@ -242,7 +248,7 @@ class CR4HudModuleWolfHead extends CR4HudModuleBase
 				m_bLastDeadlyToxicity = curDeadlyToxicity;
 			}
 			
-			
+			//keep the wolfhead module displayed if 
 		}
 	}
 
@@ -302,12 +308,18 @@ class CR4HudModuleWolfHead extends CR4HudModuleBase
 	private function UpdateFocusPoints()
 	{
 		var curFocusPoints : int = FloorF( GetWitcherPlayer().GetStat( BCS_Focus ) );
+		var focusProgress : float = GetWitcherPlayer().GetStat( BCS_Focus );
 		
 		if ( m_focusPoints != curFocusPoints )
 		{
 			m_focusPoints = curFocusPoints;
 			
 			m_fxSetFocusPointsSFF.InvokeSelfOneArg( FlashArgInt( m_focusPoints) );
+		}
+		if ( m_focusProgress != focusProgress )
+		{
+			m_focusProgress = focusProgress;
+			m_fxSetFocusProgressSFF.InvokeSelfOneArg( FlashArgNumber( focusProgress ) );
 		}
 	}
 
@@ -319,16 +331,10 @@ class CR4HudModuleWolfHead extends CR4HudModuleBase
 	
 	public function LockFocusPoints( value : int )
 	{
-		
+		//we only have 3 adrenaline points
 		if ( value <= 3 )
 			m_fxLockFocusPointsSFF.InvokeSelfOneArg( FlashArgInt( value) );
 	}
-	
-	
-	
-	
-	
-	
 	
 	public function UpdateSignData()
 	{
@@ -423,3 +429,22 @@ exec function coa( val : bool )
 		}
 	}
 }
+
+/*
+exec function dmf( val : int )
+{
+	var hud : CR4ScriptedHud;
+	var hudWolfHeadModule : CR4HudModuleWolfHead;		
+
+	hud = (CR4ScriptedHud)theGame.GetHud();
+	if ( hud )
+	{
+		hudWolfHeadModule = (CR4HudModuleWolfHead)hud.GetHudModule( "WolfHeadModule" );
+		if ( hudWolfHeadModule )
+		{
+			hudWolfHeadModule.DisplayMutationFeedback( val );
+		}
+	}
+}
+*/
+

@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-state Idle in W3HorseComponent
+﻿state Idle in W3HorseComponent
 {
 	event OnEnterState( prevStateName : name )
 	{
@@ -24,7 +19,7 @@ state Idle in W3HorseComponent
 	event OnMountFinished( entity : CEntity )
 	{
 		parent.OnMountFinished( entity );
-		if ( entity == thePlayer ) 
+		if ( entity == thePlayer ) // Exploration is only player specific logic
 			parent.PushState( 'Exploration' );
 	}
 	

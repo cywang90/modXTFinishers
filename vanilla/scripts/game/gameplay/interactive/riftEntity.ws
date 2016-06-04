@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-statemachine class CRiftEntity extends CInteractiveEntity
+﻿statemachine class CRiftEntity extends CInteractiveEntity
 {
 	editable var linkingMode : bool;
 	editable var controlledEncounter : EntityHandle;
@@ -70,7 +65,7 @@ statemachine class CRiftEntity extends CInteractiveEntity
 		}
 	}
 	
-	
+	///////////////////////////////////////// RIFT MANAGEMENT FUNCTIONS /////////////////////////////////////////
 	
 	public function ActivateRift( optional dontActivateEncounter : bool)
 	{
@@ -122,7 +117,7 @@ statemachine class CRiftEntity extends CInteractiveEntity
 		DeactivateRiftIfPossible();
 	}
 	
-	
+	///////////////////////////////////////// ENCOUNTER MANAGEMENT FUNCTIONS /////////////////////////////////////////
 	
 	public function EnableEncounter( flag : bool )
 	{
@@ -155,7 +150,7 @@ statemachine class CRiftEntity extends CInteractiveEntity
 		}
 	}
 	
-	
+	///////////////////////////////////////// COLD AREA MANAGEMENT FUNCTIONS /////////////////////////////////////////
 	
 	public function EnableColdArea( flag : bool )
 	{
@@ -218,7 +213,7 @@ statemachine class CRiftEntity extends CInteractiveEntity
 		}
 	}
 	
-	
+	///////////////////////////////////////// COLLISION ENTITY MANAGEMENT FUNCTIONS /////////////////////////////////////////
 	
 	public function PrepareCollisionEntity()
 	{
@@ -238,7 +233,7 @@ statemachine class CRiftEntity extends CInteractiveEntity
 		collisionEntity.Destroy();
 	}
 	
-	
+	///////////////////////////////////////// MISC FUNCTIONS /////////////////////////////////////////
 	
 	function OnDiscovered( discovered : bool )
 	{

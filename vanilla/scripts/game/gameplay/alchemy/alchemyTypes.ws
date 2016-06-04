@@ -1,12 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2012
+/** Author : Tomasz Kozera
 /***********************************************************************/
 
-
-
-
+// Exceptions that may occur during cooking process
 enum EAlchemyExceptions
 {
 	EAE_NoException,	
@@ -19,31 +16,32 @@ enum EAlchemyExceptions
 	EAE_Mounted
 }
 
-
+// Struct representing alchemy recipe
 struct SAlchemyRecipe
 {
-	var cookedItemName : name;							
-	var cookedItemType : EAlchemyCookedItemType;		
+	var cookedItemName : name;							//name of the item that will be cooked
+	var cookedItemType : EAlchemyCookedItemType;		//type of cooked item
 	var cookedItemIconPath : string;
-	var cookedItemQuantity : int;						
-	var recipeName : name;								
+	var cookedItemQuantity : int;						//how many items are cooked at once
+	var recipeName : name;								//name of the recipe
 	var recipeIconPath : string;
-	var typeName : name;								
-	var level : int;									
-	var requiredIngredients : array<SItemParts>;		
+	var typeName : name;								//type of recipe, needed for levels
+	var level : int;									//recipe level
+	var requiredIngredients : array<SItemParts>;		//(fixed) ingredients required or empty if nothing required
 };
 
-enum EAlchemyCookedItemType 
+enum EAlchemyCookedItemType // #B remove substance add mutagen
 {
 	EACIT_Undefined,
 	EACIT_Potion,
 	EACIT_Bomb,
 	EACIT_Oil,
-EACIT_Substance,		
+EACIT_Substance,		//not used anymore
 	EACIT_Bolt,
 	EACIT_MutagenPotion,
 	EACIT_Alcohol,
-	EACIT_Quest
+	EACIT_Quest,
+	EACIT_Dye
 }
 
 struct SCookable
@@ -64,6 +62,7 @@ function AlchemyCookedItemTypeStringToEnum(nam : string) : EAlchemyCookedItemTyp
 		case "mutagen_potion" 	: return EACIT_MutagenPotion;
 		case "alcohol"			: return EACIT_Alcohol;
 		case "quest"			: return EACIT_Quest;
+		case "dye"				: return EACIT_Dye;
 		default	     			: return EACIT_Undefined;
 	}
 }
@@ -80,7 +79,8 @@ function AlchemyCookedItemTypeEnumToName( type : EAlchemyCookedItemType) : name
 		case EACIT_MutagenPotion 	: return 'mutagen_potion';
 		case EACIT_Alcohol 			: return 'alcohol';
 		case EACIT_Quest			: return 'quest';
-		default	     				: return '___'; 
+		case EACIT_Dye				: return 'dye';
+		default	     				: return '___'; // #B they are needed ?
 	}
 }
 
@@ -96,6 +96,7 @@ function AlchemyCookedItemTypeToLocKey( type : EAlchemyCookedItemType ) : string
 		case EACIT_MutagenPotion 	: return "panel_inventory_filter_type_decoctions";
 		case EACIT_Alcohol 			: return "panel_inventory_filter_type_alcohols";
 		case EACIT_Quest 			: return "panel_button_worldmap_showquests";
+		case EACIT_Dye				: return "item_category_dye";
 		default	     				: return "";
 	}
 }
@@ -120,17 +121,20 @@ function IsAlchemyRecipe(recipeName : name) : bool
 {
 	var dm : CDefinitionsManagerAccessor;
 	var main : SCustomNode;
-	var recipeNode : SCustomNode;
-	var i, tmpInt : int;
-	var tmpName : name;
+	var i : int;
 
 	if(!IsNameValid(recipeName))
 		return false;
 
 	dm = theGame.GetDefinitionsManager();
-	if ( dm.GetSubNodeByAttributeValueAsCName( recipeNode, 'alchemy_recipes', 'name_name', recipeName ) )
+	main = dm.GetCustomDefinition('alchemy_recipes');
+		
+	for(i=0; i<main.subNodes.Size(); i+=1)
 	{
-		return true;
+		if ( dm.GetSubNodeByAttributeValueAsCName( main.subNodes[i], 'alchemy_recipes', 'name_name', recipeName ) && recipeName == recipeName )
+		{
+			return true;
+		}
 	}
 	
 	return false;

@@ -1,16 +1,11 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
+﻿// CExplorationStateSkatingDash
+//------------------------------------------------------------------------------------------------------------------
+// Eduard Lopez Plans	( 14/05/2014 )	 
+//------------------------------------------------------------------------------------------------------------------
 
 
-
-
-
-
-
-
+//>-----------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------
 class CExplorationStateSkatingDashAttack extends CExplorationStateSkatingDash
 {
 	private 			var attacked			: bool;
@@ -21,7 +16,7 @@ class CExplorationStateSkatingDashAttack extends CExplorationStateSkatingDash
 	private editable	var	afterAttackImpulse	: float;	default	afterAttackImpulse	= 5.0f;
 	
 
-	
+	//---------------------------------------------------------------------------------
 	private function InitializeSpecific( _Exploration : CExplorationStateManager )
 	{	
 		if( !IsNameValid( m_StateNameN ) )
@@ -32,24 +27,24 @@ class CExplorationStateSkatingDashAttack extends CExplorationStateSkatingDash
 		super.InitializeSpecific( _Exploration );
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	private function AddDefaultStateChangesSpecific()
 	{
-		
-		
-		
-		
+		//AddStateToTheDefaultChangeList( 'SkateSlide' );
+		////AddStateToTheDefaultChangeList( 'SkateStopFast' );
+		//AddStateToTheDefaultChangeList( 'SkateDrift' );
+		//AddStateToTheDefaultChangeList( 'SkateBackwards' );
 		AddStateToTheDefaultChangeList( 'SkateJump' );
 		AddStateToTheDefaultChangeList( 'SkateHitLateral' );
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	function StateWantsToEnter() : bool
 	{	
 		return m_ExplorationO.m_InputO.IsSkateAttackJustPressed();
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	protected function StateEnterSpecific( prevStateName : name )	
 	{
 		attacked	= false;
@@ -57,13 +52,13 @@ class CExplorationStateSkatingDashAttack extends CExplorationStateSkatingDash
 		super.StateEnterSpecific( prevStateName );
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	function StateChangePrecheck( )	: name
 	{
 		return super.StateChangePrecheck();
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	protected function StateUpdateSpecific( _Dt : float )
 	{		
 		var accel	: float;
@@ -76,7 +71,7 @@ class CExplorationStateSkatingDashAttack extends CExplorationStateSkatingDash
 		super.StateUpdateSpecific( _Dt );
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	private function UpdateAttack( _Dt : float )
 	{
 		if( attacked )
@@ -96,15 +91,15 @@ class CExplorationStateSkatingDashAttack extends CExplorationStateSkatingDash
 			skateGlobal.ImpulseNotExceedingMaxSpeedLevel( afterAttackImpulse );
 			
 			
-			
+			// Push enemies while attacking
 			((CActor) thePlayer ).SetInteractionPriority( IP_Prio_14 );
 		}
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	private function StateExitSpecific( nextStateName : name )
 	{
-		
+		// Push enemies while attacking
 		((CActor) thePlayer ).SetInteractionPriority( IP_Prio_0 );
 	}
 }

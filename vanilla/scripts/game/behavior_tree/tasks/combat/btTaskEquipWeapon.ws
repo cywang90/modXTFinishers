@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-class CBTTaskEquipItem extends IBehTreeTask
+﻿class CBTTaskEquipItem extends IBehTreeTask
 {
 	var itemCategory : name;
 	
@@ -22,10 +17,10 @@ class CBTTaskEquipItem extends IBehTreeTask
 		if( itemIds.Size() == 0 )
 		{
 			LogAssert(false, "CBTTaskEquipItem.IsAvailable: actor <<" + npc + ">> has no weapons at all, cannot equip");			
-			return false;	
+			return false;	//no weapons at all
 		}
 		
-		
+		//already equipped
 		for(i=0; i<itemIds.Size(); i+=1)
 			if(inv.IsItemHeld(itemIds[i]))
 				return true;

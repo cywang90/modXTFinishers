@@ -1,25 +1,20 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
-
-
-
-
-
-
-
+﻿//>--------------------------------------------------------------------------
+// BTTaskGetFoodNearby
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Check surrounding to find a food source
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// R.Pergent - 28-April-2014
+//---------------------------------------------------------------------------
 class BTTaskGetFoodNearby extends IBehTreeTask
 {
-	
-	
-	
+	//>--------------------------------------------------------------------------
+	// Variables
+	//---------------------------------------------------------------------------
 	public var foodToLookFor					:	int;
 	public var completeIfTargetChange			: 	bool;
-	
+	// Private
 	private var m_foodFound						: 	W3FoodComponent;
 	private var m_scentFound					:	W3ScentComponent;
 	private var m_alreadyTrackedScents			: 	array< W3ScentComponent >;
@@ -35,8 +30,8 @@ class BTTaskGetFoodNearby extends IBehTreeTask
 	
 	default m_delayBetweenChecks 			= 5.0f;
 	default m_delayBetweenUpdateEntities 	= 5.0f;
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function IsAvailable() : bool
 	{
 		var l_availableScents		: array<CNode>;
@@ -60,15 +55,15 @@ class BTTaskGetFoodNearby extends IBehTreeTask
 		m_WasFalse = true;
 		return false;
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function OnActivate() : EBTNodeStatus
 	{	
 		UpdateTarget();
 		return BTNS_Active;
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	latent function Main( ) : EBTNodeStatus
 	{
 		var l_npc			: CNewNPC = GetNPC();
@@ -95,8 +90,8 @@ class BTTaskGetFoodNearby extends IBehTreeTask
 		
 		return BTNS_Active;
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	private function GetAvailableScents() : array <CNode>
 	{	
 		var i					: int;
@@ -149,8 +144,8 @@ class BTTaskGetFoodNearby extends IBehTreeTask
 		
 		return l_availableScents;
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	private function UpdateTarget()
 	{		
 		var l_availableScents	: array<CNode>;				
@@ -171,14 +166,14 @@ class BTTaskGetFoodNearby extends IBehTreeTask
 			return;
 		}
 		
-		
+		// Choose the closest scent
 		l_pos 				= l_npc.GetWorldPosition();
 		SortNodesByDistance( l_pos, l_availableScents );
 		l_entity 			= (CGameplayEntity) 	l_availableScents[0];
 		l_scentComponent 	= (W3ScentComponent)	l_entity.GetComponentByClassName('W3ScentComponent');
 		l_foodComponent 	= (W3FoodComponent)		l_scentComponent;
 		
-		
+		// Set the destination
 		if( l_foodComponent )
 		{
 			l_targetPos = l_foodComponent.GetEatingPosition( l_npc );
@@ -191,7 +186,7 @@ class BTTaskGetFoodNearby extends IBehTreeTask
 		l_heading		= l_targetPos -  l_scentComponent.GetWorldPosition();
 		l_headingAngle 	= VecToRotation( l_heading );
 		
-		
+		// Register as a eater if close enough
 		if( l_foodComponent && VecDistance( l_targetPos, l_pos ) < l_foodComponent.GetLockDistance() )
 		{
 			l_foodComponent.AddEater( l_npc );
@@ -211,8 +206,8 @@ class BTTaskGetFoodNearby extends IBehTreeTask
 		}
 		GetNPC().GetVisualDebug().AddArrow('toFood', GetNPC().GetWorldPosition(), m_scentFound.GetEntity().GetWorldPosition(), 1.f, 0.2f, 0.2f, true, Color(145,26,98) );
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function OnGameplayEvent( eventName : name ) : bool
 	{
 		if( eventName == 'ChangeFoodTarget' )
@@ -222,8 +217,8 @@ class BTTaskGetFoodNearby extends IBehTreeTask
 		
 		return true;
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function OnCompletion( success : bool )
 	{
 		var l_npc	: CNewNPC = GetNPC();
@@ -233,8 +228,8 @@ class BTTaskGetFoodNearby extends IBehTreeTask
 			m_foodFound.RemoveEater( l_npc );
 		}
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function OnDeactivate()
 	{
 		m_foodFound 	= NULL;
@@ -246,9 +241,9 @@ class BTTaskGetFoodNearby extends IBehTreeTask
 class BTTaskGetFoodNearbyDef extends IBehTreeTaskDefinition
 {
 	default instanceClass = 'BTTaskGetFoodNearby';
-	
-	
-	
+	//>--------------------------------------------------------------------------
+	// Variables
+	//---------------------------------------------------------------------------
 	editable var corpse 						: 	CBehTreeValBool;
 	editable var meat							: 	CBehTreeValBool;
 	editable var vegetable						: 	CBehTreeValBool;

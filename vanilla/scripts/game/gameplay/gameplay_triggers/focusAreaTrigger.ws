@@ -1,12 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2013
+/** Author : collective mind of the CDP
 /***********************************************************************/
 
-
-
-
+// Disabled, functionality moved to focus clues themselves
 
 class W3FocusAreaTrigger extends CGameplayEntity
 {
@@ -24,17 +21,42 @@ class W3FocusAreaTrigger extends CGameplayEntity
 
 	event OnAreaEnter( area : CTriggerAreaComponent, activator : CComponent )
 	{	
+		/*Only player can activate area
+		if ( activator.GetEntity() != thePlayer && !isDisabled )
+		{
+			return false;
+		}
 		
+		//Connecting area with linked clues
+		this.SetupClueConnections();
+		
+		isActive = true;
+		theGame.GetFocusModeController().SetFocusAreaIntensity( intensity * rumbleIntensityModifier );
+		*/
 	}	
 	
 	event OnAreaExit( area : CTriggerAreaComponent, activator : CComponent )
 	{	
+		/* Only player can deactivate area
+		if ( activator.GetEntity() != thePlayer && !isDisabled )
+		{
+			return false;
+		}
 		
+		isActive = false;
+		theGame.GetFocusModeController().SetFocusAreaIntensity( 0.0f );
+		*/
 	}
 
 	event OnAreaActivated( area : CTriggerAreaComponent, activated : bool )
 	{
-		
+		/*
+		if ( isActive && !activated )
+		{
+			theGame.GetFocusModeController().SetFocusAreaIntensity( 0.0f );		
+			isActive = false;
+		}
+		*/
 	}
 	
 	public function Disable()
@@ -49,13 +71,31 @@ class W3FocusAreaTrigger extends CGameplayEntity
 		isDisabled = false;
 	}
 	
-	
+	//Changes intensity of pad ramble and medallion shake
 	public function ChangeFocusAreaIntensity ( newIntensity : float )
 	{
+		/*
+		intensity = newIntensity; 
 		
+		if( newIntensity == 0)
+		{
+			if( isActive == true )
+			{
+				isActive = false;
+				theGame.GetFocusModeController().SetFocusAreaIntensity( 0.0f );	
+			}
+		}
+		else
+		{
+			if( isActive == true )
+			{
+				theGame.GetFocusModeController().SetFocusAreaIntensity( newIntensity * rumbleIntensityModifier );	
+			}	
+		}
+		*/
 	}	
 	
-	
+	//Setups connections between area and 
 	private function SetupClueConnections()
 	{
 		var i : int;
@@ -100,7 +140,7 @@ class W3FocusAreaTrigger extends CGameplayEntity
 	}
 	
 	
-	
+	//Used in monster clues to handle automatic focus area intensity
 	public function SmartFocusAreaCheck ()
 	{
 		var i : int;
@@ -145,7 +185,7 @@ class W3FocusAreaTrigger extends CGameplayEntity
 				}
 			}
 		}
-		
+		//Should Focus Area be deactivated? 
 		if( shouldBeActive == true )
 		{
 			if( intensity > 1.0 )

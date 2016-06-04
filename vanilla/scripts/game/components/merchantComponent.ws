@@ -1,10 +1,7 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2013
+/** Author : Tomek Kozera, Andrzej Kwiatkowski
 /***********************************************************************/
-
-
 
 enum EMerchantMapPinType
 {
@@ -16,7 +13,10 @@ enum EMerchantMapPinType
 	EMMPT_Herbalist,
 	EMMPT_Alchemist,
 	EMMPT_Innkeeper,
-	EMMPT_Enchanter
+	EMMPT_Enchanter,
+	EMMPT_DyeTrader,
+	EMMPT_WineTrader,
+	EMMPT_Cammerlengo
 }
 
 class W3MerchantComponent extends CScriptedComponent
@@ -46,21 +46,27 @@ class W3MerchantComponent extends CScriptedComponent
 				return 'Innkeeper';
 			case EMMPT_Enchanter:
 				return 'Enchanter';
+			case EMMPT_DyeTrader:
+				return 'DyeMerchant';
+			case EMMPT_WineTrader:
+				return 'WineMerchant';
+			case EMMPT_Cammerlengo:
+				return 'Cammerlengo';
 		}
 		return '';
 	}
 
-	
-	public function  GetScriptInfo( type : name, cacheable : bool )
+	// do not delete or modify, called from C++
+	public function /* C++ */ GetScriptInfo( type : name, cacheable : bool )
 	{
 		var merchantNPC : W3MerchantNPC;
 
 		merchantNPC = (W3MerchantNPC)GetEntity();
 
-		
+		// type
 		type = GetMapPinType();
 		
-		
+		// cacheable
 		cacheable = merchantNPC.cacheMerchantMappin;
 	}
 };

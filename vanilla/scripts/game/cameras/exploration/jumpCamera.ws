@@ -1,12 +1,7 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
-
-
+﻿// CCameraPivotPositionControllerJump
+//------------------------------------------------------------------------------------------------------------------
+// Eduard Lopez Plans	( 14/12/2013 )	 
+//------------------------------------------------------------------------------------------------------------------
 
 enum ECameraBlendSpeedMode
 {
@@ -15,21 +10,21 @@ enum ECameraBlendSpeedMode
 	ECBSM_Height	= 2,
 }
 
-
-
+//>-----------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------
 class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPositionController
 {
-	
+	// Exact camera
 	editable	var	useExactCamera			: bool;		default	useExactCamera			= true;
 	private		var	originalOffset			: Vector;
 	
 	
-	
+	// Height
 	editable	var	zOffset					: float;	default	zOffset					= 2.5f;
 	private		var	originalPosition		: Vector;
 	private		var	originalHeight			: float;
 	
-	
+	// Blend
 	editable	var	blendXYSpeed			: float;	default	blendXYSpeed			= 6.0f;
 	editable	var	blendXYSpeedWithTime	: bool;		default	blendXYSpeedWithTime	= false;
 	editable	var	blendXYSpeedTimeStart	: float;	default	blendXYSpeedTimeStart	= 0.0f;
@@ -41,32 +36,32 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 	private editable inlined var blendCurve	: CCurve;
 	editable	var	blendZBasedOn			: ECameraBlendSpeedMode;	default	blendZBasedOn	= ECBSM_Time;
 	
-	
+	// Blend by height
 	private		var	blendZHeightMaxDif		: float;
 	
-	
+	// Blend by distance
 	editable	var	blendZDistToForceStart			: float;	default	blendZDistToForceStart			= 1.5f;
 	editable	var	blendZDistToForceEnd			: float;	default	blendZDistToForceEnd			= 2.5f;
 	private		var	blendZDistToForceMaxCur			: float;
 	
-	
+	// Blend by time
 	editable	var	blendZSpeedTimeMin		: float;	default	blendZSpeedTimeMin		= 0.6f;
 	editable	var	blendZSpeedTimeTotal	: float;	default	blendZSpeedTimeTotal	= 2.5f;
 	private		var	blendZSpeedTimeCur		: float;	default	blendZSpeedTimeCur		= 0.0f;
 	
-	
+	// Offset
 	editable 	var	addOffset				: bool;		default	addOffset				= true;
 	editable 	var	verticalDownOffsetMax	: float;	default	verticalDownOffsetMax	= 1.8f;
 	editable 	var	verticalDownTimeMax		: float;	default	verticalDownTimeMax		= 2.2f;
 	editable 	var	verticalDownTimeMin		: float;	default	verticalDownTimeMin		= 0.6f;
 	
-	
+	// Interior 
 	private		var	isInInterior			: bool;
 	editable	var	blendZInteriorTimeToFall: float;	default	blendZInteriorTimeToFall= 1.0f;
 	editable	var	blendZSpeedInterior		: float;	default	blendZSpeedInterior		= 1.0f;
 	editable	var	blendZSpeedInteriorFall	: float;	default	blendZSpeedInteriorFall	= 5.0f;
 	
-	
+	// Height tracing
 	editable 	var	heightTraceAlwaysAdjust	: bool;		default	heightTraceAlwaysAdjust	= true;
 	editable 	var	heightTraceEnabled		: bool;		default	heightTraceEnabled		= true;
 	editable 	var	heightTraceDownMax		: float;	default	heightTraceDownMax		= 2.5f;
@@ -87,25 +82,25 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 	private		var	heightTraceAdjusting	: bool;
 	private		var	heightAdjustingTime		: float;
 	
-	
+	// Follow bone
 	editable	var boneFollowName			: name;
 	private		var	boneFollow				: int;		default	boneFollow				= -1;
 	editable	var	startFollowBoneTime		: float;	default	startFollowBoneTime		= 0.0f;
 	editable	var	followBoneOnFall		: bool;		default	followBoneOnFall		= true;
 	
-	
+	// Falling camera
 	private		var falling					: bool;
 	editable	var forceOnGround			: bool;		default	forceOnGround			= false;
 	
-	
+	// Dbeug
 	editable	var	debugLog				: bool;		default	debugLog				= false;
 	private		var	zeroVector				: Vector;
 	
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	protected function ControllerUpdate( out currentPosition : Vector, out currentVelocity : Vector, timeDelta : float )
 	{		
-		
+		// Time adjustment for radial menu
 		timeDelta	*= theGame.GetTimeScale();
 		
 		if( useExactCamera )
@@ -118,7 +113,7 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 		}		
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	private function UpdateExactCamera( out currentPosition : Vector, out currentVelocity : Vector, timeDelta : float )
 	{
 		var blendZCoef	: float;
@@ -129,7 +124,7 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 			return;
 		}
 		
-		
+		// First frame
 		if( blendZSpeedTimeCur	< 0.0f )
 		{
 			originalOffset			= currentPosition - GetFollowPos();
@@ -144,7 +139,7 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 		
 		if( blendZSpeedTimeCur >= startFollowBoneTime && boneFollow == -1 &&( followBoneOnFall || !falling ) )
 		{
-			
+			// Following a bone?
 			if( IsNameValid( boneFollowName ) )
 			{
 				boneFollow	= thePlayer.GetBoneIndex( boneFollowName );
@@ -155,11 +150,11 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 			}
 		}
 		
-		
+		// Set the position back
 		currentPosition 		= GetFollowPos() + originalOffset;
+		//thePlayer.SetBonePositionCam( currentPosition );
 		
-		
-		
+		// Blend height		
 		if( !forceOnGround )
 		{
 			blendZCoef			= ComputeBlendZCoef( timeDelta, currentPosition.Z );
@@ -169,16 +164,16 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 			}
 		}	
 		
-		
+		// Add the height traced
 		if( heightTraceEnabled )
 		{
 			originalHeight		+= ComputeTaceHeightAdded( currentPosition, timeDelta );
 		}
 		
-		
+		// Set height
 		currentPosition.Z		= originalHeight;
 		
-		
+		// Time
 		if( falling )
 		{
 			blendZSpeedTimeCur	+= timeDelta * 4.0f;
@@ -189,7 +184,7 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 		}
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	private function UpdateOldCamera( out currentPosition : Vector, out currentVelocity : Vector, timeDelta : float )
 	{
 		var	blendXYCoef			: float;
@@ -197,7 +192,7 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 		var targetPosition		: Vector;
 		
 		
-		
+		// Init
 		if( blendZSpeedTimeCur	< 0.0f )
 		{			
 			originalPosition	= currentPosition;
@@ -209,10 +204,10 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 		
 		
 		
-		
+		// Target pos
 		targetPosition	= ComputeTargetPos();
 		
-		
+		// Get the blends
 		if( blendXYSpeedWithTime )
 		{
 			blendXYCoef		= ClampF( blendZSpeedTimeCur, blendXYSpeedTimeStart, blendXYSpeedTimeEnd ); 
@@ -221,7 +216,7 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 		}
 		else
 		{
-			
+			// If blend is set to 0, make it instant
 			if( blendXYSpeed <= 0.0f )
 			{
 				blendXYCoef	= 1.0f;
@@ -234,7 +229,7 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 		
 		blendZCoef	= ComputeBlendZCoef( timeDelta,targetPosition.Z );
 		
-		
+		// Blend the target position
 		originalPosition.X	= BlendF( originalPosition.X, targetPosition.X, blendXYCoef );
 		originalPosition.Y	= BlendF( originalPosition.Y, targetPosition.Y, blendXYCoef );
 		
@@ -253,11 +248,11 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 				InitHeightTrace( targetPosition );
 			}
 			
-			originalPosition.Z	+= ComputeTaceHeightAdded( targetPosition, timeDelta ); 
+			originalPosition.Z	+= ComputeTaceHeightAdded( targetPosition, timeDelta ); //originalPosition
 		}
 		
 		
-		
+		// Time
 		if( falling )
 		{
 			blendZSpeedTimeCur	+= timeDelta * 4.0f;
@@ -267,7 +262,7 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 			blendZSpeedTimeCur	+= timeDelta;
 		}		
 		
-		
+		// Set the final position
 		currentPosition = originalPosition;
 		currentVelocity	= Vector( 0.0f, 0.0f, 0.0f );
 		
@@ -278,7 +273,7 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 		}
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	protected function ControllerActivate( currentOffset : float )
 	{		
 		var auxVector		: Vector;
@@ -288,7 +283,7 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 		blendZHeightMaxDif	= 0.0f;
 		falling				= false;
 		
-		
+		// falling?
 		if( thePlayer.substateManager.GetStateCur() == 'Jump' )
 		{
 			jumpType	= thePlayer.substateManager.m_SharedDataO.m_JumpTypeE;
@@ -297,14 +292,24 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 				falling = true;
 			}
 		}
+		/*
+		//if( addOffset )
+		//{
+			auxVector	= thePlayer.GetMovingAgentComponent().GetVelocity();
+			if( auxVector.Z < -3.5f )
+			{
+				falling = true;
+			}
+		}
+		//}
+		*/
 		
 		
-		
-		
+		// Interiors
 		isInInterior	= !thePlayer.IsActionAllowed( EIAB_RunAndSprint ) || !thePlayer.IsActionAllowed( EIAB_Sprint );
 		
 		
-		
+		// Start by following the trajectory
 		boneFollow	= -1;
 		
 		
@@ -318,10 +323,10 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 		}
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	private function GetFollowPos() : Vector
 	{
-		
+		// We have a special case to follow the reference bone position
 		if( boneFollow >= 0 )
 		{
 			return GetBoneToFollowPosition();
@@ -332,13 +337,13 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 		}
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	private function GetBoneToFollowPosition() : Vector
 	{
 		var position : Vector;
 		
 		position	= thePlayer.HACK_ForceGetBonePosition( boneFollow );
-		
+		//return MatrixGetTranslation( thePlayer.GetBoneWorldMatrixByIndex( boneFollow ) );
 		
 		if( position == zeroVector )
 		{
@@ -348,7 +353,7 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 		return position;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	private function ComputeTargetPos() : Vector
 	{	
 		var offset 		: Vector;
@@ -371,7 +376,7 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 		return position;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	private function ComputeOffset() : Vector
 	{
 		var verticalDisp	: float;
@@ -388,7 +393,7 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 		return	Vector( 0, 0, zOffset );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	private function ComputeBlendZCoef( timeDelta : float, height : float ) : float
 	{
 		var blendZSpeed		: float;
@@ -400,7 +405,7 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 			return 0.0f;
 		}
 		
-		
+		// Hack for interiors
 		if( isInInterior )
 		{
 			if( blendZSpeedTimeCur < blendZInteriorTimeToFall )
@@ -412,7 +417,7 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 				blendZSpeed	= blendZSpeedInteriorFall;
 			}
 		}
-		else if( blendZBasedOn == ECBSM_Distance ) 
+		else if( blendZBasedOn == ECBSM_Distance ) // Blend on distance
 		{
 			distanceInZ	= AbsF( height - originalHeight );
 			if( blendZDistToForceMaxCur < distanceInZ )
@@ -425,7 +430,7 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 				blendZSpeed				= MapF( blendZDistToForceMaxCur, blendZDistToForceStart, blendZDistToForceEnd, blendZSpeedStart, blendZSpeedEnd );
 			}
 		}
-		else if( blendZBasedOn == ECBSM_Height ) 
+		else if( blendZBasedOn == ECBSM_Height ) // Blend on height from fall
 		{
 			distanceInZ	= originalHeight - height;
 			if( blendZHeightMaxDif < distanceInZ )
@@ -444,7 +449,7 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 		}	
 		else if( blendZBasedOn == ECBSM_Time )
 		{
-			if( blendCurve ) 
+			if( blendCurve ) // Blend on time curve
 			{
 				if( blendZSpeedTimeCur < blendZSpeedTimeMin )
 				{
@@ -458,7 +463,7 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 					blendZSpeed	= MapF( blendZSpeed, 0.0f, 1.0f, blendZSpeedStart, blendZSpeedEnd );
 				}
 			}
-			else 
+			else // Blend on time linear
 			{
 				if( blendZSpeedTimeCur < blendZSpeedTimeMin )
 				{
@@ -474,7 +479,7 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 		return MinF( timeDelta * blendZSpeed , 1.0f );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	private function InitHeightTrace( position : Vector )
 	{
 		var heightNow	: float;
@@ -499,7 +504,7 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 		heightTraceAdjusting	= false;
 	}	
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	private function ComputeTaceHeightAdded( position : Vector, deltaTime : float ) : float
 	{	
 		var groundHeight	: float;
@@ -511,7 +516,7 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 		result	= ComputeGroundHeight( position, groundHeight );
 		if( result )
 		{	
-			
+			// Adjust height
 			if( heightTraceAlwaysAdjust || groundHeight > heightTraceMax || ( heightTraceDown && blendZSpeedTimeCur > heightTraceDownTimeMin ) )
 			{
 				heightTraceAccumulated	+= groundHeight - heightTraceMax;
@@ -529,7 +534,7 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 			traceSpeed	= MapF( heightTraceDownTimeMin, heightTraceDownTimeMax, heightTraceSpeedDownMin, heightTraceSpeedDownMax, traceSpeed );
 		}
 		
-		
+		//addedHeight				= MinF( heightTraceAccumulated, MinF( deltaTime * heightTraceSpeed, 1.0f ) * ( 1.0f - MinF( heightTraceAccumulated / 0.4f, 0.4f ) ) );
 		addedHeight				= SignF( heightTraceAccumulated ) * MinF( AbsF( heightTraceAccumulated ), MinF( deltaTime * traceSpeed, 1.0f ) );
 		heightTraceAccumulated	-= addedHeight;
 		heightTraceTotal		+= addedHeight;
@@ -542,7 +547,7 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 		return addedHeight;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	private function ComputeTaceHeightAddedState( position : Vector, deltaTime : float ) : float
 	{	
 		var groundHeight	: float;
@@ -557,17 +562,17 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 			heightTraceAccumulated	= groundHeight - heightTraceMax;
 		}
 		
-		
+		// Start tracing
 		if( !heightTraceAdjusting )
 		{
-			if( heightTraceAccumulated != 0.0f ) 
+			if( heightTraceAccumulated != 0.0f ) //heightTraceAccumulated > 0.1f || heightTraceAccumulated < -0.2f )
 			{
 				heightTraceAdjusting	= true;
 				heightAdjustingTime		= 0.0f;
 			}
 		}
 		
-		
+		// Update tracing
 		if( heightTraceAdjusting )
 		{
 			addedHeight			= deltaTime * MinF( heightAdjustingTime, 3.0f ) * SignF( heightTraceAccumulated ) * 100.0f;
@@ -583,7 +588,7 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 		return 0.0f;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	private function ComputeGroundHeight( position : Vector, out height : float ) : bool
 	{
 		var world 			: CWorld;
@@ -596,7 +601,7 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 		
 		position	+= thePlayer.GetWorldForward() * traceForwardExtraOffset;
 		
-		
+		// Init
 		height		= position.Z - heightTraceDownMax;
 		
 		
@@ -606,20 +611,20 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 			return false;
 		}
 		
-		
+		// Height modification
 		posOrigin	= position;
-		posOrigin.Z	+= 0.2f;
+		posOrigin.Z	+= 0.2f;// - zOffset;
 		posEnd		= position;
-		posEnd.Z	-= heightTraceDownMax;
+		posEnd.Z	-= heightTraceDownMax;// + zOffset;
 		
-		
+		// Terrain in between?
 		res = world.StaticTrace( posOrigin, posEnd, posCollided, normalCollided, heightTraceCollFlags );
 		
 		if( res )
 		{
 			height	= posCollided.Z;
 			
-			
+			//thePlayer.substateManager.SetDebugPoint( posCollided );
 			
 			return true;
 		}
@@ -630,36 +635,36 @@ class CCameraPivotPositionControllerJump extends ICustomCameraScriptedPivotPosit
 
 
 
-
-
+//>-----------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------
 class CCameraRotationControllerJump extends ICustomCameraScriptedPivotRotationController
 {
-	
+	// Forced pitch
 	private	editable 			var	pitchTotal		: float;	default	pitchTotal		= -50.0f;
 	private						var	pitchBase		: float;
 	
-	
+	// Yaw
 	editable					var	yawAcceleration	: float;	default	yawAcceleration	= 1.0f;
 	editable					var yawMaxSpeed		: float;	default	yawMaxSpeed		= 2.0f;
 	
-	
+	// Time
 	private						var	timeCur			: float;
 	private	editable 			var	timeStart		: float;	default	timeStart		= 0.5f;
 	private	editable 			var	timeComplete	: float;	default	timeComplete	= 1.7f;
 	
-	
+	// Blend
 	private editable			var	blendSpeed		: float;	default	blendSpeed		= 5.0f;
 	private editable inlined	var pitchCurve		: CCurve;
 	
 	
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	protected function ControllerUpdate( out currentRotation : EulerAngles, out currentVelocity : EulerAngles, timeDelta : float )
 	{
 		var pitchTarget	: float;
 		var coef		: float;
 		
-		
+		// Init
 		if( timeCur <= 0.0f )
 		{
 			pitchBase		= currentRotation.Pitch;
@@ -683,13 +688,25 @@ class CCameraRotationControllerJump extends ICustomCameraScriptedPivotRotationCo
 			currentRotation.Pitch	= BlendF( currentRotation.Pitch, pitchTarget, blendSpeed * timeDelta );
 		}
 		
-		
+		// Set the yaw as we have received before
 		currentRotation.Yaw		-= yawMaxSpeed * theInput.GetActionValue( 'GI_AxisRightX' );
 		
 		timeCur	+= timeDelta;
 	}
+	/*
+	//------------------------------------------------------------------------------------------------------------------
+	protected function ControllerSetDesiredYaw( yaw : float, mult : float )
+	{
+	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
+	protected function ControllerUpdateInput( out movedHorizontal : bool, out movedVertical : bool )
+	{
+		movedHorizontal	= true;
+		movedVertical	= true;
+	}
+	*/
+	//------------------------------------------------------------------------------------------------------------------
 	protected function ControllerActivate( currentRotation : EulerAngles )
 	{		
 		timeCur		= 0.0f;

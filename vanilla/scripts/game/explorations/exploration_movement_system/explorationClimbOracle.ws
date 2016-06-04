@@ -1,12 +1,7 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
-
-
+﻿// CExplorationStateClimb
+//------------------------------------------------------------------------------------------------------------------
+// Eduard Lopez Plans	( 13/08/2014 )	 
+//------------------------------------------------------------------------------------------------------------------
 
 enum EClimbProbeUsed
 {
@@ -15,8 +10,8 @@ enum EClimbProbeUsed
 	ECPU_Bottom	,
 }
 
-
-
+//>-----------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------
 class CExplorationClimbOracle
 {	
 	private						var	m_ExplorationO			: CExplorationStateManager;
@@ -24,30 +19,30 @@ class CExplorationClimbOracle
 	private						var	probeTop				: CClimbProbe;
 	private						var	probeBottom				: CClimbProbe;
 	
-	
+	// Distances
 	private editable			var	distForwardToCheck		: float;				default	distForwardToCheck		= 0.5f;
 	private editable			var characterRadius			: float;				default characterRadius			= 0.3f;
 	private editable			var characterHeight			: float;				default characterHeight			= 1.8f;
 	private editable			var	radiusToCheck			: float;				default	radiusToCheck			= 0.3f;
 	
-	
+	// Top bottom checks
 	private	editable			var bottomCheckAllowed		: bool;					default	bottomCheckAllowed		= true;
 	private						var topIsPriority			: bool;
 	private						var probeBeingUsed			: EClimbProbeUsed;	
 	
-	
+	// Debug
 	private						var	debugLogFails			: bool;
 	
-	
+	//Aux
 	private						var	vectorUp				: Vector;
 	
 	
-	
+	//---------------------------------------------------------------------------------
 	public function Initialize( explorationO : CExplorationStateManager, heightMin : float, heightMax : float, platformHeihtMin : float, radius : float )
 	{
 		m_ExplorationO	= explorationO;
 		
-		
+		// Probes
 		if( !probeTop )
 		{
 			probeTop	= new CClimbProbe in this;
@@ -59,11 +54,11 @@ class CExplorationClimbOracle
 		probeTop.Initialize( heightMin, heightMax, platformHeihtMin, radius, 1, true );
 		probeBottom.Initialize( heightMin, heightMax, platformHeihtMin, radius, 2, false );
 		
-		
+		// Init aux
 		vectorUp	= Vector( 0.0f,0.0f, 1.0f );
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	public function ComputeAll( ptriorizeTop : bool, position : Vector, directionNormalized : Vector, distanceType : EClimbDistanceType, requireInputDir : bool, logFails : bool )
 	{		
 		var requireInput	: bool;
@@ -80,7 +75,7 @@ class CExplorationClimbOracle
 		probeBeingUsed	= ComputeConvenientClimb();
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	public function CanWeClimb() : bool
 	{
 		switch( probeBeingUsed )
@@ -96,7 +91,7 @@ class CExplorationClimbOracle
 		}
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	public function GetClimbData( out height : float, out vault : EClimbRequirementVault, out vaultFalls : bool, out platform : EClimbRequirementPlatform, out climbPoint : Vector, out wallNormal : Vector )
 	{
 		switch( probeBeingUsed )
@@ -115,10 +110,10 @@ class CExplorationClimbOracle
 		}
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	private function ComputeConvenientClimb() : EClimbProbeUsed
 	{				
-		
+		// We start from the top and we'll use some of its data to compute the bottom check as well
 		probeTop.ComputeStartup();
 		
 		if( !probeTop.IsSetupValid() )
@@ -126,7 +121,7 @@ class CExplorationClimbOracle
 			return ECPU_None;
 		}
 		
-		
+		// Start trying top
 		if( topIsPriority )
 		{
 			probeTop.ComputeClimbDetails();
@@ -135,7 +130,7 @@ class CExplorationClimbOracle
 				return ECPU_Top;
 			}
 			
-			
+			// If not valid, try bottom one
 			else if( bottomCheckAllowed )
 			{	
 				probeBottom.ComputeStartupFromThisPoint( probeTop.GetGroundPoint() );
@@ -148,7 +143,7 @@ class CExplorationClimbOracle
 			}
 		}
 		
-		
+		// Start trying bottom
 		else 
 		{
 			if( bottomCheckAllowed )
@@ -162,7 +157,7 @@ class CExplorationClimbOracle
 				}
 			}
 			
-			
+			// If not valid, finish trying the top one
 			probeTop.ComputeClimbDetails();
 			if( probeTop.IsValid() )
 			{
@@ -173,7 +168,7 @@ class CExplorationClimbOracle
 		return ECPU_None;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	event OnVisualDebug( frame : CScriptedRenderFrame, flag : EShowFlags, active : bool )
 	{
 		if( !probeTop.IsValid() && probeBottom.IsValid() )
@@ -188,7 +183,7 @@ class CExplorationClimbOracle
 		return true;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function DebugLogSuccesfullClimb()
 	{
 		var auxText	: string;

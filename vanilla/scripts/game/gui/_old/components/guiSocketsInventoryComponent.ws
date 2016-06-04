@@ -1,27 +1,22 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-class W3GuiSocketsInventoryComponent extends W3GuiPlayerInventoryComponent
+﻿class W3GuiSocketsInventoryComponent extends W3GuiPlayerInventoryComponent
 {
 	public var merchantInv			 : CInventoryComponent;
 	protected var m_upgradeItem      : SItemUniqueId;
 	protected var m_useSocketsFilter : bool;
 	
-	
+	// Show only items can be enhancement by [item]
 	public function SetUpgradableFilter(item : SItemUniqueId) :void
 	{
 		m_upgradeItem = item;
 	}
 	
-	
+	// Show only items with not-empty sockets
 	public function SetSocketsFilter(value:bool):void
 	{
 		m_useSocketsFilter = value;
 	}
 
-	protected  function ShouldShowItem( item : SItemUniqueId ):bool
+	protected /* override */ function ShouldShowItem( item : SItemUniqueId ):bool
 	{
 		var upgradeFilter : bool;
 		var socketFilter  : bool;
@@ -47,8 +42,9 @@ class W3GuiSocketsInventoryComponent extends W3GuiPlayerInventoryComponent
 		return upgradeFilter && socketFilter;
 	}
 	
-	public  function SetInventoryFlashObjectForItem( item : SItemUniqueId, out flashObject : CScriptedFlashObject) : void
+	public /* override */ function SetInventoryFlashObjectForItem( item : SItemUniqueId, out flashObject : CScriptedFlashObject) : void
 	{
+		var targetGridSection : int;
 		var invItem : SInventoryItem;
 		var isEquipped : bool;
 		
@@ -62,6 +58,17 @@ class W3GuiSocketsInventoryComponent extends W3GuiPlayerInventoryComponent
 		flashObject.SetMemberFlashInt("actionPrice", merchantInv.GetItemPriceRemoveUpgrade( invItem ));
 		flashObject.SetMemberFlashInt( "gridPosition", -1 );
 		flashObject.SetMemberFlashBool( "isEquipped",  isEquipped);
+		
+		if( GetWitcherPlayer().IsItemEquipped( item ) )
+		{
+			targetGridSection = 0;
+		}
+		else
+		{
+			targetGridSection = 1;
+		}
+		
+		flashObject.SetMemberFlashInt( "sectionId", targetGridSection );
 	}
 	
 	private function addSocketsListInfo(item : SItemUniqueId, out flashObject : CScriptedFlashObject) : void

@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-enum EBossAction
+﻿enum EBossAction
 {
 	EBA_Parry,
 	EBA_Siphon,
@@ -21,8 +16,8 @@ enum EBossSpecialAttacks
 	EBSA_SpecialAttacks
 };
 
-
-
+//---------------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------
 
 class BTTaskEredinChangeArena extends IBehTreeTask
 {
@@ -95,7 +90,7 @@ class BTTaskEredinChangeArena extends IBehTreeTask
 		{
 			teleport.SetDestinationParameters( destinationTag, factOnPlayerTeleport );
 			teleport.ActivateTeleport( 0.5 );
-			
+			//teleport.DestroyAfter( 15.0 );
 		}	
 	}
 }
@@ -115,8 +110,8 @@ class BTTaskEredinChangeArenaDef extends IBehTreeTaskDefinition
 	default eventName = 'OpenRift';
 }
 
-
-
+//---------------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------
 
 class BTTaskSpawnEntitiesAttack extends IBehTreeTask
 {
@@ -132,9 +127,14 @@ class BTTaskSpawnEntitiesAttack extends IBehTreeTask
 	var shouldStart : bool;
 	var lastSpawnTimestamp : float;
 	var spawnTimeout : float;
+	var checkDistanceOfNpcToTarget : bool;
+	var spawnEntitiesAroundOwner : bool;
 	
 	var entityTemplate : CEntityTemplate;
 	var usedPos : array<Vector>;
+	
+	default checkDistanceOfNpcToTarget = true;
+	default spawnEntitiesAroundOwner = false;
 	
 	function OnActivate() : EBTNodeStatus
 	{
@@ -145,7 +145,7 @@ class BTTaskSpawnEntitiesAttack extends IBehTreeTask
 	
 	function OnDeactivate()
 	{
-		GetNPC().SetBehaviorVariable( behVariableToSetOnEnd, 1.0 ); 
+		GetNPC().SetBehaviorVariable( behVariableToSetOnEnd, 1.0 ); // failsafe
 	}
 	
 	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo ) : bool
@@ -176,11 +176,11 @@ class BTTaskSpawnEntitiesAttack extends IBehTreeTask
 		
 		for( i = 0; i < numberOfEntities; i += 1 )
 		{
-			if( VecDistance2D( GetNPC().GetWorldPosition(), GetCombatTarget().GetWorldPosition() ) < 7.5 )
+			if( ( VecDistance2D( GetNPC().GetWorldPosition(), GetCombatTarget().GetWorldPosition() ) < 7.5 ) && checkDistanceOfNpcToTarget )
 			{
 				break;
 			}
-		
+			
 			pos = FindPosition();
 			
 			while( !IsPositionValid( pos ) )
@@ -224,6 +224,10 @@ class BTTaskSpawnEntitiesAttack extends IBehTreeTask
 		targetPos = GetCombatTarget().GetWorldPosition();
 		randVec = VecRingRand( minDistFromTarget, maxDistFromTarget );
 		
+		if( spawnEntitiesAroundOwner )
+		{
+			targetPos = GetNPC().GetWorldPosition();
+		}
 		outPos = targetPos + randVec;
 		
 		return outPos;
@@ -277,10 +281,12 @@ class BTTaskSpawnEntitiesAttackDef extends IBehTreeTaskDefinition
 	editable var minDistFromEachOther : float;
 	editable var initialDelay : float;
 	editable var behVariableToSetOnEnd : name;
+	editable var checkDistanceOfNpcToTarget : bool;
+	editable var spawnEntitiesAroundOwner 	: bool;
 }
 
-
-
+//---------------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------
 
 class BTTaskEredinIceSpikesAttack extends BTTaskSpawnEntitiesAttack
 {
@@ -321,8 +327,8 @@ class BTTaskEredinIceSpikesAttackDef extends BTTaskSpawnEntitiesAttackDef
 	default behVariableToSetOnEnd = 'bIceSpikesEnd';
 }
 
-
-
+//---------------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------
 
 class BTTaskEredinMeteoriteAttack extends BTTaskSpawnEntitiesAttack
 {
@@ -384,8 +390,8 @@ class BTTaskEredinMeteoriteAttackDef extends BTTaskSpawnEntitiesAttackDef
 	default behVariableToSetOnEnd = 'bSummonMeteoritesEnd';
 }
 
-
-
+//---------------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------
 
 class BTTaskEredinSummonMeteoriteStorm extends IBehTreeTask
 {
@@ -452,8 +458,8 @@ class BTTaskEredinSummonMeteoriteStormDef extends IBehTreeTaskDefinition
 	default eventName = 'SummonMeteorites';
 }
 
-
-
+//---------------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------
 
 class BTTaskBlockPlayerActions extends IBehTreeTask
 {
@@ -490,8 +496,8 @@ class BTTaskBlockPlayerActionsDef extends IBehTreeTaskDefinition
 	default onActivate = true;
 }
 
-
-
+//---------------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------
 
 class BTTaskEredinMonitorSignCast extends IBehTreeTask
 {
@@ -517,8 +523,8 @@ class BTTaskEredinMonitorSignCastDef extends IBehTreeTaskDefinition
 	default instanceClass = 'BTTaskEredinMonitorSignCast';
 }
 
-
-
+//---------------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------
 
 class BTTaskEredinCanSpawnRift extends IBehTreeTask
 {
@@ -582,12 +588,11 @@ class BTTaskEredinCanSpawnRiftDef extends IBehTreeTaskDefinition
 	default instanceClass = 'BTTaskEredinCanSpawnRift';
 }
 
-
-
+//---------------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------
 
 class BTTaskEredinCanPerformAction extends IBehTreeTask
 {
-	private var storageHandler : CAIStorageHandler;
 	protected var combatDataStorage : CBossAICombatStorage;
 	
 	editable var action : EBossAction;
@@ -621,8 +626,7 @@ class BTTaskEredinCanPerformAction extends IBehTreeTask
 	
 	function Initialize()
 	{
-		storageHandler = InitializeCombatStorage();
-		combatDataStorage = (CBossAICombatStorage)storageHandler.Get();
+		combatDataStorage = (CBossAICombatStorage)InitializeCombatStorage();
 	}
 }
 
@@ -633,12 +637,11 @@ class BTTaskEredinCanPerformActionDef extends IBehTreeTaskDefinition
 	editable var action : EBossAction;
 }
 
-
-
+//---------------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------
 
 class BTTaskEredinSetCanPerformAction extends IBehTreeTask
 {
-	private var storageHandler : CAIStorageHandler;
 	protected var combatDataStorage : CBossAICombatStorage;
 	private var npc : CNewNPC;
 	
@@ -727,14 +730,14 @@ class BTTaskEredinSetCanPerformAction extends IBehTreeTask
 				if( value )
 				{
 					combatDataStorage.SetIsStaminaRegenAvailable( true );
-					
+					//npc.ResumeEffects( EET_AutoStaminaRegen, 'BTTaskEredinSetCanPerformAction' );
 					npc.RemoveBuffImmunity( EET_AutoStaminaRegen, 'BTTaskEredinSetCanPerformAction' );
 					npc.AddEffectDefault( EET_AutoStaminaRegen, npc );
 				}
 				else
 				{
 					combatDataStorage.SetIsStaminaRegenAvailable( false );
-					
+					//npc.PauseEffects( EET_AutoStaminaRegen, 'BTTaskEredinSetCanPerformAction' );
 					npc.AddBuffImmunity( EET_AutoStaminaRegen, 'BTTaskEredinSetCanPerformAction', true );
 					
 				}
@@ -765,8 +768,7 @@ class BTTaskEredinSetCanPerformAction extends IBehTreeTask
 	
 	function Initialize()
 	{
-		storageHandler = InitializeCombatStorage();
-		combatDataStorage = (CBossAICombatStorage)storageHandler.Get();
+		combatDataStorage = (CBossAICombatStorage)InitializeCombatStorage();
 	}
 }
 
@@ -781,12 +783,11 @@ class BTTaskEredinSetCanPerformActionDef extends IBehTreeTaskDefinition
 	default onActivate = true;
 }
 
-
-
+//---------------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------
 
 class BTTaskEredinIsAttackAvailable extends IBehTreeTask
 {
-	private var storageHandler : CAIStorageHandler;
 	protected var combatDataStorage : CBossAICombatStorage;
 	
 	var attack : EBossSpecialAttacks;
@@ -798,8 +799,7 @@ class BTTaskEredinIsAttackAvailable extends IBehTreeTask
 	
 	function Initialize()
 	{
-		storageHandler = InitializeCombatStorage();
-		combatDataStorage = (CBossAICombatStorage)storageHandler.Get();
+		combatDataStorage = (CBossAICombatStorage)InitializeCombatStorage();
 	}
 }
 
@@ -810,12 +810,11 @@ class BTTaskEredinIsAttackAvailableDef extends IBehTreeTaskDefinition
 	editable var attack : EBossSpecialAttacks;
 }
 
-
-
+//---------------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------
 
 class BTTaskEredinSetIsAttackAvailable extends IBehTreeTask
 {
-	private var storageHandler : CAIStorageHandler;
 	protected var combatDataStorage : CBossAICombatStorage;
 	
 	var attack : EBossSpecialAttacks;
@@ -847,8 +846,7 @@ class BTTaskEredinSetIsAttackAvailable extends IBehTreeTask
 	
 	function Initialize()
 	{
-		storageHandler = InitializeCombatStorage();
-		combatDataStorage = (CBossAICombatStorage)storageHandler.Get();
+		combatDataStorage = (CBossAICombatStorage)InitializeCombatStorage();
 	}
 }
 
@@ -863,12 +861,11 @@ class BTTaskEredinSetIsAttackAvailableDef extends IBehTreeTaskDefinition
 	default onActivate = true;
 }
 
-
-
+//---------------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------
 
 class BTTaskEredinSetIsInSpecialAttack extends IBehTreeTask
 {
-	private var storageHandler : CAIStorageHandler;
 	protected var combatDataStorage : CBossAICombatStorage;
 
 	function OnActivate() : EBTNodeStatus
@@ -884,8 +881,7 @@ class BTTaskEredinSetIsInSpecialAttack extends IBehTreeTask
 	
 	function Initialize()
 	{
-		storageHandler = InitializeCombatStorage();
-		combatDataStorage = (CBossAICombatStorage)storageHandler.Get();
+		combatDataStorage = (CBossAICombatStorage)InitializeCombatStorage();
 	}
 }
 
@@ -894,12 +890,11 @@ class BTTaskEredinSetIsInSpecialAttackDef extends IBehTreeTaskDefinition
 	default instanceClass = 'BTTaskEredinSetIsInSpecialAttack';
 }
 
-
-
+//---------------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------
 
 class BTTaskEredinGetIsInSpecialAttack extends IBehTreeTask
 {
-	private var storageHandler : CAIStorageHandler;
 	protected var combatDataStorage : CBossAICombatStorage;
 
 	function IsAvailable () : bool
@@ -909,8 +904,7 @@ class BTTaskEredinGetIsInSpecialAttack extends IBehTreeTask
 	
 	function Initialize()
 	{
-		storageHandler = InitializeCombatStorage();
-		combatDataStorage = (CBossAICombatStorage)storageHandler.Get();
+		combatDataStorage = (CBossAICombatStorage)InitializeCombatStorage();
 	}
 }
 
@@ -919,12 +913,11 @@ class BTTaskEredinGetIsInSpecialAttackDef extends IBehTreeTaskDefinition
 	default instanceClass = 'BTTaskEredinGetIsInSpecialAttack';
 }
 
-
-
+//---------------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------
 
 class BTTaskEredinIsTaunting extends IBehTreeTask
 {
-	private var storageHandler : CAIStorageHandler;
 	protected var combatDataStorage : CBossAICombatStorage;
 
 	function IsAvailable () : bool
@@ -934,8 +927,7 @@ class BTTaskEredinIsTaunting extends IBehTreeTask
 	
 	function Initialize()
 	{
-		storageHandler = InitializeCombatStorage();
-		combatDataStorage = (CBossAICombatStorage)storageHandler.Get();
+		combatDataStorage = (CBossAICombatStorage)InitializeCombatStorage();
 	}
 }
 
@@ -944,8 +936,8 @@ class BTTaskEredinIsTauntingDef extends IBehTreeTaskDefinition
 	default instanceClass = 'BTTaskEredinIsTaunting';
 }
 
-
-
+//---------------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------
 
 enum EEredinPhaseChangeAction
 {
@@ -1025,8 +1017,8 @@ class BTTaskEredinPhaseChangeDef extends IBehTreeTaskDefinition
 	editable var action : EEredinPhaseChangeAction;
 }
 
-
-
+//---------------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------
 
 class BTTaskLockCameraToTarget extends IBehTreeTask
 {
@@ -1063,8 +1055,8 @@ class BTTaskLockCameraToTargetDef extends IBehTreeTaskDefinition
 
 }
 
-
-
+//---------------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------
 
 class BTTaskIsPlayerReachable extends IBehTreeTask
 {

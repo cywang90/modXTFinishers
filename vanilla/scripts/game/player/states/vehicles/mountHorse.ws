@@ -1,17 +1,12 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
+﻿// Please keep this as empty as possible
+// use RidingManager instead
 state MountHorse in CR4Player extends MountTheVehicle
 {
 	var horseComp : W3HorseComponent;
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	event OnEnterState( prevStateName : name )
 	{
@@ -56,7 +51,7 @@ state MountHorse in CR4Player extends MountTheVehicle
 		super.OnLeaveState( nextStateName );
 	}
 	
-	
+	// This is called when the state was interupted ( ie the mount didn't have time to finish )
 	cleanup function MountCleanup() 
 	{
 		super.MountCleanup();
@@ -64,9 +59,9 @@ state MountHorse in CR4Player extends MountTheVehicle
 		parent.SignalGameplayEventParamInt( 'RidingManagerDismountHorse', DT_instant | DT_fromScript );
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	private var mountAnimStarted : bool;
 	
@@ -86,22 +81,22 @@ state MountHorse in CR4Player extends MountTheVehicle
 		
 		if ( mountType == MT_instant )
 		{
-			
-			
+			// Well this sounds stupid but if you're in the air and a cutscene or something forces you on a horse
+			// then you're screwed... It also happens when you spawn & instantly mount since you're rarely spawning on ground
 			parent.OnHitGround();
 		}
 		
 		riderData = thePlayer.GetRiderData();
+		// If vehicle is paired with another rider
+		horseComp.Unpair(); // stealing horse from potential owner
 		
-		horseComp.Unpair(); 
-		
-		horseComp.PairWithRider( riderData.sharedParams );	
+		horseComp.PairWithRider( riderData.sharedParams );	// assign to player	
 		riderData.sharedParams.rider 		= thePlayer;
 		riderData.sharedParams.vehicleSlot  = vehicleSlot;
 		
 		parent.SignalGameplayEventParamInt( 'RidingManagerMountHorse', mountType );
 		
-		
+		// HACK for what ? - when you pushstate in the same frame that entry function is called state machine will be fucked
 		SleepOneFrame();
 		
 		mountStartTimestamp = theGame.GetEngineTimeAsSeconds();
@@ -130,7 +125,7 @@ state MountHorse in CR4Player extends MountTheVehicle
 	
 	event OnStartTraversingExploration( t : CScriptedExplorationTraverser )
 	{
-		
+		//horseComp.PushState( 'Exploration' );
 		return parent.OnStartTraversingExploration(t);
 	}
 	

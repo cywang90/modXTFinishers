@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-struct OnelinerDefinition
+﻿struct OnelinerDefinition
 {
 	var m_Target : CActor;
 	var m_Text	 : string;
@@ -18,15 +13,15 @@ class CR4HudModuleOneliners extends CR4HudModuleBase
 	private var m_flashModule 				: CScriptedFlashSprite;
 	private var m_oneliners 				: array< OnelinerDefinition >;
 	
-	private const var VISIBILITY_DISTANCE_SQUARED : float;	default VISIBILITY_DISTANCE_SQUARED = 2025; 
+	private const var VISIBILITY_DISTANCE_SQUARED : float;	default VISIBILITY_DISTANCE_SQUARED = 2025; // 45 * 45;
 
-	event  OnConfigUI()
+	event /* flash */ OnConfigUI()
 	{
 		m_anchorName = "ScaleOnly";
 		
 		m_flashModule 			= GetModuleFlash();
 		
-		
+		//m_fxUpdateOneliner		= m_flashModule.GetMemberFlashFunction( "UpdateOneliner" );
 		m_fxCreateOnelinerSFF	= m_flashModule.GetMemberFlashFunction( "CreateOneliner" );
 		m_fxRemoveOnelinerSFF	= m_flashModule.GetMemberFlashFunction( "RemoveOneliner" );
 		
@@ -39,8 +34,8 @@ class CR4HudModuleOneliners extends CR4HudModuleBase
 			m_hud.UpdateHudConfig('OnelinersModule', true);
 		}
 	}
-	
-	
+	//>-----------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------
 	event OnTick( timeDelta : float )
 	{
 		var target				: CActor;

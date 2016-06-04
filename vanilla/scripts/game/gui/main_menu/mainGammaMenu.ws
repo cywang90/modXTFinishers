@@ -1,18 +1,16 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file - Main Gamma Menu
 /***********************************************************************/
-
-
-
+/** Copyright © 2014 CDProjektRed
+/** Author : Bartosz Bigaj
+/***********************************************************************/
 
 class CR4MainGammaMenu extends CR4MenuBase
 {
 	protected var mInGameConfigWrapper	: CInGameConfigWrapper;
 	private var m_fxSetCurrentUsername  : CScriptedFlashFunction;
 	
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{
 		var m_menuInitData 	: W3MainMenuInitData;
 		var username		: string;
@@ -32,14 +30,14 @@ class CR4MainGammaMenu extends CR4MenuBase
 		theGame.GetGuiManager().OnEnteredConfigScreen();
 	}
 
-	event  OnCloseMenu()
+	event /*flash*/ OnCloseMenu()
 	{
 		theGame.SaveUserSettings();
 		
 		CloseMenu();
 	}
 	
-	event  OnOptionValueChanged(groupId:int, optionName:name, optionValue:string)
+	event /*flash*/ OnOptionValueChanged(groupId:int, optionName:name, optionValue:string)
 	{
 		mInGameConfigWrapper.SetVarValue('Visuals', 'GammaValue', optionValue);
 	}
@@ -102,7 +100,7 @@ class CR4MainGammaMenu extends CR4MenuBase
 
 exec function gammamenu()
 {
-	
+	//theGame.RequestMenuWithBackground('MainMenu','CommonMainMenu');
 	theGame.SetMenuToOpen( '' );
 	theGame.RequestMenu('MainGammaMenu');
 }

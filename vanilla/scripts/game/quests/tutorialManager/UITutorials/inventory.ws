@@ -1,10 +1,7 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2014
+/** Author : Tomek Kozera
 /***********************************************************************/
-
-
 
 state Inventory in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
@@ -28,13 +25,10 @@ state Inventory in W3TutorialManagerUIHandler extends TutHandlerBaseState
 		
 		BlockPanels(true);
 		
-		highlights.Resize(1);
-		highlights[0].x = 0.38;
-		highlights[0].y = 0.12;
-		highlights[0].width = 0.26;
-		highlights[0].height = 0.62;
-			
-		ShowHint(PAPERDOLL, theGame.params.TUT_POS_INVENTORY_X, theGame.params.TUT_POS_INVENTORY_Y, , highlights);
+		highlights.PushBack( GetHighlightForPaperdoll() );			
+		ShowHint(PAPERDOLL, POS_INVENTORY_X, POS_INVENTORY_Y, , highlights);
+		
+		theGame.GameplayFactsAdd( 'panel_on_since_inv_tut' );
 	}
 			
 	event OnLeaveState( nextStateName : name )
@@ -43,12 +37,12 @@ state Inventory in W3TutorialManagerUIHandler extends TutHandlerBaseState
 		
 		BlockPanels(false);
 		
-		CloseHint(PAPERDOLL);
-		CloseHint(BAG);
-		CloseHint(TABS);
-		CloseHint(STATS);
-		CloseHint(STATS_DETAILS);
-		CloseHint(EQUIPPING);
+		CloseStateHint(PAPERDOLL);
+		CloseStateHint(BAG);
+		CloseStateHint(TABS);
+		CloseStateHint(STATS);
+		CloseStateHint(STATS_DETAILS);
+		CloseStateHint(EQUIPPING);
 		
 		super.OnLeaveState(nextStateName);
 	}
@@ -90,38 +84,33 @@ state Inventory in W3TutorialManagerUIHandler extends TutHandlerBaseState
 				
 		else if(hintName == PAPERDOLL)
 		{
-			highlights.Resize(1);
-			highlights[0].x = 0.045;
-			highlights[0].y = 0.21;
-			highlights[0].width = 0.295;
-			highlights[0].height = 0.4;
-			
-			ShowHint(BAG, theGame.params.TUT_POS_INVENTORY_X, theGame.params.TUT_POS_INVENTORY_Y, , highlights);
+			highlights.PushBack( GetHighlightForItemsGrid() );
+			ShowHint(BAG, POS_INVENTORY_X, POS_INVENTORY_Y, , highlights);
 		}
 		else if(hintName == BAG)
 		{
-			highlights.Resize(1);
-			highlights[0].x = 0.05;
-			highlights[0].y = 0.13;
-			highlights[0].width = 0.26;
-			highlights[0].height = 0.12;
-			
-			ShowHint(TABS, theGame.params.TUT_POS_INVENTORY_X, theGame.params.TUT_POS_INVENTORY_Y, , highlights);
+			highlights.PushBack( GetHighlightForInventoryTabs() );
+			ShowHint(TABS, POS_INVENTORY_X, POS_INVENTORY_Y, , highlights);
 		}
 		else if(hintName == TABS)
 		{
 			highlights.Resize(1);
-			highlights[0].x = 0.67;
-			highlights[0].y = 0.72;
-			highlights[0].width = 0.27;
+			highlights[0].x = 0.805;
+			highlights[0].y = 0.67;
+			highlights[0].width = 0.13;
 			highlights[0].height = 0.18;
 			
-			ShowHint(STATS, theGame.params.TUT_POS_INVENTORY_X, theGame.params.TUT_POS_INVENTORY_Y, , highlights);
+			ShowHint(STATS, POS_INVENTORY_X, POS_INVENTORY_Y, , highlights);
 		}
 		else if(hintName == STATS)
 		{
-		
-			ShowHint(EQUIPPING, theGame.params.TUT_POS_INVENTORY_X, theGame.params.TUT_POS_INVENTORY_Y);
+		/*
+			ShowHint(STATS_DETAILS, 5);
+		}
+		else if(hintName == STATS_DETAILS)
+		{
+		*/
+			ShowHint(EQUIPPING, POS_INVENTORY_X, POS_INVENTORY_Y);
 		}
 		else if(hintName == EQUIPPING)
 		{

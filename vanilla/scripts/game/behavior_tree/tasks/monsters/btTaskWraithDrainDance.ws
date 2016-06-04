@@ -1,27 +1,25 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** 
 /***********************************************************************/
-
-
-
+/** Copyright © 2014
+/** Author : R.Pergent - 12-February-2014
+/***********************************************************************/
 
 class CBTTaskWraithDrainDance extends CBTTaskPlayAnimationEventDecorator
 {
-	
-	
-	
-	
+	//>----------------------------------------------------------------------
+	// VARIABLES
+	//>----------------------------------------------------------------------
+	// Editable
 	public  var	drainDistance			: float;
 	public 	var drainTemplate			: CEntityTemplate;
-	
+	// Internal
 	private var m_isDraining			: bool;
 	private var m_DrainEffectEntity		: CEntity;
 	private var m_Disappeared			: bool;
 		
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	private final function OnDeactivate()
 	{
 		var l_npc 						: CNewNPC 			= GetNPC();
@@ -42,8 +40,8 @@ class CBTTaskWraithDrainDance extends CBTTaskPlayAnimationEventDecorator
 			l_npc.DestroyAfter( 2 );
 		}
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//>----------------------------------------------------------------------
 	latent function Main() : EBTNodeStatus
 	{
 		var l_npc 						: CNewNPC 			= GetNPC();
@@ -91,7 +89,7 @@ class CBTTaskWraithDrainDance extends CBTTaskPlayAnimationEventDecorator
 				
 				if( summonedEntityComponent )
 				{
-					
+					// Healing summoner
 					l_summonerHealth = summonedEntityComponent.GetSummoner().GetCurrentHealth();
 					summonedEntityComponent.GetSummoner().Heal( l_summonerHealth * 0.002f );
 				}
@@ -120,8 +118,8 @@ class CBTTaskWraithDrainDance extends CBTTaskPlayAnimationEventDecorator
 		}
 		return BTNS_Active;
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	private function AddDrainBuff()
 	{
 		var i			: int;
@@ -138,8 +136,8 @@ class CBTTaskWraithDrainDance extends CBTTaskPlayAnimationEventDecorator
 		l_actor.AddEffectCustom( l_params );
 		
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//>----------------------------------------------------------------------
 	function OnListenedGameplayEvent( eventName : CName ) : bool
 	{
 		if ( eventName == 'OnDeath' )
@@ -161,9 +159,9 @@ class CBTTaskWraithDrainDance extends CBTTaskPlayAnimationEventDecorator
 		return false;
 	}
 }
-
-
-
+//>----------------------------------------------------------------------
+// DEFINITION
+//>----------------------------------------------------------------------
 class CBTTaskWraithDrainDanceDef extends CBTTaskPlayAnimationEventDecoratorDef
 {
 	default instanceClass = 'CBTTaskWraithDrainDance';

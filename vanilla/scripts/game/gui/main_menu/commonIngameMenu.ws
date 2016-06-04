@@ -1,11 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file - Ingame menu
 /***********************************************************************/
-
-
-
+/** Copyright © 2014 CDProjektRed
+/** Author : Bartosz Bigaj
+/***********************************************************************/
 
 class CR4CommonIngameMenu extends CR4MenuBase
 {
@@ -13,10 +11,10 @@ class CR4CommonIngameMenu extends CR4MenuBase
 	protected var currentMenuName 	: name;
 	public var reopenRequested	: bool; default reopenRequested = false;
 	
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{
 		var menuName : name;
-		
+		//initData.SetPanelXOffset(595);
 		
 		if ((!thePlayer.IsAlive() && !thePlayer.OnCheckUnconscious()) || theGame.HasBlackscreenRequested() || theGame.IsDialogOrCutscenePlaying() )
 		{
@@ -36,12 +34,12 @@ class CR4CommonIngameMenu extends CR4MenuBase
 				theGame.MoveMouseTo(0.17, 0.36);
 			}
 			
-			
+			//if( menuName == '')
 			{
 				menuName = 'IngameMenu';
 			}
 			
-			
+			//DefineMenuStructure();
 			
 			theSound.SoundEvent("system_pause");
 			
@@ -52,7 +50,7 @@ class CR4CommonIngameMenu extends CR4MenuBase
 		}
 	}
 	
-	event  OnClosingMenu()
+	event /* C++ */ OnClosingMenu()
 	{
 		super.OnClosingMenu();
 		
@@ -74,13 +72,21 @@ class CR4CommonIngameMenu extends CR4MenuBase
 		currentMenuName = menuName;
 	}
 
-	event  OnInputHandled(NavCode:string, KeyCode:int, ActionId:int)
+	event /*flash*/ OnInputHandled(NavCode:string, KeyCode:int, ActionId:int)
 	{
 	}
 
-	
+	/*
+	enum EStandardSwipe
+	{
+		SWIPE_LEFT,
+		SWIPE_RIGHT,
+		SWIPE_DOWN,
+		SWIPE_UP
+	};
+	*/
 
-	event  OnSwipe( swipe : int )
+	event /* C++ */ OnSwipe( swipe : int )
 	{
 	}
 
@@ -101,16 +107,16 @@ class CR4CommonIngameMenu extends CR4MenuBase
 	{
 	}
 
-	event  OnCloseMenu()
+	event /*flash*/ OnCloseMenu()
 	{
 		var menu			: CR4MenuBase;
 		
-		
-		
-		
-		
-		
-		
+		//menu = (CR4MenuBase)GetSubMenu();
+		//if( menu )
+		//{
+		//	menu.CloseMenu();
+		//}
+		//CloseMenu();
 	}
 	
 	function CloseMenuRequest():void
@@ -130,7 +136,7 @@ class CR4CommonIngameMenu extends CR4MenuBase
 		var menuToOpen		: name;
 		var initData : W3MainMenuInitData;
 		initData = new W3MainMenuInitData in this;
-		
+		//initData.SetPanelXOffset(595);
 		
 		if (reopenRequested)
 		{
@@ -143,7 +149,7 @@ class CR4CommonIngameMenu extends CR4MenuBase
 		
 			if( menu )
 			{
-				
+				//menu.CloseMenu();
 				menuToOpen = GetParentMenuName(currentMenuName);
 				if( menuToOpen )
 				{
@@ -183,7 +189,7 @@ class CR4CommonIngameMenu extends CR4MenuBase
 
 exec function ingamemenu()
 {
-	
+	//theGame.RequestMenuWithBackground('MainMenu','CommonMainMenu');
 	theGame.SetMenuToOpen( '' );
 	theGame.RequestMenu('CommonIngameMenu' );
 }

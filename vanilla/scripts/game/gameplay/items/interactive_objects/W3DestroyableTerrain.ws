@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-statemachine class W3DestroyableTerrain extends CInteractiveEntity
+﻿statemachine class W3DestroyableTerrain extends CInteractiveEntity
 {
 	var m_destroyableElements 	: array<array< CScriptedDestroyableComponent >>;
 	var m_piecesIdToSplit 		: array< int >;
@@ -66,19 +61,19 @@ statemachine class W3DestroyableTerrain extends CInteractiveEntity
 				
 			switch( destroyWay )
 			{
-				case 0:	
+				case 0:	//DW_Random
 					m_destroyableElementsRandom.PushBack(destroyComp);
 					break;
 				
-				case 1:	
+				case 1:	//DW_Timed
 					m_destroyableElementsTimed.PushBack(destroyComp);
 					break;
 				
-				case 2:	
+				case 2:	//DW_OnContact
 					m_destroyableElementsOnContact.PushBack(destroyComp);
 					break;
 				
-				case 3:	
+				case 3:	//DW_OnDistance
 					m_destroyableElementsOnDistance.PushBack(destroyComp);
 					break;
 			}
@@ -108,7 +103,7 @@ statemachine class W3DestroyableTerrain extends CInteractiveEntity
 		{
 			tickTime+=time;
 			
-			
+			//Random
 			elements = m_destroyableElements[0];
 			for(i = 0; i < elements.Size(); i+=1)
 			{
@@ -142,7 +137,7 @@ statemachine class W3DestroyableTerrain extends CInteractiveEntity
 				}
 			}
 			
-			
+			//Timed
 			elements = m_destroyableElements[1];
 			for(i = 0; i < elements.Size(); i+=1)
 			{
@@ -171,7 +166,7 @@ statemachine class W3DestroyableTerrain extends CInteractiveEntity
 				}
 			}
 			
-			
+			//OnContact
 			elements = m_destroyableElements[2];
 			for(i = 0; i < elements.Size(); i+=1)
 			{
@@ -200,7 +195,7 @@ statemachine class W3DestroyableTerrain extends CInteractiveEntity
 				}
 			}
 			
-			
+			//OnDistance
 			elements = m_destroyableElements[3];
 			for(i = 0; i < elements.Size(); i+=1)
 			{

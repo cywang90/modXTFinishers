@@ -1,35 +1,33 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file - journal : Main
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author : Bartosz Bigaj
 /***********************************************************************/
 
-
-
-
-class CR4JournalMenu extends CR4MenuBase 
+class CR4JournalMenu extends CR4MenuBase // #B obsolete
 {	
 	private var m_menuNames : array< name >;
 
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{	
 		var l_flashObject			: CScriptedFlashObject;
 		var l_flashArray			: CScriptedFlashArray;
 		super.OnConfigUI();
+		//theSound.SoundEvent( 'gui_global_panel_open' );  // #B sound - open
 		
-		
-		
+		//@FIXME BIDON open menu depending on selected tab
 		
 		m_menuNames.PushBack( 'JournalQuestMenu' );
 		m_menuNames.PushBack( 'JournalQuestMenu' );
 		m_menuNames.PushBack( 'JournalQuestMenu' );
 	}
 	
-	event  OnCloseMenu()
+	event /*flash*/ OnCloseMenu()
 	{
 		var commonMenu : CR4CommonMenu;
 		
-		
+		//theSound.SoundEvent( 'gui_global_quit' ); // #B sound - quit
 		CloseMenu();
 		
 		if( m_parentMenu )
@@ -38,7 +36,7 @@ class CR4JournalMenu extends CR4MenuBase
 		}
 	}
 
-	event  OnJournalTabSelected( index : int )
+	event /*flash*/ OnJournalTabSelected( index : int )
 	{
 		var menu : CR4MenuBase;
 
@@ -54,7 +52,7 @@ class CR4JournalMenu extends CR4MenuBase
 		}
 	}
 	
-	event OnTrackQuest( _QuestID : int ) 
+	event OnTrackQuest( _QuestID : int ) // #B add untracking quest
 	{
 		LogChannel('KURWA'," journalMenu OnTrackQuest( _QuestID "+  _QuestID );
 	}

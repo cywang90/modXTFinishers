@@ -1,10 +1,7 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2012-2014
+/** Author : Tomek Kozera
 /***********************************************************************/
-
-
 
 class W3Effect_Burning extends W3CriticalDOTEffect
 {
@@ -28,7 +25,7 @@ class W3Effect_Burning extends W3CriticalDOTEffect
 		
 		allowedHits[EHRT_Igni] = false;
 		
-		
+		//blockedActions.PushBack(EIAB_Signs); needed for some quest with fire in a barn - you're burning and need to use aard to get out
 		blockedActions.PushBack(EIAB_CallHorse);
 		blockedActions.PushBack(EIAB_Jump);
 		blockedActions.PushBack(EIAB_ThrowBomb);			
@@ -36,7 +33,7 @@ class W3Effect_Burning extends W3CriticalDOTEffect
 		blockedActions.PushBack(EIAB_Parry);
 		blockedActions.PushBack(EIAB_Counter);
 		
-		
+		//vibration strength
 		vibratePadLowFreq = 0.1;
 		vibratePadHighFreq = 0.2;
 	}
@@ -65,15 +62,15 @@ class W3Effect_Burning extends W3CriticalDOTEffect
 				thePlayer.AddCustomOrientationTarget(OT_CustomHeading, 'BurningEffect');
 		}
 			
-		
+		//keep corpse burning for some time
 		if(!target.IsAlive())
 			timeLeft = 10;
 		
-		
+		//in case of player only signs use Spell Power, other sources don't use it
 		if(EntityHandleGet(creatorHandle) == thePlayer && !isSignEffect)
 			powerStatType = CPS_Undefined;
 			
-		
+		//cache glyphword 12
 		if(!isOnPlayer && GetCreator() == thePlayer && thePlayer.HasAbility('Glyphword 12 _Stats', true) && isSignEffect && IsRequiredAttitudeBetween(thePlayer, target, true))
 		{
 			isWithGlyphword12 = true;
@@ -83,7 +80,7 @@ class W3Effect_Burning extends W3CriticalDOTEffect
 			chance = thePlayer.GetAttributeValue('glyphword12_chance');
 			glyphword12BurningChance = chance.valueAdditive;
 			
-			
+			//surface post fx
 			surface = theGame.GetSurfacePostFX();
 			surface.AddSurfacePostFXGroup(target.GetWorldPosition(), 1, timeLeft, 1, MaxF(5.f, CalculateAttributeValue(target.GetAttributeValue('glyphword12_range'))), 1);
 		}
@@ -126,7 +123,7 @@ class W3Effect_Burning extends W3CriticalDOTEffect
 			else
 				player.SetOrientationTargetCustomHeading( VecHeading( theCamera.GetCameraDirection() ), 'BurningEffect' );
 		}
-		
+		//glyphword 12 - enemies in close range get burning applied as well
 		else if(isWithGlyphword12)
 		{
 			glyphword12Delay += deltaTime;
@@ -142,7 +139,7 @@ class W3Effect_Burning extends W3CriticalDOTEffect
 				params.sourceName = 'glyphword 12';
 				params.duration = min.valueAdditive;
 				
-				
+				//try to add burning
 				for(i=0; i<ents.Size(); i+=1)
 				{
 					actor = (CActor)ents[i];
@@ -150,7 +147,7 @@ class W3Effect_Burning extends W3CriticalDOTEffect
 					if(glyphword12NotBurnedEntities.Contains(ents[i]))
 						continue;
 					
-					
+					//add to ignored array
 					glyphword12NotBurnedEntities.PushBack(ents[i]);
 					if(!IsRequiredAttitudeBetween(thePlayer, actor, true, false, false) || (RandF() < glyphword12BurningChance) || actor.HasBuff(EET_Burning))
 					{
@@ -164,7 +161,7 @@ class W3Effect_Burning extends W3CriticalDOTEffect
 			}
 		}
 	
-		
+		//if 1m below water level remove all burnings
 		if(cachedMPAC && cachedMPAC.GetSubmergeDepth() <= -1)
 			target.RemoveAllBuffsOfType(effectType);
 		else
@@ -187,17 +184,22 @@ class W3Effect_Burning extends W3CriticalDOTEffect
 		super.OnEffectRemoved();		
 	}
 	
-	
+	//override
 	public function OnTargetDeath()
 	{
-		
+		//increase time left till death anim finishes
 		timeLeft = 10;
 	}
 	
-	
+	//override
 	public function OnTargetDeathAnimFinished()
 	{
-		
+		//keep fire for some time after death anim finished
 		timeLeft = 10;
+	}
+	
+	public final function IsFromMutation2() : bool
+	{
+		return sourceName == "Mutation2ExplosionValid";
 	}
 }

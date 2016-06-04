@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-enum EChosenTarget
+﻿enum EChosenTarget
 {
 	ECT_CombatTarget,
 	ECT_AlwaysPlayer,
@@ -13,7 +8,7 @@ enum EChosenTarget
 
 class CBTTaskUseInteractiveEntitiesInRange extends IBehTreeTask
 {
-	
+	//Editable vars set in the task definition
 	var animationEventName		: name;
 	var usableEntityTag	: name;
 	var maxTriggeredEntities	: int;
@@ -24,7 +19,7 @@ class CBTTaskUseInteractiveEntitiesInRange extends IBehTreeTask
 	var targetTag				: name;
 	var betweenTargetAndSelf	: bool;
 	
-	
+	//Task variables
 	var chosenEntities 			: array<W3UsableEntity>;
 	var interactiveNodes		: array<CNode>;
 	var lastUsedTime			: EngineTime;

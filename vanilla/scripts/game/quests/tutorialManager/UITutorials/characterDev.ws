@@ -1,10 +1,7 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2014
+/** Author : Tomek Kozera
 /***********************************************************************/
-
-
 
 state CharacterDevelopment in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
@@ -26,25 +23,25 @@ state CharacterDevelopment in W3TutorialManagerUIHandler extends TutHandlerBaseS
 		
 		isClosing = false;
 		
-		CloseHint(OPEN_CHAR_DEV);
-		ShowHint(LEVELING, theGame.params.TUT_POS_CHAR_DEV_X, theGame.params.TUT_POS_CHAR_DEV_Y);
+		theGame.GetTutorialSystem().HideTutorialHint( OPEN_CHAR_DEV );
+		ShowHint(LEVELING, POS_CHAR_DEV_X, POS_CHAR_DEV_Y);
 		
-		
-		theGame.GetTutorialSystem().uiHandler.UnregisterUIHint('CharacterDevelopmentFastMenu');
+		//unregister fast menu hint
+		theGame.GetTutorialSystem().uiHandler.UnregisterUIState('CharacterDevelopmentFastMenu');
 	}
 			
 	event OnLeaveState( nextStateName : name )
 	{
 		isClosing = true;
 		
-		CloseHint(OPEN_CHAR_DEV);
-		CloseHint(LEVELING);
-		CloseHint(SKILLS);
-		CloseHint(BUY_SKILL);
-		CloseHint(SKILL_EQUIPPING);
-		CloseHint(EQUIP_SKILL);
-		CloseHint(SKILL_UNEQUIPPING);
-		CloseHint(GROUPS);
+		CloseStateHint(OPEN_CHAR_DEV);
+		CloseStateHint(LEVELING);
+		CloseStateHint(SKILLS);
+		CloseStateHint(BUY_SKILL);
+		CloseStateHint(SKILL_EQUIPPING);
+		CloseStateHint(EQUIP_SKILL);
+		CloseStateHint(SKILL_UNEQUIPPING);
+		CloseStateHint(GROUPS);
 		
 		theGame.GetTutorialSystem().MarkMessageAsSeen(BUY_SKILL);
 		theGame.GetTutorialSystem().MarkMessageAsSeen(EQUIP_SKILL);
@@ -54,52 +51,25 @@ state CharacterDevelopment in W3TutorialManagerUIHandler extends TutHandlerBaseS
 		
 	event OnTutorialClosed(hintName : name, closedByParentMenu : bool)
 	{
-		var highlights : array<STutorialHighlight>;
-		
 		if(closedByParentMenu || isClosing)
 			return true;
 			
 		if(hintName == LEVELING)
 		{
-			highlights.Resize(1);
-			highlights[0].x = 0.03;
-			highlights[0].y = 0.19;
-			highlights[0].width = 0.23;
-			highlights[0].height = 0.15;
-						
-			ShowHint(SKILLS, theGame.params.TUT_POS_CHAR_DEV_X, theGame.params.TUT_POS_CHAR_DEV_Y, , highlights);
+			ShowHint(SKILLS, POS_CHAR_DEV_X, POS_CHAR_DEV_Y, , GetHighlightCharDevSkillPoints() );
 		}
 		else if(hintName == SKILLS)
 		{
-			highlights.Resize(1);
-			
-					
-			highlights[0].x = 0.085;
-			highlights[0].y = 0.13;
-			highlights[0].width = 0.155;
-			highlights[0].height = 0.12;
-			
-			ShowHint(GROUPS, theGame.params.TUT_POS_CHAR_DEV_X, theGame.params.TUT_POS_CHAR_DEV_Y, , highlights);
+			ShowHint(GROUPS, POS_CHAR_DEV_X, POS_CHAR_DEV_Y, , GetHighlightCharDevSkillGroups() );
 		}
 		else if(hintName == GROUPS)
 		{
-			highlights.Resize(1);
-			highlights[0].x = 0.1;
-			highlights[0].y = 0.285;
-			highlights[0].width = 0.21;
-			highlights[0].height = 0.35;
-			
-			ShowHint(BUY_SKILL, theGame.params.TUT_POS_CHAR_DEV_X, theGame.params.TUT_POS_CHAR_DEV_Y, ETHDT_Infinite, highlights);
+			ShowHint(BUY_SKILL, POS_CHAR_DEV_X, POS_CHAR_DEV_Y, ETHDT_Infinite, GetHighlightCharDevSkills() );
 		}
 		else if(hintName == SKILL_EQUIPPING)
 		{
-			highlights.Resize(1);
-			highlights[0].x = 0.43;
-			highlights[0].y = 0.143;
-			highlights[0].width = 0.08;
-			highlights[0].height = 0.3;
-			
-			ShowHint(EQUIP_SKILL, theGame.params.TUT_POS_CHAR_DEV_X, theGame.params.TUT_POS_CHAR_DEV_Y, ETHDT_Infinite, highlights);
+			//custom X pos because it overlaps pop-up about equipping skill
+			ShowHint(EQUIP_SKILL, .05f , POS_CHAR_DEV_Y, ETHDT_Infinite, GetHighlightCharDevSkillSlotGroup1() );
 		}
 		else if(hintName == SKILL_UNEQUIPPING)
 		{
@@ -109,45 +79,20 @@ state CharacterDevelopment in W3TutorialManagerUIHandler extends TutHandlerBaseS
 	
 	public final function OnBoughtSkill(skill : ESkill)
 	{
-		var highlights : array<STutorialHighlight>;
-		
-		CloseHint(BUY_SKILL);
+		CloseStateHint(BUY_SKILL);
 		theGame.GetTutorialSystem().MarkMessageAsSeen(BUY_SKILL);
-		
-		highlights.Resize(4);
-		
-		highlights[0].x = 0.43;
-		highlights[0].y = 0.143;
-		highlights[0].width = 0.08;
-		highlights[0].height = 0.3;
-				
-		highlights[1].x = 0.52;
-		highlights[1].y = 0.143;
-		highlights[1].width = 0.08;
-		highlights[1].height = 0.3;
-				
-		highlights[2].x = 0.52;
-		highlights[2].y = 0.49;
-		highlights[2].width = 0.08;
-		highlights[2].height = 0.3;
-				
-		highlights[3].x = 0.43;
-		highlights[3].y = 0.49;
-		highlights[3].width = 0.08;
-		highlights[3].height = 0.3;
-					
-		ShowHint(SKILL_EQUIPPING, theGame.params.TUT_POS_CHAR_DEV_X, theGame.params.TUT_POS_CHAR_DEV_Y, , highlights);
+		ShowHint(SKILL_EQUIPPING, POS_CHAR_DEV_X, POS_CHAR_DEV_Y, , GetHighlightCharDevSkillSlotGroups() );
 	}
 	
 	public final function EquippedSkill()
 	{
 		var i, size : int;
 		
-		CloseHint(EQUIP_SKILL);
+		CloseStateHint(EQUIP_SKILL);
 		theGame.GetTutorialSystem().MarkMessageAsSeen(EQUIP_SKILL);
-		ShowHint(SKILL_UNEQUIPPING, theGame.params.TUT_POS_CHAR_DEV_X, theGame.params.TUT_POS_CHAR_DEV_Y);
+		ShowHint(SKILL_UNEQUIPPING, POS_CHAR_DEV_X, POS_CHAR_DEV_Y);
 		
-		
+		//release all locks
 		size = EnumGetMax('EInputActionBlock')+1;
 		for(i=0; i<size; i+=1)
 		{

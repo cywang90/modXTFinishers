@@ -1,10 +1,7 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2013
+/** Author : collective mind of the CDP
 /***********************************************************************/
-
-
 
 class W3MonsterHuntInvestigationArea extends CGameplayEntity
 {
@@ -33,7 +30,7 @@ class W3MonsterHuntInvestigationArea extends CGameplayEntity
 		
 		if( enabled )
 		{
-			
+			// Just be sure that only player can trigger it
 			if ( activator.GetEntity() == thePlayer )
 			{
 				UpdateCurrentInvestigationArea();
@@ -44,7 +41,7 @@ class W3MonsterHuntInvestigationArea extends CGameplayEntity
 	
 	event OnAreaExit( area : CTriggerAreaComponent, activator : CComponent )
 	{	
-		
+		// Just be sure that only player can trigger it
 		if( enabled )
 		{
 			if ( activator.GetEntity() == thePlayer )
@@ -55,7 +52,7 @@ class W3MonsterHuntInvestigationArea extends CGameplayEntity
 		}
 	}
 	
-	
+	//Safeguard to check if the area really should still be active or not
 	private function CheckAreaValidity() : bool
 	{
 		var comp : CTriggerAreaComponent;
@@ -76,7 +73,7 @@ class W3MonsterHuntInvestigationArea extends CGameplayEntity
 		
 	}
 	
-	
+	//Switches investigation music on and off
 	private function SwitchInvestigationMusic( turnOn : bool )
 	{
 		if( turnOn )
@@ -98,7 +95,7 @@ class W3MonsterHuntInvestigationArea extends CGameplayEntity
 		}
 	}
 	
-	
+	//Allows enabling and disabling the area
 	public function SetInvestigationAreaEnabled( isEnabled : bool, optional silentTurnOff : bool )
 	{
 		if( isEnabled )
@@ -193,7 +190,7 @@ class W3MonsterHuntInvestigationArea extends CGameplayEntity
 		
 		prevArea  = thePlayer.currentMonsterHuntInvestigationArea;
 		
-		
+		//Turn off prev. investigation area if there is any
 		if( prevArea && prevArea != this )
 		{
 			prevArea.RemoveTimer( 'QuestTrackerCheckTimer' );

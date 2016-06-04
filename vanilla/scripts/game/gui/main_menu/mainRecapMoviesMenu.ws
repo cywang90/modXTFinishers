@@ -1,13 +1,11 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file - Startup Movies Menu
+/***********************************************************************/
+/** Copyright © 2015 CDProjektRed
+/** Author : Jason Slama
 /***********************************************************************/
 
-
-
-
-
+// COPY OF mainStartupMoviesMenu.ws used to have different movies but same redswf/behavior
 
 class CR4RecapMoviesMenu extends CR4MenuBase
 {
@@ -21,7 +19,7 @@ class CR4RecapMoviesMenu extends CR4MenuBase
 	default wasSkipped 				= false;
 	private var languageName : string;
 	
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{
 		var menuName : name;
 		var audioLanguageName : string;
@@ -33,16 +31,16 @@ class CR4RecapMoviesMenu extends CR4MenuBase
 		
 		m_fxSetGameLogoLanguage = m_flashModule.GetMemberFlashFunction( "setGameLogoLanguage" );
 		m_fxSetSubtitles = m_flashModule.GetMemberFlashFunction( "setSubtitles" );
-		
+		//m_fxSetMovieData.InvokeSelfOneArg(FlashArgString(GetCurrentBackgroundMovie()));
 		theGame.GetGameLanguageName(audioLanguageName,languageName);
 		m_fxSetGameLogoLanguage.InvokeSelfTwoArgs( FlashArgBool(m_MovieData[m_CurrentMovieID].showLogo), FlashArgString(languageName) );
 		guiManager.PlayFlashbackVideoAsync(GetCurrentBackgroundMovie());
-		
+		//SetButtons();
 		
 		theInput.StoreContext( 'EMPTY_CONTEXT' );
 	}
 	
-	private function SetupMoviesData() 
+	private function SetupMoviesData() // #B setup movies played on game start
 	{
 		var movieData : SMovieData;
 	
@@ -50,7 +48,7 @@ class CR4RecapMoviesMenu extends CR4MenuBase
 		
 		movieData.movieName = "gamestart/recap_wip.usm";
 		
-		
+		// PS4 TRC related. Don't remove. We need to be able to cache from Blu-ray.
 		movieData.isSkipable = !theGame.ShouldForceInstallVideo();
 		
 		movieData.showLogo = false;
@@ -62,14 +60,14 @@ class CR4RecapMoviesMenu extends CR4MenuBase
 		return m_MovieData[m_CurrentMovieID].movieName;
 	}
 	
-	event  OnClosingMenu()
+	event /* C++ */ OnClosingMenu()
 	{
 		super.OnClosingMenu();
 		guiManager.CancelFlashbackVideo();
 		theInput.RestoreContext( 'EMPTY_CONTEXT', true );
 	}	
 	
-	event  OnSkipMovie()
+	event /* flash */ OnSkipMovie()
 	{
 		m_CurrentMovieID += 1;
 		if( m_CurrentMovieID >= m_MovieData.Size() )
@@ -83,13 +81,21 @@ class CR4RecapMoviesMenu extends CR4MenuBase
 		wasSkipped = true;
 	}
 
-	
+	/*
+	enum EStandardSwipe
+	{
+		SWIPE_LEFT,
+		SWIPE_RIGHT,
+		SWIPE_DOWN,
+		SWIPE_UP
+	};
+	*/
 
-	event  OnSwipe( swipe : int )
+	event /* C++ */ OnSwipe( swipe : int )
 	{
 	}
 
-	event  OnCloseMenu()
+	event /*flash*/ OnCloseMenu()
 	{
 		CloseMenuRequest();
 	}
@@ -105,9 +111,9 @@ class CR4RecapMoviesMenu extends CR4MenuBase
 		}
 		else
 		{
+			//menu.CloseMenu();
 			
-			
-			
+			// get parent menu
 		}
 	}
 	

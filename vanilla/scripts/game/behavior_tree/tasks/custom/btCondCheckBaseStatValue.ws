@@ -1,23 +1,18 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
-
-
-
-
-
-
-
-
+﻿//>--------------------------------------------------------------------------
+// BTCondCheckStatValue
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Add or remove an ability on the NPC
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// R.Pergent - 08-April-2014
+// Copyright © 2014 CD Projekt RED
+//---------------------------------------------------------------------------
 class BTCondCheckStatValue extends IBehTreeTask
 {
-	
-	
-	
+	//>--------------------------------------------------------------------------
+	// VARIABLES
+	//---------------------------------------------------------------------------
 	var checkedActor 	: EStatOwner;
 	var baseStatType	: EBaseCharacterStats;
 	var autoCheckHPType	: bool;
@@ -25,8 +20,8 @@ class BTCondCheckStatValue extends IBehTreeTask
 	var percentage		: bool;
 	var operator 		: EOperator;
 	
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function IsAvailable() : bool
 	{
 		var target 	: CActor;		
@@ -52,8 +47,8 @@ class BTCondCheckStatValue extends IBehTreeTask
 			default : 				return false;
 		}
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function GetStat(target : CActor) : float
 	{
 		var value : float;
@@ -81,8 +76,8 @@ class BTCondCheckStatValue extends IBehTreeTask
 	}
 	
 }
-
-
+//>--------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 class BTCondCheckStatValueDef extends IBehTreeConditionalTaskDefinition
 {
 	default instanceClass = 'BTCondCheckStatValue';

@@ -1,53 +1,48 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
+﻿// Declared in code 
+//enum EMountType
+//{
+//	MT_normal,		
+//	MT_instant,		
+//};
+
+// Declared in code
+//enum EDismountType
+//{
+//	DT_normal,		
+//	DT_shakeOff,	
+//	DT_ragdoll,		
+//	DT_instant			
+//}
+
+// Declared in code
+//enum EVehicleType
+//{	
+//	EVT_Horse,
+//	EVT_Boat,
+//	EVT_Undefined
+//}
+
+//enum EVehicleSlot
+//{
+//	EVS_driver_slot,
+//	EVS_passenger_slot,
+//}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+//enum EVehicleMountType
+//{
+//	VMT_None,
+//	VMT_ApproachAndMount,
+//	VMT_MountIfPossible,
+//	VMT_TeleportAndMount,
+//	VMT_ImmediateUse
+//}
 
 
 import abstract class CVehicleComponent extends CComponent
 {	
 	import public var user : CActor;
-	
+	//public var dismountType : EDismountType;
 	
 	private var isCameraActivated : bool;
 	private var isPlayingSyncAnimation : bool;
@@ -152,9 +147,9 @@ import abstract class CVehicleComponent extends CComponent
 		return userCombatManager;
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// MOUNTING ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		
 	function Mount( actorToMount : CActor, optional mountType : EVehicleMountType, vehicleSlot : EVehicleSlot )
 	{
@@ -181,9 +176,9 @@ import abstract class CVehicleComponent extends CComponent
 		}
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// MOUNTING AND DISMOUNTING COMMANDS ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	function IssueCommandToApprochToSlot( entity : CEntity )
 	{
@@ -276,12 +271,12 @@ import abstract class CVehicleComponent extends CComponent
 		{
 			boatComponent = (CBoatComponent)this;
 			
-			
+			// Setup dismounting
 			if ( riderData.sharedParams.vehicleSlot == EVS_driver_slot )
 			{			
 				boatComponent.dismountStateName = mainStateName;
 				
-				
+				// This will stop the boat. Dismounting event would be sent afterwards
 				boatComponent.StopAndDismountBoat();
 			}
 			else if ( passengerStateName )
@@ -303,12 +298,12 @@ import abstract class CVehicleComponent extends CComponent
 		IssueCommandToApprochToSlot( entity );
 	}
 
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// OTHER ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	function CanAccesFastTravel( target : W3FastTravelEntity ) : bool { return true; }
-	function InternalGetSpeed() : float; 
+	function InternalGetSpeed() : float; // [0,1]
 	function StopTheVehicle();
 	function UpdateLogic();
 	
@@ -366,12 +361,12 @@ import abstract class CVehicleComponent extends CComponent
 		SetIsPlayingSyncAnimation( true );
 		if ( user.RaiseForceEventWithoutTestCheck( eventName ) )
 		{
-			
+			// need to remove check here because we are calling event outside of BT :
 			if ( GetEntity().RaiseForceEventWithoutTestCheck( eventName ) )
 			{
-				
+				// error
 			}
-			
+			// re-enabling collision here because geralt needs to adjust to terrain
 			user.WaitForBehaviorNodeDeactivation( deactivationEvent, 10.f );
 		}
 		SetIsPlayingSyncAnimation( false );

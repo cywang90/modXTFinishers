@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-function AddHitFacts( victimTags : array<name>, attackerTags : array<name>, hitType : string, optional validForever : bool, optional prefix : string )
+﻿function AddHitFacts( victimTags : array<name>, attackerTags : array<name>, hitType : string, optional validForever : bool, optional prefix : string )
 {
 	var i, j, sizeV, sizeA, oneSec, dur : int;
 	var strV : string;
@@ -38,7 +33,7 @@ function AddHitFacts( victimTags : array<name>, attackerTags : array<name>, hitT
 			{
 				LogFacts( strV + "_by_" + NameToString(attackerTags[j]) );
 			}
-			FactsAdd( strV + "_by_" + NameToString(attackerTags[j]), 1, 1 );	
+			FactsAdd( strV + "_by_" + NameToString(attackerTags[j]), 1, 1 );	//not only for weapons but for all actor attacks
 		}
 	}
 }

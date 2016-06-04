@@ -1,15 +1,13 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file - Container controll class
 /***********************************************************************/
-
-
-
+/** Copyright © 2013
+/** Author : Tomasz Kozera; Łukasz Szczepankowski
+/***********************************************************************/
 
 class W3AnimatedContainer extends W3Container
 {
-	
+	//RaiseEvent( 'OnChestOpen' );
 	
 	
 	editable var animationForAllInteractions 	: bool;							default animationForAllInteractions = true;
@@ -19,7 +17,7 @@ class W3AnimatedContainer extends W3Container
 	editable var slotAnimName 					: name;							default slotAnimName = '';
 	editable var interactionAnimTime			: float;						default interactionAnimTime	= 4.0f;
 	
-	
+	//private for now
 	editable var desiredPlayerToEntityDistance	: float;						default desiredPlayerToEntityDistance = -1;
 	editable var matchPlayerHeadingWithHeadingOfTheEntity	: bool;				default matchPlayerHeadingWithHeadingOfTheEntity = true;
 	
@@ -29,7 +27,7 @@ class W3AnimatedContainer extends W3Container
 	editable var detachAnimName 				: name; 						default detachAnimName = 'detach_item';
 	
 	
-	
+	//hints
 	hint interactionAnim = "Name of the animation played on interaction.";
 	hint interactionAnimTime = "Duration of the animation played on interaction.";
 	hint animationForAllInteractions = "Should the animation be played only for interaction with Examine action assigned.";
@@ -70,17 +68,28 @@ class W3AnimatedContainer extends W3Container
 	
 	public function OnContainerClosed()
 	{
-		if(!HasQuestItem())
-			StopEffect('quest_highlight_fx');	
+		var effectName : name;
+
+		if ( !HasQuestItem() )
+		{
+			StopEffect( 'quest_highlight_fx' );	
+		}
+
 		if ( isPlayingInteractionAnim )
 		{
 			thePlayer.PlayerStopAction( interactionAnim );	
 		}
+		
+		effectName = this.GetAutoEffect();
+		if ( effectName != '' )
+		{
+			this.StopEffect( effectName );
+		}
+
 		super.OnContainerClosed();
-			
 	}
 	
-	
+	//this function should ba latent. In order to do it we need to create state in this class and call this function from entry function
 	function PlayInteractionAnimation()
 	{
 		if ( interactionAnim == PEA_SlotAnimation && !IsNameValid(slotAnimName) )
@@ -188,8 +197,8 @@ class W3AnimatedContainer extends W3Container
 		objectAttached = false;
 	}
 	
-	
-	
+	//-------------------------------------------------------
+	// Events
 	
 	event OnPlayerActionStartFinished()
 	{
@@ -199,7 +208,7 @@ class W3AnimatedContainer extends W3Container
 		}
 	}
 	
-	
+	// this will be called when player stops playing anim. If animation ends or he gets HIT etc.
 	event OnPlayerActionEnd()
 	{
 		isPlayingInteractionAnim = false;
@@ -227,8 +236,8 @@ class W3AnimatedContainer extends W3Container
 		}
 	}
 	
-	
-	
+	//-------------------------------------------------------
+	// Timers
 	
 	timer function TimerDeactivateAnimation( td : float , id : int)
 	{

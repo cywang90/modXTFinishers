@@ -1,13 +1,10 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2014
+/** Author : Tomek Kozera
 /***********************************************************************/
 
-
-
-
-
+//**********************************************************************************************************************************************
+//**********************************************************************************************************************************************
 state JournalQuest in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
 	private const var TUTORIAL : name;
@@ -18,7 +15,66 @@ state JournalQuest in W3TutorialManagerUIHandler extends TutHandlerBaseState
 	{
 		super.OnEnterState(prevStateName);
 		
-		ShowHint(TUTORIAL, 0.3, 0.6, ETHDT_Infinite);
+		ShowHint(TUTORIAL, POS_QUESTS_X, POS_QUESTS_Y, ETHDT_Infinite);
+	}
+		
+	event OnLeaveState( nextStateName : name )
+	{
+		CloseStateHint(TUTORIAL);
+		
+		super.OnLeaveState(nextStateName);
+	}
+	
+	event OnMenuClosing(menuName : name)
+	{
+		if(menuName == 'JournalQuestMenu')
+			QuitState();
+	}
+}
+
+//**********************************************************************************************************************************************
+//**********************************************************************************************************************************************
+/*
+state JournalMonsterHunt in W3TutorialManagerUIHandler extends TutHandlerBaseState
+{
+	private const var TUTORIAL : name;
+	
+		default TUTORIAL = 'TutorialJournalMonsterHunt';
+	
+	event OnEnterState( prevStateName : name )
+	{
+		super.OnEnterState(prevStateName);
+		
+		ShowHint(TUTORIAL, 0.7, 0.3, ETHDT_Infinite);
+	}
+	
+	event OnLeaveState( nextStateName : name )
+	{
+		CloseHint(TUTORIAL);
+		
+		super.OnLeaveState(nextStateName);
+	}
+	
+	event OnMenuClosing(menuName : name)
+	{
+		if(menuName == 'JournalQuestMenu')
+			QuitState();
+	}
+}
+
+//**********************************************************************************************************************************************
+//**********************************************************************************************************************************************
+state JournalTreasureHunt in W3TutorialManagerUIHandler extends TutHandlerBaseState
+{
+	private const var TUTORIAL : name;
+	
+		default TUTORIAL = 'TutorialJournalTreasureHunt';
+	
+	event OnEnterState( prevStateName : name )
+	{
+		super.OnEnterState(prevStateName);
+		
+		ShowHint(TUTORIAL, 0.7, 0.3, ETHDT_Infinite);
 	}
 		
 	event OnLeaveState( nextStateName : name )
@@ -34,10 +90,7 @@ state JournalQuest in W3TutorialManagerUIHandler extends TutHandlerBaseState
 			QuitState();
 	}
 }
-
-
-
-
+*/
 exec function jour()
 {
 	TutorialMessagesEnable(true);

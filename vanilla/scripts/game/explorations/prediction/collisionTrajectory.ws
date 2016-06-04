@@ -1,11 +1,6 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
-
+﻿
+//------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------
 enum ECollisionTrajecoryStatus
 {
 	CTS_AllClear		= 0 ,
@@ -14,8 +9,8 @@ enum ECollisionTrajecoryStatus
 	CTS_LandHigh		= 3 ,
 	CTS_LandBlocked		= 4 ,
 }
-
-
+//------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------
 enum ECollisionTrajecoryExplorationStatus
 {
 	CTES_None			,
@@ -23,8 +18,8 @@ enum ECollisionTrajecoryExplorationStatus
 	CTES_Explore		,
 }
 
-
-
+//------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------
 enum ECollisionTrajectoryPart
 {
 	ECTP_Start			, 
@@ -39,8 +34,8 @@ enum ECollisionTrajectoryPart
 	ECTP_None			,
 }
 
-
-
+//------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------
 enum ECollisionTrajectoryToWaterState
 {
 	ECTTWS_NoWater		,
@@ -49,8 +44,8 @@ enum ECollisionTrajectoryToWaterState
 }
 
 
-
-
+//------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------
 class CollisionTrajectory extends CGameplayEntity
 {
 	public	var stateManager					: CExplorationStateManager;
@@ -64,7 +59,7 @@ class CollisionTrajectory extends CGameplayEntity
 	private var	computedGoingToWater			: bool;
 	
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function Initialize( exploration : CExplorationStateManager )
 	{
 		var	components	: array<CComponent>;
@@ -72,14 +67,14 @@ class CollisionTrajectory extends CGameplayEntity
 		var i			: int;
 		
 		
-		
+		// Attach to owner
 		this.CreateAttachment( exploration.GetEntity(), 'None' );
 		stateManager	= exploration;
 		
-		
+		// Get all parts
 		components	= GetComponentsByClassName('CollisionTrajectoryPart');	
 		
-		
+		// Get all segments and init them
 		for( i = 0; i < components.Size(); i += 1 )
 		{
 			part	= ( CollisionTrajectoryPart ) components[i];
@@ -94,11 +89,11 @@ class CollisionTrajectory extends CGameplayEntity
 			}
 		}
 		
-		
+		// Sort them by enum order
 		SortParts();
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	private function SortParts()
 	{	
 		SortPart( ECTP_Start );
@@ -112,25 +107,25 @@ class CollisionTrajectory extends CGameplayEntity
 		SortPart( ECTP_GroundFarAfter );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	private function SortPart( part : ECollisionTrajectoryPart )
 	{
 		var i				: int;
 		var partChecking	: int;
 		var partFound		: int;
 		
-		
+		// Get part Ids
 		partChecking	= ( int ) part;		
 		partFound		= FindPart( part );
 		
-		
+		// Do we need to swap them?
 		if( partFound != partChecking )
 		{
 			SwapParts( partFound, partChecking );
 		}
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	private function FindPart( part : ECollisionTrajectoryPart ) :int
 	{
 		var i	: int;		
@@ -149,7 +144,7 @@ class CollisionTrajectory extends CGameplayEntity
 		return 0;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	private function SwapParts( i, j : int )
 	{
 		var partAux		: CollisionTrajectoryPart;
@@ -160,14 +155,14 @@ class CollisionTrajectory extends CGameplayEntity
 		collisionSegmentsArr[j] = partAux;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function PreUpdate()
 	{
 		computedCollisionState	= false;
 		computedGoingToWater	= false;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	private function ComputeCollisionStateIfNeeded()
 	{
 		if( computedCollisionState )
@@ -214,7 +209,7 @@ class CollisionTrajectory extends CGameplayEntity
 		computedCollisionState	= true;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function GetCollisionState() : ECollisionTrajecoryStatus
 	{
 		ComputeCollisionStateIfNeeded();
@@ -222,7 +217,7 @@ class CollisionTrajectory extends CGameplayEntity
 		return trajectoryStatusLastChecked;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function IsPotentialObstacleToUseExploration() : bool
 	{
 		ComputeCollisionStateIfNeeded();
@@ -245,7 +240,7 @@ class CollisionTrajectory extends CGameplayEntity
 		return true;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function IsPotentialObstacleToJump() : bool
 	{	
 		ComputeCollisionStateIfNeeded();
@@ -256,10 +251,10 @@ class CollisionTrajectory extends CGameplayEntity
 		}
 		
 		
-		
-		
-		
-		
+		//if( collisionSegmentsArr[ ECTP_GroundClose ].HasCollisions() )
+		//{
+		//	return true;
+		//}
 		
 		if( collisionSegmentsArr[ ECTP_GroundFar ].HasCollisions() )
 		{
@@ -274,7 +269,7 @@ class CollisionTrajectory extends CGameplayEntity
 		return false;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function GetRefinedObstacleToJumpPosition( out position : Vector ) : bool
 	{		
 		var world 			: CWorld;
@@ -284,18 +279,18 @@ class CollisionTrajectory extends CGameplayEntity
 		var radius 			: float;
 		radius = 0.4f;
 		
-		
+		// Physics World 
 		world		= theGame.GetWorld();
 		if( !world )
 		{
 			return false;
 		}
 		
-		
+		// Get points to sweep
 		position	= collisionSegmentsArr[ ECTP_GroundFar ].GetWorldPosition() + Vector( 0, 0, 1.0f );
 		posEnd		= position + Vector( 0, 0, -2.0f );
 		
-		
+		// Do the sweep
 		if( !world.SweepTest( position, posEnd, radius, resultPosition, normalCollided ) )
 		{
 			return false;
@@ -303,14 +298,17 @@ class CollisionTrajectory extends CGameplayEntity
 		
 		position	= resultPosition;
 		
-		
-		
+		// Collision is going "a bit up"
+		/*if( VecDot( normalCollided, -directionNormalized ) < 0.75f )
+		{
+			return false;
+		}*/
 		
 		return true;
 		
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	private function ComputeGoingToWaterIfNeeded()
 	{	
 		if( computedGoingToWater )
@@ -321,13 +319,13 @@ class CollisionTrajectory extends CGameplayEntity
 		ComputeCollisionStateIfNeeded();		
 		
 		
-		
-		if( trajectoryStatusLastChecked != CTS_AllClear && trajectoryStatusLastChecked != CTS_LandLow && trajectoryStatusLastChecked != CTS_LandOK )
+		// If colliding too soon, we are not going to water
+		if( trajectoryStatusLastChecked != CTS_AllClear && trajectoryStatusLastChecked != CTS_LandLow && trajectoryStatusLastChecked != CTS_LandOK )// <= CTS_LandHigh )
 		{
 			goingToWaterLastState	= ECTTWS_NoWater;
 		}
 		
-		
+		// Find watter
 		else if( collisionSegmentsArr[ ECTP_Fall ].IsGoingToWater() ) 
 		{
 			goingToWaterLastState	= ECTTWS_ToWaterClose;
@@ -344,7 +342,7 @@ class CollisionTrajectory extends CGameplayEntity
 		computedGoingToWater		= true;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function IsGoingToWater() : ECollisionTrajectoryToWaterState
 	{
 		ComputeGoingToWaterIfNeeded();
@@ -352,18 +350,18 @@ class CollisionTrajectory extends CGameplayEntity
 		return goingToWaterLastState;
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	public function DrawDebugText( horizontalPos, verticalPos, heightStep, width, height : int, textColor : Color ) : int
 	{
 		var text	: string;
 		var i		: int;
 		
 		
-		
+		// Update dat aif needed
 		ComputeGoingToWaterIfNeeded();
 		
 		
-		
+		// Get the global status
 		text	= " Prediction state: ";
 		if( IsPotentialObstacleToJump() )
 		{
@@ -384,7 +382,7 @@ class CollisionTrajectory extends CGameplayEntity
 		thePlayer.GetVisualDebug().AddBar( 'JumpTrajectory', horizontalPos, verticalPos, width, height, 0.0f, textColor, text, 0.0f );
 		verticalPos	+= heightStep;
 		
-		
+		// Specific parts
 		text	= " Parts: ";
 		for( i = 0; i < collisionSegmentsArr.Size(); i += 1 )
 		{
@@ -397,8 +395,8 @@ class CollisionTrajectory extends CGameplayEntity
 	}
 }
 
-
-
+//------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------
 function LogCollisionTrajectory( text : string )
 {
 	LogChannel( 'CollisionTrajectory', text );

@@ -1,11 +1,8 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** 
 /***********************************************************************/
-
-
-
+/** Copyright © 2012
+/***********************************************************************/
 
 state TraverseExploration in CPlayer extends Base
 {
@@ -18,9 +15,11 @@ state TraverseExploration in CPlayer extends Base
 	private var prevState : name;
 	
 	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Enter/Leave events	
+	/**
 	
-	
-	
+	*/
 	event OnEnterState( prevStateName : name )
 	{
 		super.OnEnterState(prevStateName);
@@ -30,7 +29,7 @@ state TraverseExploration in CPlayer extends Base
 		
 		parent.AddTimer( 'UpdateTraverser', 0.f, true, false, TICK_PrePhysics );
 		
-		
+		//We always want to use default Camera in explorations
 		theGame.GetGameCamera().ChangePivotPositionController('Default');
 		theGame.GetGameCamera().ChangePivotDistanceController('Default');
 		
@@ -40,7 +39,7 @@ state TraverseExploration in CPlayer extends Base
 	
 	event OnCanLeaveState( newState : name )
 	{
-		if ( newState == 'PlayerDialogScene' ) 
+		if ( newState == 'PlayerDialogScene' ) // Allow dialogs to force state change
 		{
 			return true;
 		}
@@ -59,11 +58,11 @@ state TraverseExploration in CPlayer extends Base
 		
 		parent.RemoveTimer( 'UpdateTraverser' );
 		
-		
+		// Pass to base class
 		super.OnLeaveState(nextStateName);
 	}
 	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	final function SetExploration( e : SExplorationQueryToken )
 	{
@@ -86,12 +85,12 @@ state TraverseExploration in CPlayer extends Base
 			actionResult = parent.ActionExploration( exploration );
 			if ( actionResult )
 			{
-				
+				//parent.explorationFailed = false; - not used anywhere, removed
 				LogChannel( 'Exploration' , "TRUE" );
 			}
 			else
 			{
-				
+				//parent.explorationFailed = true; - not used anywhere, removed
 				LogChannel( 'Exploration' , "FALSE" );
 			}
 			

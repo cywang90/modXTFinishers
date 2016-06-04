@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
+﻿
 enum ENewDoorOperation
 {
 	NDO_Open,
@@ -103,7 +98,7 @@ class W3NewDoor extends W3LockableEntity
 				}
 			}
 			if( !doorsCmp.IsInteractive() )
-			{
+			{//if pushable
 				doorsCmp.AddDoorUser( activatorPlayer );		
 			}
 		}
@@ -146,7 +141,7 @@ class W3NewDoor extends W3LockableEntity
 		}
 	}
 	
-	
+	// called from CDoorComponent when "opened" state is reached
 	event OnOpened()
 	{		
 		lockedDA.SetEnabled( false );		
@@ -252,7 +247,7 @@ class W3NewDoor extends W3LockableEntity
 	{
 		var i, size : int;
 		
-		
+		// todo check if locked on opening/closing?
 		size = operations.Size();
 		for ( i = 0; i < size; i += 1 )
 		{

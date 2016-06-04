@@ -1,12 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2012-2014
+/** Author : Rafal Jarczewski, Andrzej Kwiatkowski, Tomek Kozera
 /***********************************************************************/
 
-
-
-
+// the difference form knockdown is that in this state the character is thrown far far away while being knocked down
 class W3Effect_HeavyKnockdown extends W3CriticalEffect
 {
 	default criticalStateType 			= ECST_HeavyKnockdown;
@@ -19,6 +16,13 @@ class W3Effect_HeavyKnockdown extends W3CriticalEffect
 	default canBeAppliedOnDeadTarget 	= true;
 	default	explorationStateHandling 	= ECH_HandleNow;
 	default usesFullBodyAnim			= true;
+	
+	event OnEffectRemoved()
+	{
+		target.SetIsRecoveringFromKnockdown();
+		
+		super.OnEffectRemoved();
+	}
 	
 	public function CacheSettings()
 	{
@@ -35,7 +39,7 @@ class W3Effect_HeavyKnockdown extends W3CriticalEffect
 		blockedActions.PushBack(EIAB_Movement);
 		blockedActions.PushBack(EIAB_Fists);
 		blockedActions.PushBack(EIAB_Jump);
-		blockedActions.PushBack(EIAB_RunAndSprint);
+		//blockedActions.PushBack(EIAB_RunAndSprint);
 		blockedActions.PushBack(EIAB_ThrowBomb);
 		blockedActions.PushBack(EIAB_Crossbow);
 		blockedActions.PushBack(EIAB_UsableItem);
@@ -43,7 +47,7 @@ class W3Effect_HeavyKnockdown extends W3CriticalEffect
 		blockedActions.PushBack(EIAB_Roll);
 		blockedActions.PushBack(EIAB_SwordAttack);
 		blockedActions.PushBack(EIAB_Parry);
-		blockedActions.PushBack(EIAB_Sprint);
+		//blockedActions.PushBack(EIAB_Sprint);
 		blockedActions.PushBack(EIAB_Explorations);
 		blockedActions.PushBack(EIAB_Counter);
 		blockedActions.PushBack(EIAB_LightAttacks);
@@ -64,7 +68,7 @@ class W3Effect_HeavyKnockdown extends W3CriticalEffect
 		target.FinishQuen(false);
 	}
 	
-	
+	//@Override ragdoll hack
 	public function OnTimeUpdated(deltaTime : float)
 	{
 		var mac : CMovingPhysicalAgentComponent;
@@ -88,7 +92,7 @@ class W3Effect_HeavyKnockdown extends W3CriticalEffect
 			{
 				timeEndedHandled = true;				
 				
-				
+				//if this effect is currently animated
 				if(isActive && this == target.GetCurrentlyAnimatedCS())
 				{				
 					target.RequestCriticalAnimStop(target.IsInAir());

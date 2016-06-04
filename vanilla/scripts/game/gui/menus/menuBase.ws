@@ -1,14 +1,13 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file - menu base
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author : Ryan Pergent
+/**			 Bartosz Bigaj
 /***********************************************************************/
 
 
-
-
-
-
+// #Y Deprecated
 struct SMenuButtonDef
 {
 	var NavigationCode : string;
@@ -24,6 +23,7 @@ struct SKeyBinding
 	var Keyboard_KeyCode : int;
 	var Enabled 		 : bool;
 	var IsLocalized		 : bool;
+	var IsHold           : bool;
 }
 
 enum ENotificationType
@@ -34,9 +34,9 @@ enum ENotificationType
 
 class CR4MenuBase extends CR4Menu
 {
-	
-	
-	
+	//>--------------------------------------------------------------------------------
+	// VARIABLES
+	//---------------------------------------------------------------------------------
 	protected var m_flashValueStorage 	 		: CScriptedFlashValueStorage;
 	protected var m_flashModule     	 		: CScriptedFlashSprite;
 	protected var m_parentMenu  		 		: CR4MenuBase;
@@ -54,6 +54,10 @@ class CR4MenuBase extends CR4Menu
 	protected var m_fxSetPlatform       		: CScriptedFlashFunction;
 	protected var m_fxSetGamepadType       		: CScriptedFlashFunction;
 	protected var m_fxLockControlScheme     	: CScriptedFlashFunction;
+	protected var m_fxSetTooltipState			: CScriptedFlashFunction;
+	
+	protected var m_fxEnableDebugInput			: CScriptedFlashFunction;
+	protected var m_fxSetPaperdollPreviewIcon  : CScriptedFlashFunction;
 	
 	protected var m_menuState			 : name;
 	protected var m_notificationData 	 : W3TutorialPopupData;
@@ -66,15 +70,21 @@ class CR4MenuBase extends CR4Menu
 	
 	protected var m_lastSelectedModule	 : int; default m_lastSelectedModule = 0;
 	
+	protected var mouseCursorType 		 : ECursorType;
+	default mouseCursorType = CT_Default;
+	
 	protected var m_hideTutorial 		 : bool;
 	protected var m_forceHideTutorial 	 : bool;
 	protected var m_configUICalled		 : bool; default m_configUICalled = false;
 	
 	protected var m_initialSelectionsToIgnore : int; default m_initialSelectionsToIgnore = 1;
 	
+	protected var dontAutoCallOnOpeningMenuInOnConfigUIHaxxor : bool;		//if set then tutorial UI handler does not get notification from OnConfigUI
+																			//use when UI is not configured when OnConfigUI gets called.
 	
-	
-	event  OnConfigUI() 
+	//>--------------------------------------------------------------------------------
+	//---------------------------------------------------------------------------------
+	event /*flash*/ OnConfigUI() 
 	{
 		var menuInitData   : W3MenuInitData;
 		var defaultState   : name;
@@ -100,6 +110,8 @@ class CR4MenuBase extends CR4Menu
 		m_fxSwapAcceptCancel	 		= m_flashModule.GetMemberFlashFunction( "swapAcceptCancel" );
 		m_fxSetGamepadType				= m_flashModule.GetMemberFlashFunction( "setGamepadType" );
 		m_fxLockControlScheme			= m_flashModule.GetMemberFlashFunction( "lockControlScheme" );
+		m_fxEnableDebugInput			= m_flashModule.GetMemberFlashFunction( "enableDebugInput" );
+		m_fxSetTooltipState				= m_flashModule.GetMemberFlashFunction( "setTooltipState" );
 		
 		m_parentMenu = (CR4MenuBase)GetParent();
 		
@@ -119,8 +131,8 @@ class CR4MenuBase extends CR4Menu
 		SetControllerType(theInput.LastUsedGamepad());
 		SetPlatformType(theGame.GetPlatform());
 		UpdateAcceptCancelSwaping();
-		UpdateInputDeviceType();
 		
+		//SetPlatformType(Platform_PS4);
 		
 		PlayOpenSoundEvent();
 		m_defaultInputBindings.Clear();
@@ -131,17 +143,17 @@ class CR4MenuBase extends CR4Menu
 			SetTutorialVisibility(false, m_forceHideTutorial);
 		}
 		
-		
+		// Temp:
 		setColorBlindMode(theGame.getColorBlindMode());	
 		setArabicAligmentMode();
+		//
 		
-		
-		if(theGame.GetTutorialSystem() && theGame.GetTutorialSystem().IsRunning())		
+		if( !dontAutoCallOnOpeningMenuInOnConfigUIHaxxor && theGame.GetTutorialSystem() && theGame.GetTutorialSystem().IsRunning() )		
 		{
 			invMenu = (CR4InventoryMenu)this;
 			menuName = GetMenuName();
 			
-			
+			//hack for shop - both Inventory and Shop menus have the same name
 			if(invMenu)
 			{
 				if( (CNewNPC) ((W3InventoryInitData)GetMenuInitData()).containerNPC )
@@ -160,13 +172,26 @@ class CR4MenuBase extends CR4Menu
 		}
 			
 		m_configUICalled = true;
+		
+		if ( !theGame.IsFinalBuild() )
+		{
+			m_fxEnableDebugInput.InvokeSelf();
+		}
 	}
 	
-	event  OnFailedCreateMenu()
+	event /*flash*/ OnTooltipScaleStateSave( isScaledUp : bool )
+	{
+		var player : CR4Player;
+		
+		player = thePlayer;
+		player.upscaledTooltipState = isScaledUp;
+	}
+	
+	event /*C++*/ OnFailedCreateMenu()
 	{
 	}
 	
-	event  OnClearSlotNewFlag(item : SItemUniqueId)
+	event /*flash*/ OnClearSlotNewFlag(item : SItemUniqueId)
 	{
 	}
 	
@@ -177,15 +202,6 @@ class CR4MenuBase extends CR4Menu
 	
 	public function ActionBlockStateChange(action:EInputActionBlock, blocked:bool) : void
 	{
-	}
-	
-	event  OnSendNotification(locKey:string)
-	{
-		showNotification(GetLocStringByKeyExt(locKey));
-		if (locKey == "menu_cannot_perform_action_combat")
-		{
-			OnPlaySoundEvent("gui_global_denied");
-		}
 	}
 	
 	protected function SetTutorialVisibility( value : bool, forced : bool ) : void
@@ -243,17 +259,6 @@ class CR4MenuBase extends CR4Menu
 			m_fxSwapAcceptCancel.InvokeSelfOneArg( FlashArgBool(configValue) );
 		}
 	}
-	
-	protected function UpdateInputDeviceType():void
-	{
-		var deviceType : EInputDeviceType;
-		
-		if (m_fxSetGamepadType)
-		{
-			deviceType = theInput.GetLastUsedGamepadType();
-			m_fxSetGamepadType.InvokeSelfOneArg( FlashArgUInt(deviceType) );
-		}
-	} 
 	
 	protected function UpdateControlSchemeLock():void
 	{
@@ -355,10 +360,10 @@ class CR4MenuBase extends CR4Menu
 			appearance                   = '';
 			environmentSunRotation.Yaw   = 0;
 			environmentSunRotation.Pitch = 0;
-			cameraLookAt.Z               = 1;
+			cameraLookAt.Z               = 0.92;
 			cameraRotation.Yaw           = 200;
 			cameraRotation.Pitch         = 350;
-			cameraDistance               = 2.5;
+			cameraDistance               = 3.2;
 			fov 						 = 70.0f;
 			
 			guiSceneController.SetEntityTemplate( templateFilename );
@@ -386,7 +391,7 @@ class CR4MenuBase extends CR4Menu
 		}
 	}
 	
-	event  OnMenuShown()
+	event /*flash*/ OnMenuShown()
 	{
 		HandleMenuLoaded();
 		
@@ -396,17 +401,16 @@ class CR4MenuBase extends CR4Menu
 		}
 	}
 	
-	public function showNotification(notificationText:string, optional duration:float ):void
+	public function showNotification( notificationText : string, optional duration : float, optional queue : bool ):void
 	{
-		
-		theGame.GetGuiManager().ShowNotification(notificationText, duration);
+		theGame.GetGuiManager().ShowNotification( notificationText, duration, queue );
 	}
 	
-	event  OnClosingMenu()
+	event /* C++ */ OnClosingMenu()
 	{
 		var overlayPopupRef  : CR4OverlayPopup;
 		
-		
+		// Remove input feedback
 		overlayPopupRef = (CR4OverlayPopup)theGame.GetGuiManager().GetPopup('OverlayPopup');
 		if (overlayPopupRef)
 		{
@@ -414,6 +418,7 @@ class CR4MenuBase extends CR4Menu
 		}
 		
 		ResetContext();
+		
 		if(theGame.GetTutorialSystem() && theGame.GetTutorialSystem().IsRunning())		
 		{
 			theGame.GetTutorialSystem().uiHandler.OnClosingMenu(GetMenuName());
@@ -423,9 +428,14 @@ class CR4MenuBase extends CR4Menu
 		{
 			SetTutorialVisibility(true, m_forceHideTutorial);
 		}
+		
+		if (mouseCursorType != CT_Default)
+		{
+			theGame.GetGuiManager().SetMouseCursorType( CT_Default );
+		}
 	}
 
-	event OnCloseMenu() 
+	event OnCloseMenu() // #B will be changed
 	{
 		CloseMenu();
 	}
@@ -449,20 +459,20 @@ class CR4MenuBase extends CR4Menu
 		return m_parentMenu;
 	}
 	
-	event  OnBreakPoint( text : string )
+	event /*flash*/ OnBreakPoint( text : string )
 	{
 		LogChannel('GUIBreakpoint'," text "+text);
 	}
 	
-	
+	// deprecated
 	function UpdateButtons( ButtonsDef : array<SMenuButtonDef>)
 	{}	
 
-	
+	// deprecated
 	function UpdateButton( ButtonDef : SMenuButtonDef, ID : int)
 	{}
 	
-	
+	// deprecated
 	protected function AddButtonDef(out targetList:array<SMenuButtonDef>, navCode:string, label:string)
 	{
 		var ButtonDef:SMenuButtonDef;
@@ -500,7 +510,9 @@ class CR4MenuBase extends CR4Menu
 		}
 	}
 	
-	
+	/*
+		functions to organize communication between swf
+	*/
 	
 	public function GetLastChild():CR4MenuBase
 	{
@@ -607,9 +619,35 @@ class CR4MenuBase extends CR4Menu
 		OnPlaySoundEvent("gui_global_panel_open");	
 	}
 	
-	event  OnModuleSelected( moduleID : int, moduleBindingName : string )
+	event /*flash*/ OnMoveMouseTo( valueX : float, valueY : float ):void
 	{
+		theGame.MoveMouseTo(valueX, valueY);
+	}
+	
+	event /*flash*/ OnSetMouseCursorVisibility( value : bool ):void
+	{
+		theGame.GetGuiManager().ForceHideMouseCursor( !value );
+	}
+	
+	event /*flash*/ OnSetMouseCursorType( value : int ):void
+	{	
+		mouseCursorType = value;
+		theGame.GetGuiManager().SetMouseCursorType( value );
+	}
+	
+	event /*flash*/ OnSendNotification(locKey:string)
+	{
+		showNotification( GetLocStringByKeyExt( locKey ) );
 		
+		if( locKey == "menu_cannot_perform_action_combat" ) // ??
+		{
+			OnPlaySoundEvent( "gui_global_denied" );
+		}
+	}
+	
+	event /*flash*/ OnModuleSelected( moduleID : int, moduleBindingName : string )
+	{
+		// #J Could use this instead of m_lastSelectedModule but its an old partially unplugged system I rather not play with right now.
 		if (m_lastSelectedModule !=  moduleID)
 		{
 			OnPlaySoundEvent("gui_global_highlight");
@@ -621,7 +659,7 @@ class CR4MenuBase extends CR4Menu
 		UISavedData.selectedModule = moduleID;
 	}
 	
-	event  OnAppendButton(actionId:int, gamepadNavCode:string, keyboardKeyCode:int, label:string):void
+	event /*falsh*/ OnAppendButton(actionId:int, gamepadNavCode:string, keyboardKeyCode:int, label:string):void
 	{
 		var overlayPopupRef  : CR4OverlayPopup;
 		overlayPopupRef = (CR4OverlayPopup)theGame.GetGuiManager().GetPopup('OverlayPopup');
@@ -631,7 +669,7 @@ class CR4MenuBase extends CR4Menu
 		}
 	}
 	
-	event  OnRemoveButton(actionId:int)
+	event /*flash*/ OnRemoveButton(actionId:int)
 	{
 		var overlayPopupRef  : CR4OverlayPopup;
 		overlayPopupRef = (CR4OverlayPopup)theGame.GetGuiManager().GetPopup('OverlayPopup');
@@ -641,7 +679,7 @@ class CR4MenuBase extends CR4Menu
 		}
 	}
 	
-	event  OnCleanupButtons()
+	event /*flash*/ OnCleanupButtons()
 	{
 		var overlayPopupRef  : CR4OverlayPopup;
 		overlayPopupRef = (CR4OverlayPopup)theGame.GetGuiManager().GetPopup('OverlayPopup');
@@ -651,7 +689,7 @@ class CR4MenuBase extends CR4Menu
 		}
 	}
 	
-	event  OnUpdateGFxButtonsList()
+	event /*flash*/ OnUpdateGFxButtonsList()
 	{
 		var commonMenuRef : CR4CommonMenu;
 		
@@ -662,7 +700,7 @@ class CR4MenuBase extends CR4Menu
 		}
 	}
 	
-	event  OnAppendGFxButton(actionId:int, gamepadNavCode:String, keyboardKeyCode:int, label:String, holdPrefix:bool)
+	event /*flash*/ OnAppendGFxButton(actionId:int, gamepadNavCode:String, keyboardKeyCode:int, label:String, holdPrefix:bool)
 	{
 		var newButtonDef:SKeyBinding;
 		
@@ -675,6 +713,7 @@ class CR4MenuBase extends CR4Menu
 		{
 			newButtonDef.LocalizationKey = GetHoldLabel() + " " + GetLocStringByKeyExt(label);
 			newButtonDef.IsLocalized = true;
+			newButtonDef.IsHold = true;			
 		}
 		else
 		{
@@ -683,8 +722,8 @@ class CR4MenuBase extends CR4Menu
 		m_GFxInputBindings.PushBack(newButtonDef);
 	}
 	
-	
-	event  OnRemoveGFxButton(actionId:int)
+	// #Y @deprecated
+	event /*flash*/ OnRemoveGFxButton(actionId:int)
 	{
 		RemoveGFxButtonById(actionId);
 	}
@@ -714,12 +753,12 @@ class CR4MenuBase extends CR4Menu
 		m_fxSetCurrentModule.InvokeSelfOneArg(FlashArgInt(0));
 	}
 	
-	event  OnInputHandled(NavCode:string, KeyCode:int, ActionId:int) 
+	event /*flash*/ OnInputHandled(NavCode:string, KeyCode:int, ActionId:int) // #B 
 	{
 		LogChannel('GUIWARNING', "Unecesary call of OnInputHandled NavCode "+NavCode+" KeyCode "+KeyCode);
 	}
 	
-	
+	// do not make it 'event OnGuiSceneEntitySpawned' so it won't be executed in all menus
 	function Event_OnGuiSceneEntitySpawned()
 	{
 		var guiSceneController : CR4GuiSceneController;
@@ -731,7 +770,7 @@ class CR4MenuBase extends CR4Menu
 		}
 	}
 
-	
+	// do not make it 'event OnGuiSceneEntityDestroyed' so it won't be executed in all menus
 	function Event_OnGuiSceneEntityDestroyed()
 	{
 		var guiSceneController : CR4GuiSceneController;
@@ -812,7 +851,7 @@ class CR4MenuBase extends CR4Menu
 		l_craftsmanComponent = (W3CraftsmanComponent)npcEntity.GetComponentByClassName('W3CraftsmanComponent');
 		if (l_craftsmanComponent)
 		{
-			l_craftsmanLevel = l_craftsmanComponent.GetCraftsmanLevel(l_craftsmanType); 
+			l_craftsmanLevel = l_craftsmanComponent.GetCraftsmanLevel(l_craftsmanType); // #Y Temp, fix l_craftsmanType
 			switch( l_craftsmanLevel )
 			{
 				case ECL_Journeyman:
@@ -823,6 +862,9 @@ class CR4MenuBase extends CR4Menu
 					break;
 				case ECL_Grand_Master:
 					l_craftsmanLevelName = GetLocStringByKeyExt("panel_shop_crating_level_grand_master");
+					break;
+				case ECL_Arch_Master:
+					l_craftsmanLevelName = GetLocStringByKeyExt("panel_shop_crating_level_arch_master");
 					break;
 				default:
 					l_craftsmanLevelName = "";

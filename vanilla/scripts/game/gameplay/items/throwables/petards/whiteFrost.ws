@@ -1,10 +1,7 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2014
+/** Author : Tomek Kozera
 /***********************************************************************/
-
-
 
 class W3WhiteFrost extends W3Petard
 {
@@ -14,35 +11,35 @@ class W3WhiteFrost extends W3Petard
 	editable var HAX_waveRadius : float;
 
 	private var collisionMask : array<name>;
-	private var shaderSpeed : float;							
-	private var totalTime : float;								
-	private var collidedEntities : array<CGameplayEntity>;		
-	private var waveProjectile : W3WhiteFrostWaveProjectile;	
+	private var shaderSpeed : float;							//calculated speed of wave projectile to match fx
+	private var totalTime : float;								//sumed time of releasing wave projectiles - removed projectiles when this time > shader progression time
+	private var collidedEntities : array<CGameplayEntity>;		//kept to avoid multiple collisions from different wave projectiles
+	private var waveProjectile : W3WhiteFrostWaveProjectile;	//recent wave projectile, kept to destroy when needed
 	
 		hint waveSpeedModifier = "Multiplier for wave progression speed - freezing effect on actors";
 		hint HAX_waveRadius = "HACK - surface fx radius is not properly calculated - fixed max radius";
 
 	protected function ProcessLoopEffect()
 	{
-		
+		//snap components
 		SnapComponents(false);
 		
-		
+		//enable loop components
 		LoopComponentsEnable(true);		
 		
-		
+		//loop fx
 		ProcessEffectPlayFXs(false);
 		
-		
+		//wave projectiles' duration
 		totalTime = 0;
 		
-		
+		//calulate shader progression speed - will be used by wave projectiles to match visuals
 		shaderSpeed = HAX_waveRadius / impactParams.surfaceFX.fxFadeInTime * waveSpeedModifier;
 		
 		AddTimer('OnTimeEnded', loopDuration, false, , , true);
 		AddTimer('WaveProjectile', 0.3, true, , , true);
 		
-		
+		//force first AoE check on explosion - use the same radius as first wave check
 		WaveProjectile(0.3);
 	}
 	
@@ -53,7 +50,7 @@ class W3WhiteFrost extends W3Petard
 		
 		super.LoadDataFromItemXMLStats();
 		
-		
+		//pass frozen effect custom param
 		customParam = new W3FrozenEffectCustomParams in this;
 		customParam.freezeFadeInTime = freezeNPCFadeInTime;
 		for(i=0; i<impactParams.buffs.Size(); i+=1)
@@ -66,12 +63,12 @@ class W3WhiteFrost extends W3Petard
 		}
 	}
 	
-	
+	//shoots wave projectile - a sphere which radius depends on speed and total time since explosion
 	timer function WaveProjectile(dt : float, optional id : int)
 	{
 		totalTime += dt;
 		
-		
+		// Create only one instance to ensure that obstacle is hit only once
 		if(!waveProjectile)
 		{
 			waveProjectile = (W3WhiteFrostWaveProjectile)theGame.CreateEntity(waveProjectileTemplate, GetWorldPosition());			
@@ -86,18 +83,69 @@ class W3WhiteFrost extends W3Petard
 		
 		waveProjectile.SphereOverlapTest( totalTime * shaderSpeed, collisionMask );
 		
+		//debug visualisation
+		thePlayer.GetVisualDebug().AddSphere(EffectTypeToName(RandRange((int)EET_EffectTypesSize)), totalTime * shaderSpeed, GetWorldPosition(), true, Color(0,0,255), 0.15);
 		
-		thePlayer.GetVisualDebug().AddSphere(EffectTypeToName(RandRange(EnumGetMax('EEffectType'))), totalTime * shaderSpeed, GetWorldPosition(), true, Color(0,0,255), 0.15);
-		
-		
+		//when reached max stop timer and schedule destruction of last projectile
 		if(totalTime >= impactParams.surfaceFX.fxFadeInTime)
 		{
 			RemoveTimer('WaveProjectile');			
 			waveProjectile.Destroy();
+		}		
+	}
+	
+	protected function ProcessMechanicalEffect(targets : array<CGameplayEntity>, isImpact : bool, optional dt : float)
+	{
+		var spikeEnt : CEntity;
+		var entityTemplate : CEntityTemplate;
+		var rot : EulerAngles;
+		var pos, basePos : Vector;
+		var i : int;
+		var angle, radius : float;
+		
+		super.ProcessMechanicalEffect( targets, isImpact, dt );
+		
+		if( isImpact && impactNormal.Z >= 0.8f )
+		{
+			//large, central spike
+			entityTemplate = (CEntityTemplate) LoadResource( 'ice_spikes_large' );	
+			if ( entityTemplate )
+			{
+				pos = GetWorldPosition();
+				pos = TraceFloor( pos );
+				rot.Pitch = 0.f;
+				rot.Roll = 0.f;
+				rot.Yaw = 0.f;
+				
+				spikeEnt = theGame.CreateEntity( entityTemplate, pos, rot );
+				spikeEnt.DestroyAfter( 40.f );
+			}
+			
+			//smaller, side spikes
+			entityTemplate = (CEntityTemplate) LoadResource( 'ice_spikes' );
+			basePos = GetWorldPosition();
+			for( i=0; i<3; i+=1 )
+			{
+				// 3.0 - 4.0 m
+				radius = RandF() + 3.0;
+				
+				// every 120 deg +/- 20 deg
+				angle = i * 2 *( Pi() / 3 ) + RandRangeF( Pi()/18, -Pi()/18 );
+				
+				pos = basePos + Vector( radius * CosF( angle ), radius * SinF( angle ), 0 );
+				pos = TraceFloor( pos );
+				
+				rot.Pitch = 0.f;
+				rot.Roll = 0.f;
+				rot.Yaw = 0.f;
+				
+				spikeEnt = theGame.CreateEntity( entityTemplate, pos, rot );
+				spikeEnt.DestroyAfter( 40.f );
+			}			
 		}
 	}
 	
-	
+	//called when wave projectile detects collision with something
 	public function Collided(ent : CGameplayEntity)
 	{
 		var ents : array<CGameplayEntity>;
@@ -117,7 +165,7 @@ class W3WhiteFrost extends W3Petard
 	}
 }
 
-
+//wave projectile used by frost bomb
 class W3WhiteFrostWaveProjectile extends CProjectileTrajectory
 {
 	private var frostEntity : W3WhiteFrost;

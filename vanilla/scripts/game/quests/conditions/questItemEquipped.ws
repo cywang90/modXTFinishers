@@ -1,10 +1,7 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2012-2013
+/** Author : Rafal Jarczewski, Tomek Kozera
 /***********************************************************************/
-
-
 
 class W3QuestCond_IsItemEquipped_Listener extends IGlobalEventScriptedListener
 {
@@ -23,6 +20,7 @@ class W3QuestCond_IsItemEquipped extends CQuestScriptedCondition
 {
 	editable var itemName 		: name;
 	editable var categoryName 	: name;
+	editable var inverted		: bool;
 
 	var isFulfilled				: bool;
 	var listener				: W3QuestCond_IsItemEquipped_Listener;
@@ -73,17 +71,27 @@ class W3QuestCond_IsItemEquipped extends CQuestScriptedCondition
 	function EvaluateImpl()
 	{
 		var player : W3PlayerWitcher;
-
+		var itemEquipped : bool;
+		
 		player = GetWitcherPlayer();
 		if ( player )
 		{
 			if ( IsNameValid( itemName ) )
 			{			
-				isFulfilled = player.IsItemEquippedByName( itemName );
+				itemEquipped = player.IsItemEquippedByName( itemName );
 			}
 			else if ( IsNameValid( categoryName ) )
 			{
-				isFulfilled = player.IsItemEquippedByCategoryName( categoryName );
+				itemEquipped = player.IsItemEquippedByCategoryName( categoryName );
+			}
+			
+			if( inverted )
+			{
+				isFulfilled = !itemEquipped;
+			}
+			else
+			{
+				isFulfilled = itemEquipped;
 			}
 		}
 	}

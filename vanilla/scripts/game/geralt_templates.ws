@@ -1,16 +1,11 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-exec function fb2(level : int, optional path : name)
+﻿exec function fb2(level : int, optional path : name)
 {	
 	var iID : array<SItemUniqueId>;
 	var lm : W3PlayerWitcher;
 	var exp, prevLvl, currLvl : int;
 	
 	GetWitcherPlayer().Debug_ClearCharacterDevelopment();
-	
+	//GetWitcherPlayer().GetInventory().RemoveAllItems();
 	
 	lm = GetWitcherPlayer();
 	prevLvl = lm.GetLevel();
@@ -24,7 +19,7 @@ exec function fb2(level : int, optional path : name)
 		currLvl = lm.GetLevel();
 		
 		if(prevLvl == currLvl)
-			break;				
+			break;				//some error, we didnt gain a level this time around
 		
 		prevLvl = currLvl;
 	}		
@@ -46,6 +41,11 @@ exec function GetExpPoints(points : int)
 }
 
 exec function fb3 (optional level :int, optional path : name, optional clearInv : bool)
+{
+	fb3_internal( level, path, clearInv );
+}
+
+function fb3_internal(optional level :int, optional path : name, optional clearInv : bool)
 {	
 	var iID : array<SItemUniqueId>;
 	var lm : W3PlayerWitcher;
@@ -74,17 +74,17 @@ exec function fb3 (optional level :int, optional path : name, optional clearInv 
 		currLvl = lm.GetLevel();
 		
 		if(prevLvl == currLvl)
-			break;				
+			break;				//some error, we didnt gain a level this time around
 		
 		prevLvl = currLvl;
 	}		
 	iID.Clear();
-	iID = GetWitcherPlayer().inv.AddAnItem('Autogen steel sword', 1); GetWitcherPlayer().EquipItem(iID[0]);
-	iID = GetWitcherPlayer().inv.AddAnItem('Autogen silver sword', 1);	GetWitcherPlayer().EquipItem(iID[0]);
-	iID = GetWitcherPlayer().inv.AddAnItem('Autogen Pants', 1); GetWitcherPlayer().EquipItem(iID[0]);
-	iID = GetWitcherPlayer().inv.AddAnItem('Autogen Gloves', 1); GetWitcherPlayer().EquipItem(iID[0]);
-	iID = GetWitcherPlayer().inv.AddAnItem('Autogen Boots', 1); GetWitcherPlayer().EquipItem(iID[0]);
-	iID = GetWitcherPlayer().inv.AddAnItem('Autogen Armor', 1); GetWitcherPlayer().EquipItem(iID[0]);
+	iID = lm.inv.AddAnItem('Autogen steel sword', 1); 	lm.EquipItem(iID[0]);
+	iID = lm.inv.AddAnItem('Autogen silver sword', 1);	lm.EquipItem(iID[0]);
+	iID = lm.inv.AddAnItem('Autogen Pants', 1); 		lm.EquipItem(iID[0]);
+	iID = lm.inv.AddAnItem('Autogen Gloves', 1); 		lm.EquipItem(iID[0]);
+	iID = lm.inv.AddAnItem('Autogen Boots', 1); 		lm.EquipItem(iID[0]);
+	iID = lm.inv.AddAnItem('Autogen Armor', 1); 		lm.EquipItem(iID[0]);
 	
 	switch ( path )
 	{
@@ -98,6 +98,12 @@ exec function fb3 (optional level :int, optional path : name, optional clearInv 
 		case 'bombs': 	Ep1_alchemy(); break;
 		case 'bomb': 	Ep1_alchemy(); break;
 	}
+	
+	//for testing mutations
+	lm.inv.AddAnItem('Greater mutagen red', 14);
+	lm.inv.AddAnItem('Greater mutagen green', 11);
+	lm.inv.AddAnItem('Greater mutagen blue', 11);
+	lm.AddPoints(ESkillPoint, 60, true);
 }
 
 function Ep1_sword()
@@ -109,7 +115,7 @@ function Ep1_sword()
 	q = 22;	
 	lm = GetWitcherPlayer();
 	lm.AddPoints(ESkillPoint, 250, true);
-
+//swords
 	lm.AddMultipleSkills(S_Sword_s01 ,5 );
 	lm.AddMultipleSkills(S_Sword_s02 ,5 );
 	lm.AddMultipleSkills(S_Sword_s03 ,5 );
@@ -130,7 +136,7 @@ function Ep1_sword()
 	lm.AddMultipleSkills(S_Sword_s19,5 );
 	lm.AddMultipleSkills(S_Sword_s20,5 );
 	lm.AddMultipleSkills(S_Sword_s21,5 );
-	
+	//signs
 	lm.AddMultipleSkills(S_Magic_s01 ,5 );
 	lm.AddMultipleSkills(S_Magic_s02 ,5 );
 	lm.AddMultipleSkills(S_Magic_s03 ,5 );
@@ -151,7 +157,7 @@ function Ep1_sword()
 	lm.AddMultipleSkills(S_Magic_s18,5 );
 	lm.AddMultipleSkills(S_Magic_s19,5 );
 	lm.AddMultipleSkills(S_Magic_s20,5 );
-	
+	//alchemy
 	lm.AddMultipleSkills(S_Alchemy_s01,5 );
 	lm.AddMultipleSkills(S_Alchemy_s02 ,5 );
 	lm.AddMultipleSkills(S_Alchemy_s03 ,5 );
@@ -186,9 +192,14 @@ function Ep1_sword()
 	lm.AddSkill(S_Perk_11);
 	lm.AddSkill(S_Perk_12);
 	lm.AddSkill(S_Perk_13);
+	lm.AddSkill(S_Perk_14);
+	lm.AddSkill(S_Perk_15);
+	lm.AddSkill(S_Perk_16);
 	lm.AddSkill(S_Perk_17);
 	lm.AddSkill(S_Perk_18);
 	lm.AddSkill(S_Perk_19);
+	lm.AddSkill(S_Perk_20);
+	lm.AddSkill(S_Perk_21);
 	lm.AddSkill(S_Perk_22);
 
 	lm.EquipSkill(S_Sword_s08, 3);	
@@ -263,7 +274,7 @@ function Ep1_signs()
 	q = 22;
 	lm = GetWitcherPlayer();
 	GetWitcherPlayer().AddPoints(ESkillPoint, 250, true);
-	
+	//swords
 	lm.AddMultipleSkills(S_Sword_s01 ,5 );
 	lm.AddMultipleSkills(S_Sword_s02 ,5 );
 	lm.AddMultipleSkills(S_Sword_s03 ,5 );
@@ -284,7 +295,7 @@ function Ep1_signs()
 	lm.AddMultipleSkills(S_Sword_s19,5 );
 	lm.AddMultipleSkills(S_Sword_s20,5 );
 	lm.AddMultipleSkills(S_Sword_s21,5 );
-	
+	//signs
 	lm.AddMultipleSkills(S_Magic_s01 ,5 );
 	lm.AddMultipleSkills(S_Magic_s02 ,5 );
 	lm.AddMultipleSkills(S_Magic_s03 ,5 );
@@ -305,7 +316,7 @@ function Ep1_signs()
 	lm.AddMultipleSkills(S_Magic_s18,5 );
 	lm.AddMultipleSkills(S_Magic_s19,5 );
 	lm.AddMultipleSkills(S_Magic_s20,5 );
-	
+	//alchemy
 	lm.AddMultipleSkills(S_Alchemy_s01,5 );
 	lm.AddMultipleSkills(S_Alchemy_s02 ,5 );
 	lm.AddMultipleSkills(S_Alchemy_s03 ,5 );
@@ -340,9 +351,14 @@ function Ep1_signs()
 	lm.AddSkill(S_Perk_11);
 	lm.AddSkill(S_Perk_12);
 	lm.AddSkill(S_Perk_13);
+	lm.AddSkill(S_Perk_14);
+	lm.AddSkill(S_Perk_15);
+	lm.AddSkill(S_Perk_16);
 	lm.AddSkill(S_Perk_17);
 	lm.AddSkill(S_Perk_18);
 	lm.AddSkill(S_Perk_19);
+	lm.AddSkill(S_Perk_20);
+	lm.AddSkill(S_Perk_21);
 	lm.AddSkill(S_Perk_22);
 	
 	lm.EquipSkill(S_Magic_s08, 1);
@@ -417,7 +433,7 @@ function Ep1_alchemy()
 	q = 22;
 	lm = GetWitcherPlayer();
 	lm.AddPoints(ESkillPoint, 100, true);
-
+//swords
 	lm.AddMultipleSkills(S_Sword_s01 ,5 );
 	lm.AddMultipleSkills(S_Sword_s02 ,5 );
 	lm.AddMultipleSkills(S_Sword_s03 ,5 );
@@ -438,7 +454,7 @@ function Ep1_alchemy()
 	lm.AddMultipleSkills(S_Sword_s19,5 );
 	lm.AddMultipleSkills(S_Sword_s20,5 );
 	lm.AddMultipleSkills(S_Sword_s21,5 );
-	
+	//signs
 	lm.AddMultipleSkills(S_Magic_s01 ,5 );
 	lm.AddMultipleSkills(S_Magic_s02 ,5 );
 	lm.AddMultipleSkills(S_Magic_s03 ,5 );
@@ -459,7 +475,7 @@ function Ep1_alchemy()
 	lm.AddMultipleSkills(S_Magic_s18,5 );
 	lm.AddMultipleSkills(S_Magic_s19,5 );
 	lm.AddMultipleSkills(S_Magic_s20,5 );
-	
+	//alchemy
 	lm.AddMultipleSkills(S_Alchemy_s01,5 );
 	lm.AddMultipleSkills(S_Alchemy_s02 ,5 );
 	lm.AddMultipleSkills(S_Alchemy_s03 ,5 );
@@ -494,9 +510,14 @@ function Ep1_alchemy()
 	lm.AddSkill(S_Perk_11);
 	lm.AddSkill(S_Perk_12);
 	lm.AddSkill(S_Perk_13);
+	lm.AddSkill(S_Perk_14);
+	lm.AddSkill(S_Perk_15);
+	lm.AddSkill(S_Perk_16);
 	lm.AddSkill(S_Perk_17);
 	lm.AddSkill(S_Perk_18);
 	lm.AddSkill(S_Perk_19);
+	lm.AddSkill(S_Perk_20);
+	lm.AddSkill(S_Perk_21);
 	lm.AddSkill(S_Perk_22);
 	
 	lm.EquipSkill(S_Alchemy_s12, 1);

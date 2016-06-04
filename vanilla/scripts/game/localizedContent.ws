@@ -1,24 +1,22 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file
 /***********************************************************************/
-
-
-
+/** Localized content
+/** Copyright © 2010
+/***********************************************************************/
 
 import function GetLocStringById( stringId : int ) : string;
 
 import function GetLocStringByKey( stringKey : string ) : string;
 
-
+// if no translation were found, returnes stringKey prefixed with '#'
 import function GetLocStringByKeyExt( stringKey : string ) : string;
 
-
-
+// Assume this function is expensive as it replaces characters in a string based on chosen language. 
+// Should be saved for user inputted content where we have no control over what the string contains
 import function FixStringForFont( originalString : string ) : string;
 
-
+// returns localised string with item name for given item name
 function GetItemCategoryLocalisedString(cat : name) : string
 {
 	if(!IsNameValid(cat))
@@ -27,7 +25,7 @@ function GetItemCategoryLocalisedString(cat : name) : string
 	return GetLocStringByKeyExt("item_category_" + StrReplaceAll( StrLower(NameToString(cat)), " ", "_") );
 }
 
-
+// returns localized string with attribute name
 function GetAttributeNameLocStr(attName : name, isMult : bool) : string
 {
 	if(isMult)
@@ -36,7 +34,7 @@ function GetAttributeNameLocStr(attName : name, isMult : bool) : string
 		return GetLocStringByKeyExt("attribute_name_"+StrLower(attName));
 }
 
-
+// returns localized string with attribute name
 function GetLocStringByKeyExtWithParams(stringKey : string , optional intParamsArray : array<int>, optional floatParamsArray : array<float>, optional stringParamsArray : array<string>, optional addNbspTag:bool) : string
 {
 	var i : int;
@@ -56,7 +54,7 @@ function GetLocStringByKeyExtWithParams(stringKey : string , optional intParamsA
 	
 	for( i = 0; i < intParamsArray.Size(); i += 1 )
 	{
-		resultString = StrReplace( resultString, "$I$", prefix + IntToString(intParamsArray[i]) ); 
+		resultString = StrReplace( resultString, "$I$", prefix + IntToString(intParamsArray[i]) ); // #B "$I"+i+"$" - it will be safer to number parameters
 	}
 	for( i = 0; i < floatParamsArray.Size(); i += 1 )
 	{
@@ -70,7 +68,7 @@ function GetLocStringByKeyExtWithParams(stringKey : string , optional intParamsA
 	return resultString;
 }
 
-
+// returns localized string with attribute name
 function GetLocStringByIdWithParams( stringId : int , optional intParamsArray : array<int>, optional floatParamsArray : array<float>, optional stringParamsArray : array<string>) : string
 {
 	var i : int;
@@ -80,7 +78,7 @@ function GetLocStringByIdWithParams( stringId : int , optional intParamsArray : 
 
 	for( i = 0; i < intParamsArray.Size(); i += 1 )
 	{
-		resultString = StrReplace( resultString, "$I$", IntToString(intParamsArray[i]) ); 
+		resultString = StrReplace( resultString, "$I$", IntToString(intParamsArray[i]) ); // #B "$I"+i+"$" - it will be safer to number parameters
 	}
 	for( i = 0; i < floatParamsArray.Size(); i += 1 )
 	{
@@ -251,7 +249,7 @@ function GetResistStatLocalizedDesc(s : ECharacterDefenseStats, isPointResistanc
 	}
 }
 
-
+//checks if string has any localization tags
 function HasLolcalizationTags(s : string) : bool
 {
 	return StrFindFirst(s, "<<") >= 0;
@@ -260,41 +258,37 @@ function HasLolcalizationTags(s : string) : bool
 function GetIconByPlatform(tag : string) : string
 {
 	var icon : string;
-	var isGamepad : bool;
-	
-	isGamepad = theInput.LastUsedGamepad() || theInput.GetLastUsedGamepadType() == GT_Steam;
-	
 	if (tag == "GUI_GwintPass")
 	{
-		if(isGamepad)
+		if(theInput.LastUsedGamepad())
 			icon = GetIconForKey(IK_Pad_Y_TRIANGLE, true);
 		else
 			icon = GetIconForKey(IK_Space);
 	}
 	if (tag == "GUI_GwintChoose")
 	{
-		if(isGamepad)
+		if(theInput.LastUsedGamepad())
 			icon = GetIconForKey(IK_Pad_A_CROSS, true);
 		else
 			icon = GetIconForKey(IK_Enter);
 	}
 	else if(tag == "GUI_GwintZoom")
 	{
-		if(isGamepad)
+		if(theInput.LastUsedGamepad())
 			icon = GetIconForKey(IK_Pad_RightTrigger);
 		else
 			icon = GetIconForKey(IK_Shift);
 	}
 	else if (tag == "GUI_GwintLeader")
 	{
-		if(isGamepad)
+		if(theInput.LastUsedGamepad())
 			icon = GetIconForKey(IK_Pad_X_SQUARE, true);
 		else
 			icon = GetIconForKey(IK_X);	
 	}
 	else if (tag == "GUI_Close")
 	{
-		if(isGamepad)
+		if(theInput.LastUsedGamepad())
 			icon = GetIconForKey(IK_Pad_B_CIRCLE, true);
 		else
 			icon = GetIconForKey(IK_Escape);	
@@ -303,10 +297,10 @@ function GetIconByPlatform(tag : string) : string
 	return icon;
 }
 
-
-
-
-
+//Parses text and replaces tags (images, controls keys) to their icons.
+//In case of keyboard tags some might be replaced to text as we don't do icons for those, eg. [Enter]
+//If action has more than one key then you can specify the index youn want by placing it after comma inside tag.
+//For example GI_AxisLeftY binds to W and S. Using <<GI_AxisLeftY>> gives [W] and using <<GI_AxisLeftY,1>> gives [S].
 function ReplaceTagsToIcons(s : string) : string
 {
 	var start, stop, keyIdx, commaIdx : int;
@@ -318,7 +312,7 @@ function ReplaceTagsToIcons(s : string) : string
 	
 	while(true)
 	{
-		
+		//find next unparsed tag
 		start = StrFindFirst(s, "<<");
 		if(start < 0)
 			break;
@@ -327,18 +321,18 @@ function ReplaceTagsToIcons(s : string) : string
 		if(stop < 0)
 			break;
 			
-		
+		//some broken tags - first close then open
 		if(stop < start)
 		{
-			
+			//erase broken tag
 			s = StrReplace(s, ">>", "");
 			continue;
 		}
 		
-		
+		//get tag string
 		tag = StrMid(s, start+2, stop-start-2);
 				
-		
+		//check for array index request e.g. GI_AxisLeftY,1
 		commaIdx = StrFindFirst(tag, ",");
 		if(commaIdx >= 0)
 		{
@@ -351,15 +345,15 @@ function ReplaceTagsToIcons(s : string) : string
 			keyIdx = 0;
 		}
 		
+		//input check - assume tag is an action and try to get key assigned to it
 		
-		
-		
-		
-		
-		
-		
-		
-		
+		//---------------------------------------------------
+		// #Y2 Hack for attack tutorials
+		// AttackWithAlternateHeavy
+		// AttackWithAlternateLight
+		// SpecialAttackWithAlternateLight
+		// SpecialAttackWithAlternateHeavy
+		// PCAlternate
 		
 		if (tag == "PCAlternate")
 		{
@@ -377,14 +371,14 @@ function ReplaceTagsToIcons(s : string) : string
 			}
 			else			
 			{
-				icon = "##"; 
+				icon = "##"; // NONE if we have heavy attack bound
 			}
 		}
 		else
 		if (tag == "AttackWithAlternateLight_mod" || tag == "SpecialAttackWithAlternateLight_mod")
 		{
-			
-			
+			// light attack as a part of heavy attack text:
+			// <<PCAlternate>> oraz <<SpecialAttackWithAlternateLight_mod>> aby wykonać specjalny atak silny.
 			
 			keys.Clear();
 			attackModKeysPC.Clear();
@@ -444,7 +438,7 @@ function ReplaceTagsToIcons(s : string) : string
 				}
 				else
 				{
-					icon = "##"; 
+					icon = "##"; // none
 				}
 			}
 		}
@@ -473,23 +467,23 @@ function ReplaceTagsToIcons(s : string) : string
 			keys.Clear();
 			theInput.GetCurrentKeysForActionStr(tag, keys);
 			
-			
+			//get replacement string
 			if(keys.Size() == 0)
 			{
-				
+				//tag is not an action so it's a general icon tag
 				icon = GetIconForTag(tag);
 			}
 			else
 			{
-				
+				//get icon string from input key
 				icon = GetIconForKey(keys[keyIdx]);
 			}
 		}
 		
-		
+		//replace tag with icon
 		if(StrStartsWith(icon, "##"))
 		{
-			
+			//unmapped key (or broken TAG!)
 			GetBracketSymbols(bracketOpeningSymbol, bracketClosingSymbol);
 			icon = " " + bracketOpeningSymbol + "<font color=\"" + theGame.params.KEYBOARD_KEY_FONT_COLOR + "\">" + GetLocStringByKeyExt("input_device_key_name_IK_none") + "</font>" + bracketClosingSymbol + " ";
 			s = StrReplaceAll(s, "<<" + tag + ">>", icon);
@@ -507,8 +501,8 @@ function ReplaceTagsToIcons(s : string) : string
 	return s;
 }
 
-
-
+//Gets full icon string for input key.
+//It's either a html tag to insert image or a string in case of keyboard, eg. "[Backspace]"
 function GetIconForKey(key : EInputKey, optional isGuiKey:bool) : string
 {
 	var inGameConfigWrapper : CInGameConfigWrapper;
@@ -536,16 +530,16 @@ function GetIconForKey(key : EInputKey, optional isGuiKey:bool) : string
 		}
 	}
 	
-	
+	//get image file name from given input key
 	icon = GetIconNameForKey(key);
 	
 	GetBracketSymbols(bracketOpeningSymbol, bracketClosingSymbol);
 	if(icon == "")
 	{
-		
+		//if no image, it's a keyboard key
 		switch(key)
 		{
-			
+			//for special keys we have localized strings (e.g. backspace, space)
 			case IK_Backspace:
 			case IK_Tab:
 			case IK_Enter:
@@ -600,7 +594,7 @@ function GetIconForKey(key : EInputKey, optional isGuiKey:bool) : string
 				keyText = GetLocStringByKeyExt("input_device_key_name_" + key);
 				break;
 				
-			
+			//for generic ones we just take it's char
 			default:
 				keyText = StrChar(key);
 		}
@@ -648,12 +642,12 @@ function GetBracketSymbols(out openingSymbol:string, out closingSymbol:string, o
 	}
 }
 
-
+//gets html string icon
 function GetHTMLForICO(icon : string) : string
 {
+	//we use vspace as we cannot align it vertically at the moment
 	
-	
-	
+	// #Y Sorry, hack for PC
 	if (icon == "Mouse_LeftBtn" || icon == "Mouse_RightBtn" || icon == "Mouse_MiddleBtn" || icon == "Mouse_ScrollUp" || icon == "Mouse_ScrollDown")
 	{
 		icon = " <img src=\"" + icon + ".png\" vspace=\"-10\" />";
@@ -668,7 +662,7 @@ function GetHTMLForICO(icon : string) : string
 
 function GetHTMLForMouseICO(icon : string) : string
 {
-	
+	//we use vspace as we cannot align it vertically at the moment
 	icon = " <img src=\"" + icon + ".png\" vspace=\"-10\" />";
 
 	return icon;
@@ -676,7 +670,7 @@ function GetHTMLForMouseICO(icon : string) : string
 
 function GetHTMLForItemICO(icon : string, optional vspace : float) : string
 {
-	
+	//we use vspace as we cannot align it vertically at the moment
 	if (vspace == 0)
 	{
 		icon = " <img src=\"" + icon + ".png\" vspace=\"-10\" />";
@@ -689,19 +683,19 @@ function GetHTMLForItemICO(icon : string, optional vspace : float) : string
 	return icon;
 }
 
-
+//gets html string icon
 function GetBookTexture(tag : string) : string
 {
 	var retStr : string;
-	
+	//we use vspace as we cannot align it vertically at the moment
 	retStr = "<p align=\"center\">"+" <img src=\"" + tag + ".png\" vspace=\"-20\" align=\"middle\" /> "+ "</p>";
 
 	return retStr;
 }
 
-
+//gets icon file name for given tag (not an input key!)
 function GetIconForTag(tag : string) : string
-{
+{	
 	var icon : string;
 	
 	if(tag == "GUI_LootPanel_LootAll")				icon = GetIconForKey(IK_Pad_A_CROSS, true);
@@ -729,16 +723,19 @@ function GetIconForTag(tag : string) : string
 	else if(tag == "ICO_NoticeBoard" || tag == "ICO_Noticeboard")	icon = GetHTMLForItemICO("ICO_NoticeBoard");
 	else if(tag == "PAD_LSUp")						icon = GetHTMLForICO(GetPadFileName("LS_Up"));
 	else if(tag == "PAD_LS_LeftRight")				icon = GetHTMLForICO(GetPadFileName("LS_LeftRight"));
+	else if(tag == "PAD_RS_LeftRight")				icon = GetHTMLForICO(GetPadFileName("RS_LeftRight"));
+	else if(tag == "Cross_UpDown")  				icon = GetHTMLForICO(GetPadFileName("Cross_UpDown"));
+	else if(tag == "PAD_RS_UpDown")					icon = GetHTMLForICO(GetPadFileName("RS_UpDown"));
 	else if(tag == "ICO_DialogEnd")					icon = GetHTMLForItemICO("ICO_DialogEnd");
 	else if(tag == "GUI_RS_Press")					icon = GetHTMLForICO(GetPadFileName("RS_PRESS"));
 	else if(tag == "GUI_DPAD_LeftRight")			icon = GetHTMLForICO(GetPadFileName("Cross_LeftRight"));
 	else if(tag == "IK_LeftMouse")					icon = GetIconForKey(IK_LeftMouse);
 	else if(tag == "IK_RightMouse")					icon = GetIconForKey(IK_RightMouse);
 	else if(tag == "Mouse")							icon = GetHTMLForICO("Mouse_Pan");
-	else if(tag == "GUI_PC_Close")					icon = GetIconForKey(IK_Escape);	
+	else if(tag == "GUI_PC_Close")					icon = GetIconForKey(IK_Escape);
 	else
 	{
-		
+		//out of memory, let's party!
 		return GetIconOrColorForTag2(tag);
 	}
 	
@@ -759,7 +756,7 @@ function GetIconOrColorForTag2(tag : string) : string
 	else if(tag == "ICO_NewQuest")					icon = GetHTMLForItemICO("ICO_NewQuest");
 	else if(tag == "ICO_EP1Quest")					icon = GetHTMLForItemICO("ICO_EP1Quest", -25);
 	else if(tag == "ICO_Destructible")				icon = GetHTMLForItemICO("ICO_Destructible");
-	else if(tag == "ICO_BoatFastTravel")			icon = GetHTMLForItemICO("ICO_minimap_harbor"); 
+	else if(tag == "ICO_BoatFastTravel")			icon = GetHTMLForItemICO("ICO_minimap_harbor"); // old- ICO_BoatFastTravel
 	else if(tag == "ICO_Overencumbered")			icon = GetHTMLForItemICO("ICO_Overencumbered");
 	else if(tag == "ICO_UnknownPOI")				icon = GetHTMLForItemICO("ICO_UnknownPOI");
 	else if(tag == "ICO_ThunderboltPotion")			icon = GetHTMLForItemICO("ICO_ThunderboltPotion");
@@ -769,28 +766,47 @@ function GetIconOrColorForTag2(tag : string) : string
 	else if(tag == "ICO_DungeonCrawl")			    icon = GetHTMLForItemICO("ICO_DungeonCrawl");
 	else if(tag == "ICO_ShopMapPin")				icon = GetHTMLForItemICO("ICO_ShopIcoPin");
 	else if(tag == "ICO_Enchanter")					icon = GetHTMLForItemICO("ICO_Enchanter", -2);
+	else if(tag == "ICO_Cammerlengo")				icon = GetHTMLForItemICO("ICO_bob_cammerlengo");
+	else if(tag == "ICO_DyeMerchant")				icon = GetHTMLForItemICO("ICO_bob_dye_merchant");
+	else if(tag == "ICO_HansaHideout")				icon = GetHTMLForItemICO("ICO_bob_hansa_hideout");
+	else if(tag == "ICO_HansaRunner")				icon = GetHTMLForItemICO("ICO_bob_hansa_runner");
+	else if(tag == "ICO_HansaSignal")				icon = GetHTMLForItemICO("ICO_bob_hansa_signal");
+	else if(tag == "ICO_InfestedVineyard")			icon = GetHTMLForItemICO("ICO_bob_infested_vineyard");
+	else if(tag == "ICO_KnightErrant")				icon = GetHTMLForItemICO("ICO_bob_knight_errant");
+	else if(tag == "ICO_Plegmund")					icon = GetHTMLForItemICO("ICO_bob_plegmund");
+	else if(tag == "ICO_WineContract")				icon = GetHTMLForItemICO("ICO_wine_contract");
+	else if(tag == "ICO_WineMerchant")				icon = GetHTMLForItemICO("ICO_bob_wine_merchant");
+	else if(tag == "ICO_Map_Pin_Normal")			icon = GetHTMLForItemICO("ICO_custom_pin_waypoint");
+	else if(tag == "ICO_Map_Pin_Special1")			icon = GetHTMLForItemICO("ICO_custom_pin_danger");
+	else if(tag == "ICO_Map_Pin_Special2")			icon = GetHTMLForItemICO("ICO_custom_pin_mark");
+	else if(tag == "ICO_Map_Pin_Special3")			icon = GetHTMLForItemICO("ICO_custom_pin_info");
+	else if(tag == "ICO_ArchMaster")				icon = GetHTMLForItemICO("ICO_bob_archmaster");
+	else if(tag == "GUI_Ingredient_Unfold_Icon")	icon = GetHTMLForItemICO("ICO_crafting_indicator");
+	else if(tag == "ICO_Vermentino")				icon = GetHTMLForItemICO("ICO_vermentino");
+	else if(tag == "ICO_Coronata")					icon = GetHTMLForItemICO("ICO_coronata");
+	else if(tag == "ICO_Belgaard")					icon = GetHTMLForItemICO("ICO_belgaard");
+	else if(tag == "ICO_Mutagen_Table")				icon = GetHTMLForItemICO("ICO_mutagen_table");
+	
+	
 	else if(tag == "IK_Tab")						icon = GetIconForKey(IK_Tab);
+	else if( tag == "GUI_PAD_Preview" )				icon = GetIconForKey( IK_Pad_A_CROSS, true );
+	else if( tag == "GUI_PC_Preview" )				icon = GetIconForKey( IK_E );
+	else if( tag == "ICO_POI_EP2_1" )				icon = GetHTMLForItemICO( "ICO_POI_EP2_1", -2 );
+	else if( tag == "ICO_POI_EP2_2" )				icon = GetHTMLForItemICO( "ICO_POI_EP2_2", -2 );	
 	else
 	{
-		
+		//out of memory, let's party!
 		return GetIconOrColorForTag3(tag);
 	}
 	
-	if(icon == "")
-	{
-		LogLocalization("GetIconForTag: cannot find icon for tag <<" + tag + ">>");
-		icon = "##_" + tag + "_##";
-	}
-		
 	return icon;
 }
 
 function GetIconOrColorForTag3(tag : string) : string
 {
+	var inGameConfigWrapper : CInGameConfigWrapper;
+	var configValue : string;
 	var icon : string;
-	var isGamepad : bool;
-	
-	isGamepad = theInput.LastUsedGamepad() || theInput.GetLastUsedGamepadType() == GT_Steam;
 	
 	if(tag == "ICO_Armorer")						icon = GetHTMLForItemICO("ICO_minimap_armorer");
 	else if(tag == "ICO_Smith")						icon = GetHTMLForItemICO("ICO_minimap_blacksmith");
@@ -815,18 +831,25 @@ function GetIconOrColorForTag3(tag : string) : string
 	else if(tag == "ICO_FastTravel")				icon = GetHTMLForItemICO("ICO_minimap_fast_travel");
 	else if(tag == "GUI_LS_Press")					icon = GetHTMLForICO(GetPadFileName("LS_Thumb"));
 	else if(tag == "ICO_Stash")						icon = GetHTMLForItemICO("ICO_Stash");
-	
+	else if( tag == "IK_Pad_LeftThumb" )								icon = GetIconForKey( IK_Pad_LeftThumb, true );
+	else if( tag == "IK_MiddleMouse" )									icon = GetIconForKey( IK_MiddleMouse );
+	else if( tag == "GUI_Preview" && theInput.LastUsedGamepad() )		icon = GetIconForKey( IK_Pad_X_SQUARE, true );
+	else if( tag == "GUI_Preview" && !theInput.LastUsedGamepad() )		icon = GetIconForKey( IK_X );
+	else if( tag == "GUI_Sort" && theInput.LastUsedGamepad() )			icon = GetIconForKey( IK_Pad_RightThumb, true );
+	else if( tag == "GUI_Sort" && !theInput.LastUsedGamepad() )			icon = GetIconForKey( IK_F );
+	else if( tag == "GUI_Geekpage" && theInput.LastUsedGamepad() )		icon = GetIconForKey( IK_Pad_RightTrigger, true );
+	else if( tag == "GUI_Geekpage" && !theInput.LastUsedGamepad() )		icon = GetIconForKey( IK_C );
 	else if(tag == "GUI_Close" || tag == "GUI_GwintPass" || tag == "GUI_GwintZoom" || tag == "GUI_GwintChoose" || tag == "GUI_GwintLeader")
 	{
 		icon = GetIconByPlatform(tag);
 	}
 	else if(tag == "Color_Gwint")
 	{
-		icon = " <font color=\"#CD7D03\">"; 
+		icon = " <font color=\"#CD7D03\">"; //#J this is because stupid replaceall is removing mah spaces
 	}
 	else if(tag == "Color_Gwint2")
 	{
-		icon = " <font color=\"#EF1919\">"; 
+		icon = " <font color=\"#EF1919\">"; //#J this is because stupid replaceall is removing mah spaces
 	}
 	else if(tag == "End_Color")
 	{
@@ -834,37 +857,305 @@ function GetIconOrColorForTag3(tag : string) : string
 	}
 	else if (tag == "GUI_GwintFactionLeft")
 	{
-		if( isGamepad )
+		if(theInput.LastUsedGamepad())
 			icon = GetIconForKey(IK_Pad_LeftShoulder);
 		else
 			icon = GetIconForKey(IK_1);
 	}
 	else if (tag == "GUI_GwintFactionRight")
 	{
-		if( isGamepad )
+		if(theInput.LastUsedGamepad())
 			icon = GetIconForKey(IK_Pad_RightShoulder);
 		else
 			icon = GetIconForKey(IK_3);
 	}
 	else if (tag == "GUI_GwintPass")
 	{
-		if( isGamepad )
+		if(theInput.LastUsedGamepad())
 			icon = GetIconForKey(IK_Pad_Y_TRIANGLE);
 		else
 			icon = GetIconForKey(IK_Escape);
 	}
-	else if( IsBookTextureTag(tag) )				icon = GetBookTexture(tag);
-	
-	if(icon == "")
+	else if( tag == "GUI_Mutations_Open" )
 	{
-		LogLocalization("GetIconForTag: cannot find icon for tag <<" + tag + ">>");
-		icon = "##_" + tag + "_##";
+		if( theInput.LastUsedGamepad() )
+		{
+			icon = GetIconForKey( IK_Pad_Y_TRIANGLE );
+		}
+		else
+		{
+			icon = GetIconForKey( IK_C );
+		}
+	}
+	else if( tag == "GUI_Mutation_Research" )
+	{
+		if( theInput.LastUsedGamepad() )
+		{
+			icon = GetIconForKey( IK_Pad_A_CROSS, true );
+		}
+		else
+		{
+			icon = GetIconForKey( IK_Space );
+		}
+	}
+	else if( tag == "GUI_Mutations_Develop" )
+	{
+		if( theInput.LastUsedGamepad() )
+		{
+			icon = GetIconForKey( IK_Pad_X_SQUARE );
+		}
+		else
+		{
+			icon = GetIconForKey( IK_Space );
+		}
+	}
+	else if( tag == "GUI_Mutations_Equip" )
+	{
+		if( theInput.LastUsedGamepad() )
+		{
+			icon = GetIconForKey( IK_Pad_A_CROSS, true );
+		}
+		else
+		{
+			icon = GetIconForKey( IK_Enter );
+		}
+	}
+	else if( tag == "GUI_Mutations_Close" )
+	{
+		if( theInput.LastUsedGamepad() )
+		{
+			icon = GetIconForKey( IK_Pad_B_CIRCLE, true );
+		}
+		else
+		{
+			icon = GetIconForKey( IK_Escape );
+		}
+	}
+	else if( tag == "GUI_Mutations_Research_Accept" )
+	{
+		if( theInput.LastUsedGamepad() )
+		{
+			icon = GetIconForKey( IK_Pad_A_CROSS, true );
+		}
+		else
+		{
+			icon = GetIconForKey( IK_Enter );
+		}
+	}
+	else if( tag == "GUI_Read_Book" )
+	{
+		if( theInput.LastUsedGamepad() )
+		{
+			icon = GetIconForKey( IK_Pad_RightThumb );
+		}
+		else
+		{
+			icon = GetIconForKey( IK_V );
+		}
+	}
+	else if( tag == "GUI_Inv_Read_Book" )
+	{
+		if( theInput.LastUsedGamepad() )
+		{
+			icon = GetIconForKey( IK_Pad_A_CROSS, true );
+		}
+		else
+		{
+			icon = GetIconForKey( IK_E );
+		}
+	}
+	else if( tag == "GUI_Book_Read_Left_Right" )
+	{
+		icon = GetHTMLForICO( GetPadFileName( "LS_LeftRight" ) );
+	}
+	else if( tag == "GUI_Book_Read_Left" )
+	{
+		icon = GetIconForKey( IK_A );
+	}
+	else if( tag == "GUI_Book_Read_Right" )
+	{
+		icon = GetIconForKey( IK_D );
+	}
+	else if( tag == "GUI_Crafting_Buy" )
+	{
+		if( theInput.LastUsedGamepad() )
+		{
+			icon = GetIconForKey( IK_Pad_Y_TRIANGLE );
+		}
+		else
+		{
+			icon = GetIconForKey( IK_RightMouse );
+		}
+	}
+	else if( tag == "GUI_Worldmap_Zoom" )
+	{
+		if( theInput.LastUsedGamepad() )
+		{
+			icon = GetIconForKey( IK_Pad_RightTrigger );
+		}
+		else
+		{
+			icon = GetIconForKey( IK_Z );
+		}
+	}
+	else if( tag == "GUI_Map_To_Continent" )
+	{
+		if( theInput.LastUsedGamepad() )
+		{
+			icon = GetIconForKey( IK_Pad_Y_TRIANGLE );
+		}
+		else
+		{
+			icon = GetIconForKey( IK_MiddleMouse );
+		}
+	}
+	else if( tag == "GUI_Continent_To_Hub" )
+	{
+		if( theInput.LastUsedGamepad() )
+		{
+			icon = GetIconForKey( IK_Pad_Y_TRIANGLE );
+		}
+		else
+		{
+			icon = GetIconForKey( IK_MiddleMouse );
+		}
+	}
+	else if( tag == "GUI_Map_To_Any_Hub" )
+	{
+		if( theInput.LastUsedGamepad() )
+		{
+			icon = GetIconForKey( IK_Pad_A_CROSS, true );
+		}
+		else
+		{
+			icon = GetIconForKey( IK_LeftMouse );
+		}
+	}
+	else if( tag == "GUI_Place_Pin" || tag == "GUI_PC_Open_Pin_Menu" )
+	{
+		if( theInput.LastUsedGamepad() )
+		{
+			icon = GetIconForKey( IK_Pad_X_SQUARE );
+		}
+		else
+		{
+			icon = GetIconForKey( IK_RightMouse );
+		}
+	}
+	else if( tag == "GUI_PC_Select_Pin_Type" )
+	{
+		icon = GetHTMLForICO( "Mouse_Pan" );
+	}
+	else if( tag == "GUI_PC_Confirm_Pin_Type" )
+	{
+		icon = GetIconForKey( IK_LeftMouse );
+	}
+	else if( tag == "GUI_Pad_Open_Pin_Menu" )
+	{
+		icon = GetIconForKey( IK_Pad_X_SQUARE );
+	}
+	else if( tag == "GUI_Pad_Select_Pin_Type" )
+	{
+		icon = GetHTMLForICO( GetPadFileName( "LS_LeftRight" ) );
+	}	
+	else if( tag == "GUI_Radial_Swap_Items"  || tag == "GUI_Radial_Select_Bolts" )
+	{
+		if( theInput.LastUsedGamepad() )
+		{
+			inGameConfigWrapper = (CInGameConfigWrapper)theGame.GetInGameConfigWrapper();
+			configValue = inGameConfigWrapper.GetVarValue( 'Controls', 'AlternativeRadialMenuInputMode' );
+			
+			if( configValue )
+			{
+				icon = GetHTMLForICO( GetPadFileName( "LS_LeftRight" ) );
+			}
+			else
+			{
+				icon = GetHTMLForICO( GetPadFileName( "RS_LeftRight" ) );
+			}
+		}
+		else
+		{
+			icon = GetIconForKey( IK_MiddleMouse );
+		}
+	}
+	else
+	{
+		//out of memory, let's party!
+		return GetIconOrColorForTag4( tag );
+	}
+	
+	return icon;
+}
+
+function GetIconOrColorForTag4( tag : string ) : string
+{
+	var icon : string;
+	
+	if( tag == "GUI_Map_Filters_Left" || tag == "GUI_Map_Filters_Pin_Left" )
+	{
+		if( theInput.LastUsedGamepad() )
+		{
+			icon = GetHTMLForICO( GetPadFileName( "Cross_Left" ) );
+		}
+		else
+		{
+			icon = GetIconForKey( IK_Left );
+		}
+	}
+	else if( tag == "GUI_Map_Filters_Right" || tag == "GUI_Map_Filters_Pin_Right" )
+	{
+		if( theInput.LastUsedGamepad() )
+		{
+			icon = GetHTMLForICO( GetPadFileName( "Cross_Right" ) );
+		}
+		else
+		{
+			icon = GetIconForKey( IK_Right );
+		}
+	}
+	else if( tag == "GUI_Map_Filters_Pin_Up" )
+	{
+		if( theInput.LastUsedGamepad() )
+		{
+			icon = GetHTMLForICO( GetPadFileName( "Cross_Up" ) );
+		}
+		else
+		{
+			icon = GetIconForKey( IK_Up );
+		}
+	}
+	else if( tag == "GUI_Map_Filters_Pin_Down" )
+	{
+		if( theInput.LastUsedGamepad() )
+		{
+			icon = GetHTMLForICO( GetPadFileName( "Cross_Down" ) );
+		}
+		else
+		{
+			icon = GetIconForKey( IK_Down );
+		}
+	}
+	else if( tag == "GUI_Map_Filters_Customize" )
+	{
+		if( theInput.LastUsedGamepad() )
+		{
+			icon = GetIconForKey( IK_Pad_LeftTrigger );
+		}
+	}
+	else if( tag == "ICO_EP2NewQuest" )
+	{
+		icon = GetHTMLForItemICO("ICO_EP2Newquest");
+	}
+	else if( IsBookTextureTag(tag) )
+	{
+		icon = GetBookTexture(tag);
 	}
 		
 	return icon;
 }
 
-
+//Returns name of icon file for given input key (pc/pad)
 function GetIconNameForKey(key : EInputKey) : string
 {
 	if(key == IK_Pad_A_CROSS)			return GetPadFileName("A");
@@ -894,14 +1185,12 @@ function GetIconNameForKey(key : EInputKey) : string
 	return "";
 }
 
-
+//given general button type, returns proper icon filename for pad: xbox or ps4
 function GetPadFileName(type : string) : string
 {
-	var platformPrefix:string;
-	
 	if(theInput.UsesPlaystationPadScript())
 	{
-		
+		//ps4 icons
 		switch(type)
 		{
 			case "LS" :					return "ICO_PlayS_L3";
@@ -909,8 +1198,10 @@ function GetPadFileName(type : string) : string
 			case "LS_Thumb"	:			return "ICO_PlayS_L3_hold";
 			case "RS_Thumb"	:			return "ICO_PlayS_R3_hold";
 			case "RS_PRESS"	:			return "ICO_PlayS_R3_hold";
-			case "LS_Up_Down" : 		return "ICO_PlayS_L3_scroll";
+			case "LS_Up_Down" : 		return "ICO_PlayS_L3_scroll";			
 			case "LS_LeftRight" : 		return "ICO_PlayS_L3_tabs";
+			case "RS_UpDown" : 	  		return "ICO_PlayS_R3_scroll";
+			case "RS_LeftRight" : 		return "ICO_PlayS_R3_tabs";
 			case "RS_Up" : 				return "ICO_PlayS_R3_up";
 			case "RS_Down" : 			return "ICO_PlayS_R3_down";
 			case "LS_Up" : 				return "ICO_PlayS_L3_up";
@@ -919,6 +1210,7 @@ function GetPadFileName(type : string) : string
 			case "Cross_Up" : 			return "ICO_PlayS_dpad_up";
 			case "Cross_Down" : 		return "ICO_PlayS_dpad_down";
 			case "Cross_LeftRight" :  	return "ICO_PlayS_dpad_left_right";
+			case "Cross_UpDown" :  		return "ICO_PlayS_dpad_up_down";
 			case "Back" : 				return "ICO_PlayS_Share";
 			case "Start" : 				return "ICO_PlayS_Touchpad";
 			case "RT" : 				return "ICO_PlayS_R2";
@@ -934,42 +1226,36 @@ function GetPadFileName(type : string) : string
 	}
 	else
 	{
-		if (theInput.GetLastUsedGamepadType() == GT_Steam)
-		{
-			platformPrefix = "_Steam_";
-		}
-		else
-		{
-			platformPrefix = "_Xbox_";
-		}
-		
 		switch(type)
 		{
-			case "LS" :					return "ICO" + platformPrefix + "L";
-			case "RS" :					return "ICO" + platformPrefix + "R";
-			case "LS_Thumb"	:			return "ICO" + platformPrefix + "L_hold";
-			case "RS_Thumb"	:			return "ICO" + platformPrefix + "R_hold";
-			case "RS_PRESS"	:			return "ICO" + platformPrefix + "R_hold";
-			case "LS_Up_Down" : 		return "ICO" + platformPrefix + "L_scroll";
-			case "LS_LeftRight" : 		return "ICO" + platformPrefix + "L_tabs";
-			case "RS_Up" : 				return "ICO" + platformPrefix + "R_up";
-			case "RS_Down" : 			return "ICO" + platformPrefix + "R_down";
-			case "LS_Up" : 				return "ICO" + platformPrefix + "L_up";
-			case "Cross_Right" : 		return "ICO" + platformPrefix + "dpad_right";
-			case "Cross_Left" : 		return "ICO" + platformPrefix + "dpad_left";
-			case "Cross_Up" : 			return "ICO" + platformPrefix + "dpad_up";
-			case "Cross_Down" : 		return "ICO" + platformPrefix + "dpad_down";
-			case "Cross_LeftRight" :  	return "ICO" + platformPrefix + "dpad_left_right";
-			case "Back" : 				return "ICO" + platformPrefix + "Back";
-			case "Start" : 				return "ICO" + platformPrefix + "Start";
-			case "RT" : 				return "ICO" + platformPrefix + "RT";
-			case "LT" : 				return "ICO" + platformPrefix + "LT";
-			case "LB" : 				return "ICO" + platformPrefix + "LB";
-			case "RB" : 				return "ICO" + platformPrefix + "RB";
-			case "A" : 					return "ICO" + platformPrefix + "A";
-			case "B" : 					return "ICO" + platformPrefix + "B";
-			case "X" : 					return "ICO" + platformPrefix + "X";
-			case "Y" : 					return "ICO" + platformPrefix + "Y";
+			case "LS" :					return "ICO_Xbox_L";
+			case "RS" :					return "ICO_Xbox_R";
+			case "LS_Thumb"	:			return "ICO_Xbox_L_hold";
+			case "RS_Thumb"	:			return "ICO_Xbox_R_hold";
+			case "RS_PRESS"	:			return "ICO_Xbox_R_hold";
+			case "LS_Up_Down" : 		return "ICO_Xbox_L_scroll";
+			case "LS_LeftRight" : 		return "ICO_Xbox_L_tabs";
+			case "RS_UpDown" : 		    return "ICO_Xbox_R_scroll";
+			case "RS_LeftRight" :		return "ICO_Xbox_R_tabs";
+			case "RS_Up" : 				return "ICO_Xbox_R_up";
+			case "RS_Down" : 			return "ICO_Xbox_R_down";
+			case "LS_Up" : 				return "ICO_Xbox_L_up";
+			case "Cross_Right" : 		return "ICO_Xbox_dpad_right";
+			case "Cross_Left" : 		return "ICO_Xbox_dpad_left";
+			case "Cross_Up" : 			return "ICO_Xbox_dpad_up";
+			case "Cross_Down" : 		return "ICO_Xbox_dpad_down";
+			case "Cross_LeftRight" :  	return "ICO_Xbox_dpad_left_right";
+			case "Cross_UpDown" :  		return "ICO_Xbox_dpad_up_down";
+			case "Back" : 				return "ICO_Xbox_Back";
+			case "Start" : 				return "ICO_Xbox_Start";
+			case "RT" : 				return "ICO_Xbox_RT";
+			case "LT" : 				return "ICO_Xbox_LT";
+			case "LB" : 				return "ICO_Xbox_LB";
+			case "RB" : 				return "ICO_Xbox_RB";
+			case "A" : 					return "ICO_Xbox_A";
+			case "B" : 					return "ICO_Xbox_B";
+			case "X" : 					return "ICO_Xbox_X";
+			case "Y" : 					return "ICO_Xbox_Y";
 		}
 	}
 	
@@ -995,9 +1281,9 @@ exec function hintloc()
 	theGame.RequestMenu('TutorialPopupMenu', m_tutorialHintDataObj);
 }
 
-
-
-
+//////////////////////////////////////////////////////////////////
+//////////////////  @TESTING ICONS  //////////////////////////////
+//////////////////////////////////////////////////////////////////
 
 function DEBUG_Test_GetIconForTag(out text : string, tag : string)
 {
@@ -1017,7 +1303,7 @@ exec function tutico(optional num : int)
 	var tag, key : string;
 	var message : W3TutorialPopupData;
 	
-	
+	//enable tutorials
 	TutorialMessagesEnable(true);
 	theGame.GetTutorialSystem().TutorialStart(false);	
 	message = new W3TutorialPopupData in theGame;
@@ -1026,7 +1312,7 @@ exec function tutico(optional num : int)
 	message.duration = -1;
 	message.autosize = false;
 	
-	
+	//close any old messages
 	theGame.ClosePopup( 'TutorialPopup');
 		
 	switch(num)

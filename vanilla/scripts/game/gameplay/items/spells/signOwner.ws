@@ -1,17 +1,14 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2014
+/** Author : collective mind of the CDP
 /***********************************************************************/
 
-
-
-
-
-
-
-
-
+// Abstraction of "sign owner".
+// Allows actors to cast signs the same way as player does.
+// To do that respecive sign and projectile classes need to be implemented
+// "in general case" (look at aard or igni sign for the reference).
+// General implementation (W3SignOwner) can be used by actors.
+// For player one needs to use W3SignOwnerPlayer (see below).
 
 class W3SignOwner
 {
@@ -126,8 +123,8 @@ class W3SignOwner
 	}	
 }
 
-
-
+///////////////////////////////////////////////////////////////////////////////
+// sign owner implementation for CBTTaskCastSign
 
 class W3SignOwnerBTTaskCastSign extends W3SignOwner
 {
@@ -155,8 +152,8 @@ class W3SignOwnerBTTaskCastSign extends W3SignOwner
 	}	
 }
 
-
-
+///////////////////////////////////////////////////////////////////////////////
+// sign owner implementation for player
 
 class W3SignOwnerPlayer extends W3SignOwner
 {
@@ -188,7 +185,7 @@ class W3SignOwnerPlayer extends W3SignOwner
 			player.SetBehaviorVariable( 'alternateSignCast', 0 );
 			player.SetBehaviorVariable( 'IsCastingSign', 1 );
 						
-			
+			// break pheromone elixir effect?
 			player.BreakPheromoneEffect();
 			
 			return true;			
@@ -208,6 +205,10 @@ class W3SignOwnerPlayer extends W3SignOwner
 		else if ( theInput.GetActionValue( 'CastSignHold' ) > 0.f )
 		{
 			if ( !player.IsCombatMusicEnabled() && !player.CanAttackWhenNotInCombat( EBAT_CastSign, true, newTarget ) )
+			{
+				ret = false;
+			}
+			else if( player.HasBuff( EET_GryphonSetBonus ) && player.GetStatPercents( BCS_Stamina ) < 1.f )
 			{
 				ret = false;
 			}

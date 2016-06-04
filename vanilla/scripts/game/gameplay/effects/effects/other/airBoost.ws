@@ -1,12 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2014
+/** Author : Tomek Kozera
 /***********************************************************************/
 
-
-
-
+//Custom buff for quest - increased max air
 class W3Effect_AirBoost extends W3ChangeMaxStatEffect
 {
 	default effectType = EET_AirBoost;

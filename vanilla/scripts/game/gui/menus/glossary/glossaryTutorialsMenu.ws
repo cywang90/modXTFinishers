@@ -1,11 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file - glossary tutorials
 /***********************************************************************/
-
-
-
+/** Copyright © 2014 CDProjektRed
+/** Author :		 Bartosz Bigaj
+/***********************************************************************/
 
 class CR4GlossaryTutorialsMenu extends CR4ListBaseMenu
 {	
@@ -21,7 +19,7 @@ class CR4GlossaryTutorialsMenu extends CR4ListBaseMenu
 	
 	private var resetSelection : bool;
 	
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{	
 		var i							: int;
 		var tempEntries					: array<CJournalBase>;
@@ -36,14 +34,14 @@ class CR4GlossaryTutorialsMenu extends CR4ListBaseMenu
 		for( i = 0; i < tempEntries.Size(); i += 1 )
 		{
 			status = m_journalManager.GetEntryStatus( tempEntries[i] );
-			
-			
+			//if( status == JS_Active )
+			//{
 				entryTemp = (CJournalTutorialGroup)tempEntries[i];
 				if( entryTemp )
 				{
 					allEntries.PushBack(entryTemp); 
 				}
-			
+			//}
 		}
 		
 		m_fxSetTitle = m_flashModule.GetMemberFlashFunction("setTitle");
@@ -54,7 +52,7 @@ class CR4GlossaryTutorialsMenu extends CR4ListBaseMenu
 		SelectCurrentModule();
 	}
 	
-	event  OnUpdateTutorials():void
+	event /*flash*/ OnUpdateTutorials():void
 	{
 		resetSelection = true;
 		PopulateData();
@@ -197,7 +195,7 @@ class CR4GlossaryTutorialsMenu extends CR4ListBaseMenu
 		var description : string;
 		var title : string;
 		
-		
+		// #B could add description for creatures group here !!!
 		l_entry = (CJournalTutorial)m_journalManager.GetEntryByTag( entryName );
 		description = ReplaceTagsToIcons(GetLocStringById( l_entry.GetDescriptionStringId()));	
 		title = GetLocStringById( l_entry.GetNameStringId());	
@@ -212,7 +210,7 @@ class CR4GlossaryTutorialsMenu extends CR4ListBaseMenu
 	
 	function PlayOpenSoundEvent()
 	{
-		
-		
+		// Common Menu takes care of this for us
+		//OnPlaySoundEvent("gui_global_panel_open");	
 	}
 }

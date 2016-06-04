@@ -1,11 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** 
 /***********************************************************************/
-
-
-
+/** Copyright © 2014
+/** Author : Dennis Zoetebier
+/***********************************************************************/
 
 class W3SE_ManageTrap extends W3SwitchEvent
 {
@@ -28,7 +26,7 @@ class W3SE_ManageTrap extends W3SwitchEvent
 		
 		activator  = ( CActor )node;
 		
-		
+		// If we get entities by handle, fire them.
 		if (trapHandle.Size() > 0)
 		{
 			for( i = 0; i < trapHandle.Size(); i += 1 )
@@ -54,7 +52,7 @@ class W3SE_ManageTrap extends W3SwitchEvent
 			}
 		}
 		
-		
+		// If we get entities by tag, fire them.
 		if (trapTag)
 		{
 			theGame.GetEntitiesByTag( trapTag, entities );
@@ -66,7 +64,7 @@ class W3SE_ManageTrap extends W3SwitchEvent
 			}
 			for ( i = 0; i < entities.Size(); i += 1 )
 			{
-				trapEntity = (W3Trap)entities[ i ]; 
+				trapEntity = (W3Trap)entities[ i ]; //= (W3Trap) EntityHandleGet( trapHandle[i] );
 				if ( !trapEntity )
 				{
 					LogAssert( false, "Entity with tag <" + trapTag + "> is not a W3Trap" );

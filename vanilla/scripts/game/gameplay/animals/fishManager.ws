@@ -1,11 +1,6 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/************************** Class for fish ****************************/
 /***********************************************************************/
-
-
-
 
 class W3CurveFish extends CGameplayEntity
 {
@@ -114,14 +109,14 @@ class W3CurveFish extends CGameplayEntity
 
 }
 
-
-
-
+/***********************************************************************/
+/************************** Class for spawnpoint ***********************/
+/***********************************************************************/
 class W3CurveFishSpawnpoint extends CEntity {}
 
-
-
-
+/***********************************************************************/
+/************************** Class for manager **************************/
+/***********************************************************************/
 statemachine class W3CurveFishManager extends CGameplayEntity
 {
 	editable var fishSpawnPointsTag : name;
@@ -199,8 +194,8 @@ statemachine class W3CurveFishManager extends CGameplayEntity
 		}
 	}
 	
-	
-	
+	//Gets the spawnpoints list and updates stored spawnpoints list. Some spawnpoints might stream in or out.
+	// @MS : they never stream out cause they are not streamed entities.
 	private function UpdateSpawnPointsList()
 	{
 		var spawnstruct : SFishSpawnpoint;
@@ -226,10 +221,10 @@ statemachine class W3CurveFishManager extends CGameplayEntity
 			spawnpoint = (W3CurveFishSpawnpoint)nodes[i];
 			if(spawnpoint)
 			{
-				
+				//Get spawnpoint position
 				spawnstruct.position = spawnpoint.GetWorldPosition();				
 				
-				
+				//now check if we already have this spawnpoint in array
 				exists = false;
 				for(j=0; j<=fishSpawnpointsOldSize; j+=1)
 				{
@@ -241,7 +236,7 @@ statemachine class W3CurveFishManager extends CGameplayEntity
 					}
 				}
 				
-				
+				//if not then append it
 				if(!exists)
 				{
 					spawnstruct.rotation = spawnpoint.GetWorldRotation();
@@ -252,7 +247,7 @@ statemachine class W3CurveFishManager extends CGameplayEntity
 			}
 		}
 		
-		
+		//now remove spawnpoints which streamed out
 		for( i = 0; i < fishSpawnpoints.Size(); )
 		{
 			if( fishSpawnpoints[ i ].shouldBeErased )

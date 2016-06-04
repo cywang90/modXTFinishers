@@ -1,13 +1,11 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file - preparation mutagens
+/***********************************************************************/
+/** Copyright © 2013 CDProjektRed
+/** Author : Bartosz Bigaj
 /***********************************************************************/
 
-
-
-
-class CR4PreparationPotionsAndBombsMenu extends CR4MenuBase 
+class CR4PreparationPotionsAndBombsMenu extends CR4MenuBase // #B obsolete
 {
 	private var _gridInv : W3GuiPreparationPotionsAndBombsInventoryComponent;
 	private var _currentInv : W3GuiBaseInventoryComponent;
@@ -17,16 +15,16 @@ class CR4PreparationPotionsAndBombsMenu extends CR4MenuBase
 	private var _currentQuickSlot : EEquipmentSlots;
 	default _currentQuickSlot = EES_InvalidSlot;	
 	
-	
+	//private const var TOXICTY_BAR_DATA_BINDING_KEY : string; 		default TOXICTY_BAR_DATA_BINDING_KEY = "preparation.toxicity.bar.";	
 	private const var ITEMS_SIZE			:int; 			default ITEMS_SIZE 		= 4;
 
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{	
 		var l_flashObject			: CScriptedFlashObject;
 		var l_flashArray			: CScriptedFlashArray;
 
 		super.OnConfigUI();
-		
+		//theSound.SoundEvent( 'gui_global_panel_open' );  // #B sound - open
 		
 		_inv = thePlayer.GetInventory();
 		_gridInv = new W3GuiPreparationPotionsAndBombsInventoryComponent in this;
@@ -98,12 +96,12 @@ class CR4PreparationPotionsAndBombsMenu extends CR4MenuBase
 			l_flashObject.SetMemberFlashBool( "needRepair", false );
 			l_flashObject.SetMemberFlashInt( "actionType", IAT_None );
 			l_flashObject.SetMemberFlashInt( "price", 0 ); 		
-			l_flashObject.SetMemberFlashString( "userData", "");
+			l_flashObject.SetMemberFlashString( "userData", "");//GetTooltipText(item) );
 			l_flashObject.SetMemberFlashString( "category", "" );
 			l_flashArray.PushBackFlashObject(l_flashObject);
 		}
 				
-		m_flashValueStorage.SetFlashArray( "preparation.bombs.equipped.items", l_flashArray ); 
+		m_flashValueStorage.SetFlashArray( "preparation.bombs.equipped.items", l_flashArray ); // here
 	}
 
 	function UpdatePotions()
@@ -119,7 +117,7 @@ class CR4PreparationPotionsAndBombsMenu extends CR4MenuBase
 		l_flashArray = m_flashValueStorage.CreateTempFlashArray();
 		_inv = GetWitcherPlayer().GetInventory();
 		
-		
+		// @TODO BIDON - find an load rewards here
 		if(GetWitcherPlayer().GetItemEquippedOnSlot(EES_Potion1, item))
 			rewardItems.PushBack(item);
 		if(GetWitcherPlayer().GetItemEquippedOnSlot(EES_Potion2, item))
@@ -150,12 +148,12 @@ class CR4PreparationPotionsAndBombsMenu extends CR4MenuBase
 			l_flashObject.SetMemberFlashBool( "needRepair", false );
 			l_flashObject.SetMemberFlashInt( "actionType", IAT_None );
 			l_flashObject.SetMemberFlashInt( "price", 0 ); 		
-			l_flashObject.SetMemberFlashString( "userData", "");
+			l_flashObject.SetMemberFlashString( "userData", "");//GetTooltipText(item) );
 			l_flashObject.SetMemberFlashString( "category", "" );
 			l_flashArray.PushBackFlashObject(l_flashObject);
 		}
 		
-		m_flashValueStorage.SetFlashArray( "preparation.potions.equipped.items", l_flashArray ); 
+		m_flashValueStorage.SetFlashArray( "preparation.potions.equipped.items", l_flashArray ); // here
 	}
 	
 	private function UpdatePlayerOrens()
@@ -187,11 +185,11 @@ class CR4PreparationPotionsAndBombsMenu extends CR4MenuBase
 		var str : string;
 		levelManager = GetWitcherPlayer().levelManager;
 		
-		str = (string)levelManager.GetPointsTotal(EExperiencePoint) + "/" +(string)levelManager.GetTotalExpForNextLevel(); 
+		str = (string)levelManager.GetPointsTotal(EExperiencePoint) + "/" +(string)levelManager.GetTotalExpForNextLevel(); // #B maybe total - previous lvl exp ??
 		return str;
 	}
 	
-	function UpdateTooltipCompareData( item : SItemUniqueId, compareItem : SItemUniqueId, tooltipInv : CInventoryComponent , tooltipName : string ) 
+	function UpdateTooltipCompareData( item : SItemUniqueId, compareItem : SItemUniqueId, tooltipInv : CInventoryComponent , tooltipName : string ) // could not work
 	{
 		var l_flashObject			: CScriptedFlashObject;
 		var l_flashArray			: CScriptedFlashArray;
@@ -226,13 +224,13 @@ class CR4PreparationPotionsAndBombsMenu extends CR4MenuBase
 			return;
 		}
 		
-		if( tooltipInv.GetItemName(item) != _inv.GetItemName(compareItem) ) 
+		if( tooltipInv.GetItemName(item) != _inv.GetItemName(compareItem) ) // #B by name because they could be in different inventoryComponents, and then they have different id
 		{
 			_inv.GetTooltipData(compareItem, nam, descript, price, category, compareItemStats, fluff );
 		}
 		tooltipInv.GetTooltipData(item, nam, descript, price, category, itemStats, fluff);
 		
-		
+		//price *= _inv.GetMerchantPriceModifier(_shopNpc);
 		itemName = "none";
 		for( i = 0; i < itemStats.Size(); i += 1 ) 
 		{
@@ -273,7 +271,7 @@ class CR4PreparationPotionsAndBombsMenu extends CR4MenuBase
 							
 		attributeVal = _inv.GetItemAttributeValue( item , 'weight');			
 		m_flashValueStorage.SetFlashString(tooltipName+".weight", attributeVal.valueAdditive, -1  );
-		m_flashValueStorage.SetFlashString(tooltipName+".description", GetLocStringByKeyExt("panel_inventory_tooltip_description_selected"), -1 ); 
+		m_flashValueStorage.SetFlashString(tooltipName+".description", GetLocStringByKeyExt("panel_inventory_tooltip_description_selected"), -1 ); // #B equiped/selected
 		m_flashValueStorage.SetFlashBool(tooltipName+".display", true, -1 );
 		if( theGame.IsPadConnected() )
 		{
@@ -282,23 +280,27 @@ class CR4PreparationPotionsAndBombsMenu extends CR4MenuBase
 		}
 	}
 		
-	function UpdateNavigationTitles() 
+	function UpdateNavigationTitles() // @FIXME BIDON - bindings are ok ?
 	{
 		m_flashValueStorage.SetFlashString("inventory.navigation.title", GetLocStringByKeyExt("panel_title_preapration"), -1 );
 		m_flashValueStorage.SetFlashString("inventory.navigation.previous", "", -1 );
 		m_flashValueStorage.SetFlashString("inventory.navigation.next", "", -1 );
-		
+		//m_flashValueStorage.SetFlashString("inventory.navigation.enabled", 2, -1 );
 	}
 	
 	function GetItemDefaultAction( item : SItemUniqueId ) : string
 	{
+		/*var itemAction : EInventoryActionType;
+		itemAction = _gridInv.GetItemActionType( item, true );
 		
+		optionsItemActions.PushBack(itemAction);
+		return GetItemActionFriendlyName(itemAction,GetWitcherPlayer().IsItemEquipped(item)); */
 		return "[[panel_button_inventory_equip]]";
 	}
 	
-	event  OnCloseMenu()
+	event /*flash*/ OnCloseMenu()
 	{
-		
+		//theSound.SoundEvent( 'gui_global_quit' ); // #B sound - quit
 		var parentMenu : CR4MenuBase;
 		CloseMenu();
 		parentMenu =  (CR4MenuBase)GetMenuInitData();
@@ -306,16 +308,16 @@ class CR4PreparationPotionsAndBombsMenu extends CR4MenuBase
 		parentMenu.CloseMenu();
 	}
 	
+	// ITEMS EVENTS
 	
-	
-	event  OnEquipItem( item : SItemUniqueId, slot : int, quantity : int )
+	event /*flash*/ OnEquipItem( item : SItemUniqueId, slot : int, quantity : int )
 	{
 		var i : int;
 		var itemOnSlot : SItemUniqueId;
 
 		if(  slot == EES_Quickslot1 )
 		{
-			
+			//slot = _currentQuickSlot;
 			for(i = EES_Quickslot1; i < EES_Quickslot2 + 1; i += 1 )
 			{
 				GetWitcherPlayer().GetItemEquippedOnSlot(i, itemOnSlot);
@@ -344,7 +346,7 @@ class CR4PreparationPotionsAndBombsMenu extends CR4MenuBase
 
 		if( slot == EES_Petard1 )
 		{
-			
+			//slot = _currentQuickSlot;
 			for(i = EES_Petard1; i < EES_Petard2 + 1; i += 1 )
 			{
 				GetWitcherPlayer().GetItemEquippedOnSlot(i, itemOnSlot);
@@ -352,20 +354,20 @@ class CR4PreparationPotionsAndBombsMenu extends CR4MenuBase
 				if( !_inv.IsIdValid(itemOnSlot) )
 				{
 					slot = i;
-					
+					//_currentQuickSlot = slot; //#B current bomb slot ?
 					break;
 				}
 			}
 		}
 		
 		_gridInv.EquipItem( item, slot );
-		UpdateData(); 
+		UpdateData(); //@FIXME BIDON - now we can update only two , previous and new one
 	}
 		
 
-	
+	// TOOLTIPS EVENTS
 
-	event  OnUpdateTooltipCompareData( item : SItemUniqueId, compareItemType : int, tooltipName : string )
+	event /*flash*/ OnUpdateTooltipCompareData( item : SItemUniqueId, compareItemType : int, tooltipName : string )
 	{
 		var itemName : string;
 		var compareItem : SItemUniqueId;

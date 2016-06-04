@@ -1,11 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file - Main Menu
 /***********************************************************************/
-
-
-
+/** Copyright © 2014 CDProjektRed
+/** Author : Bartosz Bigaj
+/***********************************************************************/
 
 class CR4DeathScreenMenu extends CR4MenuBase
 {
@@ -13,7 +11,7 @@ class CR4DeathScreenMenu extends CR4MenuBase
 	
 	private var m_fxShowInputFeedback : CScriptedFlashFunction;
 	
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{
 		var tutorialPopupRef  : CR4TutorialPopup;
 		
@@ -44,7 +42,7 @@ class CR4DeathScreenMenu extends CR4MenuBase
 	{
 	}
 	
-	event  OnClosingMenu()
+	event /* C++ */ OnClosingMenu()
 	{
 		m_guiManager.RequestMouseCursor(false);
 		
@@ -59,7 +57,7 @@ class CR4DeathScreenMenu extends CR4MenuBase
 		RequestSubMenu( menuName, initData );
 	}
 
-	event  OnCloseMenu()
+	event /*flash*/ OnCloseMenu()
 	{
 		var menu			: CR4MenuBase;
 		
@@ -94,7 +92,21 @@ class CR4DeathScreenMenu extends CR4MenuBase
 		
 		m_fxShowInputFeedback.InvokeSelfOneArg(FlashArgBool(true));
 		
-		
+		/*menu = (CR4MenuBase)GetSubMenu();
+	
+		if( menu )
+		{
+			//menu.CloseMenu();
+			menuToOpen = GetParentMenuName(currentMenuName);
+			if( menuToOpen )
+			{
+				OnRequestSubMenu( menuToOpen, GetMenuInitData() );
+			}
+			else
+			{
+				CloseMenu();
+			}
+		}*/
 	}
 	
 	function PopulateData()
@@ -103,6 +115,7 @@ class CR4DeathScreenMenu extends CR4MenuBase
 		var l_DataFlashObject 		: CScriptedFlashObject;	
 		
 		l_FlashArray = m_flashValueStorage.CreateTempFlashArray();
+				
 		hasSaveData = hasSaveDataToLoad();
 		if( hasSaveData )
 		{
@@ -135,6 +148,14 @@ class CR4DeathScreenMenu extends CR4MenuBase
 		l_DataFlashObject.SetMemberFlashUInt	( "tag", NameToFlashUInt('Quit') );
 		l_FlashArray.PushBackFlashObject( l_DataFlashObject );
 		
+		if( theGame.IsDebugQuestMenuEnabled() && !theGame.IsFinalBuild() )
+		{
+			l_DataFlashObject = m_flashValueStorage.CreateTempFlashObject();
+			l_DataFlashObject.SetMemberFlashString	( "label", "***Debug Resurrect***" );
+			l_DataFlashObject.SetMemberFlashUInt	( "tag", NameToFlashUInt('DebugResurrect') );
+			l_FlashArray.PushBackFlashObject( l_DataFlashObject );
+		}
+		
 		m_flashValueStorage.SetFlashArray( "hud.deathscreen.list", l_FlashArray );
 	}
 	
@@ -147,7 +168,7 @@ class CR4DeathScreenMenu extends CR4MenuBase
 		m_flashModule.SetAlpha(value);
 	}
 	
-	event  OnPress( tag : name )
+	event /* flash */ OnPress( tag : name )
 	{
 		switch( tag )
 		{
@@ -156,11 +177,14 @@ class CR4DeathScreenMenu extends CR4MenuBase
 				break;
 			case 'Respawn' :
 				OnRespawn();
-				
+				//ShowElement();
 				break;
 			case 'Quit' :
 				OnQuit();
-				
+				//CloseMenu();
+				break;
+			case 'DebugResurrect' :
+				thePlayer.CheatResurrect();
 				break;
 		}
 	}
@@ -170,19 +194,19 @@ class CR4DeathScreenMenu extends CR4MenuBase
 		m_fxShowInputFeedback.InvokeSelfOneArg(FlashArgBool(false));
 	}
 	
-	event  OnLoad()
+	event /* flash */ OnLoad()
 	{
 		var initData : W3MenuInitData = new W3MenuInitData in this;
 		initData.setDefaultState('LoadGame');
 		RequestSubMenu( 'IngameMenu', initData );
 	}		
 
-	event  OnQuit()
+	event /* flash */ OnQuit()
 	{
 		theGame.GetGuiManager().TryQuitGame();
 	}		
 	
-	event  OnRespawn()
+	event /* flash */ OnRespawn()
 	{
 		theGame.SetIsRespawningInLastCheckpoint();
 		theGame.LoadLastGameInit( true );

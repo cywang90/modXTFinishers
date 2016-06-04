@@ -1,16 +1,13 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2014
+/** Author : Tomek Kozera
 /***********************************************************************/
-
-
 
 state CharDevMutagens in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
 	private const var DESCRIPTION, SELECT_TAB, EQUIP, BONUSES, MATCH_SKILL_COLOR, MULTIPLE_SKILLS, WRONG_COLOR, POTIONS, MUTAGENS_JOURNAL : name;
 	private var isClosing : bool;
-	private var savedEquippedSkills : array<STutorialSavedSkill>;					
+	private var savedEquippedSkills : array<STutorialSavedSkill>;					//saved skills which were equipped before the started messing with them
 	
 		default DESCRIPTION 		= 'TutorialMutagenDescription';
 		default SELECT_TAB			= 'TutorialMutagenSelectTab';
@@ -27,7 +24,7 @@ state CharDevMutagens in W3TutorialManagerUIHandler extends TutHandlerBaseState
 		super.OnEnterState(prevStateName);
 		
 		isClosing = false;
-		ShowHint(DESCRIPTION, theGame.params.TUT_POS_CHAR_DEV_X, theGame.params.TUT_POS_CHAR_DEV_Y, ETHDT_Input);		
+		ShowHint(DESCRIPTION, POS_CHAR_DEV_X, POS_CHAR_DEV_Y, ETHDT_Input);		
 		
 		theGame.GetTutorialSystem().ActivateJournalEntry(MUTAGENS_JOURNAL);
 	}
@@ -36,14 +33,14 @@ state CharDevMutagens in W3TutorialManagerUIHandler extends TutHandlerBaseState
 	{		
 		isClosing = true;
 		
-		CloseHint(DESCRIPTION);
-		CloseHint(SELECT_TAB);
-		CloseHint(EQUIP);
-		CloseHint(BONUSES);
-		CloseHint(MATCH_SKILL_COLOR);
-		CloseHint(MULTIPLE_SKILLS);
-		CloseHint(WRONG_COLOR);
-		CloseHint(POTIONS);
+		CloseStateHint(DESCRIPTION);
+		CloseStateHint(SELECT_TAB);
+		CloseStateHint(EQUIP);
+		CloseStateHint(BONUSES);
+		CloseStateHint(MATCH_SKILL_COLOR);
+		CloseStateHint(MULTIPLE_SKILLS);
+		CloseStateHint(WRONG_COLOR);
+		CloseStateHint(POTIONS);
 		
 		theGame.GetTutorialSystem().MarkMessageAsSeen(DESCRIPTION);
 		
@@ -54,85 +51,48 @@ state CharDevMutagens in W3TutorialManagerUIHandler extends TutHandlerBaseState
 	
 	event OnTutorialClosed(hintName : name, closedByParentMenu : bool)
 	{
-		var highlights : array<STutorialHighlight>;
+		var highlights : array< STutorialHighlight >;
 		
 		if(closedByParentMenu || isClosing)
 			return true;
 			
 		if(hintName == DESCRIPTION)
 		{
-			highlights.Resize(1);
-			highlights[0].x = 0.265;
-			highlights[0].y = 0.13;
-			highlights[0].width = 0.07;
-			highlights[0].height = 0.12;
-			
-			ShowHint(SELECT_TAB, theGame.params.TUT_POS_CHAR_DEV_X, theGame.params.TUT_POS_CHAR_DEV_Y, ETHDT_Infinite, highlights);
+			ShowHint(SELECT_TAB, POS_CHAR_DEV_X, POS_CHAR_DEV_Y, ETHDT_Infinite, GetHighlightCharDevTabMutagens() );
 		}
 		else if(hintName == EQUIP)
 		{
-			highlights.Resize(1);
-			highlights[0].x = 0.33;
-			highlights[0].y = 0.37;
-			highlights[0].width = 0.22;
-			highlights[0].height = 0.13;
-			
 			savedEquippedSkills = GetWitcherPlayer().TutorialMutagensUnequipPlayerSkills();
 			
-			ShowHint(BONUSES, theGame.params.TUT_POS_CHAR_DEV_X, theGame.params.TUT_POS_CHAR_DEV_Y, ETHDT_Input, highlights);
+			ShowHint(BONUSES, POS_CHAR_DEV_X, POS_CHAR_DEV_Y, ETHDT_Input, GetHighlightCharDevMutagenBonusString() );
 		}
 		else if(hintName == BONUSES)
 		{
-			highlights.Resize(2);
-						
-			highlights[0].x = 0.33;
-			highlights[0].y = 0.37;
-			highlights[0].width = 0.22;
-			highlights[0].height = 0.13;
-			
-			highlights[1].x = 0.42;
-			highlights[1].y = 0.14;
-			highlights[1].width = 0.1;
-			highlights[1].height = 0.13;
+			highlights = GetHighlightCharDevMutagenBonusString();
+			AddHighlight( highlights, .568f, .14f, .08f, .15f );
 			
 			GetWitcherPlayer().TutorialMutagensEquipOneGoodSkill();
 			
-			ShowHint(MATCH_SKILL_COLOR, theGame.params.TUT_POS_CHAR_DEV_X, theGame.params.TUT_POS_CHAR_DEV_Y, ETHDT_Input, highlights);
+			ShowHint(MATCH_SKILL_COLOR, POS_CHAR_DEV_X, POS_CHAR_DEV_Y, ETHDT_Input, highlights);
 		}
 		else if(hintName == MATCH_SKILL_COLOR)
 		{
-			highlights.Resize(2);
-			
-			highlights[0].x = 0.33;
-			highlights[0].y = 0.37;
-			highlights[0].width = 0.22;
-			highlights[0].height = 0.13;
-			
-			highlights[1].x = 0.42;
-			highlights[1].y = 0.225;
-			highlights[1].width = 0.1;
-			highlights[1].height = 0.13;
+			highlights = GetHighlightCharDevMutagenBonusString();
+			AddHighlight( highlights, .568f, .24f, .08f, .15f );
 			
 			GetWitcherPlayer().TutorialMutagensEquipOneGoodOneBadSkill();
 			
-			ShowHint(WRONG_COLOR, theGame.params.TUT_POS_CHAR_DEV_X, theGame.params.TUT_POS_CHAR_DEV_Y, ETHDT_Input, highlights);
+			ShowHint(WRONG_COLOR, POS_CHAR_DEV_X, POS_CHAR_DEV_Y, ETHDT_Input, highlights);
 		}
 		else if(hintName == WRONG_COLOR)
 		{
-			highlights.Resize(1);
-			
-			highlights[0].x = 0.33;
-			highlights[0].y = 0.37;
-			highlights[0].width = 0.22;
-			highlights[0].height = 0.13;
-			
 			GetWitcherPlayer().TutorialMutagensEquipThreeGoodSkills();
 			
-			ShowHint(MULTIPLE_SKILLS, theGame.params.TUT_POS_CHAR_DEV_X, theGame.params.TUT_POS_CHAR_DEV_Y, ETHDT_Input, highlights);
+			ShowHint(MULTIPLE_SKILLS, POS_CHAR_DEV_X, POS_CHAR_DEV_Y, ETHDT_Input, GetHighlightCharDevMutagenBonusString() );
 		}		
 		else if(hintName == MULTIPLE_SKILLS)
 		{
-			ShowHint(POTIONS, theGame.params.TUT_POS_CHAR_DEV_X, theGame.params.TUT_POS_CHAR_DEV_Y, ETHDT_Input);
+			ShowHint(POTIONS, POS_CHAR_DEV_X, POS_CHAR_DEV_Y, ETHDT_Input);
 		}
 		else if(hintName == POTIONS)
 		{
@@ -146,42 +106,25 @@ state CharDevMutagens in W3TutorialManagerUIHandler extends TutHandlerBaseState
 		
 		if(IsCurrentHint(SELECT_TAB))
 		{
-			CloseHint(SELECT_TAB);
+			CloseStateHint(SELECT_TAB);
 			
-			highlights.Resize(2);
-			highlights[0].x = 0.09;
-			highlights[0].y = 0.285;
-			highlights[0].width = 0.235;
-			highlights[0].height = 0.38;
+			highlights = GetHighlightCharDevSkills();
+			HighlightsCombine( highlights, GetHighlightCharDevTabMutagens() );
 			
-			highlights[1].x = 0.355;
-			highlights[1].y = 0.21;
-			highlights[1].width = 0.1;
-			highlights[1].height = 0.16;
-						
-			ShowHint(EQUIP, theGame.params.TUT_POS_CHAR_DEV_X, theGame.params.TUT_POS_CHAR_DEV_Y, ETHDT_Infinite, highlights);
+			ShowHint(EQUIP, POS_CHAR_DEV_X, POS_CHAR_DEV_Y, ETHDT_Infinite, highlights);
 		}
 	}
 	
 	public final function EquippedMutagen()
 	{
-		var highlights : array<STutorialHighlight>;
-		
-		CloseHint(EQUIP);
-		
-		highlights.Resize(1);		
-		highlights[0].x = 0.03;
-		highlights[0].y = 0.25;
-		highlights[0].width = 0.23;
-		highlights[0].height = 0.15;
-			
-		ShowHint(BONUSES, theGame.params.TUT_POS_CHAR_DEV_X, theGame.params.TUT_POS_CHAR_DEV_Y, ETHDT_Input, highlights);
+		CloseStateHint(EQUIP);
+		ShowHint(BONUSES, POS_CHAR_DEV_X, POS_CHAR_DEV_Y, ETHDT_Input, GetHighlightCharDevMutagenBonusString() );
 	}
 }
 
-
-
-
+//Simulates mutagens tutorial.
+//If color is set it will add mutagen of given color
+//If equipSkillsFirst is set it will equip 3 skills first
 exec function tut_ch_m(optional color : ESkillColor, optional equipSkillsFirst : bool)
 {
 	GetWitcherPlayer().AddPoints(EExperiencePoint, 1500, false );

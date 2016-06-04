@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
+﻿//-------------------------------------------------------------------  ENTITY  --------------------------------------------------------------------------
 import statemachine class CBeehiveEntity extends W3Container
 {
 	editable var damageVal						: SAbilityAttributeValue;
@@ -14,6 +9,7 @@ import statemachine class CBeehiveEntity extends W3Container
 	
 	private var isOnFire : bool;
 	private var hangingDamageArea : CComponent;
+	public var originPoint : Vector;
 	public var actorsInHangArea : array<CActor>;
 	public var hangingBuffParams : SCustomEffectParams;
 	public var beesActivated					: bool;
@@ -50,6 +46,8 @@ import statemachine class CBeehiveEntity extends W3Container
 		hangingDamageArea = GetComponent(HANGING_AREA_NAME);
 		
 		hangingDamageArea.SetEnabled(false);
+		
+		originPoint = GetWorldPosition();
 		
 		GotoStateAuto();
 	}
@@ -108,7 +106,7 @@ import statemachine class CBeehiveEntity extends W3Container
 		GotoState( 'Falling' );
 	}
 	
-	
+	//hanging damage
 	timer function HangAreaDamage(dt : float, id : int)
 	{
 		var i : int;
@@ -119,9 +117,9 @@ import statemachine class CBeehiveEntity extends W3Container
 		}
 	}
 	
-	
-	
-	
+	// unused for now
+	// direct damage to trigger quen
+	// adding very small damage here, because when in channeled quen, player is immune to EET_Swarm, therefore no FX is being played when we move through bees using quen
 	timer function DummyDamage(dt : float, id : int)
 	{
 		var i : int;
@@ -138,7 +136,7 @@ import statemachine class CBeehiveEntity extends W3Container
 		}
 	}
 }
-
+//-------------------------------------------------------------------  HANGING  --------------------------------------------------------------------------
 state HangingIntact in CBeehiveEntity
 {
 	event OnEnterState( prevStateName : name )
@@ -189,7 +187,7 @@ state HangingIntact in CBeehiveEntity
 						parent.hangingBuffParams.effectValue = parent.damageVal;
 					}
 					parent.AddTimer('HangAreaDamage', 0.2, true);
-					
+					//parent.AddTimer('DummyDamage', 0.75, true);
 				}
 			}
 		}
@@ -208,7 +206,7 @@ state HangingIntact in CBeehiveEntity
 				if(parent.actorsInHangArea.Size() == 0)
 				{
 					parent.RemoveTimer('HangAreaDamage');
-					
+					//parent.RemoveTimer('DummyDamage');
 				}
 			}
 		}
@@ -245,7 +243,7 @@ state HangingIntact in CBeehiveEntity
 	
 }
 
-
+//-------------------------------------------------------------------  FALLING  --------------------------------------------------------------------------
 state Falling in CBeehiveEntity
 {	
 	event OnEnterState( prevStateName : name )
@@ -259,11 +257,11 @@ state Falling in CBeehiveEntity
 		var rot : EulerAngles;
 		var beehiveComp : CComponent;
 		
-		
+		//enable dynamic physics
 		beehiveComp = parent.GetComponent('beehive');
 		beehiveComp.SetEnabled(true);
 		
-		
+		//register receiving collision events - for now we don't need a callback
 		SetPhysicalEventOnCollision(beehiveComp, parent);
 	}
 	
@@ -276,7 +274,7 @@ state Falling in CBeehiveEntity
 	}
 }
 
-
+//-------------------------------------------------------------------  GROUND INTACT  --------------------------------------------------------------------------
 state OnGroundActive in CBeehiveEntity
 {
 	event OnEnterState( prevStateName : name )
@@ -287,7 +285,7 @@ state OnGroundActive in CBeehiveEntity
 	
 		parent.StopAllEffects();
 		
-		
+		//spawn bees
 		entityTemplate = (CEntityTemplate)LoadResource('bees');
 		if ( entityTemplate )
 		{
@@ -323,22 +321,41 @@ state OnGroundActive in CBeehiveEntity
 	event OnFireHit( source : CGameplayEntity )
 	{
 		parent.OnFireHit( source );
-
+		
 		parent.StopAllEffects();
 		parent.PlayEffect( 'fire' );
 		
 		parent.GotoState( 'OnGroundBurned' );
 	}
+	
+	event OnAardHit( sign : W3AardProjectile )
+	{
+		parent.OnAardHit( sign );
+		
+		if ( VecDistance( parent.originPoint, parent.GetWorldPosition() ) > 50.f )
+		{
+			if ( parent.activeMovingBees )
+			{
+				parent.activeMovingBees.Enable(false);
+				parent.GotoState( 'OnGroundBurned' );
+			}
+			if ( parent.activeAttachedBees )
+			{
+				parent.activeAttachedBees.Enable(false);
+				parent.GotoState( 'OnGroundBurned' );
+			}
+		}
+	}
 }
 
-
+//-------------------------------------------------------------------  GROUND BURNED  --------------------------------------------------------------------------
 state OnGroundBurned in CBeehiveEntity
 {
 	event OnEnterState( prevStateName : name )
 	{
 		parent.GetComponent('Loot').SetEnabled(true);
 		
-		
+		//remove locking on target
 		parent.RemoveTag(theGame.params.TAG_SOFT_LOCK);
 		
 		CBeehiveEntity_OnGroundBurned_Loop();		
@@ -351,7 +368,7 @@ state OnGroundBurned in CBeehiveEntity
 	}
 }
 
-
+//-------------------------------------------------------------------  HANG BURN  --------------------------------------------------------------------------
 state HangingBurning in CBeehiveEntity
 {
 	event OnEnterState( prevStateName : name )

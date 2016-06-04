@@ -1,33 +1,31 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
-
-
-
-
-
-
-
-
+﻿//>--------------------------------------------------------------------------
+// BTTaskSummonCreaturesOnSpots
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Summon creatures on specific spots in the Level design
+// Useful for boss battles
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Copyright © 2015 CD Projekt RED
+//---------------------------------------------------------------------------
 class BTTaskSummonCreaturesOnSpots extends IBehTreeTask
 {
-	
-	
-	
-	private var entityToSpawn 			: CEntityTemplate;
-	private var summonOnAnimEvent 		: name;
-	private var spotTag 				: name;
-	private var minDistance				: float;
-	private var maxDistance				: float;
-	private var maxSpawnQuantity		: int;
-	private var betweenSpawnDelay		: SRangeF;
-	private var completeAfterSpawn		: bool;
-	private var spawnAreaCenter			: ETargetName;
-	private var minDistanceFromSpawner	: float;
+	//>----------------------------------------------------------------------
+	// VARIABLES
+	//-----------------------------------------------------------------------
+	private var entityToSpawn 				: CEntityTemplate;
+	private var summonOnAnimEvent 			: name;
+	private var spotTag 					: name;
+	private var minDistance					: float;
+	private var maxDistance					: float;
+	private var maxSpawnQuantity			: int;
+	private var betweenSpawnDelay			: SRangeF;
+	private var completeAfterSpawn			: bool;
+	private var spawnAreaCenter				: ETargetName;
+	private var minDistanceFromSpawner		: float;
+	private var spawnBehVarName				: name;
+	private var spawnBehVar					: float;
+	private var shouldForceBehaviorOnSpawn	: bool;
 	
 	private var m_Npc					: CNewNPC;
 	private var m_AllSpots				: array<CNode>;
@@ -35,15 +33,15 @@ class BTTaskSummonCreaturesOnSpots extends IBehTreeTask
 	private var m_WaitingToSpawn		: bool;
 	private var m_IsSpawned				: bool;
 	
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function Initialize()
 	{
 		m_Npc = GetNPC();
 		m_CreateEntityHelper = new CCreateEntityHelper in this;
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function IsAvailable() : bool
 	{
 		var i 					: int;
@@ -58,18 +56,18 @@ class BTTaskSummonCreaturesOnSpots extends IBehTreeTask
 		
 		SortNodesByDistance( GetAreaCenter(), m_AllSpots );
 		
-		
+		// if the closest is above maxDistance
 		if( maxDistance > 0 && VecDistance( GetAreaCenter(), m_AllSpots[0].GetWorldPosition() ) > maxDistance )
 			return false;
 		
-		
+		// if the furthest is below minDistance
 		if( minDistance > 0 && VecDistance( GetAreaCenter(), m_AllSpots[ m_AllSpots.Size() - 1].GetWorldPosition() ) < minDistance )
 			return false;
 		
 		return true;
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	private function GetAreaCenter() : Vector
 	{
 		var customTarget 	: Vector;
@@ -90,14 +88,14 @@ class BTTaskSummonCreaturesOnSpots extends IBehTreeTask
 				GetCustomTarget( customTarget, customHeading );
 				return customTarget;
 			case TN_NamedTarget:
-				
+				// To do if needed;
 				return Vector(0,0,0);
 			default:
 				return Vector(0,0,0);
 		}
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	latent function Main() : EBTNodeStatus
 	{	
 		m_WaitingToSpawn = IsNameValid( summonOnAnimEvent );
@@ -118,8 +116,8 @@ class BTTaskSummonCreaturesOnSpots extends IBehTreeTask
 		
 		return BTNS_Active;
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo ) : bool
 	{	
 		if( animEventName == summonOnAnimEvent )
@@ -129,14 +127,14 @@ class BTTaskSummonCreaturesOnSpots extends IBehTreeTask
 		
 		return true;
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	private function OnDeactivate()
 	{
 		m_IsSpawned = false;
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	final latent function SpawnCreatures()
 	{
 		var i 					: int;
@@ -181,13 +179,17 @@ class BTTaskSummonCreaturesOnSpots extends IBehTreeTask
 		{
 			
 			m_CreateEntityHelper.Reset();
+			if( shouldForceBehaviorOnSpawn )
+			{
+				m_CreateEntityHelper.SetPostAttachedCallback( this, 'ForceBehavior' );
+			}
 			theGame.CreateEntityAsync( m_CreateEntityHelper, entityToSpawn, l_availableSpots[i].GetWorldPosition(), l_availableSpots[i].GetWorldRotation(), true, false, false, PM_DontPersist );
 			
 			l_maxDelay = 0;
 			while( m_CreateEntityHelper.IsCreating() )
 			{						
 				SleepOneFrame();
-				
+				// Security/Hack: If the entity is not created after 120 frames, cancel
 				l_maxDelay += 1;
 				if( l_maxDelay >= 120 )
 				{
@@ -196,6 +198,12 @@ class BTTaskSummonCreaturesOnSpots extends IBehTreeTask
 			}
 			
 			l_createdEntity = m_CreateEntityHelper.GetCreatedEntity();
+			
+			if( IsNameValid( spawnBehVarName ) )
+			{
+				l_createdEntity.SetBehaviorVariable( spawnBehVarName, spawnBehVar );
+			}
+			
 			if ( l_summonerComponent )
 			{
 				l_summonerComponent.AddEntity ( l_createdEntity );
@@ -213,11 +221,21 @@ class BTTaskSummonCreaturesOnSpots extends IBehTreeTask
 		}
 		
 	}
+	function ForceBehavior( l_summonEntity : CEntity)
+	{
+		var l_summon 		: CNewNPC;
+		var l_spawnTree 	: CAICustomSpawnActionDecorator;
+		
+		l_summon = ( CNewNPC ) l_summonEntity;
+		l_spawnTree = new CAICustomSpawnActionDecorator in l_summonEntity;
+		l_spawnTree.OnCreated();
+		l_summon.ForceAIBehavior( l_spawnTree, BTAP_Emergency );
+	}
 
 }
 
-
-
+//>--------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 class BTTaskSummonCreaturesOnSpotsDef extends IBehTreeTaskDefinition
 {
 	default instanceClass = 'BTTaskSummonCreaturesOnSpots';
@@ -232,6 +250,9 @@ class BTTaskSummonCreaturesOnSpotsDef extends IBehTreeTaskDefinition
 	private editable var completeAfterSpawn			: bool;
 	private editable var spawnAreaCenter			: ETargetName;
 	private editable var minDistanceFromSpawner		: float;
+	private editable var spawnBehVarName			: name;
+	private editable var spawnBehVar				: float;
+	private editable var shouldForceBehaviorOnSpawn	: bool;
 	
 	default minDistance 			= -1;
 	default maxDistance 			= -1;

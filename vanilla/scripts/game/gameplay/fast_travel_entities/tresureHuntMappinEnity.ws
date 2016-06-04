@@ -1,10 +1,7 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2014 CDProjektRed
+/** Author : Łukasz Szczepankowski
 /***********************************************************************/
-
-
 
 class W3TreasureHuntMappinEntity extends CR4MapPinEntity
 {
@@ -12,6 +9,12 @@ class W3TreasureHuntMappinEntity extends CR4MapPinEntity
 	
 	private saved var mappinSet : bool;
 	private var isDisabled 		: bool;
+	private editable var regionType	: EEP2PoiType;
+
+	public function GetRegionType() : int
+	{
+		return (int) regionType;
+	}
 	
 	event OnAreaEnter( area : CTriggerAreaComponent, activator : CComponent )
 	{

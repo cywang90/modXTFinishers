@@ -1,35 +1,30 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-class CPhantomWeaponManager
+﻿class CPhantomWeaponManager
 {
-	
+	// gameplay parameters
 	private var hitsToCharge : int;
 	private var timeToDischarge : float;
 	private var minVitalityPercToCharge : float;
 	private var vitalityPercLostOnDischarge : float;
 	
-	
+	// internal variables
 	private var hitCounter : int;
 	private var isWeaponCharged : bool;
 	private var itemId : SItemUniqueId;
 	private var inv : CInventoryComponent;
 	
-	
+	// fxes
 	private var chargedLoopedFxName : name;
 	private var chargedSingleFxName : name;
 	
 	default hitsToCharge = 3;
 	default timeToDischarge = 5.0;
-	default minVitalityPercToCharge = 10.0;
-	default vitalityPercLostOnDischarge = 10.0;
+	default minVitalityPercToCharge = 15.0;
+	default vitalityPercLostOnDischarge = 15.0;
 	
 	default chargedLoopedFxName = 'special_attack_charged';
 	default chargedSingleFxName = 'special_attack_ready';
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function Init( inventory : CInventoryComponent )
 	{
 		var itemIds : array< SItemUniqueId >;
@@ -43,7 +38,7 @@ class CPhantomWeaponManager
 		}
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function IncrementHitCounter()
 	{
 		if( HasEnoughVitality() )
@@ -62,13 +57,13 @@ class CPhantomWeaponManager
 		}
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	private function ResetHitCounter()
 	{
 		hitCounter = 0;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	private function ShouldChargeWeapon() : bool
 	{
 		if( hitCounter >= hitsToCharge )
@@ -79,7 +74,7 @@ class CPhantomWeaponManager
 		return false;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	private function ChargeWeapon()
 	{
 		SetIsWeaponCharged( true );
@@ -90,7 +85,7 @@ class CPhantomWeaponManager
 		thePlayer.AddAbility( 'ForceDismemberment' );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function DischargeWeapon( optional afterHit : bool )
 	{
 		SetIsWeaponCharged( false );
@@ -105,7 +100,7 @@ class CPhantomWeaponManager
 		thePlayer.RemoveAbility( 'ForceDismemberment' );
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	private function HasEnoughVitality() : bool
 	{
 		if( thePlayer.GetStatPercents( BCS_Vitality ) * 100 > minVitalityPercToCharge )
@@ -114,7 +109,7 @@ class CPhantomWeaponManager
 			return false;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	private function DrainVitality()
 	{
 		var vitalityCost : float;
@@ -132,13 +127,13 @@ class CPhantomWeaponManager
 		}
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	private function SetIsWeaponCharged( val : bool )
 	{
 		isWeaponCharged = val;
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	public function IsWeaponCharged() : bool
 	{
 		return isWeaponCharged;

@@ -1,16 +1,11 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-class CR4HudModuleTimeLapse extends CR4HudModuleBase
+﻿class CR4HudModuleTimeLapse extends CR4HudModuleBase
 {
 	private var m_fxSetShowTimeSFF						: CScriptedFlashFunction;
 	private var m_fxSetTimeLapseMessage					: CScriptedFlashFunction;
 	private var m_fxSetTimeLapseAdditionalMessage		: CScriptedFlashFunction;	
 
 
-	event  OnConfigUI()
+	event /* flash */ OnConfigUI()
 	{
 		var flashModule : CScriptedFlashSprite;
 		var hud : CR4ScriptedHud;
@@ -21,7 +16,7 @@ class CR4HudModuleTimeLapse extends CR4HudModuleBase
 		m_fxSetShowTimeSFF 		= flashModule.GetMemberFlashFunction( "SetShowTime" ); 
 		m_fxSetTimeLapseMessage = flashModule.GetMemberFlashFunction( "handleTimelapseTextSet" );
 		m_fxSetTimeLapseAdditionalMessage = flashModule.GetMemberFlashFunction( "handleTimelapseAdditionalTextSet" );
-		
+		// ShowElement(false);
 
 		hud = (CR4ScriptedHud)theGame.GetHud();
 						
@@ -34,7 +29,7 @@ class CR4HudModuleTimeLapse extends CR4HudModuleBase
 	
 	public function SetShowTime( showTime : float )
 	{
-		
+		//GetWitcherPlayer().AddTimer('HideTimeLapse',showTime);
 		m_fxSetShowTimeSFF.InvokeSelfOneArg(FlashArgNumber(showTime*1000));
 	}	
 	

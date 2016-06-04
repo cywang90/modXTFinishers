@@ -1,15 +1,10 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
+﻿// CExplorationSkateLand
+//------------------------------------------------------------------------------------------------------------------
+// Eduard Lopez Plans	( 11/02/2014 )	 
+//------------------------------------------------------------------------------------------------------------------
 
-
-
-
-
-
-
+//>-----------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------
 class CExplorationSkateLand extends CExplorationStateAbstract
 {
 	private					var	skateGlobal				: CExplorationSkatingGlobal;
@@ -22,7 +17,7 @@ class CExplorationSkateLand extends CExplorationStateAbstract
 	private 				var actionChained			: bool;
 	
 	
-	
+	//---------------------------------------------------------------------------------
 	private function InitializeSpecific( _Exploration : CExplorationStateManager )
 	{	
 		skateGlobal	= _Exploration.m_SharedDataO.m_SkateGlobalC;
@@ -35,51 +30,51 @@ class CExplorationSkateLand extends CExplorationStateAbstract
 		m_StateTypeE	= EST_Skate;
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	private function AddDefaultStateChangesSpecific()
 	{
 	}
 
-	
+	//---------------------------------------------------------------------------------
 	function StateWantsToEnter() : bool
 	{
 		return false;
 	}
 
-	
+	//---------------------------------------------------------------------------------
 	function StateCanEnter( curStateName : name ) : bool
 	{	
 		return true;
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	private function StateEnterSpecific( prevStateName : name )	
 	{		
-		
+		// Flow
 		skateGlobal.StartFlowTimeGap();
 		
-		
+		// Action Chain
 		CheckStartActionChain();
 		
-		
+		// Check damage
 		CheckFallingDamage();
 		
-		
+		// Movement
 		m_ExplorationO.m_MoverO.StopVerticalMovement();
 		skateGlobal.ApplyDefaultParams( );
 		skateGlobal.ApplyCurLevelParams( );
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	function StateChangePrecheck( )	: name
 	{	
-		
+		// Attack
 		skateGlobal.UpdateRandomAttack();
 		
-		
+		// Action change
 		CheckUpdateActionChain();
 		
-		
+		// Jump combo
 		if( m_ExplorationO.GetStateTimeF() >= timeToChainJump )
 		{
 			if( actionChained )
@@ -87,7 +82,7 @@ class CExplorationSkateLand extends CExplorationStateAbstract
 				ApplyQueuedChain();
 			}
 			
-			
+			// Safety end
 			else if( m_ExplorationO.CanChangeBetwenStates( GetStateName(), 'SkateRun' ) )
 			{
 				if( m_ExplorationO.GetStateTimeF() >= timeSafetyEnd )
@@ -101,7 +96,7 @@ class CExplorationSkateLand extends CExplorationStateAbstract
 		return super.StateChangePrecheck();
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	protected function StateUpdateSpecific( _Dt : float )
 	{	
 		var accel	: float;
@@ -109,25 +104,25 @@ class CExplorationSkateLand extends CExplorationStateAbstract
 		var braking	: bool;
 		
 		
-		
+		// Movement
 		m_ExplorationO.m_MoverO.UpdateSkatingMovement( _Dt, accel, turn, braking );
 		
-		
+		// Anim		
 		skateGlobal.SetBehParams( accel, braking, turn );
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	private function StateExitSpecific( nextStateName : name )
 	{
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	function CanInteract( ) :bool
 	{		
 		return false;
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	private function CheckStartActionChain()
 	{	
 		var dashPressTime	: float;
@@ -139,11 +134,11 @@ class CExplorationSkateLand extends CExplorationStateAbstract
 		driftPressTime	= m_ExplorationO.m_InputO.GetDriftLastPressedTime();
 		jumpPressTime	= m_ExplorationO.m_InputO.GetSkateJumpLastPressedTime();		
 		
-		
+		// Check if dash or drift are pressed, and which is first
 		actionChained	=  MinF( dashPressTime, MinF( jumpPressTime, driftPressTime ) ) < timePrevToChain;
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	private function CheckUpdateActionChain()
 	{	
 		if( !actionChained )
@@ -157,7 +152,7 @@ class CExplorationSkateLand extends CExplorationStateAbstract
 		}
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	private function ApplyQueuedChain()
 	{
 		var dashPressTime	: float;
@@ -174,19 +169,19 @@ class CExplorationSkateLand extends CExplorationStateAbstract
 		jumpPressTime	= m_ExplorationO.m_InputO.GetSkateJumpLastPressedTime();
 		
 		
-		
+		// Jump perfect flow
 		if( jumpPressTime < dashPressTime && jumpPressTime < driftPressTime )
 		{
 			SetReadyToChangeTo( 'SkateJump' );
 		}
 		
-		
+		// Dash perfect flow
 		else if( dashPressTime <= driftPressTime )
 		{
 			SetReadyToChangeTo( 'SkateDash' );
 		}
 		
-		
+		// Drift perfect flow
 		else
 		{
 			if( m_ExplorationO.StateWantsAndCanEnter( 'SkateSlide' ) )
@@ -204,7 +199,7 @@ class CExplorationSkateLand extends CExplorationStateAbstract
 		}
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	private function CheckFallingDamage()
 	{
 		var fallDiff		: float;
@@ -216,22 +211,22 @@ class CExplorationSkateLand extends CExplorationStateAbstract
 		
 		position		= m_ExplorationO.m_OwnerE.GetWorldPosition();
 		
-		
+		// Get the falling heights
 		m_ExplorationO.m_SharedDataO.CalculateFallingHeights( fallDiff, jumpTotalDiff );
 		
-		
+		// Into Water ?
 		intoWater		= false;
 		
 		
-		
-		
+		// Apply Damage
+		//damagePerc	= m_ExplorationO.m_OwnerE.ApplyFallingDamage( fallDiff, m_RollingB || intoWater || sliding );
 		damagePerc		= 0.0f;
 		
-		
+		// Movement adjustor
 		m_ExplorationO.m_OwnerMAC.GetMovementAdjustor().CancelByName( 'turnOnJump' );
 		
 		
-		
+		// Log
 		LogExploration( "Landed height difference " + jumpTotalDiff );
 		if ( damagePerc >= 1.0f )
 		{
@@ -247,7 +242,7 @@ class CExplorationSkateLand extends CExplorationStateAbstract
 		}
 	}
 	
-	
+	//---------------------------------------------------------------------------------
 	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
 		if( animEventName == behLandCancel )
@@ -256,7 +251,7 @@ class CExplorationSkateLand extends CExplorationStateAbstract
 		}
 	}
 	
-	
+	//------------------------------------------------------------------------------------------------------------------
 	function ReactToLoseGround() : bool
 	{
 		SetReadyToChangeTo( 'StartFalling' );

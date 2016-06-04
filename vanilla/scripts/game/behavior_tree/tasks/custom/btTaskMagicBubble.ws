@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
+﻿
 class CBTTaskActivateMagicBubble extends IBehTreeTask
 {
 	public var entityTemplate 		: CEntityTemplate;
@@ -46,7 +41,7 @@ class CBTTaskActivateMagicBubble extends IBehTreeTask
 		return BTNS_Active;
 	}
 	
-	
+	// ----------------------------------------------------------------
 	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo ) : bool
 	{
 		if ( onAnimEvent && animEventName == 'animEventName' )
@@ -58,7 +53,7 @@ class CBTTaskActivateMagicBubble extends IBehTreeTask
 		return false;
 	}
 	
-	
+	// ----------------------------------------------------------------
 	function ToggleActivateEntity( toggle : bool )
 	{
 		((W3MagicBubbleEntity)spawnedEntity).ToggleActivate(toggle);
@@ -79,14 +74,23 @@ class CBTTaskActivateMagicBubbleDef extends IBehTreeTaskDefinition
 {
 	default instanceClass = 'CBTTaskActivateMagicBubble';
 
-	
+	//editable var entityTemplate 		: CEntityTemplate;
 	editable var resourceName 			: CBehTreeValCName;
 	editable var onAnimEvent 			: bool;
 	editable var animEventName 			: name;
 	
 	default animEventName = 'Attach';
 	
-	
+	/*function OnSpawn( taskGen : IBehTreeTask )
+	{
+		var task : CBTTaskActivateMagicBubble;
+		task = (CBTTaskActivateMagicBubble) taskGen;
+		task.resourceName = GetValCName(resourceName);
+		if ( entityTemplate )
+		{
+			task.entityTemplate = entityTemplate;
+		}
+	}*/
 }
 
 
@@ -108,7 +112,7 @@ class CBTTaskDeactivateMagicBubble extends IBehTreeTask
 		return BTNS_Active;
 	}
 	
-	
+	// ----------------------------------------------------------------
 	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo ) : bool
 	{
 		if ( onAnimEvent && animEventName == 'animEventName' )
@@ -144,7 +148,7 @@ class CBTTaskDeactivateMagicBubbleDef extends IBehTreeTaskDefinition
 {
 	default instanceClass = 'CBTTaskDeactivateMagicBubble';
 
-	
+	//editable var tag 					: CBehTreeValCName;
 	editable var onAnimEvent 			: bool;
 	editable var animEventName 			: name;
 	

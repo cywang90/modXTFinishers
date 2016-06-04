@@ -1,11 +1,8 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file
 /***********************************************************************/
-
-
-
+/** Copyright © 2010
+/***********************************************************************/
 
 enum EDirection
 {
@@ -26,7 +23,7 @@ enum EDirectionZ
 	DZ_Right
 }
 
-
+// Converts angle to direction
 function AngleToDirection( angle : float ) : EDirection
 {
 	angle = AngleNormalize( angle );
@@ -61,7 +58,7 @@ function AngleToDirection( angle : float ) : EDirection
 	}
 }
 
-
+// Converts direction vector to direction
 function VectorToDirection( vec : Vector ) : EDirection
 {			
 	var rot : EulerAngles;
@@ -70,4 +67,12 @@ function VectorToDirection( vec : Vector ) : EDirection
 	return AngleToDirection( -rot.Yaw );		
 }
 
-
+/*function CalculateRelativeDirection( node : CNode, target : CNode ) : EDirection
+{
+	var mat : Matrix;
+	var vec, vecLocal : Vector;
+	mat = node.GetWorldToLocal();
+	vec = target.GetWorldPosition() - node.GetWorldPosition();
+	vecLocal = VecTransformDir( mat, vec );
+	return VectorToDirection( vecLocal );
+}*/

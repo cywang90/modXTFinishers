@@ -1,11 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file
 /***********************************************************************/
-
-
-
+/** MoveTo actor latent action
+/** Copyright © 2012
+/***********************************************************************/
 
 class W3ActorLatentActionFollowPlayer extends IPresetActorLatentAction
 {
@@ -25,7 +23,16 @@ class W3ActorLatentActionFollowPlayer extends IPresetActorLatentAction
 	default teleportToCatchup			= false;
 	default cachupDistance				= 75.0;
 	
-		
+	/*function OnActivate() : EBTNodeStatus
+	{
+		GetNPC().isPlayerFollower = true;
+		return BTNS_Active;
+	}
+	
+	function OnDeactive()
+	{
+		GetNPC().isPlayerFollower = false;
+	}*/	
 	
 	function ConvertToActionTree( parentObj : IScriptable ) : IAIActionTree
 	{

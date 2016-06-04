@@ -1,11 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** 
 /***********************************************************************/
-
-
-
+/** Copyright © 2013
+/** Author : Andrzej Kwiatkowski
+/***********************************************************************/
 
 class CBTTaskSummonCreatures extends CBTTaskAttack
 {
@@ -69,7 +67,7 @@ class CBTTaskSummonCreatures extends CBTTaskAttack
 			SleepOneFrame();
 		}
 		
-		if ( dontResummonUntilMinionsAreDead && MinionNumberCheck() )
+		if ( ( dontResummonUntilMinionsAreDead && MinionNumberCheck() ) || !dontResummonUntilMinionsAreDead )
 		{
 			SummonCreatures();
 		}
@@ -95,8 +93,22 @@ class CBTTaskSummonCreatures extends CBTTaskAttack
 		var createEntityHelper		: CCreateEntityHelper;
 		var numberOfTries			: int;
 		
-		
-		
+		/*
+		// Remove dead creatures from the table
+		for ( i = spawnedNPCs.Size() - 1; i >=0 ; i -= 1 )
+		{
+			if( !respawnNeeded[i] )
+			{
+				if ( !spawnedNPCs[ i ] || !spawnedNPCs[ i ].IsAlive() )
+				{
+					respawnTime[i] = theGame.GetEngineTime() + 1.f;					
+					spawnedNPCs[i] = NULL;
+					respawnNeeded[i] = true;
+				}
+			}
+		}
+		*/
+		// Spawn new creatures to fit the count
 		
 		for ( i = 0; i < count; i += 1 )
 		{	
@@ -150,8 +162,9 @@ class CBTTaskSummonCreatures extends CBTTaskAttack
 	function NavTest( _PosToTest : Vector ) : bool
 	{	
 		var l_targetPos, l_ownerPos : Vector;
+		var npc 					: CNewNPC = GetNPC();
 		
-		if ( !theGame.GetWorld().NavigationCircleTest(_PosToTest,1.5f) )
+		if ( !theGame.GetWorld().NavigationCircleTest( _PosToTest, npc.GetRadius() ) )
 		{
 			return false;
 		}		
@@ -159,7 +172,7 @@ class CBTTaskSummonCreatures extends CBTTaskAttack
 		if( targetShouldBeAccessible )
 		{
 			l_targetPos = GetCombatTarget().GetWorldPosition();
-			if( !theGame.GetWorld().NavigationLineTest( _PosToTest, l_targetPos, 1.5, false, true ) )
+			if( !theGame.GetWorld().NavigationLineTest( _PosToTest, l_targetPos, npc.GetRadius(), false, true ) )
 			{
 				return false;
 			}
@@ -168,7 +181,7 @@ class CBTTaskSummonCreatures extends CBTTaskAttack
 		if ( spawnerShouldBeAccessible )
 		{
 			l_ownerPos = GetNPC().GetWorldPosition();
-			if( !theGame.GetWorld().NavigationLineTest( _PosToTest, l_ownerPos, 1.5, false, true ) )
+			if( !theGame.GetWorld().NavigationLineTest( _PosToTest, l_ownerPos, npc.GetRadius(), false, true ) )
 			{
 				return false;
 			}
@@ -197,6 +210,7 @@ class CBTTaskSummonCreatures extends CBTTaskAttack
 			}
 			summon.SetBehaviorVariable( 'SpawnAnim', (int)spawnAnimation );
 			summon.AddTag( spawnTag );
+			summon.DeriveGuardArea( npc );
 			
 			if( forcedSpawnAnim >= 0 )
 			{
@@ -249,7 +263,7 @@ class CBTTaskSummonCreatures extends CBTTaskAttack
 			}
 			for ( i = 0; i < minions.Size(); i += 1 )
 			{
-				((CActor)minions[i]).Kill( true );
+				((CActor)minions[i]).Kill( 'Summoner Death', true );
 			}
 			return true;
 		}
@@ -275,7 +289,20 @@ class CBTTaskSummonCreatures extends CBTTaskAttack
 			
 			summonActivated = true;
 			
-			
+			/*
+			if( !summonFromEncounter )
+			{
+				SummonCreatures();
+			}
+			else
+			{
+				FindGameplayEntitiesInRange( encounters, npc, 50, 1, encounterTag );
+				
+				for ( i = 0; i < encounters.Size(); i += 1 )
+				{
+					((CEncounter)encounters[i]).EnableEncounter( true );
+				}
+			}*/
 		}
 		return super.OnAnimEvent(animEventName,animEventType,animInfo);
 	}

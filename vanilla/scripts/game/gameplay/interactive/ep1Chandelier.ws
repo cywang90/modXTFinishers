@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
+﻿
 class EP1Chandelier extends CGameplayEntity
 {
 	editable var m_fallSpeed : float;
@@ -29,15 +24,15 @@ class EP1Chandelier extends CGameplayEntity
 		m_currTime += dt;
 		if( m_currTime >= m_fallDelay )
 		{
-			
-			
-			
-				
-				
-				
-				
-				
-			
+			//chains = theGame.GetEntityByTag( 'q605_chandelier_chains' );
+			//if( chains )
+			//{
+				//chainsAnim = ( CAnimatedComponent )chains.GetComponent( "q604_chandelier_anim" );
+				//if( chainsAnim )
+				//{
+				//	chainsAnim.UnfreezePose();
+				//}
+			//}
 			
 			SoundEvent( 'q604_chandelier_chain_break' );
 			AddTimer( 'UpdateFalling', 0.00001f, true );
@@ -127,7 +122,7 @@ class EP1Chandelier extends CGameplayEntity
 
 		m_currTime = 0.0f;
 		m_falling = true;
-		
+		//FactsAdd( "q604_chandelier_falling", 1, -1 );
 		PlayEffect( 'dust' );
 		SoundEvent( 'q604_chandelier_prefall' );
 		AddTimer( 'UpdatePreFalling', 0.00001f, true );

@@ -1,18 +1,16 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file - Base class 
 /***********************************************************************/
-
-
-
+/** Copyright © 2014 CDProjektRed
+/** Author : Yaroslav Getsevich
+/***********************************************************************/
 
 class CR4OverlayMenu extends CR4MenuBase
 {
 	var m_BlurBackground : bool;
 	var m_PauseGame		 : bool;
 
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{
 		super.OnConfigUI();
 		
@@ -22,12 +20,12 @@ class CR4OverlayMenu extends CR4MenuBase
 		}
 	}
 	
-	event  OnCloseMenu()
+	event /*flash*/ OnCloseMenu()
 	{
 		RequestClose();
 	}
 	
-	event  OnClosingMenu()
+	event /* C++ */ OnClosingMenu()
 	{
 		if (m_BlurBackground)
 		{

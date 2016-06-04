@@ -1,12 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © ?
+/** Author : ?
 /***********************************************************************/
 
-
-
-
+//Enum used in behavior to decide which type of work to use with given entity
 enum EBackgroundNPCWomanWork
 {
 	EBNWW_None,
@@ -20,7 +17,7 @@ enum EBackgroundNPCWomanWork
 
 class W3NPCBackgroundWoman extends CGameplayEntity
 {
-	public editable var work : EBackgroundNPCWomanWork;					
+	public editable var work : EBackgroundNPCWomanWork;					//type of work (animation) to play
 
 	event OnSpawned(spawnData : SEntitySpawnData)
 	{

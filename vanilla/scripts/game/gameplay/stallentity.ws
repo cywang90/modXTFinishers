@@ -1,11 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file - Container controll class
 /***********************************************************************/
-
-
-
+/** Copyright © 2012 CDProjektRed
+/** Author : MKan
+/***********************************************************************/
 
 class W3StallEntity extends CGameplayEntity
 {

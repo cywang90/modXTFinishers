@@ -1,15 +1,13 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file
 /***********************************************************************/
-
-
-
+/** Info board with potential quests
+/** Copyright © 2012
+/***********************************************************************/
 
 struct ErrandDetailsList
 {
-	editable saved var errandStringKey	: string;	
+	editable saved var errandStringKey	: string;	// 01_troll_contract
 	editable saved var newQuestFact		: string;
 	editable saved var requiredFact		: string;
 	editable saved var forbiddenFact	: string;
@@ -49,27 +47,27 @@ statemachine class W3NoticeBoard extends CR4MapPinEntity
 	
 	protected optional autobind 	interactionComponent 	: CInteractionComponent = "LookAtBoard";
 	
-	
-	
-	
+	// nasty hacks, please don't read
+	// problem with empty notice boards when starting the game close to notice board or teleporting from far away (streaming issue)
+	// TTP 124382
 	var hack_updateTriesLeft : int; 				default hack_updateTriesLeft = 0;
 	var hack_isTryingUpdate : bool;					default hack_isTryingUpdate = false;
 	var hack_started : bool;						default hack_started = false;
 	var hack_fromAreaEnter : bool;					default hack_fromAreaEnter = false;
-	
+	// eof nasty hacks, now you can read :)
 	
 	event OnSpawned( spawnData : SEntitySpawnData )
 	{
 		updatingInteraction = false;
 		
-		
-		
-		
-		
+		///////////////////
+		//
+		// !!! HACKS AHEAD !!!
+		//
 		HACK_FixNamesAndTags();
-		
-		
-		
+		//
+		//
+		///////////////////
 
 		FixErrands();
 		
@@ -77,13 +75,13 @@ statemachine class W3NoticeBoard extends CR4MapPinEntity
 		
 		SetCardsVisible(true);
 		
-		
+		//Only notes should highlighted, board itself has a no glow tag added
 		SetFocusModeVisibility( FMV_Interactive );
 	}
 	
 	function HACK_FixNamesAndTags()
 	{
-		
+		// TTP 115598
 		if ( HasTag( 'harbor_district_noticeboard' ) )
 		{
 			if ( HasTag( 'market_noticeboard' ) )
@@ -92,7 +90,7 @@ statemachine class W3NoticeBoard extends CR4MapPinEntity
 			}
 		}
 		
-		
+		// TTP 114238
 		if ( HasTag( 'poppystone_notice_board' ) )
 		{
 			if ( HasTag( 'inn_crossroads_notice_board' ) )
@@ -119,7 +117,7 @@ statemachine class W3NoticeBoard extends CR4MapPinEntity
 		}
 	}
 	
-	
+	// Called when entity gets within interaction range
 	event OnInteractionActivated( interactionComponentName : string, activator : CEntity )
 	{
 		if(activator == thePlayer && ShouldProcessTutorial('TutorialQuestBoard'))
@@ -184,7 +182,13 @@ statemachine class W3NoticeBoard extends CR4MapPinEntity
 		}
 		hack_fromAreaEnter = false;
 	}	
-
+/*	
+	event OnStreamIn()
+	{
+		UpdateBoard(true);
+		UpdateInteraction( true );
+	}
+*/
 	function UpdateInteraction( optional waitForComponent : bool )
 	{
 		if ( interactionComponent )
@@ -228,7 +232,7 @@ statemachine class W3NoticeBoard extends CR4MapPinEntity
 			{
 				if( fluffNotices.Size() == 0 && Have24HoursPassed(currentGameTime, lastTimeInteracted) )
 				{
-					ResetFlawErrands(); 
+					ResetFlawErrands(); // #B if flaw errands table is empty, add those already taken to pool
 				}
 				UpdateBoard();
 			}
@@ -291,7 +295,7 @@ statemachine class W3NoticeBoard extends CR4MapPinEntity
 		{
 			if( candidateToAdd.errandStringKey == addedNotes[i].errandStringKey )
 			{
-				
+				// #B already added
 				return false;
 			}		
 		}
@@ -308,7 +312,7 @@ statemachine class W3NoticeBoard extends CR4MapPinEntity
 			{
 				return i;			}		
 		}
-		
+		// not found
 		return -1;
 	}
 	
@@ -325,7 +329,7 @@ statemachine class W3NoticeBoard extends CR4MapPinEntity
 			i = FindErrand( newErrand );
 			if ( i != -1 )
 			{	
-				
+				// set errandPosition to 0 to reactivate it
 				addedNotes[ i ].errandPosition = 0;
 			}
 		}
@@ -464,7 +468,7 @@ statemachine class W3NoticeBoard extends CR4MapPinEntity
 						break;
 					}
 				}
-				if( j == addedNotes.Size() ) 
+				if( j == addedNotes.Size() ) // #B means that it didn't find note on that slot and it could be used
 				{
 					return i + 1;
 				}
@@ -499,7 +503,7 @@ statemachine class W3NoticeBoard extends CR4MapPinEntity
 		var randIDX : int;
 		var retString : string;
 		
-		if( fluffNotices.Size() == 0 ) 
+		if( fluffNotices.Size() == 0 ) // #B there is no flaw notices
 		{
 			return "";
 		}
@@ -605,7 +609,7 @@ statemachine class W3NoticeBoard extends CR4MapPinEntity
 		var val : int;
 		var exp : int;
 		var tags : array<name>;
-		
+		//prologue_village_noticeboard
 		if( HasAnyNote() )
 		{
 			val = 1;
@@ -795,8 +799,8 @@ statemachine class W3NoticeBoard extends CR4MapPinEntity
 		UpdateInteraction( true );
 	}
 	
-	
-	function  GetStaticMapPinType( out type : name )
+	// DO NOT DELETE, CALLED FROM C++
+	function /* C++ */ GetStaticMapPinType( out type : name )
 	{
 		if ( !visited || HasAnyQuest() )
 		{

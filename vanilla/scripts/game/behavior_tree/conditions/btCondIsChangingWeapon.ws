@@ -1,11 +1,5 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-class BTCondIsChangingWeapon extends IBehTreeTask
+﻿class BTCondIsChangingWeapon extends IBehTreeTask
 {
-	private var storageHandler : CAIStorageHandler;
 	protected var combatDataStorage : CHumanAICombatStorage;
 	
 	function IsAvailable() : bool
@@ -18,8 +12,7 @@ class BTCondIsChangingWeapon extends IBehTreeTask
 	{
 		if ( !combatDataStorage )
 		{
-			storageHandler = InitializeCombatStorage();
-			combatDataStorage = (CHumanAICombatStorage)storageHandler.Get();
+			combatDataStorage = (CHumanAICombatStorage)InitializeCombatStorage();
 		}
 	}
 }
@@ -30,11 +23,10 @@ class BTCondIsChangingWeaponDef extends IBehTreeConditionalTaskDefinition
 }
 
 
-
+//////////////////////////////////////////////////////////////////
 
 class BTCondDoesChangingWeaponRequiresIdle extends IBehTreeTask
 {
-	private var storageHandler : CAIStorageHandler;
 	protected var combatDataStorage : CHumanAICombatStorage;
 	
 	function IsAvailable() : bool
@@ -47,8 +39,7 @@ class BTCondDoesChangingWeaponRequiresIdle extends IBehTreeTask
 	{
 		if ( !combatDataStorage )
 		{
-			storageHandler = InitializeCombatStorage();
-			combatDataStorage = (CHumanAICombatStorage)storageHandler.Get();
+			combatDataStorage = (CHumanAICombatStorage)InitializeCombatStorage();
 		}
 	}
 }

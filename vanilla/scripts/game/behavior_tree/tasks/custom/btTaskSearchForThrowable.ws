@@ -1,11 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** 
 /***********************************************************************/
-
-
-
+/** Copyright © 2012
+/** Author : Patryk Fiutowski
+/***********************************************************************/
 
 class CBTTaskSearchForThrowable extends IBehTreeTask
 {
@@ -18,8 +16,6 @@ class CBTTaskSearchForThrowable extends IBehTreeTask
 	
 	var activate : bool;
 	var findTime : float;
-	
-	var throwData : CAIStorageHandler;
 	
 	function IsAvailable() : bool
 	{
@@ -38,7 +34,7 @@ class CBTTaskSearchForThrowable extends IBehTreeTask
 		findTime = 0.f;
 		activate = false;
 		physicalComponent = NULL;
-		
+		//??
 	}
 	
 	function OnGameplayEvent( eventName : name ) : bool

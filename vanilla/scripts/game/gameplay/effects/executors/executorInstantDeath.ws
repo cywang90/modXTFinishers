@@ -1,12 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2013
+/** Author : Tomasz Kozera
 /***********************************************************************/
 
-
-
-
+// Instant death executor buff - kills the owner
 class W3Executor_InstantDeath extends IInstantEffectExecutor
 {
 	default executorName = 'InstantDeath';
@@ -15,7 +12,7 @@ class W3Executor_InstantDeath extends IInstantEffectExecutor
 	{
 		if(target)
 		{
-			target.Kill(executor);
+			target.Kill( 'Combat Focus Mode', executor);
 			return true;
 		}
 		return false;

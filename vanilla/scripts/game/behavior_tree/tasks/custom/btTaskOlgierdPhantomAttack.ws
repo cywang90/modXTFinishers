@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-class CBTTaskOlgierdPhantomAttack extends IBehTreeTask
+﻿class CBTTaskOlgierdPhantomAttack extends IBehTreeTask
 {	
 	private var phantomTemplate : CEntityTemplate;
 	private var phantom : W3CiriPhantom;
@@ -12,12 +7,12 @@ class CBTTaskOlgierdPhantomAttack extends IBehTreeTask
 	{
 		if( animEventName == 'PhantomR' )
 		{
-			
+			//SpawnPhantomWithAnim( GetNPC().GetWorldPosition(), GetNPC().GetWorldRotation(), true );
 			return true;
 		}
 		else if( animEventName == 'PhantomL' )
 		{
-			
+			//SpawnPhantomWithAnim( GetNPC().GetWorldPosition(), GetNPC().GetWorldRotation(), false );
 			return true;
 		}
 		
@@ -26,7 +21,7 @@ class CBTTaskOlgierdPhantomAttack extends IBehTreeTask
 	
 	private function SpawnPhantomWithAnim( position : Vector, rotation : EulerAngles, rightSide : bool  )
 	{
-		
+		//var animComp : CAnimatedComponent;
 		var res : bool;
 
 		phantom = (W3CiriPhantom)theGame.CreateEntity( phantomTemplate, position, rotation );
@@ -42,11 +37,11 @@ class CBTTaskOlgierdPhantomAttack extends IBehTreeTask
 				phantom.RaiseEvent( 'PhantomL' );
 			}
 			
-			
-			
-			
-				
-			
+			//animComp = (CAnimatedComponent)phantom.GetComponentByClassName( 'CAnimatedComponent' );
+			//if( animComp )
+			//{
+				//res = animComp.PlaySlotAnimationAsync( animationName, 'GAMEPLAY_SLOT' );
+			//}
 			
 		}
 	}

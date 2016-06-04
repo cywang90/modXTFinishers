@@ -1,10 +1,7 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2015
+/** Author : Tomek Kozera
 /***********************************************************************/
-
-
 
 abstract class W3Effect_Shrine extends CBaseGameplayEffect
 {
@@ -21,6 +18,27 @@ abstract class W3Effect_Shrine extends CBaseGameplayEffect
 		shrineParams = (W3ShrineEffectParams)customParams;
 		if(shrineParams)
 			isFromMutagen23 = shrineParams.isFromMutagen23;
+	}
+	
+	public function OnTimeUpdated( dt : float )
+	{
+		//perk enabling only one shrine buff at a time but with infinite duration
+		if( target == GetWitcherPlayer() && GetWitcherPlayer().CanUseSkill( S_Perk_14 ) )
+		{
+			if( isActive && pauseCounters.Size() == 0)
+			{
+				timeActive += dt;	
+			}
+			
+			timeLeft = -1.f;
+			return;
+		}
+		else if( timeLeft == -1.f )
+		{
+			timeLeft = GetInitialDurationAfterResists() - timeActive;
+		}
+		
+		super.OnTimeUpdated( dt );
 	}
 	
 	public final function IsFromMutagen23() : bool		{return isFromMutagen23;}

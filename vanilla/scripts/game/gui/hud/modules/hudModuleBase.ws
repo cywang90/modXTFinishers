@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-class CR4HudModuleBase extends CR4HudModule
+﻿class CR4HudModuleBase extends CR4HudModule
 {	
 	protected var m_fxSetControllerType  : CScriptedFlashFunction;
 	protected var m_fxSetPlatform       : CScriptedFlashFunction;
@@ -20,7 +15,7 @@ class CR4HudModuleBase extends CR4HudModule
 	protected var m_tickInterval			: float;							default m_tickInterval = 0.1;
 	protected var m_tickCounter				: float;							default m_tickCounter = 0;
 
-	event  OnConfigUI()
+	event /* flash */ OnConfigUI()
 	{	
 		var l_flashModule : CScriptedFlashSprite;
 		
@@ -38,7 +33,7 @@ class CR4HudModuleBase extends CR4HudModule
 		
 		SetControllerType(theInput.LastUsedGamepad());
 		SetPlatformType(theGame.GetPlatform());
-		
+		//SetPlatformType(Platform_PS4);
 		
 		SnapToAnchorPosition();
 	}	
@@ -127,21 +122,21 @@ class CR4HudModuleBase extends CR4HudModule
 	
 	protected function UpdateScale( scale : float, flashModule : CScriptedFlashSprite ) : bool
 	{
-		
-		
-		
-		
+		//LogChannel('SCALE',"");
+		//LogChannel('SCALE',"anchor "+m_anchorName);
+		//LogChannel('SCALE',"TO SET "+scale);
+		//LogChannel('SCALE',"BEFORE "+flashModule.GetXScale());
 		
 		m_fxSetScaleFromWSSFF.InvokeSelfOneArg(FlashArgNumber(scale));
 		if( m_anchorName == "ScaleOnly" )
 		{	
-			
+			//LogChannel('SCALE',"AFTER SFF "+flashModule.GetXScale());
 			return false;
 		}
 		return true;
 	}
 	
-	event  OnBreakPoint( text : string )
+	event /*flash*/ OnBreakPoint( text : string )
 	{
 		LogChannel('HUDBreakpoint'," text "+text);
 	}

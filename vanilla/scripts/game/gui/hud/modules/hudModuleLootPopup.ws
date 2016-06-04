@@ -1,13 +1,8 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-class CR4HudModuleLootPopup extends CR4HudModuleBase
+﻿class CR4HudModuleLootPopup extends CR4HudModuleBase
 {
 	private const var KEY_LOOT_ITEM_LIST				:string; 		default KEY_LOOT_ITEM_LIST 		= "LootItemList";
 	
-	
+	//private var _dpLootItems : W3HudLootItemsDataProvider;
 	private var container : W3Container;
 	
 	private var m_flashValueStorage 	: CScriptedFlashValueStorage;
@@ -20,18 +15,18 @@ class CR4HudModuleLootPopup extends CR4HudModuleBase
 	
 	private var m_indexToSelect			: int;
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	///////////////////////////////////////////////////////////////////////////////////////////
+	//    W           W       A      TTTTTTTT   CCCC   H   H           OOOO  U    U TTTTTTT
+	//    W           W      A A        T      C    c  H   H          O    O U    U    T
+	//     W    W    W      A   A       T      C       HHHHH          O    O U    U    T
+	//      W  W  W W      A AAA A      T      C    c  H   H          O    O U    U    T
+	//        W    W      A       A     T       CCCC   H   H           OOOO   UUUU     T
+	///////////////////////////////////////////////////////////////////////////////////////////
+	// This file is deprecated system. Looting moved to LootPopup.ws. Did not delete to avoid
+	// breaking things. Also used a reference to how it worked before in case anything broke.
+	///////////////////////////////////////////////////////////////////////////////////////////
 
-	event  OnConfigUI()
+	event /* flash */ OnConfigUI()
 	{
 		var flashModule : CScriptedFlashSprite;
 		var hud : CR4ScriptedHud;
@@ -49,11 +44,11 @@ class CR4HudModuleLootPopup extends CR4HudModuleBase
 		m_fxOpenConsole			= flashModule.GetMemberFlashFunction( "OpenConsole" );
 		m_fxSetSelectionIndex	= flashModule.GetMemberFlashFunction( "SetSelectionIndex" );
 		
-		
-		
+		// OPEN PC OR CONSOLE VERSION
+		//m_fxOpenPC.InvokeSelf();
 		m_fxOpenConsole.InvokeSelf();
 		
-		
+		//ShowElement(false);		
 	}
 	
 	protected function UpdateScale( scale : float, flashModule : CScriptedFlashSprite ) : bool
@@ -92,7 +87,7 @@ class CR4HudModuleLootPopup extends CR4HudModuleBase
 		
 		l_containerInv.GetAllItems( l_allItems );
 		
-		
+		//remove items that shouldn't be shown		
 		for(i=l_allItems.Size()-1; i>=0; i-=1)
 			if( l_containerInv.ItemHasTag(l_allItems[i], theGame.params.TAG_DONT_SHOW ) && !l_containerInv.ItemHasTag(l_allItems[i], 'Lootable' ) )
 				l_allItems.Erase(i);
@@ -110,17 +105,17 @@ class CR4HudModuleLootPopup extends CR4HudModuleBase
 			l_itemName = GetLocStringByKeyExt(l_itemName);
 			if(l_containerInv.IsItemSingletonItem(l_item))
 			{
-				l_itemQuantity = thePlayer.inv.SingletonItemGetAmmo(l_item); 
+				l_itemQuantity = thePlayer.inv.SingletonItemGetAmmo(l_item); // #B SINGLETON ITEM CHECK !!!
 			}
 			else
 			{
 				l_itemQuantity = l_containerInv.GetItemQuantity( l_item );
 			}
-			
-			
+			// Pop-up does not display a Price.
+			//l_itemPrice = l_containerInv.GetItemPrice( l_item );
 			l_itemIconPath	= l_containerInv.GetItemIconPathByUniqueID( l_item );
 			
-			if( l_containerInv.ItemHasTag(l_item, 'Quest') || l_containerInv.IsItemIngredient(l_item) || l_containerInv.IsItemAlchemyItem(l_item) ) 
+			if( l_containerInv.ItemHasTag(l_item, 'Quest') || l_containerInv.IsItemIngredient(l_item) || l_containerInv.IsItemAlchemyItem(l_item) ) // #B item weight check
 			{
 				l_weight = 0;
 			}
@@ -141,7 +136,7 @@ class CR4HudModuleLootPopup extends CR4HudModuleBase
 			l_containerInv.GetItemTags(l_item,l_itemTags);
 			GetWitcherPlayer().GetItemEquippedOnSlot(GetSlotForItem(l_containerInv.GetItemCategory(l_item),l_itemTags, true), l_compareItem);
 			
-			if( l_containerInv.GetItemName(l_item) != GetWitcherPlayer().GetInventory().GetItemName(l_compareItem) ) 
+			if( l_containerInv.GetItemName(l_item) != GetWitcherPlayer().GetInventory().GetItemName(l_compareItem) ) // #B by name because they could be in different inventoryComponents, and then they have different id
 			{
 				GetWitcherPlayer().GetInventory().GetItemStats(l_compareItem, l_compareItemStats);
 			}
@@ -191,7 +186,7 @@ class CR4HudModuleLootPopup extends CR4HudModuleBase
 			l_flashObject.SetMemberFlashString("name",itemStats[i].attributeName);
 			l_flashObject.SetMemberFlashString("color",itemStats[i].attributeColor);
 			
-			
+			//HERE, WE'RE COMPARING STATS AGAINST POSSIBLE OVERLAPS WITH A POSSIBLY EQUIPPED SIMILAR ITEM IN ORDER TO SHOW BENEFIT DIFFERENCE
 			for( j = 0; j < compareItemStats.Size(); j += 1 )
 			{
 				if( itemStats[j].attributeName == compareItemStats[i].attributeName )
@@ -199,24 +194,24 @@ class CR4HudModuleLootPopup extends CR4HudModuleBase
 					nDifference = itemStats[j].value - compareItemStats[i].value;
 					percentDiff = AbsF(nDifference/itemStats[j].value);
 					
-					
+					//better
 					if(nDifference > 0)
 					{
-						if(percentDiff < 0.25) 
+						if(percentDiff < 0.25) //1 arrow
 							strDifference = "better";
-						else if(percentDiff > 0.75) 
+						else if(percentDiff > 0.75) //3 arrows
 							strDifference = "wayBetter";
-						else						
+						else						//2 arrows
 							strDifference = "reallyBetter";
 					}
-					
+					//worse
 					else if(nDifference < 0)
 					{
-						if(percentDiff < 0.25) 
+						if(percentDiff < 0.25) //1 arrow
 							strDifference = "worse";
-						else if(percentDiff > 0.75) 
+						else if(percentDiff > 0.75) //3 arrows
 							strDifference = "wayWorse";
-						else						
+						else						//2 arrows
 							strDifference = "reallyWorse";					
 					}
 					break;					
@@ -259,12 +254,12 @@ class CR4HudModuleLootPopup extends CR4HudModuleBase
 		thePlayer.SetIsMovable(false);
 		theGame.GetFocusModeController().Deactivate();
 		bCurrentShowState = true;
-		
+		//ignoreActions(true); 	WZ: removed because changing context already does the job of blocking actions, and this line only caused interior camera to kick in
 		thePlayer.LockButtonInteractions( PIL_Default );
 		
 		theInput.StoreContext( 'LootPopup' );
 		
-		
+		//tutorial
 		if(ShouldProcessTutorial('TutorialContainers'))
 		{
 			FactsAdd("tutorial_container_open", 1, 1 );	
@@ -273,26 +268,26 @@ class CR4HudModuleLootPopup extends CR4HudModuleBase
 		SignalLootingReactionEvent();
 	}
 
-	event  OnCloseLootWindow() 
+	event /*flash*/ OnCloseLootWindow() //#B event because it is also called from LootPopup swf during hide
 	{
 		var hud : CR4ScriptedHud;
 		
-		if( bCurrentShowState && container ) 
+		if( bCurrentShowState && container ) // #B don't close it to many times
 		{
 			SignalContainerClosedEvent();
-			ShowElement(false); 
+			ShowElement(false); // #B Show
 			container.OnContainerClosed();
 			GetWitcherPlayer().SetUITakeInput(false);
 			bCurrentShowState = false;
 			thePlayer.SetIsMovable(true);
-			
+			//ignoreActions(false);
 			thePlayer.UnlockButtonInteractions( PIL_Default );
 			
 			theInput.RestoreContext( 'LootPopup', false);
 			
 			hud = (CR4ScriptedHud)theGame.GetHud();
 			
-			
+			//tutorial
 			if(ShouldProcessTutorial('TutorialLootWindow'))
 			{
 				FactsAdd("tutorial_container_close", 1, 1 );	
@@ -330,7 +325,15 @@ class CR4HudModuleLootPopup extends CR4HudModuleBase
 		
 		SignalStealingReactionEvent();
 		
-		
+		/*if( StealingCheck( container ) ) // #B add information about stealing not allowed
+		{
+			// ShowElement(false); //#B Show
+			container.OnContainerClosed();
+			GetWitcherPlayer().SetUITakeInput(false);
+			thePlayer.SetIsMovable(true);
+			ignoreActions(false);
+			return false;
+		}*/
 		
 		m_indexToSelect = Id;
 		
@@ -398,7 +401,7 @@ class CR4HudModuleLootPopup extends CR4HudModuleBase
 		
 		theGame.CreateNoSaveLock("Stealing",safeLock,true);
 		
-		theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( thePlayer, 'LootingAction', -1, 10.0f, -1.f, -1, true); 
+		theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( thePlayer, 'LootingAction', -1, 10.0f, -1.f, -1, true); //reactionSystemSearch
 	}
 	
 	protected function SignalStealingReactionEvent()
@@ -406,7 +409,7 @@ class CR4HudModuleLootPopup extends CR4HudModuleBase
 		if ( container.disableStealing || container.HasQuestItem() || (W3Herb)container || (W3ActorRemains)container )
 			return;
 		
-		theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( thePlayer, 'StealingAction', -1, 10.0f, -1.f, -1, true); 
+		theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( thePlayer, 'StealingAction', -1, 10.0f, -1.f, -1, true); //reactionSystemSearch
 	}
 	
 	protected function SignalContainerClosedEvent()
@@ -416,11 +419,11 @@ class CR4HudModuleLootPopup extends CR4HudModuleBase
 		if ( container.disableStealing || container.HasQuestItem() || (W3Herb)container || (W3ActorRemains)container )
 			return;
 			
-		theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( thePlayer, 'ContainerClosed', 10, 15.0f, -1.f, -1, true); 
+		theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( thePlayer, 'ContainerClosed', 10, 15.0f, -1.f, -1, true); //reactionSystemSearch
 	}
 	
-	
-	
+	// 
+	// -------------------------------------------------------------------------------	
 	function TakeAllAction() : void
 	{
 		container.TakeAllItems();
@@ -449,7 +452,44 @@ class CR4HudModuleLootPopup extends CR4HudModuleBase
 		super.ShowElement(bShow);		
 	}
 	
-	
+	/*function StealingCheck( container : W3Container ) : bool
+	{
+		var actorsInRange : array<CActor>;
+		var actorsInRangeSize : int;
+		var range : float = 15.0;
+		var npc : CNewNPC;
+		var i : int;
+		var stealingHappened : bool;
+		
+		stealingHappened = false;
+			
+		if( !container.HasTag( 'Stealing' ) )
+		{
+			return false;
+		}
+		
+		actorsInRange = GetActorsInRange( thePlayer, range, 100, '', true );
+		actorsInRangeSize = actorsInRange.Size();
+		
+		if( actorsInRangeSize == 0 )
+		{
+			return false;
+		}
+		else
+		{
+			for( i = 0; i < actorsInRangeSize; i += 1 )
+			{
+				if( (CNewNPC)actorsInRange[i] && TestLineOfSight( (CNode)actorsInRange[i] ) && 
+					IsNPCLookingAtPlayer( (CNode)actorsInRange[i] ) && !( actorsInRange[i].IsKnockedUnconscious() ) )
+				{
+					ProcessReaction( (CNewNPC)actorsInRange[i] );
+					stealingHappened = true;
+				}
+			}
+			
+			return stealingHappened;
+		}
+	}*/
 	
 	function TestLineOfSight( node : CNode ) : bool
 	{
@@ -477,7 +517,7 @@ class CR4HudModuleLootPopup extends CR4HudModuleBase
 	
 	function IsNPCLookingAtPlayer( node : CNode ) : bool
 	{
-		var maxAngle : float = 120.0; 
+		var maxAngle : float = 120.0; // times 2, so its 240
 		var result : float;
 		
       	result = AbsF( NodeToNodeAngleDistance( thePlayer, node ) );
@@ -495,7 +535,7 @@ class CR4HudModuleLootPopup extends CR4HudModuleBase
 	function ProcessReaction( npc : CNewNPC )
 	{
 		GetWitcherPlayer().DisplayHudMessage( GetLocStringByKeyExt("panel_hud_message_thief") );
-		theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( npc, 'AttackAction', 1.0, 1.0f, 999.0f, 1, true); 
+		theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( npc, 'AttackAction', 1.0, 1.0f, 999.0f, 1, true); //reactionSystemOld
 		LogReactionSystem( "'AttackAction' was sent by " + npc.GetName() + " - single broadcast - distance: 1.0" );
 	}
 }

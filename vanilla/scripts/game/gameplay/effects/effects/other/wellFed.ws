@@ -1,12 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2014
+/** Author : Tomek Kozera
 /***********************************************************************/
 
-
-
-
+//health regen
 class W3Effect_WellFed extends W3RegenEffect
 {
 	default effectType = EET_WellFed;
@@ -25,16 +22,31 @@ class W3Effect_WellFed extends W3RegenEffect
 		}
 	}
 	
+	event OnPerk15Unequipped()
+	{
+		SetTimeLeft( initialDuration );
+		duration = initialDuration;
+	}
+	
 	protected function CalculateDuration(optional setInitialDuration : bool)
 	{
 		var min, max : SAbilityAttributeValue;
 		
 		super.CalculateDuration(setInitialDuration);
 		
-		if(isOnPlayer && thePlayer == GetWitcherPlayer() && GetWitcherPlayer().HasRunewordActive('Runeword 6 _Stats'))
-		{
-			theGame.GetDefinitionsManager().GetAbilityAttributeValue('Runeword 6 _Stats', 'runeword6_duration_bonus', min, max);
-			duration *= 1 + min.valueMultiplicative;
+		if( isOnPlayer && GetWitcherPlayer() )
+		{	
+			// Perk 15 - increases food buff time to X minutes. 
+			if( GetWitcherPlayer().CanUseSkill( S_Perk_15 ) )
+			{
+				min = GetWitcherPlayer().GetSkillAttributeValue( S_Perk_15, 'duration', false, false );
+				duration = min.valueAdditive;
+			}
+			if( GetWitcherPlayer().HasRunewordActive( 'Runeword 6 _Stats' ) )
+			{
+				theGame.GetDefinitionsManager().GetAbilityAttributeValue('Runeword 6 _Stats', 'runeword6_duration_bonus', min, max);
+				duration *= 1 + min.valueMultiplicative;
+			}
 		}
 	}
 	

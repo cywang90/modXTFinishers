@@ -1,11 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** 
 /***********************************************************************/
-
-
-
+/** Copyright © 2012
+/** Author : Andrzej Kwiatkowski
+/***********************************************************************/
 
 enum ETeleportType
 {
@@ -16,6 +14,8 @@ enum ETeleportType
 	TT_Random,
 	TT_ToSelf,
 	TT_ToNode,
+	TT_OnRightPlayerSide,
+	TT_OnLeftPlayerSide,
 }
 
 class TaskSetIsTeleporting extends IBehTreeTask
@@ -45,14 +45,14 @@ class TaskSetIsTeleportingDef extends IBehTreeTaskDefinition
 	default SetToFalseOnDeactivate = true;
 };
 
-
-
-
+//>-----------------------------------------------------------------
+// Teleport in Water
+//------------------------------------------------------------------
 class TaskTeleportInWaterAction extends TaskTeleportAction
 {
-	
-	
-	
+	//>-----------------------------------------------------------------
+	// VARIABLE
+	//------------------------------------------------------------------
 	public var waterDepthNeeded : float;
 	
 	private function IsPointSuitableForTeleport( out whereTo : Vector ) : bool
@@ -67,7 +67,7 @@ class TaskTeleportInWaterAction extends TaskTeleportAction
 		radius = npc.GetRadius();
 		
 		waterDepth = theGame.GetWorld().GetWaterDepth( whereTo );
-		
+		// if there's no water on level it defaults to 10000, which breaks the water depth check
 		if ( waterDepth == 10000 ) { waterDepth = 0; }
 		
 		if( waterDepth < waterDepthNeeded )
@@ -75,7 +75,7 @@ class TaskTeleportInWaterAction extends TaskTeleportAction
 			return false;
 		}
 		
-		
+		// Test if there is enough space to spawn
 		if( theGame.GetWorld().SweepTest( whereTo , whereTo + Vector( 0, 0, 3 ), radius, l_temp, l_temp ) )
 		{
 			return false;
@@ -87,32 +87,37 @@ class TaskTeleportInWaterAction extends TaskTeleportAction
 class TaskTeleportInWaterActionDef extends TaskTeleportActionDef
 {
 	default instanceClass = 'TaskTeleportInWaterAction';
-	
-	
-	
+	//>-----------------------------------------------------------------
+	// VARIABLE
+	//------------------------------------------------------------------
 	editable var waterDepthNeeded	: float;
 	
 	default waterDepthNeeded =  3.0f;
 }
-
-
+//------------------------------------------------------------------
+//------------------------------------------------------------------
 
 
 class TaskTeleportAction extends IBehTreeTask
 {
-	
+	//public
 	public var teleportType 									: ETeleportType;
-	public var teleportToRequestedFacingDirection 				: bool;
-	public var teleportAwayFromRequestedFacingDirection			: bool;
+	public var teleportToActorHeading 							: bool;
+	public var teleportAwayFromActorHeading						: bool;
+	public var teleportInFrontOfTarget							: bool;
+	public var teleportInFrontOfOwner 							: bool;
 	public var teleportOutsidePlayerFOV							: bool;
+	public var teleportWithinPlayerFOV							: bool;
 	public var teleportBehindTarget								: bool;
 	public var requestedFacingDirectionNoiseAngle				: float;
 	public var minDistance 										: float;
 	public var maxDistance 										: float;
+	public var minDistanceFromLastPosition 						: float;
 	public var setIsTeleportingFlag								: bool;
 	public var minWaterDepthToAppear							: float;
 	public var maxWaterDepthToAppear							: float;
 	public var zTolerance										: float;
+	public var rotateToTarget 									: bool;
 	public var testLOSforNewPosition							: bool;
 	public var testNavigationBetweenCombatTargetAndNewPosition	: bool;
 	public var overrideActorRadiusForNavigationTests			: bool;
@@ -125,13 +130,18 @@ class TaskTeleportAction extends IBehTreeTask
 	public var paramsOverriden									: bool;
 	public var cashedBool										: bool;
 	public var setInvulnerable									: bool;
+	public var dontTeleportOutsideGuardArea						: bool;
+	public var minDistanceFromEnititesWithTag					: name;
+	public var minDistanceFromTaggedEntities					: float;
 	
-	
+	//private 
 	protected var alreadyTeleported 							: bool;
 	protected var isTeleporting 								: bool;
 	protected var distFromLastTelePos 							: float;
 	protected var dangerZone, angle 							: float;
 	protected var lastTelePos 									: Vector;
+	protected var lastPos 										: Vector;
+	protected var guardArea 									: CAreaComponent;
 	
 	default isTeleporting = false;
 	default alreadyTeleported = false;
@@ -149,34 +159,38 @@ class TaskTeleportAction extends IBehTreeTask
 	}
 	
 	
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// Activate
+	////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
-		
-	function OnActivate() : EBTNodeStatus
+	/*function OnActivate() : EBTNodeStatus
 	{
-		var npc : CNewNPC = GetNPC();
+		return BTNS_Active;
+	}*/
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// Main
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	latent function Main() 	: EBTNodeStatus
+	{
+		var npc 			: CNewNPC = GetNPC();
+		var newPosition 	: Vector;
+		var res 			: bool;
+		var node 			: CNode; 
+		
+		if( dontTeleportOutsideGuardArea )
+		{
+			guardArea = npc.GetGuardArea();
+		}
 		
 		if ( setIsTeleportingFlag )
 		{
-			
+			// setting flag for targeting
 			npc.SetIsTeleporting( true );
 			if ( setInvulnerable )
 				npc.SetImmortalityMode( AIM_Invulnerable, AIC_Combat );
 		}
-		
-		return BTNS_Active;
-	}
-	
-	
-	
-	
-	
-	latent function Main() : EBTNodeStatus
-	{
-		var newPosition : Vector;
-		var res : bool;
-		var node : CNode;
 		
 		if( teleportType == TT_ToNode )
 		{
@@ -209,30 +223,45 @@ class TaskTeleportAction extends IBehTreeTask
 		return BTNS_Completed;
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// Teleport
+	////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	protected function PerformTeleport( newPosition : Vector )
 	{
-		var rotation : EulerAngles;
+		var rotation 			: EulerAngles;
 		
 		
+		//GetActor().GetVisualDebug().AddSphere( 'TeleportPosition', 0.5, newPosition, true, Color( 0,0,255 ), 5.0f );
 		if( teleportType == TT_ToNode )
 		{
 			rotation = theGame.GetNodeByTag( nodeTag ).GetWorldRotation();
 			GetNPC().TeleportWithRotation( newPosition, rotation );
 		}
-		else if ( GetCombatTarget() )
+		else if ( rotateToTarget && useCombatTarget )
 		{
 			rotation = VecToRotation( GetCombatTarget().GetWorldPosition() - newPosition );
 			rotation.Pitch = 0.f;
 			rotation.Roll = 0.f;
+			
+			GetNPC().TeleportWithRotation( newPosition, rotation );
+		}	
+		else if ( rotateToTarget && !useCombatTarget )
+		{
+			rotation = VecToRotation( GetActionTarget().GetWorldPosition() - newPosition );
+			rotation.Pitch = 0.f;
+			rotation.Roll = 0.f;
+			
 			GetNPC().TeleportWithRotation( newPosition, rotation );
 		}
 		else
-			GetNPC().Teleport( newPosition );
-			
+		{
+			rotation = VecToRotation( newPosition - GetNPC().GetWorldPosition() );
+			rotation.Pitch = 0.f;
+			rotation.Roll = 0.f;
+			GetNPC().TeleportWithRotation( newPosition, rotation );
+		}
+		
 		lastTelePos = newPosition;
 	}
 	
@@ -253,25 +282,26 @@ class TaskTeleportAction extends IBehTreeTask
 			SleepOneFrame();
 			randVec = CalculateRandVec();
 			whereTo = CalculateWhereToVec(randVec);
-			
+			//GetNPC().GetVisualDebug().AddSphere( 'TeleportPosition', 3.0, whereTo, true, Color( 0,0,255 ), 4.0f );
 		}
 		
 		newPosition = whereTo;
-		
+		//GetNPC().GetVisualDebug().AddSphere( 'TeleportPosition', 3.0, whereTo, true, Color( 0,0,255 ), 10.0f );
 		return true;
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// Deactivate
+	////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	function OnDeactivate()
 	{
 		var npc : CNewNPC = GetNPC();
 		
+		
 		if ( setIsTeleportingFlag )
 		{
-			
+			// resetting flag for targeting
 			npc.SetIsTeleporting( false );
 			if ( setInvulnerable )
 				npc.SetImmortalityMode( AIM_None, AIC_Combat );
@@ -282,23 +312,26 @@ class TaskTeleportAction extends IBehTreeTask
 			paramsOverriden = false;
 		}
 		
-		
+		//clear one-time variables
 		isTeleporting = false;
 	}
 	
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// Private functions
+	////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	protected function IsPointSuitableForTeleport( out whereTo : Vector ) : bool
 	{
 		var npc 			: CNewNPC = GetNPC();
+		var target 			: CNode;
 		var newPos 			: Vector;
 		var radius 			: float;
 		var waterDepth 		: float;
 		var z 				: float;
-
+		var taggedEntities 	: array<CGameplayEntity>;
+		var i 				: int;
+		
 		if( overrideActorRadiusForNavigationTests )
 			radius = MaxF( 0.01, actorRadiusForNavigationTests );
 		else
@@ -312,25 +345,37 @@ class TaskTeleportAction extends IBehTreeTask
 				if ( !theGame.GetWorld().NavigationFindSafeSpot( whereTo, radius, radius*3, newPos ) )
 					return false;
 			}
-			
+			else
+			{
+				return false;
+			}
 		}
 		
+		//tempFloat = AbsF(newPos.Z - whereTo.Z);
+		//LogChannel( 'teleport', "AbSF( newPos.Z = "+newPos.Z+" - whereTo.Z = "+whereTo.Z+" ) = "+tempFloat );
 		
+		//if ( tempFloat > zTolerance )
+		//{
+		//	return false;
+		//}
 		
-		
-		
-		
-		
-		
+		if ( useCombatTarget )
+		{
+			target = GetCombatTarget();
+		}
+		else
+		{
+			target = GetActionTarget();
+		}
 		
 		if ( testNavigationBetweenCombatTargetAndNewPosition && testLOSforNewPosition )
 		{
-			if ( !theGame.GetWorld().NavigationLineTest(newPos, GetCombatTarget().GetWorldPosition(), radius ) && !theGame.GetWorld().NavigationLineTest( npc.GetWorldPosition(), newPos, radius ) )
+			if ( !theGame.GetWorld().NavigationLineTest(newPos, target.GetWorldPosition(), radius ) && !theGame.GetWorld().NavigationLineTest( npc.GetWorldPosition(), newPos, radius ) )
 				return false;
 		}
 		else
 		{
-			if ( testNavigationBetweenCombatTargetAndNewPosition && !theGame.GetWorld().NavigationLineTest(newPos, GetCombatTarget().GetWorldPosition(), radius ) )
+			if ( testNavigationBetweenCombatTargetAndNewPosition && !theGame.GetWorld().NavigationLineTest(newPos, target.GetWorldPosition(), radius ) )
 				return false;
 				
 			if ( testLOSforNewPosition && !theGame.GetWorld().NavigationLineTest(npc.GetWorldPosition(), newPos, radius ) )
@@ -340,7 +385,7 @@ class TaskTeleportAction extends IBehTreeTask
 		if ( checkWaterLevel || minWaterDepthToAppear > 0 )
 		{
 			waterDepth = theGame.GetWorld().GetWaterDepth( newPos );
-			
+			// if there's no water on level it defaults to 10000, which breaks the water depth check
 			if ( waterDepth == 10000 ) { waterDepth = 0; }
 			if( waterDepth > maxWaterDepthToAppear )
 			{
@@ -351,49 +396,60 @@ class TaskTeleportAction extends IBehTreeTask
 				return false;
 			}
 		}
+
+		if( dontTeleportOutsideGuardArea && guardArea )
+		{
+			if( !guardArea.TestPointOverlap( newPos ) )
+			{
+				return false;
+			}
+		}
 		
-		whereTo = newPos;
+		if( IsNameValid( minDistanceFromEnititesWithTag ) )
+		{
+			FindGameplayEntitiesInRange( taggedEntities, npc, 10.0, 5, minDistanceFromEnititesWithTag );
+			
+			for( i = 0; i < taggedEntities.Size(); i += 1 )
+			{
+				if( VecDistance2D( newPos, taggedEntities[i].GetWorldPosition() ) < minDistanceFromTaggedEntities && taggedEntities[i] != npc )
+				{
+					return false;
+				}
+			}
+		}		
+		
+		if ( minDistanceFromLastPosition > 0 )
+		{
+			if ( VecDistance( lastPos, newPos ) > minDistanceFromLastPosition )
+			{
+				whereTo = newPos;
+			}
+		}
+		else
+		{
+			whereTo = newPos;
+			lastPos = newPos;
+		}
 		
 		return true;
 	}
 	
 	private function CalculateWhereToVec( randVec : Vector ) : Vector
 	{
-		var whereTo		: Vector;
-		var npc 		: CNewNPC = GetNPC();
-		var target 		: CNode; 
+		var whereTo			: Vector;
+		var positionOffset	: Vector;
+		var l_matrix		: Matrix;
+		var npc 			: CNewNPC = GetNPC();
+		var target 			: CNode; 
 		
 		if ( useCombatTarget )
 			target = GetCombatTarget();
 		else
 			target = GetActionTarget();
 		
-		if ( teleportType == TT_ToSelf || ( teleportType != TT_ToSelf && !target ) )
+		if ( teleportType == TT_ToPlayer )
 		{
-			whereTo = npc.GetWorldPosition() - randVec;
-		}
-		else if ( teleportBehindTarget )
-		{
-			whereTo = target.GetWorldPosition() + randVec;
-		}
-		else if ( teleportOutsidePlayerFOV )
-		{
-			whereTo = theCamera.GetCameraPosition() - randVec;
-		}
-		else if ( teleportType == TT_ToTarget || teleportType == TT_FromLastPosition )
-		{
-			if ( teleportToRequestedFacingDirection || teleportAwayFromRequestedFacingDirection )
-			{
-				whereTo = target.GetWorldPosition() + randVec;
-			}
-			else
-			{
-				whereTo = target.GetWorldPosition() - randVec;
-			}
-		}
-		else if ( teleportType == TT_ToPlayer )
-		{
-			if ( teleportToRequestedFacingDirection || teleportAwayFromRequestedFacingDirection )
+			if ( teleportToActorHeading || teleportAwayFromActorHeading )
 			{
 				whereTo = thePlayer.GetWorldPosition() + randVec;
 			}
@@ -402,7 +458,49 @@ class TaskTeleportAction extends IBehTreeTask
 				whereTo = thePlayer.GetWorldPosition() - randVec;
 			}
 		}
-		
+		else if ( teleportType == TT_ToSelf || ( teleportType != TT_ToSelf && !target ) )
+		{
+			whereTo = npc.GetWorldPosition() - randVec;
+		}
+		else if ( teleportBehindTarget || teleportInFrontOfTarget )
+		{
+			whereTo = target.GetWorldPosition() + randVec;
+		}
+		else if ( teleportOutsidePlayerFOV )
+		{
+			whereTo = theCamera.GetCameraPosition() - randVec;
+		}
+		else if ( teleportWithinPlayerFOV )
+		{
+			whereTo = theCamera.GetCameraPosition() + randVec;
+		}
+		else if ( teleportType == TT_ToTarget || teleportType == TT_FromLastPosition )
+		{
+			if ( teleportToActorHeading || teleportAwayFromActorHeading )
+			{
+				whereTo = target.GetWorldPosition() + randVec;
+			}
+			else
+			{
+				whereTo = target.GetWorldPosition() - randVec;
+			}
+		}
+		else if ( teleportType == TT_OnRightPlayerSide )
+		{
+			//l_matrix = theCamera.GetCameraMatrixWorldSpace();
+			/*l_matrix = thePlayer.GetLocalToWorld();*/
+			positionOffset.X = RandRangeF( maxDistance,minDistance );
+			//whereTo = VecTransform(l_matrix, positionOffset);
+			whereTo = thePlayer.GetWorldPosition() + theCamera.GetCameraRight() * positionOffset.X;
+		}
+		else if ( teleportType == TT_OnLeftPlayerSide )
+		{
+			//l_matrix = theCamera.GetCameraMatrixWorldSpace();
+			/*l_matrix = thePlayer.GetLocalToWorld();*/
+			positionOffset.X = RandRangeF( maxDistance, minDistance) *-1;
+			//whereTo = VecTransform(l_matrix, positionOffset);
+			whereTo = thePlayer.GetWorldPosition() + theCamera.GetCameraRight() * positionOffset.X;
+		}
 		else
 		{
 			whereTo = npc.GetWorldPosition() - randVec;
@@ -412,30 +510,40 @@ class TaskTeleportAction extends IBehTreeTask
 	
 	private function CalculateRandVec() : Vector
 	{
-		var randVec 				: Vector = Vector(0.f,0.f,0.f);
-		var npc 					: CNewNPC = GetNPC();
-		var target 					: CActor = GetCombatTarget();
-		var cameraToPlayerDistance 	: float;
-		var averageDistance			: float;
+		var randVec 						: Vector = Vector(0.f,0.f,0.f);
+		var npc 							: CNewNPC = GetNPC();
+		var target 							: CActor = GetCombatTarget();
+		var cameraToPlayerDistance 			: float;
+		var averageDistance					: float;
+		var heading 						: float;
 		
 		
-		if ( teleportToRequestedFacingDirection )
+		if ( teleportToActorHeading )
 		{
 			averageDistance = RandRangeF( minDistance, maxDistance );
 			requestedFacingDirectionNoiseAngle *= -1;
-			randVec = VecFromHeading ( AngleNormalize180( npc.GetBehaviorVariable( 'requestedFacingDirection' ) + 180 + requestedFacingDirectionNoiseAngle ))*averageDistance;
+			heading = npc.GetHeading() + 180 + requestedFacingDirectionNoiseAngle;
+			randVec = VecFromHeading( heading ) * averageDistance;
 		}
 		
-		else if ( teleportAwayFromRequestedFacingDirection )
+		else if ( teleportAwayFromActorHeading )
 		{
 			averageDistance = RandRangeF( minDistance, maxDistance );
 			requestedFacingDirectionNoiseAngle *= -1;
-			randVec = VecFromHeading ( AngleNormalize180( npc.GetBehaviorVariable( 'requestedFacingDirection' ) + requestedFacingDirectionNoiseAngle ))*averageDistance;
+			heading = npc.GetHeading() + requestedFacingDirectionNoiseAngle;
+			randVec = VecFromHeading( heading ) * averageDistance;
 		}
-		
+		else if( teleportInFrontOfTarget )
+		{
+			randVec = VecConeRand( VecHeading( target.GetHeadingVector() ), 5, minDistance, maxDistance );
+		}
+		else if( teleportInFrontOfOwner )
+		{
+			randVec = VecConeRand( VecHeading( npc.GetHeadingVector() ) + 180, 5 + requestedFacingDirectionNoiseAngle, minDistance, maxDistance );
+		}
 		else if ( teleportType == TT_ToSelf )
 		{
-			randVec = VecRingRand(minDistance,maxDistance);
+			randVec = VecRingRand( minDistance,maxDistance );
 		}
 		else if ( teleportBehindTarget )
 		{
@@ -454,6 +562,10 @@ class TaskTeleportAction extends IBehTreeTask
 				randVec = VecConeRand( theCamera.GetCameraHeading(), 45, minDistance, maxDistance );
 			}
 		}
+		else if ( teleportWithinPlayerFOV )
+		{
+			randVec = VecConeRand( theCamera.GetCameraHeading(), 20, minDistance, maxDistance );
+		}		
 		else if ( teleportType == TT_FromLastPosition )
 		{
 			angle = NodeToNodeAngleDistance( npc.GetTarget(), npc );
@@ -482,9 +594,9 @@ class TaskTeleportAction extends IBehTreeTask
 		var startEnt, endEnt : CEntity;
 		var entityTemplate : CEntityTemplate;
 		
+		//var rot : EulerAngles;
 		
-		
-		
+		//rot = VecToRotation( endPos - startPos );
 		
 		entityTemplate = (CEntityTemplate)LoadResourceAsync( 'blink_marker' );
 		
@@ -509,15 +621,20 @@ class TaskTeleportActionDef extends IBehTreeTaskDefinition
 	editable var setIsTeleportingFlag 								: bool;
 	editable var minDistance 										: float;
 	editable var maxDistance 										: float;
-	editable var teleportToRequestedFacingDirection					: bool;
-	editable var teleportAwayFromRequestedFacingDirection			: bool;
+	editable var minDistanceFromLastPosition 						: float;
+	editable var teleportToActorHeading								: bool;
+	editable var teleportAwayFromActorHeading						: bool;
+	editable var teleportInFrontOfTarget							: bool;
+	editable var teleportInFrontOfOwner 							: bool;
 	editable var requestedFacingDirectionNoiseAngle					: float;
 	editable var teleportBehindTarget								: bool;
 	editable var teleportOutsidePlayerFOV							: bool;
+	editable var teleportWithinPlayerFOV							: bool;
 	editable var teleportType 										: ETeleportType;
 	editable var minWaterDepthToAppear								: float;
 	editable var maxWaterDepthToAppear								: float;
 	editable var zTolerance											: float;
+	editable var rotateToTarget 									: bool;
 	editable var testLOSforNewPosition								: bool;
 	editable var useCombatTarget									: bool;
 	editable var testNavigationBetweenCombatTargetAndNewPosition	: bool;
@@ -528,11 +645,16 @@ class TaskTeleportActionDef extends IBehTreeTaskDefinition
 	editable var nodeTag											: name;
 	editable var shouldSpawnMarkers									: bool;
 	editable var setInvulnerable									: bool;
+	editable var dontTeleportOutsideGuardArea						: bool;
+	editable var minDistanceFromEnititesWithTag						: name;
+	editable var minDistanceFromTaggedEntities						: float;
 	
 	default minDistance = 3.0;
 	default maxDistance = 5.0;
 	default zTolerance = 5.0;
 	default teleportOutsidePlayerFOV = true;
+	default teleportWithinPlayerFOV = false;
+	default rotateToTarget = true;
 	default teleportType = TT_ToPlayer;
 	default setIsTeleportingFlag = true;
 	default maxWaterDepthToAppear = 1;
@@ -543,50 +665,68 @@ class TaskTeleportActionDef extends IBehTreeTaskDefinition
 	default searchingTimeout = 5.0;
 	default shouldSpawnMarkers = false;
 	default setInvulnerable = true;
+	default dontTeleportOutsideGuardArea = true;
+	default minDistanceFromTaggedEntities = 3.0;
 	
-	hint teleportToRequestedFacingDirection = "OVERRIDES teleportBehindTarget and teleportOutsidePlayerFOV";
+	hint teleportToActorHeading = "OVERRIDES teleportBehindTarget and teleportOutsidePlayerFOV";
 };
 
 
-
-
-
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Orginal teleport task ///////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
 
 class CBTTaskTeleport extends TaskTeleportAction
 {
-	var vanish 									: bool;
-	var forceInvisible							: bool;
-	var disallowInPlayerFOV 					: bool;
-	var cameraToPlayerDistance 					: float;
-	var cooldown 								: float;
-	var nextTeleTime 							: float;
-	var delayActivation							: float;
-	var delayReappearance 						: float;
-	var disableInvisibilityAfterReappearance 	: bool;
-	var disappearfxName 						: name;
-	var appearFXName 							: name;
-	var additionalAppearFXName					: name;
-	var performPosCheckOnTeleportEventName		: bool;
-	var performLastMomentPosCheck				: bool;
-	var teleportEventName 						: name;	
-	var raiseEventName							: name;
-	var appearRaiseEventName					: name;
-	var appearRaiseEventNameOnFailure			: name;		
-	var setBehVarNameOnRaiseEvent				: name;		
-	var setBehVarValueOnRaiseDisappearEvent		: float;	
-	var setBehVarValueOnRaiseAppearEvent		: float;	
-	var heading 								: Vector;
-	var randVec 								: Vector;
-	var playerPos 								: Vector;
-	var whereTo 								: Vector;
-	var canBeStrafed							: bool;
-	var appearFXPlayed							: bool;
-	var appearRaiseEventLaunched				: bool;
-	var disappearRaiseEventLaunched				: bool;
-	var shouldPlayHitAnim						: bool; 
+	public var vanish 									: bool;
+	public var forceInvisible							: bool;
+	public var disallowInPlayerFOV 						: bool;
+	public var slideInsteadOfTeleport 					: bool;
+	public var cooldown 								: float;
+	public var nextTeleTime 							: float;
+	public var delayActivation							: float;
+	public var delayReappearance 						: float;
+	public var disableGameplayVisibility 				: bool;
+	public var disableInvisibilityAfterReappearance 	: bool;
+	public var disableImmortalityAfterReappearance 		: bool;
+	public var disappearfxName 							: name;
+	public var appearFXName 							: name;
+	public var stopEffectAppearFXName 					: bool;
+	public var additionalAppearFXName					: name;
+	public var performPosCheckOnTeleportEventName		: bool;
+	public var performLastMomentPosCheck				: bool;
+	public var activated 								: bool;
+	public var activationEventName 						: name;
+	public var teleportEventName 						: name;
+	public var raiseEventImmediately					: bool;
+	public var raiseEventName							: name;
+	public var appearRaiseEventName						: name;
+	public var enableCollisionAfterReappearance 		: bool;
+	public var enableCollisionsOnDeactivate 			: bool;
+	public var appearFXPlayed							: bool;
+	public var shouldPlayHitAnim						: bool;
+	public var sendRotationEventAboveTeleportDist 		: float;
+	public var appearRaiseEventNameOnFailure			: name;		// failsafe for cases where task is interrupted and appear animation is not played
+	
+	private var setBehVarNameOnRaiseEvent				: name;		// failsafe for cases where task is interrupted and appear animation is not played
+	private var setBehVarValueOnRaiseDisappearEvent		: float;	// failsafe for cases where task is interrupted and appear animation is not played
+	private var setBehVarValueOnRaiseAppearEvent		: float;	// failsafe for cases where task is interrupted and appear animation is not played
+	private var cameraToPlayerDistance 					: float;
+	private var heading 								: Vector;
+	private var randVec 								: Vector;
+	private var playerPos 								: Vector;
+	private var whereTo 								: Vector;
+	private var canBeStrafed							: bool;
+	private var appearRaiseEventLaunched				: bool;
+	private var disappearRaiseEventLaunched				: bool;
+	
+	public var newPosition								: Vector;
+	public var rotated 									: bool;
 	
 	
 	
+	
+	//protected var playHitAnimStateBeforeTelep	: bool;
 	
 	default vanish = false;
 	default isTeleporting = false;
@@ -628,45 +768,42 @@ class CBTTaskTeleport extends TaskTeleportAction
 	}
 	
 	
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// Activate
+	////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
-	
-	function OnActivate() : EBTNodeStatus
+	/*function OnActivate() : EBTNodeStatus
 	{
-		var npc : CNewNPC = GetNPC();
-		
-		npc.SetIsTeleporting( true );
-		if ( setInvulnerable )
-			npc.SetImmortalityMode( AIM_Invulnerable, AIC_Combat );
-		npc.AddBuffImmunity_AllNegative( 'teleport', true );
-		
-		npc.SetCanPlayHitAnim( shouldPlayHitAnim );
-		
-		appearFXPlayed = false;
 		return BTNS_Active;
-	}
+	}*/
 	
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// Main
+	////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	latent function Main() : EBTNodeStatus
 	{
-		var npc 			: CNewNPC = GetNPC();
-		var target 			: CActor = GetCombatTarget();
-		var newPosition		: Vector;
-		var res 			: bool;
+		var npc 				: CNewNPC = GetNPC();
+		var target 				: CActor = GetCombatTarget();
+		var res 				: bool;
+		var ticketR 			: SMovementAdjustmentRequestTicket;
+		var movementAdjustor	: CMovementAdjustor;
+		var heading 			: float;
 		
 		
-		appearRaiseEventLaunched = false;
-		disappearRaiseEventLaunched = false;
+		if ( IsNameValid( activationEventName ) )
+		{
+			while ( !activated )
+			{
+				SleepOneFrame();
+			}
+		}
 		
 		if ( !performPosCheckOnTeleportEventName )
 		{
-			
-			
+			//do position checks ASAP to know if we can proceed further
+			//these checks are too heavy to keep them in IsAvailable
 			res = PosChecks( newPosition );
 			
 			if ( !res )
@@ -675,21 +812,47 @@ class CBTTaskTeleport extends TaskTeleportAction
 			}
 		}
 		
+		npc.SetIsTeleporting( true );
+		if ( setInvulnerable )
+			npc.SetImmortalityMode( AIM_Invulnerable, AIC_Combat );
+		npc.AddBuffImmunity_AllNegative( 'teleport', true );
+		//playHitAnimStateBeforeTelep = npc.CanPlayHitAnim();
+		npc.SetCanPlayHitAnim( shouldPlayHitAnim );
 		
+		appearFXPlayed = false;
+		rotated = false;
+		
+		appearRaiseEventLaunched = false;
+		disappearRaiseEventLaunched = false;
+		
+		if ( raiseEventImmediately && IsNameValid( raiseEventName ) )
+		{
+			if ( !npc.RaiseEvent( raiseEventName ) )
+			{
+				return BTNS_Failed;
+			}
+		}
 		
 		if ( delayActivation == 0 )
 		{
-			
-			
-			npc.RaiseEvent( raiseEventName );
+			//canBeStrafed = npc.bCanBeStrafed;
+			// setting flag for that camera uses
+			if ( IsNameValid( raiseEventName ) && !raiseEventImmediately )
+			{
+				if ( !npc.RaiseEvent( raiseEventName ) )
+				{
+					return BTNS_Failed;
+				}
+			}
 			disappearRaiseEventLaunched = true;
 			if ( IsNameValid( setBehVarNameOnRaiseEvent ) )
 				npc.SetBehaviorVariable( setBehVarNameOnRaiseEvent, setBehVarValueOnRaiseDisappearEvent, true );
 			
 			if( IsNameValid( disappearfxName ))
 			{
-				
+				//npc.bCanBeStrafed = false;
 				npc.PlayEffect( disappearfxName );
+				npc.SignalGameplayEvent( 'teleportDisappearFx' );
 			}
 		}
 		
@@ -697,22 +860,32 @@ class CBTTaskTeleport extends TaskTeleportAction
 		res = false;
 		isTeleporting = true;
 		
-		npc.SetGameplayVisibility( false );
+		if ( disableGameplayVisibility )
+		{
+			npc.SetGameplayVisibility( false );
+		}
 		
 		if ( delayActivation > 0 )
 		{
 			Sleep( delayActivation );
-			
-			npc.RaiseEvent( raiseEventName );
+			// setting flag for that camera uses
+			if ( IsNameValid( raiseEventName ) && !raiseEventImmediately )
+			{
+				if ( !npc.RaiseEvent( raiseEventName ) )
+				{
+					return BTNS_Failed;
+				}
+			}
 			disappearRaiseEventLaunched = true;
 			if ( IsNameValid( setBehVarNameOnRaiseEvent ) )
 				npc.SetBehaviorVariable( setBehVarNameOnRaiseEvent, setBehVarValueOnRaiseDisappearEvent, true );
 			
 			if( IsNameValid( disappearfxName ))
 			{
-				
+				//npc.bCanBeStrafed = false;
 				npc.PlayEffect( disappearfxName );
-				
+				npc.SignalGameplayEvent( 'teleportDisappearFx' );
+				// wait for special effect, otherwise it will play after teleport
 				Sleep( 0.1f );
 			}
 		}
@@ -721,7 +894,7 @@ class CBTTaskTeleport extends TaskTeleportAction
 		{
 			while ( !vanish )
 			{
-				Sleep( 0.01f );
+				SleepOneFrame();
 			}
 			
 			if ( performPosCheckOnTeleportEventName )
@@ -763,7 +936,10 @@ class CBTTaskTeleport extends TaskTeleportAction
 			
 			if( IsNameValid( appearRaiseEventName ) )
 			{
-				npc.RaiseEvent( appearRaiseEventName );
+				if ( !npc.RaiseEvent( appearRaiseEventName ) )
+				{
+					return BTNS_Failed;
+				}
 				appearRaiseEventLaunched = true;
 				if ( IsNameValid( setBehVarNameOnRaiseEvent ) )
 					npc.SetBehaviorVariable( setBehVarNameOnRaiseEvent, setBehVarValueOnRaiseAppearEvent, true );
@@ -786,7 +962,14 @@ class CBTTaskTeleport extends TaskTeleportAction
 		if( IsNameValid( appearFXName ))
 		{
 			appearFXPlayed = true;
-			npc.PlayEffect( appearFXName );
+			if ( stopEffectAppearFXName )
+			{
+				npc.StopEffect( appearFXName );
+			}
+			else
+			{
+				npc.PlayEffect( appearFXName );
+			}
 		}
 		
 		if( IsNameValid( additionalAppearFXName ))
@@ -801,13 +984,37 @@ class CBTTaskTeleport extends TaskTeleportAction
 			{
 				npc.SetVisibility( true );
 			}
+		}
+		
+		if ( enableCollisionAfterReappearance )
+		{
+			npc.EnableCharacterCollisions( true );
+		}
+		
+		if ( disableImmortalityAfterReappearance )
+		{
+			if ( setInvulnerable )
+				npc.SetImmortalityMode( AIM_None, AIC_Combat );
+			npc.RemoveBuffImmunity_AllNegative( 'teleport' );
+		}
+		
+		if ( slideInsteadOfTeleport && rotateToTarget )
+		{
+			Sleep( 0.6667 * delayReappearance );
+			movementAdjustor = GetNPC().GetMovingAgentComponent().GetMovementAdjustor();
+			movementAdjustor.CancelByName( 'TeleportRotate' );
+			ticketR = movementAdjustor.CreateNewRequest( 'TeleportRotate' );
 			
-			
+			heading = VecHeading( GetCombatTarget().GetWorldPosition() - newPosition );
+			movementAdjustor.AdjustmentDuration( ticketR, 0.3333 * delayReappearance );
+			movementAdjustor.MaxLocationAdjustmentSpeed( ticketR, 9999 );
+			movementAdjustor.RotateTo( ticketR, heading );
+			rotated = true;
 		}
 		
 		if( IsNameValid( appearRaiseEventName ) )
 		{
-			npc.WaitForBehaviorNodeDeactivation( appearRaiseEventName, 2.f );
+			npc.WaitForBehaviorNodeDeactivation( appearRaiseEventName, 4.f );
 		}
 		
 		nextTeleTime = GetLocalTime() + cooldown;
@@ -818,16 +1025,20 @@ class CBTTaskTeleport extends TaskTeleportAction
 	}
 	
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// Deactivate
+	////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	function OnDeactivate()
 	{
-		var npc : CNewNPC = GetNPC();
+		var npc 				: CNewNPC = GetNPC();
+		var ticketR 			: SMovementAdjustmentRequestTicket;
+		var movementAdjustor	: CMovementAdjustor;
+		var heading 			: float;
 		
+		activated = false;
 		
-		
+		//npc.SetCanPlayHitAnim( playHitAnimStateBeforeTelep );
 		npc.SetCanPlayHitAnim( true );
 		
 		npc.SetBehaviorVariable( 'teleport_on_hit', 0, true );
@@ -837,15 +1048,34 @@ class CBTTaskTeleport extends TaskTeleportAction
 			vanish = false;
 		}
 		
+		if ( !rotated && newPosition != Vector(0,0,0) && slideInsteadOfTeleport && rotateToTarget )
+		{
+			movementAdjustor = npc.GetMovingAgentComponent().GetMovementAdjustor();
+			movementAdjustor.CancelByName( 'TeleportRotateFailsafe' );
+			ticketR = movementAdjustor.CreateNewRequest( 'TeleportRotateFailsafe' );
+			
+			heading = VecHeading( GetCombatTarget().GetWorldPosition() - newPosition );
+			movementAdjustor.AdjustmentDuration( ticketR, 0.3333 * delayReappearance );
+			movementAdjustor.MaxLocationAdjustmentSpeed( ticketR, 9999 );
+			movementAdjustor.RotateTo( ticketR, heading );
+		}
+		
 		if ( !appearFXPlayed )
 		{
 			if( IsNameValid( additionalAppearFXName ))
 			{
 				npc.PlayEffect( additionalAppearFXName );
 			}
-			else if( IsNameValid( appearFXName ))
+			if( IsNameValid( appearFXName ))
 			{
-				npc.PlayEffect( appearFXName );
+				if ( stopEffectAppearFXName )
+				{
+					npc.StopEffect( appearFXName );
+				}
+				else
+				{
+					npc.PlayEffect( appearFXName );
+				}
 			}
 		}
 		
@@ -854,18 +1084,25 @@ class CBTTaskTeleport extends TaskTeleportAction
 			npc.SetVisibility( true );
 		}
 		
-		if ( teleportEventName )
+		if ( IsNameValid( teleportEventName ) && disableGameplayVisibility )
 		{
 			npc.SetGameplayVisibility( true );
 		}
 		
 		if ( delayReappearance > 0 || disableInvisibilityAfterReappearance )
 		{
-			npc.EnableCharacterCollisions( true );
-			npc.SetGameplayVisibility( true );
+			if( enableCollisionsOnDeactivate )
+			{
+				npc.EnableCharacterCollisions( true );
+			}
+				
+			if ( disableGameplayVisibility )
+			{
+				npc.SetGameplayVisibility( true );
+			}
 		}
 		
-		
+		// setting flag for that camera uses
 		npc.SetIsTeleporting( false );
 		if ( setInvulnerable )
 			npc.SetImmortalityMode( AIM_None, AIC_Combat );
@@ -878,19 +1115,84 @@ class CBTTaskTeleport extends TaskTeleportAction
 			GetNPC().RaiseEvent( appearRaiseEventNameOnFailure );
 	}
 	
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// Teleport
+	////////////////////////////////////////////////////////////////////////////////////////////////
 	
+	// override function to handle slideInsteadOfTeleport
+	protected function PerformTeleport( newPosition : Vector )
+	{
+		var rotation 			: EulerAngles;
+		var heading 			: float;
+		var ticketS, ticketR 	: SMovementAdjustmentRequestTicket;
+		var movementAdjustor	: CMovementAdjustor;
+		
+		
+		//GetActor().GetVisualDebug().AddSphere( 'TeleportPosition', 0.5, newPosition, true, Color( 0,0,255 ), 5.0f );
+		if ( slideInsteadOfTeleport )
+		{
+			movementAdjustor = GetNPC().GetMovingAgentComponent().GetMovementAdjustor();
+			movementAdjustor.CancelByName( 'SlideToTarget' );
+			movementAdjustor.CancelByName( 'TeleportSlide' );
+			movementAdjustor.CancelByName( 'TeleportRotate' );
+			
+			ticketS = movementAdjustor.CreateNewRequest( 'TeleportSlide' );
+			movementAdjustor.MaxLocationAdjustmentSpeed( ticketS, 9999 );
+			movementAdjustor.AdjustLocationVertically( ticketS, true );
+			movementAdjustor.AdjustmentDuration( ticketS, delayReappearance );
+			movementAdjustor.SlideTo( ticketS, newPosition );
+			
+			ticketR = movementAdjustor.CreateNewRequest( 'TeleportRotate' );
+			heading = VecHeading( newPosition - GetNPC().GetWorldPosition() );
+			movementAdjustor.MaxLocationAdjustmentSpeed( ticketR, 9999 );
+			movementAdjustor.AdjustmentDuration( ticketR, 0.3333 * delayReappearance );
+			movementAdjustor.RotateTo( ticketR, heading );
+		}
+		else if( teleportType == TT_ToNode )
+		{
+			rotation = theGame.GetNodeByTag( nodeTag ).GetWorldRotation();
+			GetNPC().TeleportWithRotation( newPosition, rotation );
+		}
+		else if ( rotateToTarget && useCombatTarget )
+		{
+			rotation = VecToRotation( GetCombatTarget().GetWorldPosition() - newPosition );
+			rotation.Pitch = 0.f;
+			rotation.Roll = 0.f;
+			
+			GetNPC().TeleportWithRotation( newPosition, rotation );
+		}
+		else if ( rotateToTarget && !useCombatTarget )
+		{
+			rotation = VecToRotation( GetActionTarget().GetWorldPosition() - newPosition );
+			rotation.Pitch = 0.f;
+			rotation.Roll = 0.f;
+			
+			GetNPC().TeleportWithRotation( newPosition, rotation );
+		}
+		else
+		{
+			rotation = VecToRotation( newPosition - GetNPC().GetWorldPosition() );
+			rotation.Pitch = 0.f;
+			rotation.Roll = 0.f;
+			GetNPC().TeleportWithRotation( newPosition, rotation );
+		}
+		
+		lastTelePos = newPosition;
+	}
 	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// Helper functions
+	////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	latent function PosChecks( out pos : Vector ) : bool
 	{
-		var l_res : bool;
+		var l_res 	: bool;
+		var npcPos  : Vector;
 		
 		l_res = FindSuitablePoint(pos, 0.5); 
 		if ( !l_res )
 		{
-			
+			// if desired teleport settings won't work, loosen restrictions
 			paramsOverriden = true;
 			cashedBool = testNavigationBetweenCombatTargetAndNewPosition;
 			testNavigationBetweenCombatTargetAndNewPosition = false;
@@ -901,25 +1203,65 @@ class CBTTaskTeleport extends TaskTeleportAction
 			}
 		}
 		
+		npcPos = GetActor().GetWorldPosition();
+		if ( VecDistance( pos, npcPos ) > sendRotationEventAboveTeleportDist )
+		{
+			GetActor().SignalGameplayEventParamFloat( 'FxRotation', VecHeading(pos - npcPos ) );
+		}
 		return true;
 	}
 	
 	latent function SafeTeleport( pos : Vector ) : bool
 	{
-		var l_rotation : EulerAngles;
-		var npc : CNewNPC = GetNPC();
+		var l_rotation 			: EulerAngles;
+		var npc 				: CNewNPC = GetNPC();
+		var ticketS, ticketR 	: SMovementAdjustmentRequestTicket;
+		var movementAdjustor	: CMovementAdjustor;
+		var heading 			: float;
 		
-		if ( GetCombatTarget() )
+		
+		//GetActor().GetVisualDebug().AddSphere( 'TeleportPosition', 0.5, newPosition, true, Color( 0,0,255 ), 5.0f );
+		if ( slideInsteadOfTeleport )
+		{
+			movementAdjustor = GetNPC().GetMovingAgentComponent().GetMovementAdjustor();
+			movementAdjustor.CancelByName( 'SlideToTarget' );
+			movementAdjustor.CancelByName( 'TeleportSlide' );
+			movementAdjustor.CancelByName( 'TeleportRotate' );
+			
+			ticketS = movementAdjustor.CreateNewRequest( 'TeleportSlide' );
+			movementAdjustor.MaxLocationAdjustmentSpeed( ticketS, 9999 );
+			movementAdjustor.AdjustLocationVertically( ticketS, true );
+			movementAdjustor.AdjustmentDuration( ticketS, delayReappearance );
+			movementAdjustor.SlideTo( ticketS, pos );
+			
+			ticketR = movementAdjustor.CreateNewRequest( 'TeleportRotate' );
+			heading = VecHeading( pos - GetNPC().GetWorldPosition() );
+			movementAdjustor.MaxLocationAdjustmentSpeed( ticketR, 9999 );
+			movementAdjustor.AdjustmentDuration( ticketR, 0.3333 * delayReappearance );
+			movementAdjustor.RotateTo( ticketR, heading );
+		}
+		else if ( rotateToTarget && useCombatTarget )
 		{
 			l_rotation = VecToRotation( GetCombatTarget().GetWorldPosition() - pos );
 			l_rotation.Pitch = 0.f;
 			l_rotation.Roll = 0.f;
-			
+			//npc.GetVisualDebug().AddSphere( 'TeleportPosition', 0.5, whereTo, true, Color( 0,0,255 ), 5.0f );
 			npc.TeleportWithRotation( pos, l_rotation );
+		}
+		else if ( rotateToTarget && !useCombatTarget )
+		{
+			l_rotation = VecToRotation( GetActionTarget().GetWorldPosition() - newPosition );
+			l_rotation.Pitch = 0.f;
+			l_rotation.Roll = 0.f;
+			
+			GetNPC().TeleportWithRotation( newPosition, l_rotation );
 		}
 		else
 		{
-			npc.Teleport( pos );
+			l_rotation = VecToRotation( pos - npc.GetWorldPosition() );
+			l_rotation.Pitch = 0.f;
+			l_rotation.Roll = 0.f;
+			npc.TeleportWithRotation( pos, l_rotation );
 		}
 		
 		lastTelePos = pos;
@@ -945,6 +1287,11 @@ class CBTTaskTeleport extends TaskTeleportAction
 			vanish = true;
 			return true;
 		}
+		if ( animEventName == activationEventName )
+		{
+			activated = true;
+			return true;
+		}
 		return false;
 	}
 };
@@ -956,11 +1303,17 @@ class CBTTaskTeleportDef extends TaskTeleportActionDef
 	editable var cooldown 								: float;
 	editable var delayActivation						: float;
 	editable var delayReappearance 						: float;
+	editable var slideInsteadOfTeleport 				: bool;
 	editable var forceInvisible 						: bool;
+	editable var disableGameplayVisibility 				: bool;
 	editable var disableInvisibilityAfterReappearance	: bool;
+	editable var disableImmortalityAfterReappearance 	: bool;
+	editable var enableCollisionAfterReappearance 		: bool;
+	editable var enableCollisionsOnDeactivate 			: bool;
 	editable var disallowInPlayerFOV 					: bool;
 	editable var performPosCheckOnTeleportEventName		: bool;
 	editable var performLastMomentPosCheck				: bool;
+	editable var activationEventName 					: name;
 	editable var teleportEventName 						: name;
 	editable var appearRaiseEventName					: name;
 	editable var appearRaiseEventNameOnFailure			: name;
@@ -969,27 +1322,36 @@ class CBTTaskTeleportDef extends TaskTeleportActionDef
 	editable var setBehVarValueOnRaiseAppearEvent		: float;
 	editable var disappearfxName 						: name;
 	editable var appearFXName 							: name;
+	editable var stopEffectAppearFXName 				: bool;
 	editable var additionalAppearFXName					: name;
 	editable var raiseEventName 						: name;
+	editable var raiseEventImmediately 					: bool;
 	editable var shouldPlayHitAnim						: bool; 
+	editable var sendRotationEventAboveTeleportDist 	: float; 	
 	
-	default minDistance = 3.0;
-	default maxDistance = 5.0;
-	default cooldown = 5.0;
-	default delayReappearance = 1.0;
-	default disallowInPlayerFOV = false;
-	default teleportOutsidePlayerFOV = true;
-	default teleportType = TT_ToPlayer;
-	default teleportEventName = 'Vanish';
-	default raiseEventName = 'Teleport';
-	default appearRaiseEventName = 'Appear';
-	default shouldPlayHitAnim = false;
+	default minDistance 								= 3.0;
+	default maxDistance 								= 5.0;
+	default cooldown 									= 5.0;
+	default delayReappearance 							= 1.0;
+	default disallowInPlayerFOV 						= false;
+	default teleportOutsidePlayerFOV 					= true;
+	default teleportType 								= TT_ToPlayer;
+	default teleportEventName 							= 'Vanish';
+	default raiseEventName 								= 'Teleport';
+	default appearRaiseEventName 						= 'Appear';
+	default shouldPlayHitAnim 							= false;
+	default disableGameplayVisibility 					= true;
+	default sendRotationEventAboveTeleportDist 			= 3.5;
+	default enableCollisionsOnDeactivate 				= true;
+	
+	hint slideInsteadOfTeleport = "slide duration = delayReappearance value";
 };
 
 
-
-
-
+/***********************************************************************/
+/** Teleport Decorator
+/***********************************************************************/
+//TODO: all teleport function should extend the TeleportAction class
 class CBTTaskTeleportDecorator extends CBTTaskTeleport
 {
 	var finished : bool;
@@ -1004,19 +1366,18 @@ class CBTTaskTeleportDecorator extends CBTTaskTeleport
 	}
 	
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// Main
+	////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	latent function Main() : EBTNodeStatus
 	{
-		var res 			: bool;
-		var newPosition 	: Vector;
+		var res 				: bool;
 		
 		if ( !performPosCheckOnTeleportEventName )
 		{
-			
-			
+			//do position checks ASAP to know if we can proceed further
+			//these checks are too heavy to keep them in IsAvailable
 			res = PosChecks( newPosition );
 			
 			if ( !res )
@@ -1025,7 +1386,7 @@ class CBTTaskTeleportDecorator extends CBTTaskTeleport
 			}
 		}
 		
-	
+		
 		finished = false;
 		
 		if ( disallowInPlayerFOV )
@@ -1068,9 +1429,12 @@ class CBTTaskTeleportDecorator extends CBTTaskTeleport
 	
 	function OnDeactivate()
 	{
-		var npc : CNewNPC = GetNPC();
+		var npc 				: CNewNPC = GetNPC();
+		var ticketS, ticketR 	: SMovementAdjustmentRequestTicket;
+		var movementAdjustor	: CMovementAdjustor;
+		var heading 			: float;
 		
-		
+		//npc.SetCanPlayHitAnim( playHitAnimStateBeforeTelep );
 		npc.SetCanPlayHitAnim( true );
 		npc.SetBehaviorVariable( 'teleport_on_hit', 0, true );
 		
@@ -1080,10 +1444,29 @@ class CBTTaskTeleportDecorator extends CBTTaskTeleport
 			{
 				npc.PlayEffect( additionalAppearFXName );
 			}
-			else if( IsNameValid( appearFXName ))
+			if( IsNameValid( appearFXName ))
 			{
-				npc.PlayEffect( appearFXName );
+				if ( stopEffectAppearFXName )
+				{
+					npc.StopEffect( appearFXName );
+				}
+				else
+				{
+					npc.PlayEffect( appearFXName );
+				}
 			}
+		}
+		
+		if ( !rotated && newPosition != Vector(0,0,0) && slideInsteadOfTeleport && rotateToTarget )
+		{
+			movementAdjustor = npc.GetMovingAgentComponent().GetMovementAdjustor();
+			movementAdjustor.CancelByName( 'TeleportRotateFailsafe' );
+			ticketR = movementAdjustor.CreateNewRequest( 'TeleportRotateFailsafe' );
+			
+			heading = VecHeading( GetCombatTarget().GetWorldPosition() - newPosition );
+			movementAdjustor.AdjustmentDuration( ticketR, 0.3333 * delayReappearance );
+			movementAdjustor.MaxLocationAdjustmentSpeed( ticketR, 9999 );
+			movementAdjustor.RotateTo( ticketR, heading );
 		}
 		
 		if ( isTeleporting )
@@ -1097,7 +1480,7 @@ class CBTTaskTeleportDecorator extends CBTTaskTeleport
 			npc.SetVisibility( true );
 		}
 		
-		if ( teleportEventName )
+		if ( IsNameValid( teleportEventName ) && disableGameplayVisibility )
 		{
 			npc.SetGameplayVisibility( true );
 		}
@@ -1105,9 +1488,12 @@ class CBTTaskTeleportDecorator extends CBTTaskTeleport
 		if ( delayReappearance > 0 || disableInvisibilityAfterReappearance )
 		{
 			npc.EnableCharacterCollisions( true );
-			npc.SetGameplayVisibility( true );
+			if ( disableGameplayVisibility )
+			{
+				npc.SetGameplayVisibility( true );
+			}
 		}
-		
+		// setting flag for that camera uses
 		npc.SetIsTeleporting( false );
 		if ( setInvulnerable )
 			npc.SetImmortalityMode( AIM_None, AIC_Combat );
@@ -1116,38 +1502,35 @@ class CBTTaskTeleportDecorator extends CBTTaskTeleport
 	
 	latent function Teleport( optional newPos : Vector ) : EBTNodeStatus
 	{
-		var npc : CNewNPC = GetNPC();
-		var target : CActor = GetCombatTarget();
-		var res : bool;
-		var maxTries : int;
+		var npc 				: CNewNPC = GetNPC();
+		var target 				: CActor = GetCombatTarget();
+		var res 				: bool;
+		var maxTries 			: int;
+		var ticketS, ticketR 	: SMovementAdjustmentRequestTicket;
+		var movementAdjustor	: CMovementAdjustor;
+		var heading 			: float;
 		
 		res = false;
+		rotated = false;
+		
+		if ( raiseEventImmediately && IsNameValid( raiseEventName ) )
+		{
+			if ( !npc.RaiseEvent( raiseEventName ) )
+			{
+				return BTNS_Failed;
+			}
+		}
 		
 		if ( delayActivation > 0 )
 		{
 			Sleep( delayActivation );
-			
-			npc.SetIsTeleporting( true );
-			if ( setInvulnerable )
-				npc.SetImmortalityMode( AIM_Invulnerable, AIC_Combat );
-			npc.AddBuffImmunity_AllNegative( 'teleport', true );
-			npc.SetCanPlayHitAnim( shouldPlayHitAnim );
-			npc.RaiseEvent( raiseEventName );
-			
-			if( IsNameValid( disappearfxName ))
-			{
-				
-				npc.PlayEffect( disappearfxName );
-				
-				Sleep( 0.1f );
-			}
 		}
 		
 		if ( teleportEventName )
 		{
 			while ( !vanish )
 			{
-				Sleep( 0.01f );
+				SleepOneFrame();
 			}
 			
 			if ( performPosCheckOnTeleportEventName )
@@ -1160,7 +1543,46 @@ class CBTTaskTeleportDecorator extends CBTTaskTeleport
 				}
 			}
 			
-			npc.SetGameplayVisibility( false );
+			if ( disableGameplayVisibility )
+			{
+				npc.SetGameplayVisibility( false );
+			}
+			if ( forceInvisible )
+			{
+				npc.SetVisibility( false );
+			}
+		}
+		
+		// setting flag for that camera uses
+		npc.SetIsTeleporting( true );
+		if ( setInvulnerable )
+		{
+			npc.SetImmortalityMode( AIM_Invulnerable, AIC_Combat );
+		}
+		npc.AddBuffImmunity_AllNegative( 'teleport', true );
+		npc.SetCanPlayHitAnim( shouldPlayHitAnim );
+		if ( IsNameValid( raiseEventName ) && !raiseEventImmediately )
+		{
+			if ( !npc.RaiseEvent( raiseEventName ) )
+			{
+				return BTNS_Failed;
+			}
+		}
+		if( IsNameValid( disappearfxName ))
+		{
+			//npc.bCanBeStrafed = false;
+			npc.PlayEffect( disappearfxName );
+			npc.SignalGameplayEvent( 'teleportDisappearFx' );
+			// wait for special effect, otherwise it will play after teleport
+			Sleep( 0.1f );
+		}
+		
+		if ( teleportEventName )
+		{
+			if ( disableGameplayVisibility )
+			{
+				npc.SetGameplayVisibility( false );
+			}
 			if ( forceInvisible )
 			{
 				npc.SetVisibility( false );
@@ -1171,7 +1593,10 @@ class CBTTaskTeleportDecorator extends CBTTaskTeleport
 		
 		if ( delayReappearance > 0 )
 		{
-			npc.SetGameplayVisibility( false );
+			if ( disableGameplayVisibility )
+			{
+				npc.SetGameplayVisibility( false );
+			}
 			if ( forceInvisible && !IsNameValid(teleportEventName) )
 			{
 				npc.SetVisibility( false );
@@ -1192,7 +1617,10 @@ class CBTTaskTeleportDecorator extends CBTTaskTeleport
 			
 			if( IsNameValid( appearRaiseEventName ) )
 			{
-				npc.RaiseEvent( appearRaiseEventName );
+				if ( !npc.RaiseEvent( appearRaiseEventName ) )
+				{
+					return BTNS_Failed;
+				}
 			}
 		}
 		else
@@ -1212,7 +1640,14 @@ class CBTTaskTeleportDecorator extends CBTTaskTeleport
 		if( IsNameValid( appearFXName ))
 		{
 			appearFXPlayed = true;
-			npc.PlayEffect( appearFXName );
+			if ( stopEffectAppearFXName )
+			{
+				npc.StopEffect( appearFXName );
+			}
+			else
+			{
+				npc.PlayEffect( appearFXName );
+			}
 		}
 		
 		if( IsNameValid( additionalAppearFXName ))
@@ -1227,8 +1662,32 @@ class CBTTaskTeleportDecorator extends CBTTaskTeleport
 			{
 				npc.SetVisibility( true );
 			}
+		}
+		
+		if ( enableCollisionAfterReappearance )
+		{
+			npc.EnableCharacterCollisions( true );
+		}
+		
+		if ( disableImmortalityAfterReappearance )
+		{
+			if ( setInvulnerable )
+				npc.SetImmortalityMode( AIM_None, AIC_Combat );
+			npc.RemoveBuffImmunity_AllNegative( 'teleport' );
+		}
+		
+		if ( slideInsteadOfTeleport && rotateToTarget )
+		{
+			Sleep( 0.6667 * delayReappearance );
+			movementAdjustor = GetNPC().GetMovingAgentComponent().GetMovementAdjustor();
+			movementAdjustor.CancelByName( 'TeleportRotate' );
+			ticketR = movementAdjustor.CreateNewRequest( 'TeleportRotate' );
 			
-			
+			heading = VecHeading( GetCombatTarget().GetWorldPosition() - newPos );
+			movementAdjustor.AdjustmentDuration( ticketR, 0.3333 * delayReappearance );
+			movementAdjustor.MaxLocationAdjustmentSpeed( ticketR, 9999 );
+			movementAdjustor.RotateTo( ticketR, heading );
+			rotated = true;
 		}
 		
 		if( IsNameValid( appearRaiseEventName ) )
@@ -1253,8 +1712,9 @@ class CBTTaskTeleportDecoratorDef extends CBTTaskTeleportDef
 
 
 
-
-
+/***********************************************************************/
+/** Flying Swarm Teleport
+/***********************************************************************/
 
 class CBTTaskFlyingSwarmTeleport extends CBTTaskTeleport
 {
@@ -1290,22 +1750,15 @@ class CBTTaskFlyingSwarmTeleport extends CBTTaskTeleport
 		return true;
 	}
 	
-	function OnActivate() : EBTNodeStatus
-	{
-		var npc : CNewNPC = GetNPC();
-		
-		npc.SetCanPlayHitAnim( shouldPlayHitAnim );
-		npc.SetUnstoppable( true );
-		npc.SetImmortalityMode( AIM_Invulnerable, AIC_Combat );
-		npc.AddBuffImmunity_AllNegative( 'teleport', true );
-		
+	/*function OnActivate() : EBTNodeStatus
+	{	
 		return BTNS_Active;
-	}
+	}*/
 	
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// Main
+	////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	latent function Main() : EBTNodeStatus
 	{
@@ -1318,6 +1771,19 @@ class CBTTaskFlyingSwarmTeleport extends CBTTaskTeleport
 		var newPosition 		: Vector;
 		var i 					: int;
 		
+		
+		if ( IsNameValid( activationEventName ) )
+		{
+			while ( !activated )
+			{
+				SleepOneFrame();
+			}
+		}
+		
+		npc.SetCanPlayHitAnim( shouldPlayHitAnim );
+		npc.SetUnstoppable( true );
+		npc.SetImmortalityMode( AIM_Invulnerable, AIC_Combat );
+		npc.AddBuffImmunity_AllNegative( 'teleport', true );
 		
 		if ( boidPOIComponents.Size() == 0 )
 		{
@@ -1349,8 +1815,8 @@ class CBTTaskFlyingSwarmTeleport extends CBTTaskTeleport
 		
 		if ( !performPosCheckOnTeleportEventName )
 		{
-			
-			
+			//do position checks ASAP to know if we can proceed further
+			//these checks are too heavy to keep them in IsAvailable
 			res = PosChecks( newPosition );
 			
 			if ( !res )
@@ -1361,12 +1827,18 @@ class CBTTaskFlyingSwarmTeleport extends CBTTaskTeleport
 		
 		despawnCalled = false;
 		
-		
+		// setting flag for that camera uses
 		npc.SetIsTeleporting( true );
 		
 		if ( useAnimations )
 		{
-			npc.RaiseEvent( raiseEventName );
+			if ( IsNameValid( raiseEventName ) )
+			{
+				if ( !npc.RaiseEvent( raiseEventName ) )
+				{
+					return BTNS_Failed;
+				}
+			}
 		}
 		
 		
@@ -1381,24 +1853,25 @@ class CBTTaskFlyingSwarmTeleport extends CBTTaskTeleport
 			Sleep( delayActivation );
 		}
 		
-		
-		
-		
+		////////////////////////////////////////////////////////////////////////////////////////////////
+		// Stage for visuals
+		////////////////////////////////////////////////////////////////////////////////////////////////
 		
 		if ( delayVanish == 0 )
 		{
-			
+			// without sleep actor's collision is left behind after teleport
 			npc.EnableCharacterCollisions( false );
 		}
 		
 		if( IsNameValid( disappearfxName ))
 		{
 			npc.PlayEffect( disappearfxName );
-			
+			npc.SignalGameplayEvent( 'teleportDisappearFx' );
+			// wait for special effect, otherwise it will play after teleport
 			Sleep( 0.1f );
 		}
 		
-		
+		// failsafe for case when isAvailable is not evaluated
 		if ( !lair )
 		{
 			FindGameplayEntitiesInRange( lairEntities, GetActor(), 150, 1, 'SwarmMasterLair' );
@@ -1444,13 +1917,16 @@ class CBTTaskFlyingSwarmTeleport extends CBTTaskTeleport
 		}
 		
 		
-		
-		
-		
+		////////////////////////////////////////////////////////////////////////////////////////////////
+		// Teleport Stage
+		////////////////////////////////////////////////////////////////////////////////////////////////
 		
 		isTeleporting = true;
 		
-		npc.SetGameplayVisibility( false );
+		if ( disableGameplayVisibility )
+		{
+			npc.SetGameplayVisibility( false );
+		}
 		if ( forceInvisible )
 		{
 			npc.SetVisibility( false );
@@ -1470,7 +1946,7 @@ class CBTTaskFlyingSwarmTeleport extends CBTTaskTeleport
 		
 		if ( delayVanish > 0 )
 		{
-			
+			// without sleep actor's collision is left behind after teleport
 			Sleep( 0.2f );
 			npc.EnableCharacterCollisions( false );
 		}
@@ -1479,14 +1955,14 @@ class CBTTaskFlyingSwarmTeleport extends CBTTaskTeleport
 		
 		while ( !res && !fail )
 		{
-			
+			//forced despawn, not waiting for swarm arrival at birdmaster position
 			if ( forcedDespawnTime > 0 && !despawnCalled )
 			{
 				Sleep( forcedDespawnTime );
 				DespawnSwarm();
 			}
 			
-			
+			//if( VecDot( initialSwarmPos - npc.GetWorldPosition(), lair.GetTeleportGroupPosition() - npc.GetWorldPosition() ) < 0.0f )
 			if( vanish && !despawnCalled )
 			{
 				if ( delayReappearance > 0 )
@@ -1502,8 +1978,18 @@ class CBTTaskFlyingSwarmTeleport extends CBTTaskTeleport
 				{
 					npc.SetVisibility( true );
 				}
-				
-				
+			}
+			
+			if ( enableCollisionAfterReappearance )
+			{
+				npc.EnableCharacterCollisions( true );
+			}
+			
+			if ( disableImmortalityAfterReappearance )
+			{
+				if ( setInvulnerable )
+					npc.SetImmortalityMode( AIM_None, AIC_Combat );
+				npc.RemoveBuffImmunity_AllNegative( 'teleport' );
 			}
 			
 			currTime = GetLocalTime();
@@ -1520,7 +2006,14 @@ class CBTTaskFlyingSwarmTeleport extends CBTTaskTeleport
 						if( IsNameValid( appearFXName ))
 						{
 							appearFXPlayed = true;
-							npc.PlayEffect( appearFXName );
+							if ( stopEffectAppearFXName )
+							{
+								npc.StopEffect( appearFXName );
+							}
+							else
+							{
+								npc.PlayEffect( appearFXName );
+							}
 						}
 					}
 				}
@@ -1530,7 +2023,7 @@ class CBTTaskFlyingSwarmTeleport extends CBTTaskTeleport
 			{
 				res = true;
 			}
-			
+			// failsafe
 			if ( currTime > lastTime )
 			{
 				fail = true;
@@ -1550,15 +2043,18 @@ class CBTTaskFlyingSwarmTeleport extends CBTTaskTeleport
 	}
 	
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// Deactivate
+	////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	function OnDeactivate()
 	{
 		var npc : CNewNPC = GetNPC();
 		var birdCount : int;
 		var i : int;
+		
+		
+		activated = false;
 		
 		if ( disableBoidPOIComponents )
 		{
@@ -1574,9 +2070,16 @@ class CBTTaskFlyingSwarmTeleport extends CBTTaskTeleport
 			{
 				npc.PlayEffect( additionalAppearFXName );
 			}
-			else if( IsNameValid( appearFXName ))
+			if( IsNameValid( appearFXName ))
 			{
-				npc.PlayEffect( appearFXName );
+				if ( stopEffectAppearFXName )
+				{
+					npc.StopEffect( appearFXName );
+				}
+				else
+				{
+					npc.PlayEffect( appearFXName );
+				}
 			}
 		}
 		
@@ -1602,18 +2105,21 @@ class CBTTaskFlyingSwarmTeleport extends CBTTaskTeleport
 			npc.SetVisibility( true );
 		}
 		
-		npc.SetGameplayVisibility( true );		
+		if ( disableGameplayVisibility )
+		{
+			npc.SetGameplayVisibility( true );
+		}
 		npc.EnableCharacterCollisions( true );
 		
-		
+		// setting flag for that camera uses
 		npc.SetIsTeleporting( false );
 		npc.RemoveBuffImmunity_AllNegative( 'teleport' );
 	}
 	
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// Helper functions
+	////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	function OnGameplayEvent( eventName : name ) : bool
 	{
@@ -1667,8 +2173,9 @@ class CBTTaskFlyingSwarmTeleportDef extends CBTTaskTeleportDef
 
 
 
-
-
+/***********************************************************************/
+/** Flying Swarm Teleport
+/***********************************************************************/
 
 class CBTTaskFlyingSwarmTeleportAttack extends CBTTaskFlyingSwarmTeleport
 {
@@ -1680,9 +2187,9 @@ class CBTTaskFlyingSwarmTeleportAttack extends CBTTaskFlyingSwarmTeleport
 	
 	
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// Main
+	////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	latent function Main() : EBTNodeStatus
 	{
@@ -1727,8 +2234,8 @@ class CBTTaskFlyingSwarmTeleportAttack extends CBTTaskFlyingSwarmTeleport
 		
 		if ( !performPosCheckOnTeleportEventName )
 		{
-			
-			
+			//do position checks ASAP to know if we can proceed further
+			//these checks are too heavy to keep them in IsAvailable
 			res = PosChecks( newPosition );
 			
 			if ( !res )
@@ -1740,12 +2247,18 @@ class CBTTaskFlyingSwarmTeleportAttack extends CBTTaskFlyingSwarmTeleport
 		despawnCalled = false;
 		attackCompleted = false;
 		
-		
+		// setting flag for that camera uses
 		npc.SetIsTeleporting( true );
 		
 		if ( useAnimations )
 		{
-			npc.RaiseEvent( raiseEventName );
+			if ( IsNameValid( raiseEventName ) )
+			{
+				if ( !npc.RaiseEvent( raiseEventName ) )
+				{
+					return BTNS_Failed;
+				}
+			}
 		}
 		
 		
@@ -1761,24 +2274,25 @@ class CBTTaskFlyingSwarmTeleportAttack extends CBTTaskFlyingSwarmTeleport
 			Sleep( delayActivation );
 		}
 		
-		
-		
-		
+		////////////////////////////////////////////////////////////////////////////////////////////////
+		// Stage for visuals
+		////////////////////////////////////////////////////////////////////////////////////////////////
 		
 		if ( delayVanish == 0 )
 		{
-			
+			// without sleep actor's collision is left behind after teleport
 			npc.EnableCharacterCollisions( false );
 		}
 		
 		if( IsNameValid( disappearfxName ))
 		{
 			npc.PlayEffect( disappearfxName );
-			
+			npc.SignalGameplayEvent( 'teleportDisappearFx' );
+			// wait for special effect, otherwise it will play after teleport
 			Sleep( 0.1f );
 		}
 		
-		
+		// failsafe for case when isAvailable is not evaluated
 		if ( !lair )
 		{
 			FindGameplayEntitiesInRange( lairEntities, GetActor(), 150, 1, 'SwarmMasterLair' );
@@ -1824,13 +2338,16 @@ class CBTTaskFlyingSwarmTeleportAttack extends CBTTaskFlyingSwarmTeleport
 		}
 		
 		
-		
-		
-		
+		////////////////////////////////////////////////////////////////////////////////////////////////
+		// Teleport Stage
+		////////////////////////////////////////////////////////////////////////////////////////////////
 		
 		isTeleporting = true;
 		
-		npc.SetGameplayVisibility( false );
+		if ( disableGameplayVisibility )
+		{
+			npc.SetGameplayVisibility( false );
+		}
 		if ( forceInvisible )
 		{
 			npc.SetVisibility( false );
@@ -1852,28 +2369,28 @@ class CBTTaskFlyingSwarmTeleportAttack extends CBTTaskFlyingSwarmTeleport
 		
 		if ( delayVanish > 0 )
 		{
-			
+			// without sleep actor's collision is left behind after teleport
 			Sleep( 0.2f );
 			npc.EnableCharacterCollisions( false );
 		}
 		
 		while ( !res && !fail )
 		{
-			
+			//after attack is completed move swarm to owner position
 			if ( attackCompleted && !res2 )
 			{
 				SleepOneFrame();
 				lair.SignalArrivalAtNode( 'teleport', npc, 'fastShield', swarmGroupId );
 				res2 = true;
 			}
-			
+			//forced despawn, not waiting for swarm arrival at birdmaster position
 			if ( forcedDespawnTime > 0 && !despawnCalled )
 			{
 				Sleep( forcedDespawnTime );
 				DespawnSwarm();
 			}
 			
-			
+			//if( VecDot( initialSwarmPos - npc.GetWorldPosition(), lair.GetTeleportGroupPosition() - npc.GetWorldPosition() ) < 0.0f )
 			if( vanish && !despawnCalled )
 			{
 				if ( delayReappearance > 0 )
@@ -1894,8 +2411,18 @@ class CBTTaskFlyingSwarmTeleportAttack extends CBTTaskFlyingSwarmTeleport
 				{
 					npc.SetVisibility( true );
 				}
-				
-				
+			}
+			
+			if ( enableCollisionAfterReappearance )
+			{
+				npc.EnableCharacterCollisions( true );
+			}
+			
+			if ( disableImmortalityAfterReappearance )
+			{
+				if ( setInvulnerable )
+					npc.SetImmortalityMode( AIM_None, AIC_Combat );
+				npc.RemoveBuffImmunity_AllNegative( 'teleport' );
 			}
 			
 			currTime = GetLocalTime();
@@ -1912,7 +2439,14 @@ class CBTTaskFlyingSwarmTeleportAttack extends CBTTaskFlyingSwarmTeleport
 						if( IsNameValid( appearFXName ))
 						{
 							appearFXPlayed = true;
-							npc.PlayEffect( appearFXName );
+							if ( stopEffectAppearFXName )
+							{
+								npc.StopEffect( appearFXName );
+							}
+							else
+							{
+								npc.PlayEffect( appearFXName );
+							}
 						}
 					}
 				}
@@ -1922,7 +2456,7 @@ class CBTTaskFlyingSwarmTeleportAttack extends CBTTaskFlyingSwarmTeleport
 			{
 				res = true;
 			}
-			
+			// failsafe
 			if ( currTime > lastTime )
 			{
 				fail = true;
@@ -1942,9 +2476,9 @@ class CBTTaskFlyingSwarmTeleportAttack extends CBTTaskFlyingSwarmTeleport
 	}
 	
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// Helper functions
+	////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	function OnGameplayEvent( eventName : name ) : bool
 	{

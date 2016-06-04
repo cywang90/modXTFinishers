@@ -1,21 +1,19 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file
 /***********************************************************************/
-
-
-
+/** Copyright © 2011-2014
+/** Author :
+/***********************************************************************/
 
 import struct SSavegameInfo
 {
-	import var filename : string;			
-	import var slotType : ESaveGameType;	
-	import var slotIndex : int;				
-											
+	import var filename : string;			// filename is auto-generated, can be custom on PC, if save is done in editor ar renamed manually.
+	import var slotType : ESaveGameType;	// valid values are: SGT_AutoSave, SGT_QuickSave, SGT_Manual, SGT_CheckPoint
+	import var slotIndex : int;				// -1 means: no slot assigned (PC will always have -1 here). Remember that consoleas share the same slot numbers for quicksaves and manual saves.
+											// ATM there are 2 slots for AutoSaves, 2 for checkpoints and 8 for all others, meaning (on consoles) this value have range from 0 to 1 for autosaves and checkpoints and from 0 to 7 otherwise. 
 };
 
-
+//#J should match enum EPlatform in configVarSystem.h
 enum Platform
 {
 	Platform_PC = 0,
@@ -35,10 +33,10 @@ struct SPostponedPreAttackEvent
 
 import class CR4Game extends CCommonGame
 {
-	saved var zoneName : EZoneName;		
-	private var gamerProfile : W3GamerProfile;	
-	private var isDialogOrCutscenePlaying : bool;					
-	private saved var recentDialogOrCutsceneEndGameTime : GameTime;		
+	saved var zoneName : EZoneName;		//cached game area name updated when entering different areas
+	private var gamerProfile : W3GamerProfile;
+	private var isDialogOrCutscenePlaying : bool;					//is dialogue or cutscene currently playing
+	private saved var recentDialogOrCutsceneEndGameTime : GameTime;		//time (as game time) of most recent dialog or cutscene end
 	public var isCutscenePlaying : bool;
 	public var isDialogDisplayDisabled : bool;
 	default isDialogDisplayDisabled = false;
@@ -50,10 +48,10 @@ import class CR4Game extends CCommonGame
 	private saved var savedEnchanterFunds 			: int;
 	private saved var gameplayFactsForRemoval 		: array<SGameplayFactRemoval>;
 	private saved var gameplayFacts 				: array<SGameplayFact>;
-	private saved var tutorialManagerHandle			: EntityHandle;			
-	private saved var diffChangePostponed			: EDifficultyMode;		
-	private saved var dynamicallySpawnedBoats		: array<EntityHandle>;		
-	private saved var dynamicallySpawnedBoatsToDestroy : array<EntityHandle>;	
+	private saved var tutorialManagerHandle			: EntityHandle;			//to get tutorial manager entity after loading a game
+	private saved var diffChangePostponed			: EDifficultyMode;		//postponed difficulty mode change - due to missing thePlayer object	
+	private saved var dynamicallySpawnedBoats		: array<EntityHandle>;		//list of dynamically spawned boats that we keep
+	private saved var dynamicallySpawnedBoatsToDestroy : array<EntityHandle>;	//list of dynamically spawned boats that we will destroy as not needed anymore
 	
 	private saved var uberMovement : bool; 	default uberMovement = false;
 	
@@ -69,7 +67,7 @@ import class CR4Game extends CCommonGame
 	
 		default diffChangePostponed = EDM_NotSet;
 	
-	
+	// Returns true if opened the Steam controller overlay to configure bindings. Otherwise returns false.
 	import final function ShowSteamControllerBindingPanel() : bool;
 	
 	import final function ActivateHorseCamera( activate : bool, blendTime : float, optional instantMount : bool );
@@ -85,7 +83,7 @@ import class CR4Game extends CCommonGame
 		isRespawningInLastCheckpoint = true;
 	}
 	
-	event  OnGameSaveListUpdated()
+	event /* C++ */ OnGameSaveListUpdated()
 	{
 		var menuBase 	: CR4MenuBase;
 		var ingameMenu 	: CR4IngameMenu;
@@ -103,7 +101,7 @@ import class CR4Game extends CCommonGame
 		}
 	}
 	
-	event  OnGameLoadInitFinished()
+	event /* C++ */ OnGameLoadInitFinished()
 	{
 		var requiredContent : array< name >;
 		var blockedContentTag : name;
@@ -118,7 +116,7 @@ import class CR4Game extends CCommonGame
 		
 		if ( loadResult != LOAD_MissingContent && loadResult != LOAD_Error )
 		{
-			theSound.SoundEvent("stop_music"); 
+			theSound.SoundEvent("stop_music"); // If theres an error, don't stop the music. Otherwise, stop it!
 			theSound.SoundEvent("gui_global_game_start");
 			theGame.GetGuiManager().RequestMouseCursor(false);
 		}
@@ -127,7 +125,7 @@ import class CR4Game extends CCommonGame
 		{
 			LogChannel( 'Save', "Event OnGameLoadInitFinished() called, but load not initialized / not ready / already loading. DEBUG THIS!" );
 			isRespawningInLastCheckpoint = false;
-			return true; 
+			return true; // event handled
 		}
 		
 		if ( loadResult == LOAD_MissingContent )
@@ -160,7 +158,7 @@ import class CR4Game extends CCommonGame
 				}
 			}
 			
-			return true; 
+			return true; // event handled
 		}
 		
 		if ( loadResult == LOAD_Error )
@@ -188,7 +186,7 @@ import class CR4Game extends CCommonGame
 		}
 	}
 	
-	event  OnGameLoadInitFinishedSuccess()
+	event /* C++ */ OnGameLoadInitFinishedSuccess()
 	{
 		GetGuiManager().GetRootMenu().CloseMenu();
 	}
@@ -249,51 +247,51 @@ import class CR4Game extends CCommonGame
 		return globalEventsScriptsDispatcherInternal;
 	}
 		
-	
+	// Start sepia effect
 	import final function StartSepiaEffect( fadeInTime: float ) : bool;
 	
-	
+	// Start sepia effect
 	import final function StopSepiaEffect( fadeOutTime: float ) : bool;
 	
-	
+	// Get the calculated wind value for point, accounting global wind and all the wind emitters in range
 	import final function GetWindAtPoint( point : Vector ) : Vector;
-	
+	// Get the calculated wind value for point for visuals, accounting global wind and all the wind emitters in range
 	import final function GetWindAtPointForVisuals( point : Vector ) : Vector;
 	
 	import final function GetGameCamera() : CCustomCamera;
 	
-	
+	//temp here
 	import final function GetBuffImmunitiesForActor( actor : CActor ) : CBuffImmunity;
 	import final function GetMonsterParamsForActor( actor : CActor, out monsterCategory : EMonsterCategory, out soundMonsterName : CName, out isTeleporting : bool, out canBeTargeted : bool, out canBeHitByFists : bool ) : bool;
 	import final function GetMonsterParamForActor( actor : CActor, out val : CMonsterParam ) : bool;
 	
-	
+	// get the volume path manager
 	import final function GetVolumePathManager() : CVolumePathManager;
 	
-	
+	// spawn player horse or teleport if exists, the horse will be tagged with 'PLAYER_horse'
 	import final function SummonPlayerHorse( teleportToSafeSpot : bool, createEntityHelper : CR4CreateEntityHelper );
 
-	
+	// toggle vs for menus
 	import final function ToggleMenus();
 	import final function ToggleInput();
 	
 	import final function GetResourceAliases( out aliases : array< string > );
 	
-	
+	//kinect
 	import final function GetKinectSpeechRecognizer() : CR4KinectSpeechRecognizerListenerScriptProxy;
 	
-	
+	// tutorial system access
 	import final function GetTutorialSystem() : CR4TutorialSystem;
 	
-	
+	// User profile
 	import final function DisplaySystemHelp();
 	import final function DisplayUserProfileSystemDialog();
 	import final function SetRichPresence( presence : name );
 
-	
+	// callback to c++ from user ui box
 	import final function OnUserDialogCallback( message, action : int );
 	
-	
+	// Save user settings
 	import final function SaveUserSettings();
 	
 	public final function UpdateRichPresence(presence : name)
@@ -307,34 +305,37 @@ import class CR4Game extends CCommonGame
 		var manager: CCommonMapManager;
 	    var currentArea : EAreaName;
 	    
-		
+		//don't clear if some other area has already changed presence setting
 		if(currentPresence == presence)
 		{
 			manager = theGame.GetCommonMapManager();
 			currentArea = manager.GetCurrentJournalArea();
 			currentPresence =  manager.GetLocalisationNameFromAreaType( currentArea );
 			SetRichPresence(currentPresence);
-			
+			/*
+			SetRichPresence('location_outside_all');
+			currentPresence = 'location_outside_all';
+			*/
 		}
 	}
 	
-	
+	//game globals
 	import var params : W3GameParams;
 
-	private var minimapSettings : C2dArray; 
-	public var playerStatisticsSettings : C2dArray; 
-	public var hudSettings : C2dArray; 
+	private var minimapSettings : C2dArray; //#B
+	public var playerStatisticsSettings : C2dArray; //#B
+	public var hudSettings : C2dArray; //#B
 
-	
+	// this handles all damage dealing
 	public var damageMgr : W3DamageManager;
 
-	
+	// this instance holds cached effects for further use
 	public var effectMgr : W3GameEffectManager;
 	
-	
+	// timescale management
 	private var timescaleSources : array<STimescaleSource>;
 
-	
+	// updates environments
 	public saved var envMgr : W3EnvironmentManager;
 	
 	public var runewordMgr : W3RunewordManager;
@@ -345,7 +346,7 @@ import class CR4Game extends CCommonGame
 	public var expGlobalMod_kills : float;
 	public var expGlobalMod_quests : float;
 	
-	
+	//sync anims
 	private var syncAnimManager : W3SyncAnimationManager;
 	public function GetSyncAnimManager() : W3SyncAnimationManager
 	{
@@ -357,8 +358,12 @@ import class CR4Game extends CCommonGame
 		return syncAnimManager;
 	}
 	
-	
-	
+	//drinking minigame
+	/* REMOVED_DRINKING
+	public var drinkingMinigameMananger : W3DrinkingManager;	
+	public function CreateDrinkingManager()	{ drinkingMinigameMananger = new W3DrinkingManager in this; }
+	public function DeleteDrinkingManager()	{ delete drinkingMinigameMananger; }
+	*/
 	
 	public function SetEnvironmentID( id : int )
 	{
@@ -370,72 +375,72 @@ import class CR4Game extends CCommonGame
 		timescaleSources.Clear();
 		timescaleSources.Grow( EnumGetMax('ETimescaleSource') + 1 );
 
-		
+		//ETS_PotionBlizzard
 		timescaleSources[ ETS_PotionBlizzard ].sourceType = ETS_PotionBlizzard;
 		timescaleSources[ ETS_PotionBlizzard ].sourceName = 'PotionBlizzard';
 		timescaleSources[ ETS_PotionBlizzard ].sourcePriority = 10;
 		
-		
+		//ETS_SlowMoTask
 		timescaleSources[ ETS_SlowMoTask ].sourceType = ETS_SlowMoTask;
 		timescaleSources[ ETS_SlowMoTask ].sourceName = 'SlowMotionTask';
 		timescaleSources[ ETS_SlowMoTask ].sourcePriority = 15;
 		
-		
+		//ETS_HeavyAttack
 		timescaleSources[ ETS_HeavyAttack ].sourceType = ETS_HeavyAttack;
 		timescaleSources[ ETS_HeavyAttack ].sourceName = 'HeavyAttack';
 		timescaleSources[ ETS_HeavyAttack ].sourcePriority = 15;
 		
-		
+		//ETS_ThrowingAim
 		timescaleSources[ ETS_ThrowingAim ].sourceType = ETS_ThrowingAim;
 		timescaleSources[ ETS_ThrowingAim ].sourceName = 'ThrowingAim';
 		timescaleSources[ ETS_ThrowingAim ].sourcePriority = 15;
 		
-		
+		//ETS_RaceSlowMo
 		timescaleSources[ ETS_RaceSlowMo ].sourceType = ETS_RaceSlowMo;
 		timescaleSources[ ETS_RaceSlowMo ].sourceName = 'RaceSlowMo';
 		timescaleSources[ ETS_RaceSlowMo ].sourcePriority = 10;
 		
-		
+		//ETS_RadialMenu
 		timescaleSources[ ETS_RadialMenu ].sourceType = ETS_RadialMenu;
 		timescaleSources[ ETS_RadialMenu ].sourceName = 'RadialMenu';
 		timescaleSources[ ETS_RadialMenu ].sourcePriority = 20;
 		
-		
+		//ETS_CFM_PlayAnim
 		timescaleSources[ ETS_CFM_PlayAnim ].sourceType = ETS_CFM_PlayAnim;
 		timescaleSources[ ETS_CFM_PlayAnim ].sourceName = 'CFM_PlayAnim';
 		timescaleSources[ ETS_CFM_PlayAnim ].sourcePriority = 25;
 		
-		
+		//ETS_CFM_On
 		timescaleSources[ ETS_CFM_On ].sourceType = ETS_CFM_On;
 		timescaleSources[ ETS_CFM_On ].sourceName = 'CFM_On';
 		timescaleSources[ ETS_CFM_On ].sourcePriority = 20;
 		
-		
+		//ETS_DebugInput
 		timescaleSources[ ETS_DebugInput ].sourceType = ETS_DebugInput;
 		timescaleSources[ ETS_DebugInput ].sourceName = 'debug_input';
 		timescaleSources[ ETS_DebugInput ].sourcePriority = 30;
 		
-		
+		//ETS_SkillFrenzy
 		timescaleSources[ ETS_SkillFrenzy ].sourceType = ETS_SkillFrenzy;
 		timescaleSources[ ETS_SkillFrenzy ].sourceName = 'skill_frenzy';
 		timescaleSources[ ETS_SkillFrenzy ].sourcePriority = 15;
 		
-		
+		//ETS_HorseMelee
 		timescaleSources[ ETS_HorseMelee ].sourceType = ETS_HorseMelee;
 		timescaleSources[ ETS_HorseMelee ].sourceName = 'horse_melee';
 		timescaleSources[ ETS_HorseMelee ].sourcePriority = 15;
 		
-		
+		//ETS_FinisherInput
 		timescaleSources[ ETS_FinisherInput ].sourceType = ETS_FinisherInput;
 		timescaleSources[ ETS_FinisherInput ].sourceName = 'finisher_input';
 		timescaleSources[ ETS_FinisherInput ].sourcePriority = 15;
 		
-		
+		//ETS_TutorialFight
 		timescaleSources[ ETS_TutorialFight ].sourceType = ETS_TutorialFight;
 		timescaleSources[ ETS_TutorialFight ].sourceName = 'tutorial_fight';
 		timescaleSources[ ETS_TutorialFight ].sourcePriority = 25;
 		
-		
+		//ETS_InstantKill
 		timescaleSources[ ETS_InstantKill ].sourceType = ETS_InstantKill;
 		timescaleSources[ ETS_InstantKill ].sourceName = 'instant_kill';
 		timescaleSources[ ETS_InstantKill ].sourcePriority = 5;
@@ -479,7 +484,7 @@ import class CR4Game extends CCommonGame
 		GetSecondScreenManager().SendGlobalMapPins( globalMapPins );	
 	}
 	
-	
+	// #J Values should match enum Platform defined at top of file
 	import final function GetPlatform():int;
 	
 	private var isSignedIn:bool;
@@ -527,20 +532,31 @@ import class CR4Game extends CCommonGame
 	
 	import final function GetActiveUserDisplayName() : string;
 	
-	
+	// returns if all content up to the specified tag is properly installed
 	import final function IsContentAvailable( content : name ) : bool;
 	
-	
+	// returns the percentage of the install process towards reaching that content tag 10 = 10 percent
 	import final function ProgressToContentAvailable( content : name ) : int;
 	
 	import final function ShouldForceInstallVideo() : bool;
 	
 	import final function IsDebugQuestMenuEnabled() : bool;
 	
-	
+	// this is for the quest to mark a point, where we start doing saves with NGP enabled
 	import final function EnableNewGamePlus( enable : bool );
 	
-	
+	/* this is defined on C++ side:
+	enum ENewGamePlusStatus
+	{
+		NGP_Success,				// when everything went fine
+		NGP_Invalid,				// when passed SSavegameInfo is not a valid one
+		NGP_CantLoad,				// when save data cannot be loaded (like: corrupted save data or missing DLC)
+		NGP_TooOld,					// when save data is made on unpatched game version and needs to be resaved
+		NGP_RequirementsNotMet,		// when player didn't finish the game or have too low level
+		NGP_InternalError,			// shouldn't happen at all, means that we have internal problems with the game
+		NGP_ContentRequired,		// when the game is not fully installed
+	};
+	call StartNewGamePlus() and check the result. Then display appropriate message if needed. */
 	import final function StartNewGamePlus( save : SSavegameInfo ) : ENewGamePlusStatus;
 	
 	public function OnConfigValueChanged( varName : name, value : string ) : void
@@ -585,7 +601,7 @@ import class CR4Game extends CCommonGame
 	
 		if(!restored)
 		{
-			
+			//because when you launch the game there is some memory corruption (?). In any case: variables are not reset but instead hold their values from previous session
 			gameplayFacts.Clear();
 			gameplayFactsForRemoval.Clear();
 		}
@@ -595,27 +611,27 @@ import class CR4Game extends CCommonGame
 			SetLowestDifficultyUsed(GetDifficultyLevel());
 		}
 			
-		SetHoursPerMinute(0.25);	
+		SetHoursPerMinute(0.25);	//this is actually set somewhere in C++ but we need to reset it with each new game session as editor fails to do that	
 		SetTimescaleSources();
 		
-		
+		//reset since theGame object does not reset properly on game launch
 		isDialogOrCutscenePlaying = false;
 	
-		
+		// params object is already created in c++
 		params.Init();
 		
-		
+		//combat log
 		witcherLog = new W3GameLog in this;
 				
 		InitGamerProfile();
 			
-		
+		// initializing damage manager
 		damageMgr = new W3DamageManager in this;
 
 		tooltipSettings = LoadCSV("gameplay\globals\tooltip_settings.csv");
-		minimapSettings = LoadCSV("gameplay\globals\minimap_settings.csv"); 
+		minimapSettings = LoadCSV("gameplay\globals\minimap_settings.csv"); //#B
 		LoadHudSettings();
-		playerStatisticsSettings = LoadCSV("gameplay\globals\player_statistics_settings.csv"); 
+		playerStatisticsSettings = LoadCSV("gameplay\globals\player_statistics_settings.csv"); //#B 
 					
 		LoadQuestLevels( "gameplay\globals\quest_levels.csv" );		 
 		
@@ -642,14 +658,13 @@ import class CR4Game extends CCommonGame
 		
 	private function InitGamerProfile()
 	{
-		
 		gamerProfile = new W3GamerProfile in this;
 		gamerProfile.Init();
 	}
 	
 	public function GetGamerProfile() : W3GamerProfile
 	{
-		
+		//because objects are created randomly on game start and might be created before the game is created
 		if(!gamerProfile)
 			InitGamerProfile();
 		
@@ -661,7 +676,7 @@ import class CR4Game extends CCommonGame
 		if(envMgr)
 			envMgr.Update();
 			
-		
+		//if player finally spawned we can update scheduled difficulty change
 		if(diffChangePostponed != EDM_NotSet && thePlayer)
 		{
 			OnDifficultyChanged(diffChangePostponed);
@@ -679,11 +694,11 @@ import class CR4Game extends CCommonGame
 		
 		if( !restored )
 		{
-			thePlayer.displayedQuestsGUID.Clear();
-			
-			
+			//call this only once at the start of new game to clear VALUES FROM PREVIOUS GAME SESSIONS BECAUSE ENGINE DOESN'T CLEAR THEM
 			if(FactsQuerySum("started_new_game") <= 0)
 			{
+				thePlayer.displayedQuestsGUID.Clear();
+
 				dynamicallySpawnedBoats.Clear();
 				FactsAdd("started_new_game", 1);
 			}
@@ -696,7 +711,7 @@ import class CR4Game extends CCommonGame
 	
 		GetCommonMapManager().OnGameStarted();
 		
-		
+		//rich presence
 		ClearRichPresence(currentPresence);		
 
 		theSound.InitializeAreaMusic( GetCommonMapManager().GetCurrentArea() );
@@ -717,7 +732,7 @@ import class CR4Game extends CCommonGame
 	
 	event OnBeforeWorldChange( worldName : string )
 	{
-		
+		// force setting loading screen video
 		var manager : CCommonMapManager = theGame.GetCommonMapManager();
 		if ( manager )
 		{
@@ -725,7 +740,7 @@ import class CR4Game extends CCommonGame
 			manager.ForceSettingLoadingScreenVideoForWorld( worldName );
 		}
 
-		
+		// clear used vehicle handle so it's empty when player is spawned in new world
 		thePlayer.SetUsedVehicle( NULL );
 	}
 	
@@ -733,34 +748,34 @@ import class CR4Game extends CCommonGame
 	{
 		var tut : STutorialMessage;
 		
-		
+		// Try to change the game state in case we were in a movie loading screen.
 		theSound.LeaveGameState(ESGS_Movie);
-		
-		
+		// If we entered constrained mode when in main menu or alt tabbed, we can be now in Menu mixing state.
+		// We fire the system_resume in order to get out of it.
 		theSound.SoundEvent("system_resume");
 		
-		
+		//show stash tutorial message if game loaded and it's a pre-stash playthrough
 		if(ShouldProcessTutorial('TutorialStash') && FactsQuerySum("tut_stash_fresh_playthrough") <= 0)
 		{			
-			
+			//fill tutorial object data
 			tut.type = ETMT_Message;
 			tut.tutorialScriptTag = 'TutorialStash';
 			tut.canBeShownInMenus = false;
 			tut.glossaryLink = false;
 			tut.markAsSeenOnShow = true;
 			
-			
+			//show tutorial
 			theGame.GetTutorialSystem().DisplayTutorial(tut);
 		}
 	}
 	
-	event  OnSaveStarted( type : ESaveGameType )
+	event /* C++ */ OnSaveStarted( type : ESaveGameType )
 	{
 		LogChannel( 'Savegame', "OnSaveStarted " + type );
-		
+		//theGame.GetGuiManager().ShowSavingIndicator(); // #Y disable for cert version
 	}
 
-	event  OnSaveCompleted( type : ESaveGameType, succeeded : bool )
+	event /* C++ */ OnSaveCompleted( type : ESaveGameType, succeeded : bool )
 	{
 		var hud : CR4ScriptedHud;
 		var text : string;
@@ -822,7 +837,7 @@ import class CR4Game extends CCommonGame
 		if(!theGame.IsBlackscreen() && theGame.IsActive())
 		{
 			if(theGame.GetGuiManager().IsAnyMenu())
-			{
+			{//if we are in a menu we resume music only
 				theSound.SoundEvent("system_resume_music_only");
 			}
 			else
@@ -838,21 +853,23 @@ import class CR4Game extends CCommonGame
 	{
 		if(!theGame.IsBlackscreen() && theGame.IsActive() && !theGame.GetGuiManager().IsAnyMenu())
 		{
-			
+			//we dont want to pause sounds if game is loading or is inactive or is already paused cos of Menu
 			theSound.SoundEvent("system_pause");
 		}
 		
 		GetGuiManager().OnControllerDisconnected();
 	}
 	
-	
+	//called when a quest reward is given
 	event OnGiveReward( target : CEntity, rewardName : name, rewrd : SReward )
 	{
 		var i 						: int;
 		var itemCount				: int;
 		var gameplayEntity 			: CGameplayEntity;
 		var inv		 				: CInventoryComponent;
-		var multiplier				: float;
+		var goldMultiplier			: float;
+		var itemMultiplier			: float;
+		var itemsCount				: int;
 		var ids						: array<SItemUniqueId>;
 		var itemCategory 			: name;
 		var lvlDiff					: int;
@@ -861,13 +878,14 @@ import class CR4Game extends CCommonGame
 		var difficultyMode			: EDifficultyMode;
 		var rewardNameS				: string;
 		var ep1Content				: bool;
+		var rewardMultData			: SRewardMultiplier;
 		
 		if ( target == thePlayer )
 		{
-			
+			// exp 
 			if ( rewrd.experience > 0 && GetWitcherPlayer())
 			{
-				
+				// check of EP1 content
 				rewardNameS = NameToString(rewardName);
 				ep1Content = false;
 				if ( StrContains(rewardNameS, "q60") )
@@ -878,25 +896,25 @@ import class CR4Game extends CCommonGame
 				{
 					if(FactsQuerySum("witcher3_game_finished") > 1 && !ep1Content )
 					{
-						expModifier = 0.5f;		
+						expModifier = 0.5f;		//after completing the main quest line we get always 50% base exp
 					}
 					else
 					{
 						if ( rewrd.level == 0 )
 						{
-							expModifier = 1.f;   
+							expModifier = 1.f;   // special quests
 						}
 						else
 						{
 							lvlDiff = rewrd.level - thePlayer.GetLevel();
 							
-							
+							//reward levels are set for base game, we need to increase them in NG+
 							if(FactsQuerySum("NewGamePlus") > 0)
 								lvlDiff += params.GetNewGamePlusLevel();
 								
 							if ( lvlDiff <= -theGame.params.LEVEL_DIFF_HIGH )
 							{
-								expModifier = 0.f; 		
+								expModifier = 0.f; 		//no exp
 							}
 							else
 							{
@@ -934,7 +952,6 @@ import class CR4Game extends CCommonGame
 					expModifier = 0.05f;			
 					GetWitcherPlayer().AddPoints( EExperiencePoint, RoundF( rewrd.experience * expGlobalMod_quests * expModifier), true);
 				}
-
 			}
 			
 			if ( rewrd.achievement > 0 )
@@ -949,36 +966,52 @@ import class CR4Game extends CCommonGame
 			inv = gameplayEntity.GetInventory();
 			if ( inv )
 			{
+				rewardMultData = thePlayer.GetRewardMultiplierData( rewardName );
 				
+				if( rewardMultData.isItemMultiplier )
+				{
+					goldMultiplier = 1.0;
+					itemMultiplier = rewardMultData.rewardMultiplier;
+				}
+				else
+				{
+					goldMultiplier = rewardMultData.rewardMultiplier;
+					itemMultiplier = 1.0;
+				}
+				
+				// gold
 				if ( rewrd.gold > 0 )
 				{
-					multiplier = thePlayer.GetRewardMultiplier( rewardName );
-					inv.AddMoney( (int)(rewrd.gold * multiplier) );
+					inv.AddMoney( (int)(rewrd.gold * goldMultiplier) );
 					thePlayer.RemoveRewardMultiplier(rewardName);		
 					if( target == thePlayer )
 					{
-						moneyWon = (int)(rewrd.gold * multiplier);
-
+						moneyWon = (int)(rewrd.gold * goldMultiplier);
+						
 						if ( moneyWon > 0 )
 							thePlayer.DisplayItemRewardNotification('Crowns', moneyWon );
 					}
 				}
 				
+				// items
+				
 				for ( i = 0; i < rewrd.items.Size(); i += 1 )
 				{
-					if ( rewrd.items[ i ].amount > 0 )
+					itemsCount = RoundF( rewrd.items[ i ].amount * itemMultiplier );
+					
+					if( itemsCount > 0 )
 					{
-						ids = inv.AddAnItem( rewrd.items[ i ].item, rewrd.items[ i ].amount );
+						ids = inv.AddAnItem( rewrd.items[ i ].item, itemsCount );
 						
 						for ( itemCount = 0; itemCount < ids.Size(); itemCount += 1 )
 						{
-							
+							// failsafe - when item is spawned in container and there is no player level yet - reset item and regenerate
 							if ( inv.ItemHasTag( ids[i], 'Autogen' ) && GetWitcherPlayer().GetLevel() - 1 > 1 )
 							{ 
 								inv.GenerateItemLevel( ids[i], true );
 							}
 						}
-
+						
 						itemCategory = inv.GetItemCategory( ids[0] );
 						if ( itemCategory == 'alchemy_recipe' ||  itemCategory == 'crafting_schematic' )
 						{
@@ -987,10 +1020,10 @@ import class CR4Game extends CCommonGame
 						
 						if(target == thePlayer)
 						{
-							
-							if( !inv.ItemHasTag( ids[0],'GwintCard') )
+							//Gwint cards should not display info in rewards, notification is handled inside AddAnItem function to display info from all sources
+							if( !inv.ItemHasTag( ids[0], 'GwintCard') )
 							{
-								thePlayer.DisplayItemRewardNotification(rewrd.items[ i ].item, rewrd.items[ i ].amount );
+								thePlayer.DisplayItemRewardNotification(rewrd.items[ i ].item, RoundF( rewrd.items[ i ].amount * itemMultiplier ) );
 							}
 						}
 					}
@@ -1023,7 +1056,7 @@ import class CR4Game extends CCommonGame
 		FactsSet("lowest_difficulty_used", (int)d);
 	}
 	
-	
+	// Game ended
 	event OnGameEnded()
 	{	
 		var focusModeController : CFocusModeController;
@@ -1062,9 +1095,9 @@ import class CR4Game extends CCommonGame
 		
 		RemoveTimeScale( GetTimescaleSource(ETS_RadialMenu) );
 
-		
+		//for sound debuging/ambients in editor
 		theSound.Finalize();
-		
+		//theSound.SoundState( "game_state", ""  );
 		
 		LogChannel( 'HUD', "GUI Closed" );
 	}
@@ -1115,11 +1148,11 @@ import class CR4Game extends CCommonGame
 			}
 		}
 		
-		
+		//disable player quen
 		witcher = GetWitcherPlayer();
 		if(b && witcher && witcher.IsAnyQuenActive())
 		{
-			witcher.FinishQuen(true);			
+			witcher.FinishQuen( true, true );			
 		}
 		
 		activePoster = thePlayer.GetActivePoster ();
@@ -1145,11 +1178,11 @@ import class CR4Game extends CCommonGame
 			}
 		}
 		
-		
-		
+		//harpoon equip hack - sometimes scenes can teleport player to water for a short while - in such case 
+		//harpoons equip properly but it does not handle getting out of the water properly
 		if(!b && witcher)
 		{
-			
+			//if no bolts equipped or equipped bodkin/harpoon bolts
 			if(!witcher.GetItemEquippedOnSlot(EES_Bolt, bolts) || witcher.inv.ItemHasTag(bolts, theGame.params.TAG_INFINITE_AMMO))			
 				witcher.AddAndEquipInfiniteBolt();
 		}
@@ -1175,26 +1208,30 @@ import class CR4Game extends CCommonGame
 		savedEnchanterFunds = value;
 	}
 
-	
+	//bullshit as the var is public but cannot be accessed
 	public function SetIsCutscenePlaying(b : bool)
 	{
 		isCutscenePlaying = b;
 	}
 	
+	/////////////////////////////////////////////
+	// MAIN MENU
+	/////////////////////////////////////////////
 	
-	
-	
-	
-	 public function PopulateMenuQueueStartupOnce( out menus : array< name > )
+	/* C++ */ public function PopulateMenuQueueStartupOnce( out menus : array< name > )
 	{
 		menus.PushBack( 'StartupMoviesMenu' );
 	}
 	
-	 public function PopulateMenuQueueStartupAlways( out menus : array< name > )
+	/* C++ */ public function PopulateMenuQueueStartupAlways( out menus : array< name > )
 	{
 		if (GetPlatform() != Platform_PC)
 		{
-			if ( theGame.GetDLCManager().IsEP1Available() )
+			if ( theGame.GetDLCManager().IsEP2Available() )
+			{
+				menus.PushBack( 'StartScreenMenuEP2' );
+			}
+			else if ( theGame.GetDLCManager().IsEP1Available() )
 			{
 				menus.PushBack( 'StartScreenMenuEP1' );
 			}
@@ -1205,7 +1242,7 @@ import class CR4Game extends CCommonGame
 		}
 	}
 	
-	 public function PopulateMenuQueueConfig( out menus : array< name > )
+	/* C++ */ public function PopulateMenuQueueConfig( out menus : array< name > )
 	{
 		var inGameConfigWrapper : CInGameConfigWrapper;
 		inGameConfigWrapper = (CInGameConfigWrapper)theGame.GetInGameConfigWrapper();
@@ -1217,7 +1254,7 @@ import class CR4Game extends CCommonGame
 		}
 	}
 
-	 public function PopulateMenuQueueMainOnce( out menus : array< name > )
+	/* C++ */ public function PopulateMenuQueueMainOnce( out menus : array< name > )
 	{
 		if (GetPlatform() != Platform_PC)
 		{
@@ -1226,9 +1263,13 @@ import class CR4Game extends CCommonGame
 		menus.PushBack( 'RecapMoviesMenu' );
 	}
 	
-	 public function PopulateMenuQueueMainAlways( out menus : array< name > )
+	/* C++ */ public function PopulateMenuQueueMainAlways( out menus : array< name > )
 	{
-		if (theGame.GetDLCManager().IsEP1Available())
+		if (theGame.GetDLCManager().IsEP2Available())
+		{
+			menus.PushBack( 'CommonMainMenuEP2' );
+		}
+		else if (theGame.GetDLCManager().IsEP1Available())
 		{
 			menus.PushBack( 'CommonMainMenuEP1' );
 		}
@@ -1243,9 +1284,9 @@ import class CR4Game extends CCommonGame
 		return "game/witcher3.redgame";
 	}
 	
-	
-	
-	
+	/////////////////////////////////////////////
+	// GAME ZONES
+	/////////////////////////////////////////////
 	
 	public function GetCurrentZone() : EZoneName
 	{
@@ -1257,9 +1298,9 @@ import class CR4Game extends CCommonGame
 		zoneName = ZoneNameToType( tag );
 	}
 		
-	
-	
-	
+	/////////////////////////////////////////////
+	// 					UI
+	/////////////////////////////////////////////
 	
 	private var uiHorizontalFrameScale : float;	default uiHorizontalFrameScale 				= 1.0;
 	private var uiVerticalFrameScale : float;	default uiVerticalFrameScale 				= 1.0;
@@ -1267,7 +1308,7 @@ import class CR4Game extends CCommonGame
 	private var uiGamepadScaleGain : float;		default uiGamepadScaleGain 					= 0.0;
 	private var uiOpacity : float;				default uiOpacity 							= 0.8;
 	
-	
+	// #Y temp solution to store this value
 	protected var isColorBlindMode:bool;
 	public function getColorBlindMode():bool
 	{
@@ -1278,7 +1319,7 @@ import class CR4Game extends CCommonGame
 		isColorBlindMode = value;
 	}
 	
-	
+	// menu to be opened by common/background menu
 	private var menuToOpen : name;
 	public function GetMenuToOpen() : name
 	{
@@ -1384,7 +1425,7 @@ import class CR4Game extends CCommonGame
 	{
 		var inGameConfigWrapper : CInGameConfigWrapper;
 		
-		hudSettings = LoadCSV("gameplay\globals\hud_settings.csv"); 
+		hudSettings = LoadCSV("gameplay\globals\hud_settings.csv"); //#B
 			
 		inGameConfigWrapper = (CInGameConfigWrapper)theGame.GetInGameConfigWrapper();
 			
@@ -1422,7 +1463,7 @@ import class CR4Game extends CCommonGame
 		}
 		else
 		{
-			
+			// Just come to me you koń ! 
 			thePlayer.GetHorseWithInventory().SignalGameplayEventParamObject( 'HorseSummon', thePlayer );
 		}
 		
@@ -1435,12 +1476,12 @@ import class CR4Game extends CCommonGame
 		var horseManager	: W3HorseManager;
 		var horse			: CActor;
 
-		
+		//Demonic Saddle
 		horseManager = GetWitcherPlayer().GetHorseManager();
 		saddle = horseManager.GetItemInSlot(EES_HorseSaddle);
 		if ( horseManager.GetInventoryComponent().GetItemName(saddle) == 'Devil Saddle' )
 		{
-			
+			// proper appearance for 'Devil Saddle' is set inside ApplyHorseUpdateOnSpawn called below
 			horse = (CActor)horseEntity;
 			horse.AddEffectDefault(EET_WeakeningAura, horse, 'horse saddle', false);
 		}
@@ -1450,12 +1491,12 @@ import class CR4Game extends CCommonGame
 		GetWitcherPlayer().GetHorseManager().ApplyHorseUpdateOnSpawn();
 	}
 	
-	
+	//See EDialogActionIcon for flag values (EDialogActionIcon)
 	event OnTutorialMessageForChoiceLines( flags : int )
 	{
+		//var dbg_icons : array<EDialogActionIcon>;
 		
-		
-		
+		//dbg_icons	 = GetDialogActionIcons(flags);
 		GameplayFactsSet('dialog_choice_flags', flags);
 		GameplayFactsAdd('dialog_choice_is_set', 1, 1);
 	}
@@ -1466,12 +1507,16 @@ import class CR4Game extends CCommonGame
 		GameplayFactsAdd('dialog_used_choice_is_set', 1, 1);
 	}	
 	
-	
-	
-	
-	
-	
-	
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////   GAMEPLAY FACTS   //////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/*
+		Duplicated facts db functionality. The reason is that if game is paused or if gametime is frozen to a fixed hour (e.g. constant 15:30)
+		then facts CANNOT be removed from DB until game is unpaused / time is unfrozen. As a consequence this screws up all facts
+		being added for some period of time. We're not going to get any fix on this.
+	*/
 
 	public function GameplayFactsAdd(factName : string, optional value : int, optional realtimeSecsValidFor : int)
 	{
@@ -1538,7 +1583,7 @@ import class CR4Game extends CCommonGame
 		}
 	}
 	
-	
+	//Gameplay fact removed by finished timer of given timer ID
 	public function GameplayFactRemoveFromTimer(timerID : int)
 	{
 		var idx, factIdx : int;
@@ -1609,7 +1654,7 @@ import class CR4Game extends CCommonGame
 				
 		diff = GetDifficultyLevel();
 		
-		
+		//if diff not set, then use default
 		if(diff == EDM_NotSet)
 		{
 			return EDM_Medium;
@@ -1623,7 +1668,7 @@ import class CR4Game extends CCommonGame
 		var i : int;
 		var lowestDiff : EDifficultyMode;
 		
-		
+		//we need player to get entities around it to update their stats - if no player then postpone
 		if(!thePlayer)
 		{
 			diffChangePostponed = newDifficulty;
@@ -1632,7 +1677,7 @@ import class CR4Game extends CCommonGame
 		
 		theTelemetry.SetCommonStatI32(CS_DIFFICULTY_LVL, newDifficulty);
 
-		
+		//update min used difficulty mode if current mode < previous min mode
 		lowestDiff = GetLowestDifficultyUsed();		
 		if(lowestDiff != newDifficulty && MinDiffMode(lowestDiff, newDifficulty) == newDifficulty)
 			SetLowestDifficultyUsed(newDifficulty);
@@ -1640,24 +1685,24 @@ import class CR4Game extends CCommonGame
 		UpdateStatsForDifficultyLevel( GetSpawnDifficultyMode() );
 	}
 	
-	
+	//called AFTER player entity has changed to a new actor
 	public function OnPlayerChanged()
 	{
 		var i : int;
 		var buffs : array<CBaseGameplayEffect>;
 		var witcher : W3PlayerWitcher;
 		
-		
+		//remove buffs added when we were previously playing with this character
 		thePlayer.RemoveAllNonAutoBuffs();
 		
-		
+		//force resume all autobuffs
 		buffs = thePlayer.GetBuffs();
 		for(i=0; i<buffs.Size(); i+=1)
 		{
 			buffs[i].ResumeForced();
 		}
 	
-		
+		//we have no destructors so we cannot remove fx when player character is destroyed - hence the hack
 		GetGameCamera().StopEffect( 'frost' );
 		DisableCatViewFx( 1.0f );
 		thePlayer.StopEffect('critical_low_health');
@@ -1667,16 +1712,16 @@ import class CR4Game extends CCommonGame
 		if(GetWitcherPlayer())
 			GetWitcherPlayer().UpdateEncumbrance();
 	
-		
-		
+		// Update difficulty on all spawned gameplay entities, as
+		// playing as Ciri we're limited to medium difficulty.	
 		UpdateStatsForDifficultyLevel( GetSpawnDifficultyMode() );
 		
-		
+		//reset timescale to 1.0f
 		RemoveAllTimeScales();
 	}
 	
-	
-	
+	// When the player is using Ciri monsters
+	// should be limited to Medium difficulty.
 	public function GetSpawnDifficultyMode() : EDifficultyMode
 	{
 		if( thePlayer && thePlayer.IsCiri() )
@@ -1723,7 +1768,7 @@ import class CR4Game extends CCommonGame
 			for( iterQuestLevels = 0; iterQuestLevels < questLevelsCount; iterQuestLevels += 1 )
 			{
 				questLevels = theGame.questLevelsContainer[iterQuestLevels];
-			
+			// these questLevels should be in journal
 				questCount = questLevels.GetNumRows();
 				for( i = 0; i < questCount; i += 1 )
 				{
@@ -1746,9 +1791,9 @@ import class CR4Game extends CCommonGame
 		return IsBlackscreen() || IsFading();
 	}
 		
-	
-	
-	
+	////////////////////////////////////////////////////////////
+	// "postponed" CPreAttackEvevets - called in "Main" tick
+	////////////////////////////////////////////////////////////
 
 	var postponedPreAttackEvents : array< SPostponedPreAttackEvent >;
 	
@@ -1795,7 +1840,7 @@ import class CR4Game extends CCommonGame
 			
 			if(dynamicallySpawnedBoats.Size() >= theGame.params.MAX_DYNAMICALLY_SPAWNED_BOATS)
 			{
-				
+				//check for nulls in array - failsafe (if sth else would destroy boat)
 				for(i=dynamicallySpawnedBoatsToDestroy.Size()-1; i>=0; i-=1)
 				{
 					if(!EntityHandleGet(dynamicallySpawnedBoats[i]))
@@ -2299,6 +2344,42 @@ import class CR4Game extends CCommonGame
 		}
 		return zoom34;
 	}
+	
+	public function GetGradientScale( areaType : int ) : float
+	{
+		var scale  : float;
+		var valueAsString : string;
+		
+		valueAsString = minimapSettings.GetValueAt( 24, areaType );
+		
+		if( StrLen( valueAsString ) != 0 )
+		{
+			scale = StringToFloat( valueAsString );
+		}
+		else
+		{
+			scale = GetWorldDLCExtender().GetGradientScale( areaType );
+		}
+		return scale;
+	}
+	
+	public function GetPreviewHeight( areaType : int ) : float
+	{
+		var height  : float;
+		var valueAsString : string;
+		
+		valueAsString = minimapSettings.GetValueAt( 25, areaType );
+		
+		if( StrLen( valueAsString ) != 0 )
+		{
+			height = StringToFloat( valueAsString );
+		}
+		else
+		{
+			height = GetWorldDLCExtender().GetPreviewHeight( areaType );
+		}
+		return height;
+	}
 
 	private function UnlockMissedAchievements()
 	{
@@ -2313,6 +2394,22 @@ import class CR4Game extends CCommonGame
 		if (FactsDoesExist("witcher3_game_finished"))
 		{
 			Achievement_FinishedGame();
+		}
+	}
+	
+	public final function MutationHUDFeedback( type : EMutationFeedbackType )
+	{
+		var hud : CR4ScriptedHud;
+		var hudWolfHeadModule : CR4HudModuleWolfHead;		
+
+		hud = (CR4ScriptedHud)GetHud();
+		if ( hud )
+		{
+			hudWolfHeadModule = (CR4HudModuleWolfHead)hud.GetHudModule( "WolfHeadModule" );
+			if ( hudWolfHeadModule )
+			{
+				hudWolfHeadModule.DisplayMutationFeedback( type );
+			}
 		}
 	}
 }

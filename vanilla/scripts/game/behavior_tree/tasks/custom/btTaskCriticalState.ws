@@ -1,11 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** 
 /***********************************************************************/
-
-
-
+/** Copyright © 2012
+/** Author : Patryk Fiutowski
+/***********************************************************************/
 
 class CBehTreeTaskCriticalState extends IBehTreeTask
 {
@@ -14,8 +12,6 @@ class CBehTreeTaskCriticalState extends IBehTreeTask
 	private var forceActivate		: bool;
 	
 	private var currentCS : ECriticalStateType;		
-	
-	protected var storageHandler 		: CAIStorageHandler;
 	
 	function IsAvailable () : bool
 	{
@@ -46,6 +42,7 @@ class CBehTreeTaskCriticalState extends IBehTreeTask
 		var nextBuffType : ECriticalStateType;
 		var owner : CNewNPC;
 		var forceRemoveCurrentBuff : bool;
+		var tempB : bool;
 		
 		owner = GetNPC();
 		
@@ -57,9 +54,13 @@ class CBehTreeTaskCriticalState extends IBehTreeTask
 		
 		nextBuff = owner.ChooseNextCriticalBuffForAnim();
 		nextBuffType = GetBuffCriticalType(nextBuff);
+		if ( nextBuffType == ECST_BurnCritical && owner.HasAbility( 'BurnNoAnim' ) )
+		{
+			tempB = true;
+		}
 		
-		
-		
+		//force remove current buff if there is no other buff (CS anim is shorter then buff duration) 
+		//or next buff is the same as current buff (task ended before anim end info reached effect manager)
 		if(!nextBuff || (currentCS == nextBuffType))
 		{			
 			forceRemoveCurrentBuff = true;
@@ -69,17 +70,18 @@ class CBehTreeTaskCriticalState extends IBehTreeTask
 			forceRemoveCurrentBuff = false;
 		}
 		
-		owner.CriticalStateAnimStopped(forceRemoveCurrentBuff);		
-				
+		owner.CriticalStateAnimStopped(forceRemoveCurrentBuff);
+		theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( owner, 'RecoveredFromCriticalEffect', -1, 30.0f, -1.f, -1, true ); //reactionSystemSearch
+		
 		activate = false;
 		
 		if(!nextBuff)
 		{
-			
+			//if no other critical buffs to play then disallow play anim of current buff
 			currBuff = owner.GetCurrentlyAnimatedCS();
 			CriticalBuffDisallowPlayAnimation(currBuff);
 		}
-		else
+		else if ( !tempB && !owner.HasAbility( 'ablIgnoreSigns' ) )
 		{
 			forceActivate = true;
 		}
@@ -110,31 +112,42 @@ class CBehTreeTaskCriticalState extends IBehTreeTask
 			
 			npc = GetNPC();
 			
-			
-			
+			// We no longer have seperate trees for critical states. Previously we could disable critical state animation by removing
+			// critical state tree in ai parametrization. This is a workaround that prevents animation from playing.
 			if ( receivedBuffType == ECST_BurnCritical && npc.HasAbility( 'BurnNoAnim' ) )
+			{
+				npc.SignalGameplayEvent('CSBurningNoAnim');
 				return false;
-			
-			
+			}
+			// Ability condition that blocks critical state animations - for handling critical states with additive anims
 			if ( npc.HasAbility( 'ablIgnoreSigns' ) )
 				return false;
 			
 			if ( ShouldBeScaredOnOverlay() )
 			{
-				theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( GetNPC(), 'TauntAction', -1, 1.f, -1.f, 1, false ); 
+				theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( GetNPC(), 'TauntAction', -1, 1.f, -1.f, 1, false ); //reactionSystemSearch
 				return false;
 			}
 			
 			activate = true;
 			activateTimeStamp = GetLocalTime();
 			
-			if ( isActive ) 
+			if( isActive ) 
 			{
-				currentBuffPriority = CalculateCriticalStateTypePriority(currentCS);
-				receivedBuffPriority = CalculateCriticalStateTypePriority(receivedBuffType);
-				
-				if ( receivedBuffPriority > currentBuffPriority )
-					Complete(true);
+				if( IsStagger( receivedBuffType ) && IsStagger( currentCS ) )
+				{
+					Complete( true );
+				}
+				else
+				{
+					currentBuffPriority = CalculateCriticalStateTypePriority( currentCS );
+					receivedBuffPriority = CalculateCriticalStateTypePriority( receivedBuffType );
+					
+					if ( receivedBuffPriority > currentBuffPriority )
+					{
+						Complete( true );
+					}
+				}
 			}
 		}
 		else if ( gameEventName == 'RagdollFromHorse'  )
@@ -154,6 +167,11 @@ class CBehTreeTaskCriticalState extends IBehTreeTask
 		res = GetNPC().SignalGameplayEventReturnInt('AI_ShouldBeScaredOnOverlay',-1);
 		
 		return res > 0;
+	}
+	
+	private function IsStagger( type : ECriticalStateType ) : bool
+	{
+		return type == ECST_Stagger || type == ECST_LongStagger;
 	}
 }
 

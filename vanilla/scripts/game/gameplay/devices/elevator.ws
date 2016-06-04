@@ -1,11 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file
 /***********************************************************************/
-
-
-
+/** Example gameplay device
+/** Copyright © 2012 CD projekt RED
+/***********************************************************************/
 
 class W3ElevatorMechanism extends CEntity
 {
@@ -125,7 +123,7 @@ class W3ElevatorSwitch extends W3InteractionSwitch
 					elevatorInteractive.CheckInitialVariables();
 					elevatorInteractive.activated = true;
 				}
-				
+				//elevatorInteractive.GotoState( 'Moving' );
 				super.OnInteraction( actionName, activator );
 			}
 		}
@@ -263,7 +261,7 @@ class W3ElevatorInteractive extends W3Elevator
 			
 			SoundEvent( "global_machines_lift_wood1_platform_stop" );
 			
-			
+			//theCamera.CameraShakeLooped( 0.0 );
 			
 			GCameraShake(0.1, this, this.GetWorldPosition(), 6.0);
 		}
@@ -306,7 +304,7 @@ class W3ElevatorInteractive extends W3Elevator
 		}
 		
 		GCameraShake(0.1, true, this.GetWorldPosition(), 6.0);
-		
+		//theCamera.CameraShakeLooped( 1.0, CSS_Elevator );
 		
 		SoundEvent( "global_machines_lift_wood1_platform_start" );
 		ApplyAppearance( appearanceOnGround );
@@ -357,10 +355,10 @@ class W3ElevatorInteractive extends W3Elevator
 			heightDifference = maxHeight;
 		}
 		
-		
-		
-		
-		if( currentHeightDifference > -2 ) 
+		//MSZ This is just for setup purposes (if the targetObject is below the elevator
+		//the speed is inversed - that means, that the elevator will start going down instead of
+		//up (just a different elevator setup - depends only on the position of the targetObject).
+		if( currentHeightDifference > -2 ) // 2m tolerance
 		{
 			ApplyAppearance( appearanceOnGround );
 			goingUp = true;
@@ -443,7 +441,7 @@ class W3ElevatorInteractive extends W3Elevator
 		if ( (CPlayer)entity && currentSpeed < 0 )
 		{
 			action = new W3DamageAction in this;
-			
+			//action.attacker = this;
 			action.Initialize( this, (CPlayer)entity, this, this.GetName(), EHRT_Light, CPS_AttackPower, false, false, false, true);
 			action.AddDamage(theGame.params.DAMAGE_NAME_DIRECT, ((CPlayer)entity).GetStat( BCS_Vitality ) + 1 );
 			theGame.damageMgr.ProcessAction( action );
@@ -535,7 +533,7 @@ statemachine class W3Elevator extends CGameplayEntity
 		{
 			if ( !playerAttached )
 			{
-				
+				//entMatrix = GetLocalToWorld();
 				if ( currentSpeed < 0 )
 				{
 					this.CalcEntitySlotMatrix( 'goDownSlot', entMatrix );
@@ -548,7 +546,7 @@ statemachine class W3Elevator extends CGameplayEntity
 					thePlayer.GetMovingAgentComponent().SetAdditionalOffsetToConsumePointWS( entMatrix, 0.6f );
 					thePlayer.CreateAttachment( this, 'goUpSlot' );
 				}
-				
+				//thePlayer.CreateAttachment( this );
 				thePlayer.GetMovingAgentComponent().SetEnabledFeetIK( false );
 				BlockActions( true );
 				playerAttached = true;
@@ -582,7 +580,7 @@ statemachine class W3Elevator extends CGameplayEntity
 					SleepOneFrame();
 				}
 				deniedArea1 = createEntityHelper.GetCreatedEntity();
-				
+				//HACK to avoid editing entities - too late for that
 				offsetPos = onTopPos;
 				offsetPos.Z += 2.5f;
 				theGame.CreateEntityAsync( createEntityHelper, entityTemplate, offsetPos, this.GetWorldRotation() );
@@ -604,7 +602,7 @@ statemachine class W3Elevator extends CGameplayEntity
 				deniedArea2.AddTag( 'no_climb' );
 				deniedArea3.RemoveTag( 'climb' );
 				deniedArea3.AddTag( 'no_climb' );
-				
+				//END OF HACK
 				deniedAreaCreated = true;
 			}
 		}

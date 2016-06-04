@@ -1,10 +1,7 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2014
+/** Author : Tomek Kozera
 /***********************************************************************/
-
-
 
 state SpecialAttacks in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
@@ -15,15 +12,15 @@ state SpecialAttacks in W3TutorialManagerUIHandler extends TutHandlerBaseState
 		
 	event OnLeaveState( nextStateName : name )
 	{		
-		CloseHint(SPECIALS);
-		CloseHint(ALTERNATES);
+		CloseStateHint(SPECIALS);
+		CloseStateHint(ALTERNATES);
 		
-		
-		
+		//no super - don't unregister listener when quitting
+		//instead unregister only if both seen
 		
 		if(theGame.GetTutorialSystem().HasSeenTutorial(SPECIALS) && theGame.GetTutorialSystem().HasSeenTutorial(ALTERNATES))
 		{
-			theGame.GetTutorialSystem().uiHandler.UnregisterUIHint(GetStateName());
+			theGame.GetTutorialSystem().uiHandler.UnregisterUIState(GetStateName());
 		}
 	}
 		
@@ -31,13 +28,11 @@ state SpecialAttacks in W3TutorialManagerUIHandler extends TutHandlerBaseState
 	{
 		if(skill == S_Sword_s01 || skill == S_Sword_s02)
 		{
-			ShowHint(SPECIALS, theGame.params.TUT_POS_CHAR_DEV_X, 0.47f, ETHDT_Input);
-			theGame.GetTutorialSystem().MarkMessageAsSeen(SPECIALS);
+			ShowHint( SPECIALS, POS_CHAR_DEV_X, 0.47f, ETHDT_Input, , , , true );
 		}
 		else if(skill == S_Magic_s01 || skill == S_Magic_s02 || skill == S_Magic_s03 || skill == S_Magic_s04 || skill == S_Magic_s05)
 		{
-			ShowHint(ALTERNATES, theGame.params.TUT_POS_CHAR_DEV_X, theGame.params.TUT_POS_CHAR_DEV_Y, ETHDT_Input);
-			theGame.GetTutorialSystem().MarkMessageAsSeen(ALTERNATES);
+			ShowHint( ALTERNATES, POS_CHAR_DEV_X, POS_CHAR_DEV_Y, ETHDT_Input, , , , true );
 		}
 	}
 }

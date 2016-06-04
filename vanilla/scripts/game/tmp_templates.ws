@@ -1,17 +1,12 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
-
+﻿//--------------------------------------------------------------------
+//-- TEMPLATS start
+//--------------------------------------------------------------------
 
 exec function spawnt( template_nbr : int, optional distance : float)
 {	
 	switch ( template_nbr )
 	{
-		
+		// Inquistion
 		case 1:		
 		case 2:		
 		case 3:		
@@ -24,7 +19,7 @@ exec function spawnt( template_nbr : int, optional distance : float)
 			spawnt_inquistion(template_nbr, distance);
 			break;
 			
-		
+		// Nilfgard
 		case 10:
 		case 11:
 		case 12:
@@ -45,7 +40,7 @@ exec function spawnt( template_nbr : int, optional distance : float)
 			spawnt_nilfgard(template_nbr, distance);
 			break;
 			
-		
+		// NML
 		case 27:
 		case 29:
 		case 31:
@@ -86,7 +81,7 @@ exec function spawnt( template_nbr : int, optional distance : float)
 			spawnt_nml_t2(template_nbr, distance);
 			break;
 			
-		
+		// Novigrad
 		case 61:
 		case 62:
 		case 63:
@@ -112,7 +107,7 @@ exec function spawnt( template_nbr : int, optional distance : float)
 			spawnt_novigrad(template_nbr, distance);
 			break;	
 			
-		
+		// Redania
 		case 83:
 		case 84:
 		case 85:
@@ -133,7 +128,7 @@ exec function spawnt( template_nbr : int, optional distance : float)
 			spawnt_redania(template_nbr, distance);
 			break;	
 			
-		
+		// Skellige
 		case 100:
 		case 102:
 		case 104:
@@ -174,7 +169,7 @@ exec function spawnt( template_nbr : int, optional distance : float)
 			spawnt_skellige_t2(template_nbr, distance);
 			break;
 			
-		
+		// Wild Hunt
 		case 134:	
 		case 135:
 		case 136:
@@ -2294,51 +2289,51 @@ function spawnt_internal(nam : string, optional quantity : int, optional distanc
 	quantity = Max(quantity, 1);
 	
 	rot = thePlayer.GetWorldRotation();	
-	rot.Yaw += 180;		
+	rot.Yaw += 180;		//the front placed entities will face the player
 	
-	
+	//camera direction
 	cameraDir = theCamera.GetCameraDirection();
 	
-	if( distance == 0 ) distance = 3; 
+	if( distance == 0 ) distance = 3; //place the entity 3 meters in front of the player
 	cameraDir.X *= distance;	
 	cameraDir.Y *= distance;
 	
-	
+	//player position
 	player = thePlayer.GetWorldPosition();
 	
-	
+	//center spawn pos
 	pos = cameraDir + player;	
 	pos.Z = player.Z;
 	
-	
-	posFin.Z = pos.Z;			
-	s = quantity / 0.2;			
+	//const values used in the loop
+	posFin.Z = pos.Z;			//final spawn pos
+	s = quantity / 0.2;			//maintain a constant density of 0.2 unit per m2
 	r = SqrtF(s/Pi());
 	
-	
+	//create the entity using given mapped path
 	template = (CEntityTemplate)LoadResource(nam, true);
 	
-	
-	
+	//if ( nam == 'rider' ) 
+	//	horseTemplate = (CEntityTemplate)LoadResource('horse');
 		
 	for(i=0; i<quantity; i+=1)
 	{		
-		x = RandF() * r;			
-		y = RandF() * (r - x);		
+		x = RandF() * r;			//add random value within range to X
+		y = RandF() * (r - x);		//add random value to Y so that the point is within the disk
 		
-		if(RandRange(2))					
+		if(RandRange(2))					//randomly select the sign for misplacement
 			sign = 1;
 		else
 			sign = -1;
 			
-		posFin.X = pos.X + sign * x;	
+		posFin.X = pos.X + sign * x;	//final X pos
 		
-		if(RandRange(2))					
+		if(RandRange(2))					//randomly select the sign for misplacement
 			sign = 1;
 		else
 			sign = -1;
 			
-		posFin.Y = pos.Y + sign * y;	
+		posFin.Y = pos.Y + sign * y;	//final Y pos
 				
 		theGame.GetWorld().StaticTrace( posFin + 5, posFin - 5, posFin, normal );
 		
@@ -2348,9 +2343,9 @@ function spawnt_internal(nam : string, optional quantity : int, optional distanc
 		{
 			horseTag.PushBack('enemy_horse');
 			horse = theGame.CreateEntity(horseTemplate, posFin, rot,true,false,false,PM_DontPersist,horseTag);
-			
-			
-			
+			//horse.AddTag('horse_enemy');
+			//((CActor)horse).AddTag('enemy_horse');
+			//Sleep(0.01);
 			((CActor)ent).SignalGameplayEventParamInt( 'RidingManagerMountHorse', MT_instant | MT_fromScript );
 		}
 			
@@ -2359,6 +2354,6 @@ function spawnt_internal(nam : string, optional quantity : int, optional distanc
 	}
 }
 
-
-
-
+//--------------------------------------------------------------------
+//-- TEMPLATS end
+//--------------------------------------------------------------------

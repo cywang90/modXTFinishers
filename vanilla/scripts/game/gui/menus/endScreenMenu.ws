@@ -1,20 +1,18 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file - End Screen Menu
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author : Bartosz Bigaj
 /***********************************************************************/
 
-
-
-
-class CR4EndScreenMenu extends CR4StartScreenMenu
+class CR4EndScreenMenu extends CR4StartScreenMenuBase
 {	
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{	
 		super.OnConfigUI();
 	}
 	
-	event  OnCloseMenu()
+	event /*flash*/ OnCloseMenu()
 	{
 		theGame.FadeInAsync(thePlayer.GetStartScreenFadeInDuration());
 		thePlayer.SetEndScreenIsOpened(false);
@@ -22,10 +20,10 @@ class CR4EndScreenMenu extends CR4StartScreenMenu
 		theInput.RestoreContext( 'EMPTY_CONTEXT', true );
 	}
 	
-	event OnKeyPress() 
+	event OnKeyPress() // doesn't close for now
 	{
-		
-		
-		
+		//theSound.SoundEvent("mus_loc_silent"); // #B old, check
+		//theSound.EnterGameState( ESGS_Movie ); // #B old, check
+		//theGame.FadeOutAsync(_fadeDuration);
 	}	
 }

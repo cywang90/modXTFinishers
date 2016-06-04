@@ -1,25 +1,40 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-class W3GuiShopInventoryComponent extends W3GuiBaseInventoryComponent
+﻿class W3GuiShopInventoryComponent extends W3GuiBaseInventoryComponent
 {
 	protected function InvalidateItems( items : array<SItemUniqueId> )
 	{
-		
+		//_dpShop.InvalidateData(); // #B deprecated
 	}
 
 	function SetInventoryFlashObjectForItem( item : SItemUniqueId, out flashObject : CScriptedFlashObject) : void
 	{
 		var isQuest	 : bool;
+		var l_questTag	: string;
 		
 		super.SetInventoryFlashObjectForItem(item, flashObject);
 		
-		isQuest = _inv.ItemHasTag(item, 'Quest');
+		
+		l_questTag = "";
+		if(_inv.ItemHasTag(item, 'Quest'))
+		{
+			l_questTag = "Quest";
+			isQuest = true;
+		}
+		
+		if (_inv.ItemHasTag(item, 'QuestEP1'))
+		{
+			l_questTag = "QuestEP1";
+			isQuest = true;
+		}
+		
+		if (_inv.ItemHasTag(item, 'QuestEP2'))
+		{
+			l_questTag = "QuestEP2";
+			isQuest = true;
+		}
 		
 		flashObject.SetMemberFlashBool( "isQuest", isQuest );
-		flashObject.SetMemberFlashBool( "isNew", false ); 
+		flashObject.SetMemberFlashBool( "isNew", false ); // ignore for shop
+		flashObject.SetMemberFlashString( "questTag", l_questTag );
 	}
 	
 	protected function GridPositionEnabled() : bool
@@ -27,13 +42,13 @@ class W3GuiShopInventoryComponent extends W3GuiBaseInventoryComponent
 		return false;
 	}
 	
-	
+	// For override
 	protected function ShopHasInfiniteFunds() : bool
 	{
 		return _inv.GetFundsType() == EInventoryFunds_Unlimited;
 	}
 
-	
+	// Shop is selling Item to the Player
 	public function GiveItem( itemId : SItemUniqueId, customer : W3GuiBaseInventoryComponent, optional quantity : int, optional out newItemID : SItemUniqueId ) : bool
 	{
 		var customerMoney : int;
@@ -70,7 +85,7 @@ class W3GuiShopInventoryComponent extends W3GuiBaseInventoryComponent
 		return success;
 	}
 	
-	
+	// Shop is purchasing Item from the Player; Giver = Player
 	public function ReceiveItem( itemId : SItemUniqueId, giver : W3GuiBaseInventoryComponent, optional quantity : int, optional out newItemID : SItemUniqueId ) : bool
 	{
 		var shopMoney : int;
@@ -111,4 +126,4 @@ class W3GuiShopInventoryComponent extends W3GuiBaseInventoryComponent
 	}
 }
 
-
+//--------------------------------------------------------------------------------------------------------

@@ -1,12 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2014
+/** Author : Andrzej Kwiatkowski
 /***********************************************************************/
 
-
-
-
+//used for stamin drain
 class W3Effect_StaminaDrain extends CBaseGameplayEffect
 {
 	private var effectValueDrain	: SAbilityAttributeValue;
@@ -49,14 +46,14 @@ class W3Effect_StaminaDrain extends CBaseGameplayEffect
 		}
 		
 		ReadXMLValues();
-		target.PauseEffects(EET_AutoStaminaRegen, 'StaminaDrain', true );
+		target.PauseStaminaRegen( 'StaminaDrain' );
 	}
 	
 	public function OnLoad(t : CActor, eff : W3EffectManager)
 	{
 		super.OnLoad(t, eff);
 		
-		target.PauseEffects(EET_AutoStaminaRegen, 'StaminaDrain', true );
+		target.PauseStaminaRegen( 'StaminaDrain' );
 		ReadXMLValues();
 	}
 	
@@ -72,6 +69,6 @@ class W3Effect_StaminaDrain extends CBaseGameplayEffect
 	{
 		super.OnEffectRemoved();
 		
-		target.ResumeEffects(EET_AutoStaminaRegen, 'StaminaDrain');
+		target.ResumeStaminaRegen( 'StaminaDrain' );
 	}
 }

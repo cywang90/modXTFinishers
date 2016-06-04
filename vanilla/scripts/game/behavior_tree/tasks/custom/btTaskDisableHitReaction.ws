@@ -1,11 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Disable Hit Reaction
 /***********************************************************************/
-
-
-
+/** Copyright © 2013
+/** Author : Andrzej Kwiatkowski
+/***********************************************************************/
 
 class CBTTaskDisableHitReaction extends IBehTreeTask
 {
@@ -41,7 +39,7 @@ class CBTTaskDisableHitReactionDef extends IBehTreeTaskDefinition
 	default overrideForThisTask = true;
 };
 
-
+//Disable hit reaction and critical state reaction
 class CBTTaskSetUnstoppable extends IBehTreeTask
 {
 	var onActivate 				: bool;

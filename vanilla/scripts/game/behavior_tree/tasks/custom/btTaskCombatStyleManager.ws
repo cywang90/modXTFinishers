@@ -1,12 +1,6 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
+﻿
 class CBehTreeCombatStyleManager extends IBehTreeTask
 {
-	private var storageHandler : CAIStorageHandler;
 	protected var combatDataStorage : CHumanAICombatStorage;
 	
 	public var preferedCombatStyle : EBehaviorGraph;
@@ -29,17 +23,20 @@ class CBehTreeCombatStyleManager extends IBehTreeTask
 	
 	function OnActivate() : EBTNodeStatus
 	{
-		InitializeCombatDataStorage();
-		if ( GetNPC().HasTag('NoMapPin') && GetCombatTarget() == thePlayer )
-			GetNPC().RemoveTag('NoMapPin');
+		var npc : CNewNPC = GetNPC();
 	
-		if ( GetNPC().GetPreferedCombatStyle() != EBG_None )
+		InitializeCombatDataStorage();
+		
+		if ( npc.HasTag('NoMapPin') && GetCombatTarget() == thePlayer )
+			npc.RemoveTag('NoMapPin');
+	
+		if ( npc.GetPreferedCombatStyle() != EBG_None )
 		{
-			combatDataStorage.SetPreferedCombatStyle( GetNPC().GetPreferedCombatStyle() );
+			combatDataStorage.SetPreferedCombatStyle( npc.GetPreferedCombatStyle() );
 		}
 		else
 		{
-			combatDataStorage.SetPreferedCombatStyle(preferedCombatStyle);
+			combatDataStorage.SetPreferedCombatStyle( preferedCombatStyle );
 		}
 	
 		return BTNS_Active;
@@ -65,7 +62,7 @@ class CBehTreeCombatStyleManager extends IBehTreeTask
 			rangedWeaponType = 'crossbow';
 		}
 		
-		while( isRanged && !GetNPC().HasAbility( 'StaticShooter' ) )
+		while( isRanged && ( !owner.HasAbility( 'StaticShooter' ) || !owner.HasAbility( 'PreventChangingCombatStyle' ) ) )
 		{
 			if ( combatDataStorage.GetActiveCombatStyle() != EBG_Combat_Undefined && !combatDataStorage.IsProcessingItems() && !combatDataStorage.GetIsAiming() )
 			{
@@ -90,7 +87,7 @@ class CBehTreeCombatStyleManager extends IBehTreeTask
 	
 	function OnDeactivate()
 	{
-		
+		//ProjectileFailSafe();
 	}
 	
 	function ProjectileFailSafe()
@@ -112,7 +109,7 @@ class CBehTreeCombatStyleManager extends IBehTreeTask
 	
 	function CheckIfShouldSwitchToMelee( sqrDist : float )
 	{
-		if ( sqrDist <= 36 ) 
+		if ( sqrDist <= 36 ) //6^2
 		{
 			combatDataStorage.LeaveCurrentCombatStyle();
 		}
@@ -124,7 +121,7 @@ class CBehTreeCombatStyleManager extends IBehTreeTask
 	
 	function CheckIfShouldSwitchToRange( sqrDist : float )
 	{
-		if ( sqrDist > 100 ) 
+		if ( sqrDist > 100 ) //10^2
 		{
 			if( rangedWeaponType == 'bow' )
 				combatDataStorage.SetPreferedCombatStyle( EBG_Combat_Bow );
@@ -188,8 +185,7 @@ class CBehTreeCombatStyleManager extends IBehTreeTask
 	{
 		if ( !combatDataStorage )
 		{
-			storageHandler = InitializeCombatStorage();
-			combatDataStorage = (CHumanAICombatStorage)storageHandler.Get();
+			combatDataStorage = (CHumanAICombatStorage)InitializeCombatStorage();
 		}
 	}
 }

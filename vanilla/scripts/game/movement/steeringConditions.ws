@@ -1,20 +1,18 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file
+/***********************************************************************/
+/** Object classes exprots
+/** Copyright © 2009 Dexio's Late Night R&D Home Center
 /***********************************************************************/
 
 
-
-
-
-
+/////////////////////////////////////////////////////////////////////////
 
 import class CMoveSCScriptedCondition extends IMoveSteeringCondition
 {
 };
 
-
+/////////////////////////////////////////////////////////////////////////
 
 class CMoveSCPlayerIsRunning extends CMoveSCScriptedCondition
 {
@@ -103,4 +101,4 @@ class CMoveSCIsSmallCreature extends CMoveSCScriptedCondition
 		return false;
 	}
 };
-
+/////////////////////////////////////////////////////////////////////////

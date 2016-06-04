@@ -1,10 +1,7 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2015
+/** Author : Tomek Kozera
 /***********************************************************************/
-
-
 
 state ArmorUpgrades in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
@@ -16,7 +13,6 @@ state ArmorUpgrades in W3TutorialManagerUIHandler extends TutHandlerBaseState
 		
 	event OnEnterState( prevStateName : name )
 	{
-		var highlights : array<STutorialHighlight>;
 		var currentTab : int;
 		
 		super.OnEnterState(prevStateName);
@@ -25,25 +21,19 @@ state ArmorUpgrades in W3TutorialManagerUIHandler extends TutHandlerBaseState
 		
 		if(currentTab != InventoryMenuTab_Weapons)
 		{
-			highlights.Resize(1);
-			highlights[0].x = 0.045;
-			highlights[0].y = 0.145;
-			highlights[0].width = 0.06;
-			highlights[0].height = 0.09;
-				
-			ShowHint(TAB, theGame.params.TUT_POS_INVENTORY_X, theGame.params.TUT_POS_INVENTORY_Y, ETHDT_Infinite, highlights);
+			ShowHint(TAB, POS_INVENTORY_X, POS_INVENTORY_Y, ETHDT_Infinite, GetHighlightInvTabWeapons() );
 		}
 		else
 		{
-			ShowHint(UPGRADE, theGame.params.TUT_POS_INVENTORY_X, theGame.params.TUT_POS_INVENTORY_Y, ETHDT_Infinite);
+			ShowHint(UPGRADE, .4f, .65f, ETHDT_Infinite);
 		}
 	}
 			
 	event OnLeaveState( nextStateName : name )
 	{
-		CloseHint(TAB);
-		CloseHint(UPGRADE);
-		CloseHint(ITEM);
+		CloseStateHint(TAB);
+		CloseStateHint(UPGRADE);
+		CloseStateHint(ITEM);
 		
 		theGame.GetTutorialSystem().MarkMessageAsSeen(TAB);
 		
@@ -52,14 +42,14 @@ state ArmorUpgrades in W3TutorialManagerUIHandler extends TutHandlerBaseState
 		
 	event OnSelectingArmor()
 	{
-		CloseHint(UPGRADE);
-		ShowHint(ITEM, theGame.params.TUT_POS_INVENTORY_X, theGame.params.TUT_POS_INVENTORY_Y, ETHDT_Infinite);
+		CloseStateHint(UPGRADE);
+		ShowHint(ITEM, POS_INVENTORY_X, POS_INVENTORY_Y, ETHDT_Infinite);
 	}
 	
 	event OnSelectingArmorAborted()
 	{
-		CloseHint(ITEM);
-		ShowHint(UPGRADE, theGame.params.TUT_POS_INVENTORY_X, theGame.params.TUT_POS_INVENTORY_Y, ETHDT_Infinite);
+		CloseStateHint(ITEM);
+		ShowHint(UPGRADE, .4f, .65f, ETHDT_Infinite);
 	}
 	
 	event OnUpgradedItem()
@@ -69,8 +59,8 @@ state ArmorUpgrades in W3TutorialManagerUIHandler extends TutHandlerBaseState
 	
 	event OnTabSelected()
 	{
-		CloseHint(TAB);
-		ShowHint(UPGRADE, theGame.params.TUT_POS_INVENTORY_X, theGame.params.TUT_POS_INVENTORY_Y, ETHDT_Infinite);
+		CloseStateHint(TAB);
+		ShowHint(UPGRADE, .4f, .65f, ETHDT_Infinite);
 	}
 }
 

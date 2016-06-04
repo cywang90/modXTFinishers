@@ -1,11 +1,6 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
-
+﻿//////////////////////////////////////////////////////////////
+// hacked version of saving CGameplayEntity's appearance
+//////////////////////////////////////////////////////////////
 
 class W3SavedAppearanceEntity extends CGameplayEntity
 {
@@ -14,7 +9,7 @@ class W3SavedAppearanceEntity extends CGameplayEntity
 	
 	event OnSpawned( spawnData : SEntitySpawnData )
 	{		
-		
+		// don't change appearance if not restored or default appearance wasn't changed
 		if ( IsNameValid( appearanceName ) && spawnData.restored )
 		{
 			ApplyAppearance( appearanceName );		

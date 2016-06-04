@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-enum ENPCCollisionStance
+﻿enum ENPCCollisionStance
 {
 	NCS_InPlace		,
 	NCS_PushGentle	,
@@ -47,7 +42,7 @@ class CBTTaskCollideWithCharacter extends IBehTreeTask
 	var otherIsPlayer				: bool;
 	var otherIsHorse				: bool;
 	
-	
+	// Ignoring collision
 	var	ignoreBumpOnOneGoingAway	: bool;		default	ignoreBumpOnOneGoingAway	= false;
 	var	ignoreBumpOnBothGoingAway	: bool;		default	ignoreBumpOnBothGoingAway	= true;
 	var	ignoreBumpOnBothStopped		: bool;		default	ignoreBumpOnBothStopped		= true;
@@ -69,7 +64,7 @@ class CBTTaskCollideWithCharacter extends IBehTreeTask
 	
 	function OnActivate() : EBTNodeStatus
 	{
-		
+		// Timeout makes it unavailable
 		if( cooldownToPlayCur > theGame.GetEngineTimeAsSeconds() )
 		{
 			Bump();
@@ -82,7 +77,7 @@ class CBTTaskCollideWithCharacter extends IBehTreeTask
 	{
 		while( true )
 		{
-			
+			// Safety time to disable
 			if( isAvailable && cooldownToRestartCur <= theGame.GetEngineTimeAsSeconds() )
 			{
 				return BTNS_Completed;
@@ -102,9 +97,9 @@ class CBTTaskCollideWithCharacter extends IBehTreeTask
 	
 	function OnListenedGameplayEvent( eventName : name ) : bool
 	{
-		if( eventName == 'CollideWithPlayer' ) 
+		if( eventName == 'CollideWithPlayer' ) // !isAvailable &&
 		{	
-			
+			// Skip activation from the root
 			if( cooldownToRetryCur >= theGame.GetEngineTimeAsSeconds() )
 			{
 				return false;
@@ -113,13 +108,13 @@ class CBTTaskCollideWithCharacter extends IBehTreeTask
 			
 			if( CanNPCBeInterrupted() )
 			{
-				
+				// Set ready to bump
 				isAvailable	= true;
 				
-				
+				// Get to whom we are colliding
 				collidedActor = (CActor)GetEventParamObject();
 				
-				
+				// Set the safety time to start
 				cooldownToPlayCur = cooldownToStartTotal + theGame.GetEngineTimeAsSeconds();
 				
 				SetEventRetvalInt( 1 );
@@ -136,7 +131,7 @@ class CBTTaskCollideWithCharacter extends IBehTreeTask
 	{
 		if( isAvailable && eventName == collideEndListenEventName )
 		{		
-			
+			// Deactivate it
 			isAvailable	= false;
 			Complete( true );
 			
@@ -164,7 +159,7 @@ class CBTTaskCollideWithCharacter extends IBehTreeTask
 			return isBreakable;
 		}
 		
-		
+		// No action point, we can interrupt
 		else
 		{
 			return true;
@@ -181,17 +176,17 @@ class CBTTaskCollideWithCharacter extends IBehTreeTask
 		var baseName	: string;
 		
 		
-		
+		// Pre initialize some flags
 		otherIsHorse	= false;
 		
-		
+		// Do we have a proper actor?
 		if( !collidedActor )
 		{
-			
+			// Fail safe, use the player
 			collidedActor	= ( CActor ) thePlayer;
 			otherIsPlayer	= true;
 		}
-		
+		// To what are we colliding
 		else
 		{	
 			otherIsPlayer	= collidedActor == ( CActor ) thePlayer;			
@@ -199,35 +194,35 @@ class CBTTaskCollideWithCharacter extends IBehTreeTask
 		}
 		
 		
-		
+		// Get the direction tot he collision point
 		fromOther	= npc.GetWorldPosition() - collidedActor.GetWorldPosition();
 		
-		
+		// Are we skipping the reaction?
 		if( HasToIgnoreBump( fromOther ) )
 		{
 			return;
 		}
 		
-		
+		// Get the angle of the hit
 		angle		= GetAngleToMove( fromOther );
 		
-		
+		// Set the direction of the hit
 		direction	= GetDirectionToMove( angle );	
 		
-		
+		// The type of push
 		pushValue	= GetPushType();
 		
-		
+		// Add rotation
 		PrepareRotation( pushValue, angle, direction );
 		
-		
+		// ChangeVariables
 		npc.SetBehaviorVariable( collidedDirBehGraphVar, ( float ) ( int ) direction );
 		npc.SetBehaviorVariable( collidedPushBehGraphVar, ( float ) (int ) pushValue );
 		
-		
+		// Raise the event
 		 npc.RaiseEvent( collideBehGrapEventName );
 		
-		
+		// Set the safety time to start
 		cooldownToRestartCur = cooldownToRestartTotal + theGame.GetEngineTimeAsSeconds();
 	}
 	
@@ -271,13 +266,13 @@ class CBTTaskCollideWithCharacter extends IBehTreeTask
 		speedMineSqr	= VecLengthSquared( npc.GetMovingAgentComponent().GetVelocity() ) ;
 		speedHisSqr		= VecLengthSquared( collidedActor.GetMovingAgentComponent().GetVelocity() );
 		
-		
+		// Stopped 
 		if( ignoreBumpOnBothStopped && speedMineSqr <= ignoreMinSpeedSqr && speedHisSqr <= ignoreMinSpeedSqr )
 		{
 			return true;
 		}
 		
-		
+		// Going away from the collision
 		if( ignoreBumpOnOneGoingAway )
 		{
 			dotHis	= VecDot( collidedActor.GetWorldForward(), fromOther );
@@ -310,10 +305,10 @@ class CBTTaskCollideWithCharacter extends IBehTreeTask
 		var shouldMoveLeft	: bool;
 		
 		
-		
+		// check if the npc shpould move left or right of collider's way
 		shouldMoveLeft	= VecDot( collidedActor.GetWorldRight(), fromOther ) >= 0.0f;
 		
-		
+		// Compute the angle difference
 		if( shouldMoveLeft )
 		{
 			angle	= VecHeading( -fromOther - collidedActor.GetWorldRight() * 0.75f );
@@ -323,12 +318,12 @@ class CBTTaskCollideWithCharacter extends IBehTreeTask
 			angle	= VecHeading( -fromOther + collidedActor.GetWorldRight() * 0.75f );
 		}
 		
+		//thePlayer.GetVisualDebug().AddArrow( 'Desired angle', npc.GetWorldPosition(), npc.GetWorldPosition() + VecFromHeading( angle ), 1.f, .2f, .2f, true, Color( 0, 255, 255), true, 5.f );
 		
+		//angle	= AngleDistance( npc.GetHeading(), angle );
+		//angle	= AngleNormalize180( angle );
 		
-		
-		
-		
-		
+		//thePlayer.GetVisualDebug().AddArrow( 'Bump Added', npc.GetWorldPosition(), npc.GetWorldPosition() + VecFromHeading( npc.GetHeading() + angle ), 1.f, .2f, .2f, true, Color( 255, 255, 255), true, 6.f );
 		
 		
 		return angle;
@@ -371,7 +366,7 @@ class CBTTaskCollideWithCharacter extends IBehTreeTask
 		var velocity		: float;
 		
 		
-		
+		// Get push prorities
 		npcActor 			= ( CActor ) GetNPC();
 		originalPriority	= npcActor.GetInteractionPriority();
 		
@@ -389,15 +384,15 @@ class CBTTaskCollideWithCharacter extends IBehTreeTask
 			playerPriority	= collidedActor.GetInteractionPriority();
 		}
 		
-		
+		// Pushing in place
 		if( playerPriority < originalPriority )
 		{
 			pushValue	= NCS_InPlace; 
 		}
-		
+		// Move away
 		else
 		{
-			
+			// Do we need a hard push reaction?
 			auxBool	= otherIsPlayer && ( thePlayer.GetIsSprinting() || thePlayer.IsInAir() );
 			if( !auxBool )
 			{
@@ -411,7 +406,7 @@ class CBTTaskCollideWithCharacter extends IBehTreeTask
 			}
 			else
 			{ 
-				
+				// Do we need a normal push reaction
 				auxBool	= otherIsPlayer && ( thePlayer.GetIsRunning() );
 				if( !auxBool )
 				{
@@ -428,7 +423,7 @@ class CBTTaskCollideWithCharacter extends IBehTreeTask
 					pushValue	= NCS_Push;
 				}
 				
-				
+				// Gentle reaction
 				else
 				{
 					pushValue	= NCS_PushGentle;
@@ -447,7 +442,7 @@ class CBTTaskCollideWithCharacter extends IBehTreeTask
 		var rotateAngle			: float;
 		
 		
-		
+		// Should we rotate?
 		if( push == NCS_InPlace )
 		{
 			return;
@@ -455,7 +450,7 @@ class CBTTaskCollideWithCharacter extends IBehTreeTask
 		
 		owner 				= GetNPC();
 		
-		
+		// Get the angle
 		switch( direction )
 		{
 			case AD_Front:

@@ -1,25 +1,27 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file - Notifications, cursor, load/save indicator, etc
 /***********************************************************************/
-
-
-
+/** Copyright © 2014 CDProjektRed
+/** Author : Yaroslav Getsevich
+/***********************************************************************/
 
 class W3NotificationData extends CObject
 {
-	public var messageText : string;
-	public var duration    : float;
-	default duration = 0;
+	public var messageText 	: string;
+	public var duration    	: float;
+	public var queue		: bool;
+	
+		default duration = 0;
+		default queue = false;
 }
 
 class CR4OverlayPopup extends CR4PopupBase
 {
 	private var m_InitDataObject         : W3NotificationData;
 	
-	private var m_fxShowNotification     : CScriptedFlashFunction;
-	private var m_fxHideNotification     : CScriptedFlashFunction;
+	private var m_fxShowNotification       : CScriptedFlashFunction;
+	private var m_fxHideNotification        : CScriptedFlashFunction;
+	private var m_fxClearNotificationsQueue : CScriptedFlashFunction;
 	
 	private var m_fxShowLoadingIndicator : CScriptedFlashFunction;
 	private var m_fxHideLoadingIndicator : CScriptedFlashFunction;
@@ -31,14 +33,18 @@ class CR4OverlayPopup extends CR4PopupBase
 	private var m_fxRemoveContextButtons  : CScriptedFlashFunction;
 	private var m_fxUpdateButtons 		  : CScriptedFlashFunction;
 	
+	private var m_fxSetMouseCursorType 	   : CScriptedFlashFunction;
 	private var m_fxShowMouseCursor  	   : CScriptedFlashFunction;
 	private var m_fxShowSafeRect 		   : CScriptedFlashFunction;
+	
+	private var m_fxShowEP2Logo				: CScriptedFlashFunction;
+	
 	
 	
 	private var m_cursorRequested		   : int;
 	private var m_cursorHidden			   : bool;
 	
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{
 		super.OnConfigUI();
 		
@@ -50,19 +56,22 @@ class CR4OverlayPopup extends CR4PopupBase
 		m_fxShowSavingIndicator = m_flashModule.GetMemberFlashFunction( "showSaveIdicator" );
 		m_fxHideSavingIndicator = m_flashModule.GetMemberFlashFunction( "hideSaveIdicator" );
 		
+		m_fxSetMouseCursorType = m_flashModule.GetMemberFlashFunction( "setMouseCursorType" );
 		m_fxAppendButton = m_flashModule.GetMemberFlashFunction( "appendBinding" );
 		m_fxRemoveButton = m_flashModule.GetMemberFlashFunction( "removeBinding" );
 		m_fxRemoveContextButtons = m_flashModule.GetMemberFlashFunction( "removeAllContextBinding" );
 		m_fxUpdateButtons = m_flashModule.GetMemberFlashFunction( "updateInputFeedback" );
-		
-		m_fxShowMouseCursor = m_flashModule.GetMemberFlashFunction( "showMouseCursor" );		
-		
+		m_fxShowMouseCursor = m_flashModule.GetMemberFlashFunction( "showMouseCursor" );
 		m_fxShowSafeRect = m_flashModule.GetMemberFlashFunction( "showSafeRect" );
+		m_fxShowEP2Logo = m_flashModule.GetMemberFlashFunction( "showEP2Logo" );
+		
+		m_fxClearNotificationsQueue = m_flashModule.GetMemberFlashFunction( "clearNotificationsQueue" );
 		
 		m_InitDataObject = (W3NotificationData)GetPopupInitData();
+		
 		if (m_InitDataObject)
 		{
-			ShowNotification(m_InitDataObject.messageText, m_InitDataObject.duration);
+			ShowNotification(m_InitDataObject.messageText, m_InitDataObject.duration, m_InitDataObject.queue );
 		}
 		
 		m_cursorRequested = theGame.GetGuiManager().mouseCursorRequestStack;
@@ -76,7 +85,12 @@ class CR4OverlayPopup extends CR4PopupBase
 	
 	event OnInputHandled(NavCode:string, KeyCode:int, ActionId:int)
 	{
-		
+		// I don't know what it is for and why it's called, but I don't want to see log spammed with missing event messages
+	}
+	
+	public function SetMouseCursorType(value:int):void
+	{		
+		m_fxSetMouseCursorType.InvokeSelfOneArg( FlashArgInt( value ) );
 	}
 	
 	public function RequestMouseCursor(value:bool):void
@@ -98,12 +112,6 @@ class CR4OverlayPopup extends CR4PopupBase
 	{
 		m_cursorHidden = value;
 		UpdateCursorVisibility();
-	}
-	
-	public function UpdateGamepadType():void
-	{
-		UpdateInputDeviceType();
-		UpdateInputDevice();
 	}
 	
 	public function UpdateInputDevice():void
@@ -183,9 +191,9 @@ class CR4OverlayPopup extends CR4PopupBase
 		m_fxUpdateButtons.InvokeSelf();		
 	}
 	
-	public function ShowNotification(messageText : string, optional duration : float) : void
+	public function ShowNotification(messageText : string, optional duration : float, optional queue :  bool ) : void
 	{
-		m_fxShowNotification.InvokeSelfTwoArgs( FlashArgString(messageText), FlashArgNumber(duration) );
+		m_fxShowNotification.InvokeSelfThreeArgs( FlashArgString(messageText), FlashArgNumber(duration), FlashArgBool( queue ) );
 	}
 	
 	public function HideNotification() : void
@@ -193,12 +201,17 @@ class CR4OverlayPopup extends CR4PopupBase
 		m_fxHideNotification.InvokeSelf();
 	}
 	
+	public function ClearNotificationsQueue() : void
+	{
+		m_fxClearNotificationsQueue.InvokeSelf();
+	}
+	
 	public function ShowLoadingIndicator():void
 	{
 		m_fxShowLoadingIndicator.InvokeSelf();
 	}
 	
-	
+	// immediateHide - without hidding animation
 	public function HideLoadingIndicator(optional immediateHide : bool):void
 	{
 		m_fxHideLoadingIndicator.InvokeSelfOneArg(FlashArgBool(immediateHide));
@@ -209,12 +222,45 @@ class CR4OverlayPopup extends CR4PopupBase
 		m_fxShowSavingIndicator.InvokeSelf();
 	}
 	
-	
+	// immediateHide - without hidding animation
 	public function HideSavingIndicator(optional immediateHide : bool):void
 	{
 		m_fxHideSavingIndicator.InvokeSelfOneArg(FlashArgBool(immediateHide));
 	}
-	
+
+	public function ShowEP2Logo( show : bool, fadeInterval : float, x : int, y : int )
+	{
+		var audio, subtitles : string;
+		var path : string;
+
+		if ( show )
+		{
+			path = "img://logos/ep2/";
+
+			theGame.GetGameLanguageName( audio, subtitles );
+			switch ( subtitles )
+			{
+			case "PL":
+				path += "ep2_pl.png";
+				break;
+			case "CZ":
+				path += "ep2_cz.png";
+				break;
+			case "RU":
+				path += "ep2_ru.png";
+				break;
+			case "ZH":
+				path += "ep2_zh.png";
+				break;
+			case "EN":
+			default:
+				path += "ep2_en.png";
+				break;
+			}
+		}
+
+		m_fxShowEP2Logo.InvokeSelfFiveArgs( FlashArgBool( show ), FlashArgNumber( fadeInterval ), FlashArgInt( x ), FlashArgInt( y ), FlashArgString( path ) );
+	}
 }
 
 exec function closeoverlay()

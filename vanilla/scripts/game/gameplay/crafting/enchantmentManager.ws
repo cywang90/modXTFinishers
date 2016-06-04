@@ -1,15 +1,10 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-class W3EnchantmentManager
+﻿class W3EnchantmentManager
 {
 	protected var schematics : array<SEnchantmentSchematic>;
 	protected var craftMasterComp : W3CraftsmanComponent;
 	private var schematicsNames : array<name>;
 	
-	
+	// override
 	public function Init( masterComp : W3CraftsmanComponent )
 	{
 		craftMasterComp = masterComp;
@@ -41,7 +36,7 @@ class W3EnchantmentManager
 		return false;
 	}
 	
-	
+	// Caches recipes' data from XML for given recipes
 	protected function LoadSchematicsXMLData( schematicsNames : array<name> ) : void
 	{
 		var dm : CDefinitionsManagerAccessor;
@@ -73,7 +68,7 @@ class W3EnchantmentManager
 					if(dm.GetCustomNodeAttributeValueInt(main.subNodes[i], 'level', tmpInt))
 						schem.level = tmpInt;	
 						
-					
+					//ingredients
 					ingredients = dm.GetCustomDefinitionSubNode(main.subNodes[i],'ingredients');					
 					for(k=0; k<ingredients.subNodes.Size(); k+=1)
 					{
@@ -92,7 +87,7 @@ class W3EnchantmentManager
 					
 					schematics.PushBack(schem);		
 					
-					
+					//clear
 					schem.baseCraftingPrice = -1;
 					schem.ingredients.Clear();
 					schem.schemName = '';
@@ -131,7 +126,7 @@ function getEnchantmentSchematicFromName(schematicName : name):SEnchantmentSchem
 			if(dm.GetCustomNodeAttributeValueInt(main.subNodes[i], 'level', tmpInt))
 				schem.level = tmpInt;	
 			
-			
+			//ingredients
 			ingredients = dm.GetCustomDefinitionSubNode(main.subNodes[i],'ingredients');					
 			for(k=0; k<ingredients.subNodes.Size(); k+=1)
 			{		

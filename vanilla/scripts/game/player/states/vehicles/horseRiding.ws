@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-state HorseRiding in CR4Player extends UseGenericVehicle
+﻿state HorseRiding in CR4Player extends UseGenericVehicle
 {
 	private var dismountRequest : bool;
 	private var vehicleCombatMgr : W3HorseCombatManager;
@@ -18,9 +13,9 @@ state HorseRiding in CR4Player extends UseGenericVehicle
 
 	private var initCamera : bool;
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
+	// INIT, ENTER, LEAVE //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	protected function Init()
 	{
@@ -55,7 +50,7 @@ state HorseRiding in CR4Player extends UseGenericVehicle
 		
 		thePlayer.SoundEvent( "amb_g_speed_wind_start", 'head' );
 		
-		
+		// enlarge combat radius
 		parent.findMoveTargetDistMin = 20.f;
 		
 		parent.AddTimer( 'EnableDynamicCanter', 0.5 );
@@ -92,7 +87,7 @@ state HorseRiding in CR4Player extends UseGenericVehicle
 		
 		thePlayer.SoundEvent( "amb_g_speed_wind_stop", 'head' );
 		
-		
+		//make combat radius smaller again
 		parent.findMoveTargetDistMin = 10.f;
 		
 		vehicleCombatMgr.Destroy();
@@ -104,7 +99,7 @@ state HorseRiding in CR4Player extends UseGenericVehicle
 	
 	event OnCombatStart()
 	{
-		parent.OnCombatStart();
+		virtual_parent.OnCombatStart();
 		parent.AddTimer( 'DrawWeaponIfNeeded', 0.f);
 	}
 	
@@ -121,6 +116,17 @@ state HorseRiding in CR4Player extends UseGenericVehicle
 	
 	timer function DrawWeaponIfNeeded( dt: float, id : int )
 	{
+		var disableAutoSheathe : bool;
+		var inGameConfigWrapper : CInGameConfigWrapper;
+		
+		inGameConfigWrapper = (CInGameConfigWrapper)theGame.GetInGameConfigWrapper();
+		disableAutoSheathe = inGameConfigWrapper.GetVarValue( 'Gameplay', 'DisableAutomaticSwordSheathe' );
+		if( disableAutoSheathe )
+		{
+			parent.RemoveTimer('DrawWeaponIfNeeded');
+			return;
+		}
+		
 		if( parent.IsInCombat() )
 		{
 			if ( parent.GetTarget() )
@@ -171,9 +177,9 @@ state HorseRiding in CR4Player extends UseGenericVehicle
 		PlayerDied();
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
+	// MAIN LOOP, DISMOUNTING //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	entry function ProcessHorseRiding()
 	{
@@ -221,18 +227,18 @@ state HorseRiding in CR4Player extends UseGenericVehicle
 	{
 		vehicle.ToggleVehicleCamera( false );
 		
-		
-		
-		
+		// Do not call this here but maybe use instant dismount ?
+		//vehicle.OnDismountStarted( parent );
+		//vehicle.OnDismountFinished( parent );
 		parent.SignalGameplayEventParamInt( 'RidingManagerDismountHorse', DT_instant | DT_fromScript );
 		
 		parent.EnableCharacterCollisions( true );
 		parent.RegisterCollisionEventsListener();
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// CAMERA //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	private var currDesiredDist : float;
 	private var cameraManualRotationDisabled : bool;
@@ -242,23 +248,52 @@ state HorseRiding in CR4Player extends UseGenericVehicle
 		
 	default trailCameraCooldown = 1.5;
 	default wasTrailCameraActive = false;
-
+	
+	private var m_shouldEnableAutoRotation : bool;
+	
 	event OnGameCameraTick( out moveData : SCameraMovementData, dt : float )
 	{	
 		var camera : CCustomCamera;
+		var angleDist : float;
+		
+		camera = (CCustomCamera)theCamera.GetTopmostCameraObject();
+		
+		
 		
 		if ( !cameraManualRotationDisabled && parent.IsCameraLockedToTarget())
 		{
-			camera = (CCustomCamera)theCamera.GetTopmostCameraObject();
 			camera.EnableManualControl(false);
 			cameraManualRotationDisabled = true;
 		}
 		else if ( cameraManualRotationDisabled && !parent.IsCameraLockedToTarget() )
 		{
-			camera = (CCustomCamera)theCamera.GetTopmostCameraObject();
 			camera.EnableManualControl(true);
 			cameraManualRotationDisabled = false;
 		}
+		
+		if( thePlayer.vehicleCbtMgrAiming && !parent.IsCameraLockedToTarget() )
+		{
+			m_shouldEnableAutoRotation = false;
+		}
+		else if( theInput.LastUsedGamepad() )
+		{
+			angleDist = AngleDistance( parent.GetHeading(), camera.GetHeading() );
+			
+			if( thePlayer.GetAutoCameraCenter() || ( !m_shouldEnableAutoRotation && thePlayer.GetIsSprinting() && AbsF(angleDist) <= 30.0f ) )
+			{
+				m_shouldEnableAutoRotation = true;
+			}
+			else if( m_shouldEnableAutoRotation && !thePlayer.GetAutoCameraCenter() && ( camera.IsManualControledHor() || !thePlayer.GetIsSprinting() ) )
+			{
+				m_shouldEnableAutoRotation = false;
+			}
+		}
+		else
+		{
+			m_shouldEnableAutoRotation = thePlayer.GetAutoCameraCenter();
+		}
+		
+		camera.SetAllowAutoRotation( m_shouldEnableAutoRotation );
 		
 		parent.UpdateLookAtTarget();
 		return vehicleCombatMgr.OnGameCameraTick( moveData, dt );
@@ -309,8 +344,8 @@ state HorseRiding in CR4Player extends UseGenericVehicle
 		{
 			moveData.pivotDistanceController.SetDesiredDistance( 2.4 );
 			currDesiredDist = 2.4;
-			
-			
+			//theGame.GetGameplayConfigFloatValue( 'debugA' ) );
+			//moveData.pivotRotationController.SetDesiredPitch( horseComp.GetCurrentPitch() - 10 );//theGame.GetGameplayConfigFloatValue( 'debugB' ) );
 			if ( !horseComp.OnCheckHorseJump() )
 				moveData.pivotRotationController.SetDesiredPitch( horseComp.GetCurrentPitch() - 10 );
 		}
@@ -339,7 +374,7 @@ state HorseRiding in CR4Player extends UseGenericVehicle
 			shouldStopCamera = false;
 		}
 		else
-			shouldStopCamera = false;
+			shouldStopCamera = false;//parent.IsInCombat();
 			
 		DampVectorSpring( moveData.cameraLocalSpaceOffset, moveData.cameraLocalSpaceOffsetVel, Vector(0,0,0), 0.3f, dt );			
 		
@@ -347,16 +382,16 @@ state HorseRiding in CR4Player extends UseGenericVehicle
 		{
 			if( !camera.IsManualControledHor() && horseComp.inputApplied )
 			{
-				if( !horseComp.inCanter && !horseComp.inGallop && !vehicleCombatMgr.IsInSwordAttackCombatAction() ) 
+				if( !horseComp.inCanter && !horseComp.inGallop && !vehicleCombatMgr.IsInSwordAttackCombatAction() ) // follow camera
 				{
-					if( trailCameraTimeStamp + trailCameraCooldown > theGame.GetEngineTimeAsSeconds() ) 
+					if( trailCameraTimeStamp + trailCameraCooldown > theGame.GetEngineTimeAsSeconds() ) // to avoid weird shot when manually moving camera after having trail camera active
 					{
 						parent.OnGameCameraPostTick( moveData, dt );
 						return shouldStopCamera;
 					}
 					else if( trailCameraTimeStamp + trailCameraCooldown < theGame.GetEngineTimeAsSeconds() && wasTrailCameraActive )
 					{
-						moveData.pivotRotationVelocity.Yaw = 0.0; 
+						moveData.pivotRotationVelocity.Yaw = 0.0; // to avoid weird shot when going back from trail camera to follow camera
 						wasTrailCameraActive = false;
 					}
 				
@@ -372,17 +407,17 @@ state HorseRiding in CR4Player extends UseGenericVehicle
 					parent.OnGameCameraPostTick( moveData, dt );
 					return true;	
 				}
-				else 
+				else // trail camera
 				{
 					wasTrailCameraActive = true;
 					trailCameraTimeStamp = theGame.GetEngineTimeAsSeconds();
 				}
 			}
-			else 
+			else // manual control
 			{
 				if( wasTrailCameraActive ) 
 				{
-					moveData.pivotRotationVelocity.Yaw = 0.0; 
+					moveData.pivotRotationVelocity.Yaw = 0.0; // to avoid weird shot when going back from trail camera to manual control
 					wasTrailCameraActive = false;
 				}
 			}
@@ -393,9 +428,9 @@ state HorseRiding in CR4Player extends UseGenericVehicle
 		return shouldStopCamera;
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// PRIVATE FUNCTIONS ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	private function CheckForWeapons()
 	{
@@ -415,12 +450,12 @@ state HorseRiding in CR4Player extends UseGenericVehicle
 		{
 			if ( meleeTicketRequest	== -1 )
 			{
-				
+				//adds +400 to ticket pool
 				meleeTicketRequest = combatData.TicketSourceOverrideRequest( 'TICKET_Melee', 400, 0.0 );
 			}
 			if ( rangeTicketRequest == -1 )
 			{
-				
+				//adds +100 to ticket pool
 				rangeTicketRequest = combatData.TicketSourceOverrideRequest( 'TICKET_Range', 100, 0.0 );
 			}
 		}
@@ -474,9 +509,9 @@ state HorseRiding in CR4Player extends UseGenericVehicle
 		}
 	}
 		
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// EVENTS //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	event OnAnimEvent_ActionBlend( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
@@ -518,13 +553,13 @@ state HorseRiding in CR4Player extends UseGenericVehicle
 		return vehicleCombatMgr.OnRaiseSignEvent();
 	}
 	
-	
+	// Do nothing
 	event OnProcessCastingOrientation( isContinueCasting : bool ) {}
 }
 
-
-
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// COMBAT ACTIONS //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 statemachine class W3HorseCombatManager extends W3VehicleCombatManager
 {

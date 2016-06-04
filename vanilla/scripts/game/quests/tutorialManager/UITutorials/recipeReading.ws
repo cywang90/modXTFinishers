@@ -1,10 +1,7 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2015
+/** Author : Tomek Kozera
 /***********************************************************************/
-
-
 
 state RecipeReading in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
@@ -26,7 +23,7 @@ state RecipeReading in W3TutorialManagerUIHandler extends TutHandlerBaseState
 		
 		isClosing = false;
 		
-		CloseHint(OPEN_INVENTORY);
+		theGame.GetTutorialSystem().HideTutorialHint( OPEN_INVENTORY );
 		
 		currentTab = ( (CR4InventoryMenu) ((CR4MenuBase)theGame.GetGuiManager().GetRootMenu()).GetLastChild() ).GetCurrentlySelectedTab();
 		if(currentTab == InventoryMenuTab_Potions)
@@ -41,7 +38,7 @@ state RecipeReading in W3TutorialManagerUIHandler extends TutHandlerBaseState
 			highlights[0].width = 0.05;
 			highlights[0].height = 0.08;
 				
-			ShowHint(SELECT_TAB, theGame.params.TUT_POS_INVENTORY_X, theGame.params.TUT_POS_INVENTORY_Y, ETHDT_Infinite, highlights);
+			ShowHint(SELECT_TAB, POS_INVENTORY_X, POS_INVENTORY_Y, ETHDT_Infinite, highlights);
 		}
 	}
 			
@@ -49,10 +46,10 @@ state RecipeReading in W3TutorialManagerUIHandler extends TutHandlerBaseState
 	{
 		isClosing = true;
 		
-		CloseHint(SELECT_TAB);
-		CloseHint(SELECT_BOOK);
-		CloseHint(USE);
-		CloseHint(READ);
+		CloseStateHint(SELECT_TAB);
+		CloseStateHint(SELECT_BOOK);
+		CloseStateHint(USE);
+		CloseStateHint(READ);
 		
 		theGame.GetTutorialSystem().MarkMessageAsSeen(SELECT_TAB);
 		
@@ -63,15 +60,15 @@ state RecipeReading in W3TutorialManagerUIHandler extends TutHandlerBaseState
 	{
 		if(IsCurrentHint(SELECT_BOOK) && thePlayer.inv.ItemHasTag(itemId, 'ReadableItem') )
 		{
-			
-			CloseHint(SELECT_BOOK);
-			ShowHint(USE, theGame.params.TUT_POS_INVENTORY_X, theGame.params.TUT_POS_INVENTORY_Y, ETHDT_Infinite);
+			//if selected book
+			CloseStateHint(SELECT_BOOK);
+			ShowHint(USE, POS_INVENTORY_X, POS_INVENTORY_Y, ETHDT_Infinite);
 		}
 		else if(IsCurrentHint(USE) && !thePlayer.inv.ItemHasTag(itemId, 'ReadableItem') )
 		{
-			
-			CloseHint(USE);
-			ShowHint(SELECT_BOOK, theGame.params.TUT_POS_INVENTORY_X, theGame.params.TUT_POS_INVENTORY_Y, ETHDT_Infinite);
+			//if had book selected but then changed selection to not a book
+			CloseStateHint(USE);
+			ShowHint(SELECT_BOOK, POS_INVENTORY_X, POS_INVENTORY_Y, ETHDT_Infinite);
 		}
 	}
 
@@ -79,21 +76,21 @@ state RecipeReading in W3TutorialManagerUIHandler extends TutHandlerBaseState
 	{
 		if(IsCurrentHint(SELECT_TAB) && properTab)
 		{
-			CloseHint(SELECT_TAB);
-			ShowHint(SELECT_BOOK, theGame.params.TUT_POS_INVENTORY_X, theGame.params.TUT_POS_INVENTORY_Y, ETHDT_Infinite);
+			CloseStateHint(SELECT_TAB);
+			ShowHint(SELECT_BOOK, POS_INVENTORY_X, POS_INVENTORY_Y, ETHDT_Infinite);
 		}
 		else if(!IsCurrentHint(SELECT_TAB) && !properTab)
 		{
-			CloseHint(SELECT_BOOK);
-			CloseHint(USE);
-			ShowHint(SELECT_TAB, theGame.params.TUT_POS_INVENTORY_X, theGame.params.TUT_POS_INVENTORY_Y, ETHDT_Infinite);
+			CloseStateHint(SELECT_BOOK);
+			CloseStateHint(USE);
+			ShowHint(SELECT_TAB, POS_INVENTORY_X, POS_INVENTORY_Y, ETHDT_Infinite);
 		}
 	}
 	
 	event OnBookRead()
 	{
-		CloseHint(USE);
-		ShowHint(READ, theGame.params.TUT_POS_INVENTORY_X, theGame.params.TUT_POS_INVENTORY_Y);		
+		CloseStateHint(USE);
+		ShowHint(READ, POS_INVENTORY_X, POS_INVENTORY_Y);		
 	}
 	
 	event OnTutorialClosed(hintName : name, closedByParentMenu : bool)

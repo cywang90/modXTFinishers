@@ -1,20 +1,15 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-state ExtendedMovable in CR4Player extends Movable
+﻿state ExtendedMovable in CR4Player extends Movable
 {
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// protected variables
 	protected var parentMAC			: CMovingPhysicalAgentComponent;
 	protected var currentStateName 	: name;
 	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Enter/Leave events
 	event OnEnterState( prevStateName : name )
 	{	
-		
+		// Pass to base class
 		super.OnEnterState(prevStateName);
 		
 		currentStateName = parent.GetCurrentStateName();
@@ -32,13 +27,13 @@ state ExtendedMovable in CR4Player extends Movable
 		parent.RemoveAnimEventCallback('CombatStanceLeft');
 		parent.RemoveAnimEventCallback('CombatStanceRight');
 		
-		parent.ResumeEffects(EET_AutoStaminaRegen, 'Sprint');
+		parent.ResumeStaminaRegen( 'Sprint' );
 		
 		super.OnLeaveState(nextStateName);
 	}
 	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Animation Events	
 	event OnAnimEvent_CombatStanceLeft( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
 		parent.SetCombatIdleStance( 0.f );	
@@ -67,7 +62,7 @@ state ExtendedMovable in CR4Player extends Movable
 			if ( parent.GetFallDist(fallDist) || parent.IsRagdolled() )
 			{
 				waterLevel = theGame.GetWorld().GetWaterDepth( parent.GetWorldPosition(), true );
-				if ( waterLevel > -parent.ENTER_SWIMMING_WATER_LEVEL && waterLevel != 10000 ) 
+				if ( waterLevel > -parent.ENTER_SWIMMING_WATER_LEVEL && waterLevel != 10000 ) // 10000 is default value, so nothing is found
 				{
 					depth = parentMAC.GetSubmergeDepth();
 					if ( depth < -0.1 )
@@ -90,8 +85,36 @@ state ExtendedMovable in CR4Player extends Movable
 	}
 	
 	var cameraChanneledSignEnabled : bool;
+	
+	private var m_shouldEnableAutoRotation : bool;
+	
 	event OnGameCameraTick( out moveData : SCameraMovementData, dt : float )
-	{
+	{	
+		var camera : CCustomCamera;
+		var angleDist : float;
+		
+		camera = (CCustomCamera)theCamera.GetTopmostCameraObject();
+		
+		if( theInput.LastUsedGamepad() )
+		{
+			angleDist = AngleDistance( parent.GetHeading(), camera.GetHeading() );
+			
+			if( thePlayer.GetAutoCameraCenter() || ( !m_shouldEnableAutoRotation && thePlayer.GetIsSprinting() && AbsF(angleDist) <= 30.0f ) )
+			{
+				m_shouldEnableAutoRotation = true;
+			}
+			else if( m_shouldEnableAutoRotation && !thePlayer.GetAutoCameraCenter() && ( camera.IsManualControledHor() || !thePlayer.GetIsSprinting() ) )
+			{
+				m_shouldEnableAutoRotation = false;
+			}
+		}
+		else
+		{
+			m_shouldEnableAutoRotation = thePlayer.GetAutoCameraCenter();
+		}
+		
+		camera.SetAllowAutoRotation( m_shouldEnableAutoRotation );
+		
 		if( virtual_parent.OnGameCameraTick( moveData, dt ) )
 		{
 			return true;
@@ -131,23 +154,26 @@ state ExtendedMovable in CR4Player extends Movable
 		var playerToTargetAngles : EulerAngles;
 		var playerToTargetPitch : float;
 		var _tempVelocity : float;
+		var playerChestPosition, displayTargetChestPosition : Vector;
+		var boneIdx : int = -1;
+		var actorDispTarget : CActor;
 		
 		theGame.GetGameCamera().ChangePivotRotationController( 'CombatInterior' );
 		theGame.GetGameCamera().ChangePivotDistanceController( 'Default' );
 		theGame.GetGameCamera().ChangePivotPositionController( 'Default' );		
 
-		
+		// HACK
 		moveData.pivotRotationController = theGame.GetGameCamera().GetActivePivotRotationController();
 		moveData.pivotDistanceController = theGame.GetGameCamera().GetActivePivotDistanceController();
 		moveData.pivotPositionController = theGame.GetGameCamera().GetActivePivotPositionController();
-		
+		// END HACK
 		
 		DampFloatSpring(interiorCameraDesiredPositionMult, _tempVelocity, 10.f, 0.7f, timeDelta);
 		
 		moveData.pivotPositionController.SetDesiredPosition( parent.GetWorldPosition(), interiorCameraDesiredPositionMult); 
 		moveData.pivotDistanceController.SetDesiredDistance( 3.5f );
 		
-		if ( parent.IsCameraLockedToTarget() )
+		if ( parent.IsCameraLockedToTarget() && !thePlayer.GetFlyingBossCamera())
 		{
 			if ( parent.GetDisplayTarget() )
 			{
@@ -168,8 +194,68 @@ state ExtendedMovable in CR4Player extends Movable
 			{
 				playerToTargetAngles = VecToRotation( playerToTargetVector );
 				playerToTargetPitch = playerToTargetAngles.Pitch + 10;
+				//playerToTargetPitch = ClampF( playerToTargetAngles.Pitch + 20, -45, 50 );			
+				//offset = ClampF( ( playerToTargetPitch * ( -0.023f) ) + 2.5f, 2.5f, 3.2f );
 				
+				moveData.pivotRotationController.SetDesiredPitch( playerToTargetPitch * -1, 0.5f );
+			}
+		}
+		else if ( parent.IsCameraLockedToTarget() && thePlayer.GetFlyingBossCamera())
+		{
+			if ( parent.GetDisplayTarget() )
+			{
+				boneIdx = parent.GetTorsoBoneIndex();
+				if ( boneIdx > 0 )
+				{
+					playerChestPosition = parent.GetBoneWorldPositionByIndex( boneIdx );
+				}
+				else
+				{
+					playerChestPosition = parent.GetWorldPosition();
+				}
 				
+				actorDispTarget = (CActor)parent.GetDisplayTarget();
+				
+				boneIdx = -1;
+				
+				if( actorDispTarget )
+				{
+					boneIdx = actorDispTarget.GetTorsoBoneIndex();
+				}
+				
+				if ( boneIdx > 0 )
+				{
+					displayTargetChestPosition = parent.GetDisplayTarget().GetBoneWorldPositionByIndex( boneIdx );
+				}
+				else
+				{
+					displayTargetChestPosition = parent.GetDisplayTarget().GetWorldPosition();
+				}
+				
+				playerToTargetVector = displayTargetChestPosition - playerChestPosition;
+				
+				moveData.pivotRotationController.SetDesiredHeading( VecHeading( playerToTargetVector ), 0.5f );
+			}
+			else
+				moveData.pivotRotationController.SetDesiredHeading( moveData.pivotRotationValue.Yaw, 0.5f );
+			
+			if ( AbsF( playerToTargetVector.Z ) <= 2.f )
+			{
+				if ( parent.IsGuarded() )
+					moveData.pivotRotationController.SetDesiredPitch( -10.f );
+				else
+					moveData.pivotRotationController.SetDesiredPitch( -10.f );
+			}
+			else if ( AbsF( playerToTargetVector.Z ) >= 2.f )
+			{
+				moveData.pivotRotationController.SetDesiredPitch( 3.f );
+			}
+			else
+			{
+				playerToTargetAngles = VecToRotation( playerToTargetVector );
+				playerToTargetPitch = playerToTargetAngles.Pitch - 10;
+				//playerToTargetPitch = ClampF( playerToTargetAngles.Pitch + 20, -45, 50 );			
+				//offset = ClampF( ( playerToTargetPitch * ( -0.023f) ) + 2.5f, 2.5f, 3.2f );
 				
 				moveData.pivotRotationController.SetDesiredPitch( playerToTargetPitch * -1, 0.5f );
 			}
@@ -182,8 +268,8 @@ state ExtendedMovable in CR4Player extends Movable
 				moveData.pivotRotationController.SetDesiredPitch( -15.f );
 		}
 			
-		
-		
+		//if ( parent.IsCameraLockedToTarget() )
+		//	moveData.pivotRotationController.SetDesiredHeading( VecHeading( parent.moveTarget.GetWorldPosition() - parent.GetWorldPosition() ) );
 	
 		moveData.pivotPositionController.offsetZ = 1.55f;
 		DampVectorSpring( moveData.cameraLocalSpaceOffset, moveData.cameraLocalSpaceOffsetVel, Vector( 0.f, 0.f, 0.f ), 1.f, timeDelta );

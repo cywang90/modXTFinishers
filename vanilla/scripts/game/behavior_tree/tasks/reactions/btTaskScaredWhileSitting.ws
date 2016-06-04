@@ -1,12 +1,8 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
+﻿
 abstract class CBTTaskShouldBeScaredOnOverlay extends IBehTreeTask
 {
 	protected var infantInHand : bool;
+	protected var catOnLap : bool;
 	var jobTreeType : EJobTreeType;
 	
 	function ShouldBeScaredOnOverlay() : bool
@@ -25,23 +21,38 @@ abstract class CBTTaskShouldBeScaredOnOverlay extends IBehTreeTask
 			isInLeaveAction = npc.IsInLeaveAction();
 			return !isInLeaveAction;
 		}
-		
-		if ( jobTreeType == EJTT_InfantInHand )
+		else if ( jobTreeType == EJTT_InfantInHand )
 		{
 			infantInHand = true;
+			return true;
+		}
+		else if ( jobTreeType == EJTT_CatOnLap )
+		{
+			catOnLap = true;
 			return true;
 		}
 		
 		return false;
 	}
 	
-	
+	/*function HasItemInHand() : bool
+	{
+		var inv : CInventoryComponent;
+		
+		inv = GetNPC().GetInventory();
+		
+		if ( inv.IsIdValid(inv.GetItemFromSlot('r_weapon')) || inv.IsIdValid(inv.GetItemFromSlot('l_weapon')) )
+			return true;
+		
+		return false;
+	}*/
 }
 
 class CBTTaskScaredWhileSitting extends CBTTaskShouldBeScaredOnOverlay
 {
-	var leftItem : CDrawableComponent;
-	var rightItem : CDrawableComponent;
+	var leftItem 	: CDrawableComponent;
+	var rightItem 	: CDrawableComponent;
+	var entity 		: CEntity;
 	
 	function IsAvailable() : bool
 	{
@@ -50,14 +61,40 @@ class CBTTaskScaredWhileSitting extends CBTTaskShouldBeScaredOnOverlay
 	
 	function OnActivate() : EBTNodeStatus
 	{
-		var inv : CInventoryComponent;
-		var itemId : SItemUniqueId;
+		var leftItemAnimatedComponent 	: CAnimatedComponent;
+		var rightItemAnimatedComponent 	: CAnimatedComponent;
+		var inv 						: CInventoryComponent;
+		var itemId 						: SItemUniqueId;
 		
 		leftItem = NULL;
 		rightItem = NULL;
 		
 		if ( infantInHand )
+		{
 			GetNPC().RaiseEvent('ScaredWithInfant');
+		}
+		//with animated item, it has to be done in job tree
+		else if ( catOnLap )
+		{
+			/*inv = GetNPC().GetInventory();
+			itemId = inv.GetItemFromSlot( 'l_weapon' );
+			if ( inv.IsIdValid(itemId) )
+			{
+				leftItemAnimatedComponent = (CAnimatedComponent)((inv.GetItemEntityUnsafe(itemId)).GetComponentByClassName( 'CAnimatedComponent' ));
+				if ( leftItemAnimatedComponent )
+					leftItemAnimatedComponent.PlaySkeletalAnimationAsync( 'woman_noble_sit_cat_scared_reaction' );
+			}
+			itemId = inv.GetItemFromSlot( 'r_weapon' );
+			if ( inv.IsIdValid(itemId) )
+			{
+				rightItemAnimatedComponent = (CAnimatedComponent)((inv.GetItemEntityUnsafe(itemId)).GetComponentByClassName( 'CAnimatedComponent' ));
+				if ( rightItemAnimatedComponent )
+					rightItemAnimatedComponent.PlaySkeletalAnimationAsync( 'woman_noble_sit_cat_scared_reaction' ) );
+			}
+			
+			GetNPC().RaiseEvent('ScaredWithCat');
+			*/
+		}
 		else
 		{
 			inv = GetNPC().GetInventory();
@@ -85,13 +122,30 @@ class CBTTaskScaredWhileSitting extends CBTTaskShouldBeScaredOnOverlay
 		
 		return BTNS_Active;
 	}
-	
+	/*
+	latent function Main() : EBTNodeStatus
+	{
+		var actor 			: CActor = GetActor();
+		var entityTemplate	: CEntityTemplate;
+		
+		if ( catOnLap )
+		{
+			entityTemplate = (CEntityTemplate)LoadResourceAsync( 'cat_sitting_on_lap' );
+			entity = theGame.CreateEntity( entityTemplate, actor.GetWorldPosition(), actor.GetWorldRotation() );
+			entity.CreateAttachment( actor, 'r_weapon' );
+		}
+		
+		return BTNS_Active;
+	}
+	*/
 	function OnDeactivate()
 	{
 		if ( leftItem )
 			leftItem.SetVisible(true);
 		if ( rightItem )
 			rightItem.SetVisible(true);
+		if ( entity )
+			entity.Destroy();
 		GetNPC().RaiseEvent('ScaredOverlayEnd');
 		GetNPC().SignalGameplayEvent( 'AI_UnPauseWorkAnimation' );
 		
@@ -120,7 +174,7 @@ class CBTTaskScaredWhileSittingDef extends IBehTreeReactionTaskDefinition
 }
 
 
-
+//------------------------------------------------------------------------
 class CBTCondIsSittingInInterior extends CBTTaskShouldBeScaredOnOverlay
 {
 	function IsAvailable() : bool

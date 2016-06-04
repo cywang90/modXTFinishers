@@ -1,44 +1,39 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-statemachine abstract import class CR4Player extends CPlayer
+﻿statemachine abstract import class CR4Player extends CPlayer
 { 
-	
-	protected 		var pcGamePlayInitialized			: bool;					
+	// BEHAVIOR INITIALIZATION
+	protected 		var pcGamePlayInitialized			: bool;					// MS: hack variable to fix Tpose when initially spawning Geralt (Consult Tomsin)
 
-	
-	private 		var pcMode							: bool;					
+	// PC Controls
+	private 		var pcMode							: bool;					// MS: Use control/camera modifications for keyboard/mouse
 	default pcMode = true;
 
-	
-	protected saved	var weaponHolster					: WeaponHolster;		
-	public			var rangedWeapon					: Crossbow;				
+	// COMBAT MECHANICS	
+	protected saved	var weaponHolster					: WeaponHolster;		// Makes Geralt holster and unholster the swords
+	public			var rangedWeapon					: Crossbow;				// Handles ranged weapons
 	public			var crossbowDontPopStateHack		: bool; 				default crossbowDontPopStateHack = false;
 	
-	private			var hitReactTransScale				: float;  				
+	private			var hitReactTransScale				: float;  				//dynamic scale for npc's hitreaction animation translation to force CloseCombat
 	
 	private			var bIsCombatActionAllowed			: bool;
 	private			var currentCombatAction				: EBufferActionType;
 	
-	private			var uninterruptedHitsCount 			: int;					
-	private 		var uninterruptedHitsCameraStarted 	: bool;					
-	private 		var uninterruptedHitsCurrentCameraEffect : name;			
+	private			var uninterruptedHitsCount 			: int;					//amount of uninterrupted hints performed by the player (gets reset when we get hit or stop attacking etc.)
+	private 		var uninterruptedHitsCameraStarted 	: bool;					//set to true once we enable the uninterrupted hits camera effect
+	private 		var uninterruptedHitsCurrentCameraEffect : name;			//currently used camera blurr effect for uninterrupted hits
 	
-	private 		var counterTimestamps				: array<EngineTime>;	
+	private 		var counterTimestamps				: array<EngineTime>;	//times when player pressed counter attack button - we check it later to prevent spamming
 	
-	private 		var hitReactionEffect 				: bool;					
+	private 		var hitReactionEffect 				: bool;					//blurr
 	
-	private			var lookAtPosition					: Vector; 				
+	private			var lookAtPosition					: Vector; 				//Position that Geralt is looking at, also where he will shoot
 	private			var orientationTarget				: EOrientationTarget;
 	private			var customOrientationTarget			: EOrientationTarget;
 	protected 		var customOrientationStack 			: array<SCustomOrientationParams>;
 	
 	public 			var delayOrientationChange 			: bool;
 	protected 		var delayCameraOrientationChange 	: bool;
-	private 		var actionType	 					: int; 
-	private 		var customOrientationStackIndex		: int; 
+	private 		var actionType	 					: int; // 0 = sign, 1 = guard, 2 = specialAttack, 3 = throwItem
+	private 		var customOrientationStackIndex		: int; //Used by Player only: will disable the previous combat action's orientation target and add to the stack everytime he performs a new combat action 
 	
 	private 		var emptyMoveTargetTimer			: float;
 	
@@ -49,7 +44,7 @@ statemachine abstract import class CR4Player extends CPlayer
 
 	private			var combatStance					: EPlayerCombatStance;	
 
-	public			var approachAttack					: int;					
+	public			var approachAttack					: int;					//Enable/Disable approach attack prototype, 0 = enabled, 1 = disabled with no far attack limit, 2 = disabled with far attack limit
 					default approachAttack 				= 1;
 	protected		var specialAttackCamera 			: bool;
 	
@@ -63,28 +58,28 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 	protected 		var evadeHeading					: float;
 
-	public			var vehicleCbtMgrAiming				: bool;		
+	public			var vehicleCbtMgrAiming				: bool;		//MS: hack variable to pass vehicleCbtMgr aiming variable to UseGenericVehicle
 	
-	public			var specialHeavyChargeDuration		: float;				
-	public 			var specialHeavyStartEngineTime 	: EngineTime;			
-	public 			var playedSpecialAttackMissingResourceSound : bool;			
+	public			var specialHeavyChargeDuration		: float;				//duration of charge-up event 
+	public 			var specialHeavyStartEngineTime 	: EngineTime;			//timestamp of when the charge-up started
+	public 			var playedSpecialAttackMissingResourceSound : bool;			//if missing resource sound was played or not (used in loop)
 	public function SetPlayedSpecialAttackMissingResourceSound(b : bool) {playedSpecialAttackMissingResourceSound = b;}
 	
 	public var counterCollisionGroupNames : array<name>;
 	
 	public saved	var lastInstantKillTime				: GameTime;
 	
-	
+	// Save locks
 	private 		var noSaveLockCombatActionName		: string;		default	noSaveLockCombatActionName	= 'combat_action';	
 	private 		var noSaveLockCombatAction			: int;	
 	private 		var deathNoSaveLock					: int;	
 	private			var noSaveLock						: int;
 	
-	
+	//new game plus
 	protected saved var newGamePlusInitialized			: bool;
 		default newGamePlusInitialized = false;
 	
-	
+	//  action buffer
 	protected			var BufferAllSteps					: bool;
 	protected			var BufferCombatAction				: EBufferActionType;
 	protected			var BufferButtonStage				: EButtonStage;	
@@ -96,15 +91,15 @@ statemachine abstract import class CR4Player extends CPlayer
 		default uninterruptedHitsCameraStarted = false;	
 		default customOrientationStackIndex = -1;
 			
-	
-	private var keepRequestingCriticalAnimStart : bool;				
+	// CRITICAL STATES
+	private var keepRequestingCriticalAnimStart : bool;				//set to true while we are trying to start critical anim
 	
 		default keepRequestingCriticalAnimStart = false;
 	
-	
+	// EXPLORATION
 	private		var currentCustomAction		: EPlayerExplorationAction;
 	public		var substateManager			: CExplorationStateManager;
-	protected	var isOnBoat				: bool;							
+	protected	var isOnBoat				: bool;							//set to true if player is on boat (but not necessarily sailing, but e.g. standing)
 	protected	var isInShallowWater 		: bool;
 	public		var medallion				: W3MedallionFX;
 	protected	var lastMedallionEffect 	: float;
@@ -113,6 +108,7 @@ statemachine abstract import class CR4Player extends CPlayer
 	public		var m_SettlementBlockCanter : int;
 	
 	
+	// FISTFIGHT MINIGAME
 	private var fistFightMinigameEnabled	: bool;
 	private var isFFMinigameToTheDeath		: bool;
 	private var FFMinigameEndsithBS			: bool;
@@ -125,13 +121,13 @@ statemachine abstract import class CR4Player extends CPlayer
 		default fistFightMinigameEnabled = false;
 		default isFFMinigameToTheDeath = false;
 	
-	
+	// GWINT MINIGAME
 	private var gwintAiDifficulty			: EGwintDifficultyMode;	default gwintAiDifficulty = EGDM_Easy;
 	private var gwintAiAggression			: EGwintAggressionMode;	default gwintAiAggression = EGAM_Defensive;
 	private var gwintMinigameState			: EMinigameState;		default gwintMinigameState  = EMS_None;
 
-	
-	import private 	var horseWithInventory 		: EntityHandle;			
+	// HORSE
+	import private 	var horseWithInventory 		: EntityHandle;			// if spawned handle is valid ( horse with inventory )
 	private 		var currentlyMountedHorse	: CNewNPC;	
 	private			var horseSummonTimeStamp	: float;
 	private saved	var isHorseRacing			: bool;
@@ -139,12 +135,12 @@ statemachine abstract import class CR4Player extends CPlayer
 	default isHorseRacing = false;
 	default horseCombatSlowMo = true;
 	
-	
-	private var HudMessages : array <string>; 
+	// HUD	FIXME - shouldn't this all be in hud / ui rather than player?
+	private var HudMessages : array <string>; //#B change to struct with message type, message duration etc
 	protected var fShowToLowStaminaIndication	: float;
 	public var showTooLowAdrenaline : bool;
-	private var HAXE3Container : W3Container; 
-	private var HAXE3bAutoLoot: bool; 
+	private var HAXE3Container : W3Container; //#B temp for E3
+	private var HAXE3bAutoLoot: bool; //#B temp for E3
 	private var bShowHud : bool;
 	private var dodgeFeedbackTarget : CActor;
 	
@@ -152,28 +148,28 @@ statemachine abstract import class CR4Player extends CPlayer
 		default fShowToLowStaminaIndication	= 0.0f;	
 		default bShowHud = true;
 		
-	saved var displayedQuestsGUID : array< CGUID >; 
-	saved var rewardsMultiplier : array< SRewardMultiplier >; 
-	saved var glossaryImageOverride : array< SGlossaryImageOverride >; 
+	saved var displayedQuestsGUID : array< CGUID >; // #B moved here because saved in journal doesn't work.
+	saved var rewardsMultiplier : array< SRewardMultiplier >; // #B moved here because saved in journal doesn't work.s
+	saved var glossaryImageOverride : array< SGlossaryImageOverride >; // #B moved here because saved in journal doesn't work.s
 	
-	
+	// INPUT
 	private 			var prevRawLeftJoyRot 			: float;
 	protected 			var explorationInputContext		: name;
 	protected			var combatInputContext 			: name;
 	protected			var combatFistsInputContext		: name;
 
-	
-	private var isInsideInteraction 		: bool;							
+	// INTERACTIONS
+	private var isInsideInteraction 		: bool;							//set to true when player is inside any interaction range, used to prioritize input 
 	private var isInsideHorseInteraction 	: bool;							
 	public	var horseInteractionSource 		: CEntity;
-	public 	var nearbyLockedContainersNoKey : array<W3LockableEntity>;		
+	public 	var nearbyLockedContainersNoKey : array<W3LockableEntity>;		//to update tooltip if player is close to a locked container and is THEN given a key
 	
-	
+	// MOVEMENT
 	private	var bMoveTargetChangeAllowed	: bool;		default bMoveTargetChangeAllowed = true;
 	private var moveAdj 					: CMovementAdjustor;
 	private var defaultLocomotionController	: CR4LocomotionPlayerControllerScript;
-	
-	
+	//private var isFollowing					: bool;
+	//private var followingStartTime			: float;
 	private var canFollowNpc 				: bool;
 	private var actorToFollow 				: CActor;
 	public var terrainPitch					: float;
@@ -181,23 +177,50 @@ statemachine abstract import class CR4Player extends CPlayer
 	public var disableSprintTerrainPitch	: float; 	default disableSprintTerrainPitch = 54.f;
 	private var submergeDepth			: float;
 	
-	private var m_useSelectedItemIfSpawned 	: bool; default m_useSelectedItemIfSpawned = false; 
+	private var m_useSelectedItemIfSpawned 	: bool; default m_useSelectedItemIfSpawned = false; // Used only in WaitForItemSpawnAndProccesTask
 	
 	
 	var navQuery : CNavigationReachabilityQueryInterface;
 	
-	
+	// BARBER
 	public saved var rememberedCustomHead : name;
+
+	// WEATHER DISPLAY
+	public saved var disableWeatherDisplay : bool;
 	
-	
+	// EPISODE1
 	public saved var proudWalk : bool;
 	private var etherealCount : int; 
 	default etherealCount = 0;
 	
+	// EPISODE2
+	public saved var injuredWalk : bool;
+	public saved var tiedWalk : bool;
+	private var insideDiveAttackArea : bool;
+	default insideDiveAttackArea = false;
+	private var diveAreaNumber : int;
+	default diveAreaNumber = -1;
 	
+	// CAMERA
+	private var flyingBossCamera : bool;
+	default flyingBossCamera = false;
+	
+	public function SetFlyingBossCamera( val : bool ) { flyingBossCamera = val; }
+	public function GetFlyingBossCamera() : bool { return flyingBossCamera; }
+	
+	// TOOLTIP
+	public saved var upscaledTooltipState : bool;
+	default upscaledTooltipState = false;
+	
+	// PHANTOM WEAPON
 	private var phantomWeaponMgr : CPhantomWeaponManager;
 	
+	/*public var	bonePositionCam 	: Vector;
 	
+	public function SetBonePositionCam( pos : Vector )
+	{
+		bonePositionCam	= pos;
+	}*/
 
 	function EnablePCMode( flag : bool )
 	{
@@ -234,92 +257,92 @@ statemachine abstract import class CR4Player extends CPlayer
 		return submergeDepth;
 	}	
 	
-	
+	// ONELINERS
 	editable var delayBetweenIllusionOneliners : float;
 		
 		hint delayBetweenIllusionOneliners = "delay in secs between oneliners about illusionary objects";
 		
 		default delayBetweenIllusionOneliners = 5;
 	
-	
+	// Battlecry
 	private			var battlecry_timeForNext			: float;
 	private 		var battlecry_delayMin				: float;	default battlecry_delayMin = 15;
 	private 		var battlecry_delayMax				: float;	default battlecry_delayMax = 60;
 	private			var battlecry_lastTry				: name;
 	
-	
+	// Weather	
 	private 		var previousWeather 				: name;
 	private 		var previousRainStrength			: float;
 	
-	
-	protected var receivedDamageInCombat	: bool;			
-	protected var prevDayNightIsNight		: bool;			
-	public	var failedFundamentalsFirstAchievementCondition : bool;		
+	//OTHER
+	protected var receivedDamageInCombat	: bool;			//set when you got hit
+	protected var prevDayNightIsNight		: bool;			//Day-Night cycle check - value of previous check
+	public	var failedFundamentalsFirstAchievementCondition : bool;		//achievement
 	
 	private var spawnedTime					: float;
 
 	public	var currentMonsterHuntInvestigationArea : W3MonsterHuntInvestigationArea;		
 
-	private var isPerformingPhaseChangeAnimation : bool;	
+	private var isPerformingPhaseChangeAnimation : bool;	// flag for suppressing game camera update during synced animation in eredin fight
 	default isPerformingPhaseChangeAnimation = false;
 	
 		default receivedDamageInCombat = false;
 		
-	
+	// PLAYER MODE
 	public 			 	var playerMode					: W3PlayerMode;	
 		
+	// QUICKSLOTS
+	protected saved	var selectedItemId					: SItemUniqueId;	//id of item selected from quickslots
+	protected saved var blockedRadialSlots				: array < SRadialSlotDef >; // radial menu slots blocked by different sources
 	
-	protected saved	var selectedItemId					: SItemUniqueId;	
-	protected saved var blockedRadialSlots				: array < SRadialSlotDef >; 
-	
-	
+	// SOFT LOCK TARGETING
 	public				var enemyCollectionDist			: float;
-	public  			var findMoveTargetDistMin		: float;			
-	public 				var findMoveTargetDistMax		: float;			
-	private				var findMoveTargetScaledFrame	: float;			
-	public 				var interactDist				: float;			
+	public  			var findMoveTargetDistMin		: float;			//distance from player to get softlocked targets
+	public 				var findMoveTargetDistMax		: float;			//distance from player that target gets disengaged from soft lock
+	private				var findMoveTargetScaledFrame	: float;			//xaxis scale to find non-hostile targets when stationary
+	public 				var interactDist				: float;			//distance from player to attack or interact with a non-hostile npc
 	protected			var bCanFindTarget				: bool;
 	private				var bIsConfirmingEmptyTarget	: bool;
-	private 			var displayTarget				: CGameplayEntity;	
+	private 			var displayTarget				: CGameplayEntity;	//entity to show health bar on hud;
 	private				var isShootingFriendly			: bool;
 	
 		default findMoveTargetDistMax = 18.f;
 		default findMoveTargetScaledFrame = 0.5f;
 		default interactDist = 3.5f;
 	
-	
+	//Target Selection
 	private var currentSelectedTarget			: CActor; 
 	private var selectedTargetToConfirm			: CActor;
 	private var bConfirmTargetTimerIsEnabled 	: bool;
 		
-	
-	public saved 		var thrownEntityHandle			: EntityHandle;		
+	// THROWABLES	
+	public saved 		var thrownEntityHandle			: EntityHandle;		//entity of currently thrown item (in aiming)	
 	private 			var isThrowingItemWithAim 		: bool;
-	private	saved		var isThrowingItem				: bool;				
+	private	saved		var isThrowingItem				: bool;				//used for aim mode to check if we're in throwing logic
 	private 			var isThrowHoldPressed			: bool;
 	
-	
+	// CROSSBOW
 	private				var isAimingCrossbow			: bool;
 	
 		default isThrowingItemWithAim = false;
 		
-	
+	// AIMING MODE
 	public				var playerAiming				: PlayerAiming;
 			
-	
+	// DISMEMBERMENT
 	public var forceDismember 			: bool;
 	public var forceDismemberName 		: name;
 	public var forceDismemberChance 	: int;
 	public var forceDismemberExplosion 	: bool;
 	
-	
+	// FINISHER
 	private var finisherVictim 			: CActor;
 	public var forceFinisher 			: bool;
 	public var forceFinisherAnimName 	: name;
 	public var forceFinisherChance 		: int;	
 	public var forcedStance		 		: bool;	
 
-	
+	// WEAPON COLLISION FX
 	private var m_WeaponFXCollisionGroupNames 	: array <name>;
 	private var m_CollisionEffect 				: CEntity;
 	private var m_LastWeaponTipPos				: Vector;
@@ -327,7 +350,7 @@ statemachine abstract import class CR4Player extends CPlayer
 	private var m_RefreshWeaponFXType			: bool;
 	private var m_PlayWoodenFX					: bool;
 	
-	
+	// POSTERS
 	private var m_activePoster					: W3Poster;
 	
 	public function SetActivePoster ( poster :  W3Poster )
@@ -344,37 +367,37 @@ statemachine abstract import class CR4Player extends CPlayer
 	{
 		return m_activePoster;
 	}
-	
-	
-	
-	
+	// SAVE / LOAD
+	//private saved var safePositionStored: bool;			default safePositionStored = false;
+	//private saved var lastSafePosition	: Vector;
+	//private saved var lastSafeRotation	: EulerAngles;
 	
 	public var horseOnNavMesh : bool;
 	default horseOnNavMesh = true;
 	
 	public function SetHorseNav( val : bool ) { horseOnNavMesh = val; }
 	
-	
-	public var testAdjustRequestedMovementDirection : bool; 
+	// TEST
+	public var testAdjustRequestedMovementDirection : bool; // TEST
 		default testAdjustRequestedMovementDirection = false;
 		
-	
+	// State
 	default	autoState	= 'Exploration';
 	
+	///////////////////////////////////////////////////////////////////////////
+	///////////////////  IMPORTED C++ FUNCTIONS  //////////////////////////////
+	///////////////////////////////////////////////////////////////////////////
 	
-	
-	
-	
-	
+	// All following functions give cached data from previous frame
 	import final function GetEnemiesInRange( out enemies : array< CActor > );
 	import final function GetVisibleEnemies( out enemies : array< CActor > );
 	import final function IsEnemyVisible( enemy : CActor ) : bool;
 	
-	
+	// Set this up in order to use above functions and get the proper data
 	import final function SetupEnemiesCollection(	range, heightTolerance	: float,
 													maxEnemies				: int,
 													optional tag			: name,
-													optional flags			: int ); 
+													optional flags			: int ); // please combine EScriptQueryFlags - FLAG_ExcludePlayer is always on
 
 	import final function IsInInterior() : bool;
 	import final function IsInSettlement() : bool;
@@ -406,8 +429,8 @@ statemachine abstract import class CR4Player extends CPlayer
 		return 0;
 	}
 	
-	
-	
+	///////////////////////////////////////////////////////////////////////////
+	// (new) targeting
 	
 	var targeting				: CR4PlayerTargeting;
 	var targetingPrecalcs		: SR4PlayerTargetingPrecalcs;
@@ -419,7 +442,7 @@ statemachine abstract import class CR4Player extends CPlayer
 	var visibleActors			: array< CActor >;
 	var visibleActorsTime		: array< float >;
 	
-	
+	///////////////////////////////////////////////////////////////////////////
 		
 	event OnSpawned( spawnData : SEntitySpawnData )
 	{
@@ -447,46 +470,49 @@ statemachine abstract import class CR4Player extends CPlayer
 		AddAnimEventCallback('pad_vibration_light',		'OnAnimEvent_pad_vibration_light');
 		AddAnimEventCallback('RemoveBurning',			'OnAnimEvent_RemoveBurning');
 		AddAnimEventCallback('RemoveTangled',			'OnAnimEvent_RemoveTangled');
+		AddAnimEventCallback('MoveNoise',				'OnAnimEvent_MoveNoise');
 		
 		AddItemPerLevelList();
 		
 		enemyCollectionDist = findMoveTargetDistMax;
 		
-		
+		//retrofix - removing saved timescale
 		theGame.RemoveTimeScale('horse_melee');
 		
-		
+		//give items
 		if(!spawnData.restored && !((W3ReplacerCiri)this) )
 		{
 			AddTimer('GiveStartingItems', 0.00001, true, , , true);
 			
 			if(!theGame.IsFinalBuild())
 			{
-				
+				//unlock skills for testing purposes
 				AddAbility('GeraltSkills_Testing');				
 				AddTimer('Debug_GiveTestingItems',0.0001,true);			
 			}
 			
-			
+			//disable retro-stash-tutorial on fresh playthroughs
 			FactsAdd("tut_stash_fresh_playthrough");
 		}
 		
 		InitTargeting();
 		
-		
+		// After load
 		if( spawnData.restored )
 		{
+			// ED this line was not called before, because of extra if conditions regarding "safe position stored"  but it was uncommented
+			//OnUseSelectedItem();	
 			
-			
+			theGame.GameplayFactsRemove( "in_combat" );
 		}
 		
 		
-		
+		// Create the sword holster (it is a saved property, there is no need of re-creating it when playing from save)
 		if ( !weaponHolster )
 		{
 			weaponHolster = new WeaponHolster in this;
 		}		
-		
+		// temp workaround of not saving states:
 		weaponHolster.Initialize( this, spawnData.restored );
 		
 		if ( !interiorTracker )
@@ -498,43 +524,43 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		super.OnSpawned( spawnData );
 
-		
+		// Create medallion
 		medallion = new W3MedallionFX in this;
 		
 		playerMode = new W3PlayerMode in this;
 		playerMode.Initialize( this );
 		
-		
+		// Initialize Aiming Mode
 		playerAiming = new PlayerAiming in this;
 		playerAiming.Initialize( this );
 		
-		
+		// Initialize reachability query
 		navQuery = new CNavigationReachabilityQueryInterface in this;
 		
-		
+		// Start looking for soft-lock targets
 		EnableFindTarget( true );
 		AddTimer( 'CombatCheck', 0.2f, true );
 		
-		
+		// Get the exploration state manager component
 		substateManager	= ( CExplorationStateManager ) GetComponentByClassName( 'CExplorationStateManager' );
 		
 		findMoveTargetDist = findMoveTargetDistMax;
 		
 		SetupEnemiesCollection( enemyCollectionDist, findMoveTargetDist, 10, 'None', FLAG_Attitude_Neutral + FLAG_Attitude_Hostile + FLAG_Attitude_Friendly + FLAG_OnlyAliveActors );
 		
-		
+		//for geralt-replacer switching
 		inputHandler.RemoveLocksOnSpawn();
 		
-		
+		// Player has the lowest push priority
 		((CActor) this ).SetInteractionPriority( IP_Prio_0 );
 		
 		prevDayNightIsNight = theGame.envMgr.IsNight();
 		CheckDayNightCycle();
 		
-		
+		// Debug
 		EnableVisualDebug( SHOW_AI, true );
 		
-		
+		//oneliners delay
 		FactsRemove("blocked_illusion_oneliner");	
 		
 		SetFailedFundamentalsFirstAchievementCondition(false);
@@ -563,7 +589,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			counterCollisionGroupNames.PushBack('Destructible');
 		}
 		
-		
+		//ps4 pad backlight color
 		ResetPadBacklightColor();
 		
 		if( spawnData.restored )
@@ -591,10 +617,10 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		((CR4PlayerStateSwimming)this.GetState('Swimming')).OnParentSpawned();
 		
-		
+		//hack for possible immortality from finishers
 		SetImmortalityMode( AIM_None, AIC_SyncedAnim );
 		
-		
+		//disable Dimeritium Bomb skill locks after load
 		theGame.GetDefinitionsManager().GetContainedAbilities('DwimeritiumBomb_3', atts);
 		for(i=0; i<atts.Size(); i+=1)
 		{
@@ -603,14 +629,14 @@ statemachine abstract import class CR4Player extends CPlayer
 				BlockSkill(skill, false);		
 		}
 		
-		
+		// phantom weapon manager
 		this.GetInventory().GetItemEquippedOnSlot( EES_SteelSword, item );
 		if( this.GetInventory().ItemHasTag( item, 'PhantomWeapon' ) )
 		{
 			this.InitPhantomWeaponMgr();
 		}
 
-		
+		//retoractive fix
 		if(FactsQuerySum("mq3036_fact_done") > 0)
 			BlockAllActions('mq3036', false);
 		
@@ -621,9 +647,27 @@ statemachine abstract import class CR4Player extends CPlayer
 		else
 			theGame.EnableUberMovement( false );
 		
-		
+		// Initial level for Gwint Difficulty (Normal)
 		if ( !FactsDoesExist("gwent_difficulty") )
 			FactsAdd("gwent_difficulty", 2);
+			
+		//NG+
+		if(!newGamePlusInitialized && FactsQuerySum("NewGamePlus") > 0)
+		{
+			NewGamePlusInitialize();
+		}
+		
+		//fix wrapped instant kill time stamp
+		if( lastInstantKillTime > theGame.GetGameTime() )
+		{
+			SetLastInstantKillTime( GameTimeCreate(0) );
+		}
+	}
+	
+	public function NewGamePlusInitialize()
+	{
+		//reset instant kill cooldown
+		SetLastInstantKillTime( GameTimeCreate(0) );
 	}
 	
 	public function GetTimeSinceSpawned() : float
@@ -660,13 +704,13 @@ statemachine abstract import class CR4Player extends CPlayer
 			
 		ResetPadBacklightColor();
 		
-		
+		//remove combat mode no-save lock
 		theGame.ReleaseNoSaveLock( noSaveLock );
 	}
 	
-	
-	
-	
+	/////////////////////////////////////////////////////////////////////
+	////////////////////////Radial Menu//////////////////////////////////
+	////////////////////////////////////////////////////////////////////
 	
 	public function GetBlockedSlots () : array < SRadialSlotDef >
 	{
@@ -676,8 +720,8 @@ statemachine abstract import class CR4Player extends CPlayer
 	public function  ClearBlockedSlots()
 	{
 		var i 				 : int;
-		
-		
+		//var blockedSigns 	 : array<ESignType>;
+		//var playerWitcher	 : W3PlayerWitcher;
 		
 		for ( i = 0; i < blockedRadialSlots.Size(); i+=1 )
 		{
@@ -714,8 +758,53 @@ statemachine abstract import class CR4Player extends CPlayer
 				}
 			}
 		}
+		// this is a hack that had to be added because someone ignored existing functionality of blocking radial slots propely and created BlockSignSelection. Unfortunately to keep the backwawrd compatibility I had to hack it.
+		/*playerWitcher = (W3PlayerWitcher)this;
 		
+		if ( playerWitcher )
+		{
+			blockedSigns = playerWitcher.GetBlockedSigns();
 			
+			i = 0;
+			for ( i = 0; i < blockedSigns.Size(); i+=1 )
+			{
+				switch( blockedSigns[i] )
+				{
+					case ST_Aard :
+						if ( !IsRadialSlotBlocked ( 'Aard') )
+						{
+							playerWitcher.BlockSignSelection(ST_Aard, false);
+						}
+						break;
+					case ST_Axii :
+						if ( !IsRadialSlotBlocked ( 'Axii') )
+						{
+							playerWitcher.BlockSignSelection(ST_Axii, false );
+						}
+						break;
+					case ST_Igni :
+						if ( !IsRadialSlotBlocked ( 'Igni') )
+						{
+							playerWitcher.BlockSignSelection(ST_Igni, false );
+						}
+						break;
+					case ST_Quen :
+						if ( !IsRadialSlotBlocked ( 'Quen') )
+						{
+							playerWitcher.BlockSignSelection(ST_Quen, false );
+						}
+						break;
+					case ST_Yrden :
+						if ( !IsRadialSlotBlocked ( 'Yrden') )
+						{
+							playerWitcher.BlockSignSelection(ST_Yrden, false );
+						}
+						break;
+					default:
+						break;
+				}
+			}
+		}*/	
 		
 	}
 	
@@ -858,22 +947,248 @@ statemachine abstract import class CR4Player extends CPlayer
 	}
 	
 	
-	
-	
-	
-	
+	/////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////
+	///////////////////////  @Reapir Kits  ////////////////////////////////////
+	////////////////////////////////////////////////////////////////////
 	public function RepairItem (  rapairKitId : SItemUniqueId, usedOnItem : SItemUniqueId );
 	public function HasRepairAbleGearEquiped () : bool;
 	public function HasRepairAbleWaponEquiped () : bool;
 	public function IsItemRepairAble ( item : SItemUniqueId ) : bool;
 	
+	/////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////
+	///////////////////////  @OILS  ////////////////////////////////////
+	////////////////////////////////////////////////////////////////////
 	
+	public final function ReduceAllOilsAmmo( id : SItemUniqueId )
+	{
+		var i : int;
+		var oils : array< W3Effect_Oil >;
+		
+		oils = inv.GetOilsAppliedOnItem( id );
+		
+		for( i=0; i<oils.Size(); i+=1 )
+		{
+			oils[ i ].ReduceAmmo();
+		}
+	}
 	
+	public final function ResumeOilBuffs( steel : bool )
+	{
+		var item : SItemUniqueId;
+		var oils : array< CBaseGameplayEffect >;
+		var buff, recentOil : W3Effect_Oil;
+		var i : int;
+		
+		item = GetEquippedSword( steel );
+		oils = GetBuffs( EET_Oil );
+		
+		if( oils.Size() > 1 )
+		{
+			//if we have more than 1 oil applied on sword, we need to resume most recent one as the last one
+			//in order to show proper oil color on the blade
+			recentOil = inv.GetNewestOilAppliedOnItem( item, false );
+		}
+		
+		for( i=0; i<oils.Size(); i+=1 )
+		{
+			buff = ( W3Effect_Oil ) oils[ i ];
+			
+			if( recentOil && recentOil == buff )
+			{
+				continue;
+			}
+			
+			if(buff && buff.GetSwordItemId() == item )
+			{
+				buff.Resume( '' );
+			}
+		}
+		
+		if( recentOil )
+		{
+			recentOil.Resume( '' );
+		}
+	}
 	
+	protected final function PauseOilBuffs( isSteel : bool )
+	{
+		var item : SItemUniqueId;
+		var oils : array< CBaseGameplayEffect >;
+		var buff : W3Effect_Oil;
+		var i : int;
+		
+		item = GetEquippedSword( isSteel );
+		oils = GetBuffs( EET_Oil );
+		
+		for( i=0; i<oils.Size(); i+=1 )
+		{
+			buff = ( W3Effect_Oil ) oils[ i ];
+			if(buff && buff.GetSwordItemId() == item )
+			{
+				buff.Pause( '', true );
+			}
+		}
+	}
 	
-	public function ApplyOil( oilId : SItemUniqueId, usedOnItem : SItemUniqueId );
-	public function IsEquippedSwordUpgradedWithOil(steel : bool, optional oilName : name) : bool;
-	public function GetOilAppliedOnSword(steel : bool) : name;
+	public final function ManageAerondightBuff( apply : bool )
+	{
+		var aerondight		: W3Effect_Aerondight;
+		var item			: SItemUniqueId;
+		
+		item = inv.GetCurrentlyHeldSword();
+		
+		if( inv.ItemHasTag( item, 'Aerondight' ) )
+		{
+			aerondight = (W3Effect_Aerondight)GetBuff( EET_Aerondight );
+			
+			if( apply )
+			{
+				if( !aerondight )
+				{
+					AddEffectDefault( EET_Aerondight, this, "Aerondight" );
+				}
+				else
+				{
+					aerondight.Resume( 'ManageAerondightBuff' );
+				}
+			}
+			else
+			{
+				aerondight.Pause( 'ManageAerondightBuff' );
+			}
+		}
+	}
+	
+	//applies oil on given player item
+	public function ApplyOil( oilId : SItemUniqueId, usedOnItem : SItemUniqueId ) : bool
+	{
+		var oilAbilities : array< name >;
+		var ammo, ammoBonus : float;
+		var dm : CDefinitionsManagerAccessor;		
+		var buffParams : SCustomEffectParams;
+		var oilParams : W3OilBuffParams;
+		var oilName : name;
+		var min, max : SAbilityAttributeValue;
+		var i : int;
+		var oils : array< W3Effect_Oil >;
+		var existingOil : W3Effect_Oil;
+				
+		if( !CanApplyOilOnItem( oilId, usedOnItem ) )
+		{
+			return false;
+		}
+		
+		dm = theGame.GetDefinitionsManager();
+		inv.GetItemAbilitiesWithTag( oilId, theGame.params.OIL_ABILITY_TAG, oilAbilities );
+		oilName = inv.GetItemName( oilId );
+		oils = inv.GetOilsAppliedOnItem( usedOnItem );
+		
+		//check if oil is already applied
+		for( i=0; i<oils.Size(); i+=1 )
+		{
+			if( oils[ i ].GetOilItemName() == oilName )
+			{
+				existingOil = oils[ i ];
+				break;
+			}
+		}
+		
+		//remove previous oil
+		if( !existingOil )
+		{
+			if( !GetWitcherPlayer() || !GetWitcherPlayer().IsSetBonusActive( EISB_Wolf_1 ) )
+			{
+				inv.RemoveAllOilsFromItem( usedOnItem );
+			}
+			else
+			{
+				dm.GetAbilityAttributeValue( GetSetBonusAbility( EISB_Wolf_1 ), 'max_oils_count', min, max );
+				if( inv.GetActiveOilsAppliedOnItemCount( usedOnItem ) >= CalculateAttributeValue( max ) )
+				{
+					inv.RemoveOldestOilFromItem( usedOnItem );
+				}
+			}
+		}
+		
+		//set charges
+		ammo = CalculateAttributeValue(inv.GetItemAttributeValue(oilId, 'ammo'));
+		if(CanUseSkill(S_Alchemy_s06))
+		{
+			ammoBonus = CalculateAttributeValue(GetSkillAttributeValue(S_Alchemy_s06, 'ammo_bonus', false, false));
+			ammo *= 1 + ammoBonus * GetSkillLevel(S_Alchemy_s06);
+		}
+		
+		//add new oil
+		if( existingOil )
+		{
+			existingOil.Reapply( RoundMath( ammo ) );
+		}
+		else
+		{
+			buffParams.effectType = EET_Oil;
+			buffParams.creator = this;
+			oilParams = new W3OilBuffParams in this;
+			oilParams.iconPath = dm.GetItemIconPath( oilName );
+			oilParams.localizedName = dm.GetItemLocalisationKeyName( oilName );
+			oilParams.localizedDescription = dm.GetItemLocalisationKeyName( oilName );
+			oilParams.sword = usedOnItem;
+			oilParams.maxCount = RoundMath( ammo );
+			oilParams.currCount = RoundMath( ammo );
+			oilParams.oilAbilityName = oilAbilities[ 0 ];
+			oilParams.oilItemName = oilName;
+			buffParams.buffSpecificParams = oilParams;
+			
+			AddEffectCustom( buffParams );
+			
+			delete oilParams;
+		}
+		
+		LogOils("Added oil <<" + oilName + ">> to <<" + inv.GetItemName( usedOnItem ) + ">>");
+		
+		//fundamentals first achievement
+		SetFailedFundamentalsFirstAchievementCondition( true );		
+		
+		theGame.GetGlobalEventsManager().OnScriptedEvent( SEC_OnOilApplied );
+		
+		if( !inv.IsItemHeld( usedOnItem ) )
+		{
+			PauseOilBuffs( inv.IsItemSteelSwordUsableByPlayer( usedOnItem ) );
+		}
+		
+		return true;
+	}
+	
+	// Returns true if given sword type is upgraded with given oil
+	public final function IsEquippedSwordUpgradedWithOil(steel : bool, optional oilName : name) : bool
+	{
+		var sword : SItemUniqueId;
+		var i : int;
+		var oils : array< W3Effect_Oil >;
+	
+		sword = GetEquippedSword( steel );				
+		if( !inv.IsIdValid( sword ) )
+		{
+			return false;
+		}
+	
+		if( oilName == '' )
+		{
+			return inv.ItemHasAnyActiveOilApplied( sword );
+		}
+		
+		oils = inv.GetOilsAppliedOnItem( sword );
+		for( i=0; i<oils.Size(); i+=1 )
+		{
+			if( oils[ i ].GetOilItemName() == oilName )
+			{
+				return true;
+			}
+		}
+		
+		return false;
+	}
 	
 	public function CanApplyOilOnItem(oilId : SItemUniqueId, usedOnItem : SItemUniqueId) : bool
 	{
@@ -885,7 +1200,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			
 		return false;
 	}
-	
+	////////////////////////////////////////////////////////////////////
 	
 	public final function DidFailFundamentalsFirstAchievementCondition() : bool
 	{
@@ -899,7 +1214,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		failedFundamentalsFirstAchievementCondition = b;
 		
-		
+		//save info in enemy since we might run away from combat and return, triggering new combat encounter
 		if(failedFundamentalsFirstAchievementCondition)
 		{
 			for(i=0; i<hostileEnemies.Size(); i+=1)
@@ -931,9 +1246,9 @@ statemachine abstract import class CR4Player extends CPlayer
 		var speedVec : Vector;
 		var speed, speedMult : float;
 
-		
-		speedVec.X = theInput.GetActionValue( 'GI_AxisLeftX' ); 
-		speedVec.Y = theInput.GetActionValue( 'GI_AxisLeftY' );
+		// Get speed from input
+		speedVec.X = theInput.GetActionValue( 'GI_AxisLeftX' ); //player.mainInput.aLeftJoyX;
+		speedVec.Y = theInput.GetActionValue( 'GI_AxisLeftY' );//player.mainInput.aLeftJoyY;
 		speed = VecLength2D( speedVec );
 		
 		return speed > 0.1f;
@@ -941,10 +1256,10 @@ statemachine abstract import class CR4Player extends CPlayer
 
 	function HandleMovement( deltaTime : float )
 	{
-		
-		
-		
-		
+		// just to see if player would like to move if there would be possibility
+		// example of use: movement is blocked when in critical state, but it can end earlier only if it would be desired by player
+		// and this is nothing but desire to move
+		// note: for some reason, when doing WouldLikeToMove()? 1.0f : 0.0f it just doesn't care and gives 0.0f
 		if (WouldLikeToMove())
 			SetBehaviorVariable( 'playerWouldLikeToMove', 1.0f);
 		else
@@ -985,7 +1300,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			return;
 		}
 		
-		
+		// To avoid calling too often the same type of battle cry
 		if ( !ignoreRepeatCheck )
 		{
 			if( battlecry_lastTry == _BattleCry )
@@ -996,11 +1311,11 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		l_randValue = RandF();
 		
-		
+		// Either use delay or chance
 		if( l_randValue < _Chance && ( _IgnoreDelay || BattleCryIsReady() )  )
 		{
 			thePlayer.PlayVoiceset( 90, _BattleCry );			
-			
+			// Restart counter
 			battlecry_timeForNext = theGame.GetEngineTimeAsSeconds() + RandRangeF( battlecry_delayMax, battlecry_delayMin );
 		}
 		
@@ -1166,14 +1481,14 @@ statemachine abstract import class CR4Player extends CPlayer
 			}
 		}
 		
-		
+		//CombatModeDebug();
 		
 		playerTickTimerPhase = ( playerTickTimerPhase + 1 ) % 3;
 		
 		focusModeController = theGame.GetFocusModeController();
 		focusModeController.UpdateFocusInteractions( deltaTime );
 		
-		
+		//some behavior hack for critical states, moved from effectsManager.PerformUpdate() since it does not tick continuously anymore
 		cnt = (int)( effectManager.GetCriticalBuffsCount() > 0 );		
 		SetBehaviorVariable('hasCriticalBuff', cnt);
 	}	
@@ -1183,7 +1498,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		super.OnDeath( damageAction );
 		
 		RemoveTimer('RequestCriticalAnimStart');
-		
+		//theInput.SetContext('Death');		
 		EnableFindTarget( false );
 		BlockAllActions('Death', true);
 		
@@ -1196,9 +1511,11 @@ statemachine abstract import class CR4Player extends CPlayer
 		RemoveReactions();
 		SetPlayerCombatTarget(NULL);
 		OnEnableAimingMode( false );	
+		
+		theGame.EnableFreeCamera( false );
 	}
 	
-	
+	// Called when the actor gets out of unconscious state
 	function OnRevived()
 	{
 		super.OnRevived();
@@ -1217,17 +1534,23 @@ statemachine abstract import class CR4Player extends CPlayer
 		return super.CanStartTalk();
 	}
 	
+	///////////////////////////////////////////////////////////////////////////
+	// @Counters
+	///////////////////////////////////////////////////////////////////////////
 	
-	
-	
-	
-	
+	//caches timestamp of counter use (button press)
 	public function AddCounterTimeStamp(time : EngineTime)		{counterTimestamps.PushBack(time);}	
 	
-	
+	/*
+		This function checks if we have performed a counter
+		It checks timestamps of moments when we pressed the parry/counter button in order
+		to determine if the player was spamming the button. If so then this is not a counter.
+		
+		Returns true if the counter is valid
+	*/
 	public function CheckCounterSpamming(attacker : CActor) : bool
 	{
-		var counterWindowStartTime : EngineTime;		
+		var counterWindowStartTime : EngineTime;		//the time when the counter window (in anim) started 
 		var i, spamCounter : int;
 		var reflexAction : bool;
 		var testEngineTime : EngineTime;
@@ -1239,7 +1562,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		spamCounter = 0;
 		reflexAction = false;
 		
-		
+		//if counterWindowStartTime was never set return false - PF
 		if ( counterWindowStartTime == testEngineTime )
 		{
 			return false;
@@ -1247,24 +1570,31 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		for(i = counterTimestamps.Size() - 1; i>=0; i-=1)
 		{
-			
+			//log number of button presses since 0.4 seconds before the counter timewindow
 			if(counterTimestamps[i] >= (counterWindowStartTime - EngineTimeFromFloat(0.4)) )
 			{
 				spamCounter += 1;
 			}
-			
+			//and at the same time remove all outdated data on the fly
 			else
 			{
 				counterTimestamps.Remove(counterTimestamps[i]);
 				continue;
 			}
 			
-			
+			//set info that we have a potential parry if this press was after the counter timewindow started
 			if(!reflexAction && (counterTimestamps[i] >= counterWindowStartTime))
 				reflexAction = true;
 		}
 		
-		
+		/*
+			If reflexAction is set then we have at least 1 button press within the counter timewindow.
+			
+			As for the spam counter:
+			0 means no button was pressed - no counter
+			1 means exactly one button press - a potential counter (if reflexAction is set as well)
+			>1 means spamming
+		*/
 		if(spamCounter == 1 && reflexAction)
 			return true;
 			
@@ -1278,13 +1608,13 @@ statemachine abstract import class CR4Player extends CPlayer
 		var validCounter, useKnockdown 	: bool;
 		var slideDistance, duration 	: float;
 		var playerToTargetRot			: EulerAngles;
-		var zDifference					: float;
+		var zDifference, mutation8TriggerHP : float;
 		var effectType 					: EEffectType;
 		var repelType					: EPlayerRepelType = PRT_Random;
 		var params						: SCustomEffectParams;
-		var thisPos, attackerPos : Vector;
-		var fistFightCheck : bool;
-		var fistFightCounter : bool;
+		var thisPos, attackerPos 		: Vector;
+		var fistFightCheck, isMutation8 : bool;
+		var fistFightCounter 			: bool;
 		var attackerInventory			: CInventoryComponent;
 		var weaponId					: SItemUniqueId;
 		var weaponTags					: array<name>;
@@ -1293,6 +1623,8 @@ statemachine abstract import class CR4Player extends CPlayer
 		var tracePosEnd					: Vector;
 		var hitPos						: Vector;
 		var hitNormal					: Vector;
+		var min, max					: SAbilityAttributeValue;
+		var npc 						: CNewNPC;
 		
 		if(ShouldProcessTutorial('TutorialDodge') || ShouldProcessTutorial('TutorialCounter'))
 		{
@@ -1307,7 +1639,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		if( ParryCounterCheck() && parryInfo.targetToAttackerAngleAbs < theGame.params.PARRY_HALF_ANGLE && fistFightCheck )
 		{
-			
+			//check if this is a valid counter
 			validCounter = CheckCounterSpamming(parryInfo.attacker);
 			
 			if(validCounter)
@@ -1316,12 +1648,12 @@ statemachine abstract import class CR4Player extends CPlayer
 					RaiseEvent('CombatActionFriendlyEnd');
 				
 				SetBehaviorVariable( 'parryType', ChooseParryTypeIndex( parryInfo ) );
-				SetBehaviorVariable( 'counter', (float)validCounter);			
+				SetBehaviorVariable( 'counter', (float)validCounter);			//1/true when the parry is a counter/reflex_parry			
 				
-				
-				
+				//PPPP counter success sound
+				//SoundEvent("global_machines_lift_wood1_mechanism_stop" );
 				SetBehaviorVariable( 'parryType', ChooseParryTypeIndex( parryInfo ) );
-				SetBehaviorVariable( 'counter', (float)validCounter);			
+				SetBehaviorVariable( 'counter', (float)validCounter);			//1/true when the parry is a counter/reflex_parry		
 				this.SetBehaviorVariable( 'combatActionType', (int)CAT_Parry );
 				
 				
@@ -1331,16 +1663,30 @@ statemachine abstract import class CR4Player extends CPlayer
 					weaponId = attackerInventory.GetItemFromSlot('r_weapon');
 					attackerInventory.GetItemTags( weaponId , weaponTags );
 					
+					if( GetWitcherPlayer().IsMutationActive( EPMT_Mutation8 ) )
+					{
+						isMutation8 = true;
+						theGame.GetDefinitionsManager().GetAbilityAttributeValue( 'Mutation8', 'hp_perc_trigger', min, max );
+						mutation8TriggerHP = min.valueMultiplicative;
+					}
 					
+					/*if( parryInfo.attacker.HasTag( 'olgierd_gpl' ) && parryInfo.attackActionName == 'attack_heavy' )
+					{
+						//DealCounterDamageToOlgierd();
+						GetTarget().AddAbility( 'HitCounterEnabled', false );
+						GetTarget().AddTimer( 'DisableHitCounterAfter', 3.0 );
+					}*/
 					
+					npc = (CNewNPC)parryInfo.attacker;
 					
+					//don't look at me like that. It is NOT a hack... follow the white rabbit...
 					if ( parryInfo.attacker.HasAbility('mon_gravehag') )
 					{
 						repelType = PRT_Slash;
 						parryInfo.attacker.AddEffectDefault(EET_CounterStrikeHit, this, 'ReflexParryPerformed');
-						
+						//parryInfo.attacker.RemoveAbility('TongueAttack');
 					}
-					else if ( (CNewNPC)parryInfo.attacker && !((CNewNPC)parryInfo.attacker).IsHuman() )
+					else if ( npc && !npc.IsHuman() && !npc.HasTag( 'dettlaff_vampire' ) )
 					{
 						repelType = PRT_SideStepSlash;
 					}
@@ -1350,9 +1696,19 @@ statemachine abstract import class CR4Player extends CPlayer
 						parryInfo.attacker.AddEffectDefault(EET_CounterStrikeHit, this, "ReflexParryPerformed");
 						parryInfo.attacker.SignalGameplayEvent( 'SpearDestruction');
 					}
+					else if( isMutation8 && npc && !npc.IsImmuneToMutation8Finisher() )
+					{
+						repelType = PRT_RepelToFinisher;
+						npc.AddEffectDefault( EET_CounterStrikeHit, this, "ReflexParryPerformed" );
+						
+						//finishers are performed on current target
+						SetTarget( npc, true );
+						
+						PerformFinisher( 0.f, 0 );
+					}
 					else
 					{
-						
+						//-----pitch check------
 						thisPos = this.GetWorldPosition();
 						attackerPos = parryInfo.attacker.GetWorldPosition();
 						playerToTargetRot = VecToRotation( thisPos - attackerPos );
@@ -1361,7 +1717,7 @@ statemachine abstract import class CR4Player extends CPlayer
 						if ( playerToTargetRot.Pitch < -5.f && zDifference > 0.35 )
 						{
 							repelType = PRT_Kick;
-							
+							//Pass attacker to the timer so that he ragdolls after a delay
 							ragdollTarget = parryInfo.attacker;
 							AddTimer( 'ApplyCounterRagdollTimer', 0.3 );
 						}
@@ -1370,7 +1726,7 @@ statemachine abstract import class CR4Player extends CPlayer
 							useKnockdown = false;
 							if ( CanUseSkill(S_Sword_s11) )
 							{
-								if( GetSkillLevel(S_Sword_s11) > 1 && RandRangeF(3,0) < GetWitcherPlayer().GetStat(BCS_Focus) )
+								if( GetSkillLevel(S_Sword_s11) > 1 && RandRangeF(3,0) < GetWitcherPlayer().GetStat(BCS_Focus) )//CalculateAttributeValue(GetSkillAttributeValue(S_Sword_s11, 'chance', false, true)) )
 								{
 									duration = CalculateAttributeValue(GetSkillAttributeValue(S_Sword_s11, 'duration', false, true));
 									useKnockdown = true;
@@ -1378,7 +1734,7 @@ statemachine abstract import class CR4Player extends CPlayer
 							}
 							else if ( parryInfo.attacker.IsHuman() )
 							{ 
-								
+								//Apply knockdown if npc is countered on ledge
 								tracePosStart = parryInfo.attacker.GetWorldPosition();
 								tracePosStart.Z += 1.f;
 								playerToAttackerVector = VecNormalize( parryInfo.attacker.GetWorldPosition() -  parryInfo.target.GetWorldPosition() );
@@ -1422,7 +1778,7 @@ statemachine abstract import class CR4Player extends CPlayer
 					
 					parryInfo.attacker.GetInventory().PlayItemEffect(parryInfo.attackerWeaponId, 'counterattack');
 					
-					
+					//by default repelType is PRT_Random
 					if ( repelType == PRT_Random )
 						if ( RandRange(100) > 50 )
 							repelType = PRT_Bash;
@@ -1437,7 +1793,7 @@ statemachine abstract import class CR4Player extends CPlayer
 					parryInfo.attacker.AddEffectDefault(EET_CounterStrikeHit, this, "ReflexParryPerformed");
 				}
 				
-				
+				//SetCustomOrientationTargetForCombatActions( OT_None );
 				SetParryTarget ( parryInfo.attacker );
 				SetSlideTarget( parryInfo.attacker );
 				if ( !IsActorLockedToTarget() )
@@ -1450,9 +1806,9 @@ statemachine abstract import class CR4Player extends CPlayer
 				AddTimer( 'UpdateCounterRotation', 0.4f, true );
 				AddTimer( 'SetCounterRotation', 0.2f );
 				
-				IncreaseUninterruptedHitsCount();	
+				IncreaseUninterruptedHitsCount();	//counters also count as uninterrupted hits
 				
-				
+				//drain stamina
 				if(IsHeavyAttack(parryInfo.attackActionName))
 					mult = theGame.params.HEAVY_STRIKE_COST_MULTIPLIER;
 					
@@ -1500,8 +1856,8 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 	}
 	
-	
-	
+	///////////////////////////////////////////////////////////////////////////
+	// Player Mode
 	
 	public function EnableMode( mode : EPlayerMode, enable : bool )
 	{
@@ -1520,7 +1876,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		var closestAttackerIndex		: int;
 		var incomingAttackers 			: array<CActor>;
 			
-		
+		//incomingAttackers = this.combatManager.SendTicketOwners( CTT_Attack );
 		if(playerMode && playerMode.combatDataComponent)
 		{
 			if ( incomingAttackers.Size() <= 0 )
@@ -1562,7 +1918,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 	}
 	
-	
+	// Combat Timer
 	timer function CombatCheck( time : float , id : int) 
 	{
 		var i : int;
@@ -1608,14 +1964,16 @@ statemachine abstract import class CR4Player extends CPlayer
 		return receivedDamageInCombat;
 	}
 	
-	
+	//called when combat starts
 	event OnCombatStart()
 	{
 		var weaponType : EPlayerWeapon;
 		
 		theGame.CreateNoSaveLock( 'combat', noSaveLock );
 		
+		theGame.GameplayFactsAdd( "in_combat" );
 		
+		//cerberus achievement
 		FactsRemove("statistics_cerberus_sign");
 		FactsRemove("statistics_cerberus_petard");
 		FactsRemove("statistics_cerberus_bolt");
@@ -1635,7 +1993,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 	}
 		
-	
+	//called when combat finishes
 	event OnCombatFinished()
 	{
 		var cnt : int;
@@ -1645,8 +2003,10 @@ statemachine abstract import class CR4Player extends CPlayer
 		thePlayer.HardLockToTarget( false );
 	
 		receivedDamageInCombat = false;
-			
 		
+		theGame.GameplayFactsRemove( "in_combat" );
+			
+		//cerberus achievement
 		cnt = 0;
 		if(FactsQuerySum("statistics_cerberus_sign") > 0)
 			cnt += 1;
@@ -1661,7 +2021,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		if(FactsQuerySum("statistics_cerberus_environment") > 0)
 			cnt += 1;
 		
-		
+		//failsafe
 		FactsRemove("statistics_cerberus_sign");
 		FactsRemove("statistics_cerberus_petard");
 		FactsRemove("statistics_cerberus_bolt");
@@ -1671,7 +2031,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		if(cnt >= 3)
 			theGame.GetGamerProfile().AddAchievement(EA_Cerberus);
-		
+		//end of cerberus
 		
 		if(theGame.GetTutorialSystem() && FactsQuerySum("TutorialShowSilver") > 0)
 		{
@@ -1694,6 +2054,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		var weaponType : EPlayerWeapon;
 		
 		super.OnReactToBeingHit(damageAction);
+		IncHitCounter();
 		
 		if ( IsInCombat() && damageAction.attacker && damageAction.attacker == GetTarget() && !( this.IsUsingVehicle() && this.IsOnBoat() ) )
 		{
@@ -1703,15 +2064,15 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 	}
 	
-	
+	//called when player receives damage in combat(except for toxicity)
 	public function ReceivedCombatDamage()
 	{
 		receivedDamageInCombat = true;
 	}
 	
-	
-	
-	
+	///////////////////////////////////////////////////////////////////////////
+	// @Uninterrupted hits
+	///////////////////////////////////////////////////////////////////////////
 	
 	
 	timer function UninterruptedHitsResetOnIdle(dt : float, id : int)
@@ -1733,7 +2094,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		if(uninterruptedHitsCount == 4)
 			AddTimer('StartUninterruptedBlurr', 1, false);
 		
-		
+		//idle turn off timer
 		AddTimer('UninterruptedHitsResetOnIdle', 4.f, false);
 	}
 	
@@ -1743,7 +2104,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		var movingAgent : CMovingPhysicalAgentComponent;
 		var target : CActor;
 		
-		
+		//check if the timer is to be turned off
 		if(uninterruptedHitsCount < 4)
 		{
 			LogUnitAtt("Stopping camera effect");
@@ -1752,7 +2113,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			uninterruptedHitsCameraStarted = false;			
 			RemoveTimer('StartUninterruptedBlurr');
 		}
-		else	
+		else	//still valid
 		{
 			target = GetTarget();
 			
@@ -1764,7 +2125,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			if(!uninterruptedHitsCameraStarted)
 			{
 				LogUnitAtt("Starting camera effect");
-				AddTimer('StartUninterruptedBlurr', 0.001, true);	
+				AddTimer('StartUninterruptedBlurr', 0.001, true);	//need to update per tick
 				if(movingAgent && movingAgent.GetCapsuleHeight() > 2)
 					uninterruptedHitsCurrentCameraEffect = theGame.params.UNINTERRUPTED_HITS_CAMERA_EFFECT_BIG_ENEMY;
 				else
@@ -1780,28 +2141,28 @@ statemachine abstract import class CR4Player extends CPlayer
 				else if(!movingAgent || ( movingAgent.GetCapsuleHeight() <= 2 && uninterruptedHitsCurrentCameraEffect != theGame.params.UNINTERRUPTED_HITS_CAMERA_EFFECT_REGULAR_ENEMY) )
 					changed = true;
 				
-				
+				//if the target's height has changed then swap the camera effect
 				if(changed)
 				{
-					
+					//stop current effect
 					thePlayer.StopEffect(uninterruptedHitsCurrentCameraEffect);
 					
-					
+					//change mode
 					if(uninterruptedHitsCurrentCameraEffect == theGame.params.UNINTERRUPTED_HITS_CAMERA_EFFECT_BIG_ENEMY)
 						uninterruptedHitsCurrentCameraEffect = theGame.params.UNINTERRUPTED_HITS_CAMERA_EFFECT_REGULAR_ENEMY;
 					else
 						uninterruptedHitsCurrentCameraEffect = theGame.params.UNINTERRUPTED_HITS_CAMERA_EFFECT_BIG_ENEMY;
 						
-					
+					//turn new camera effect on
 					thePlayer.PlayEffect(uninterruptedHitsCurrentCameraEffect);
 				}
 			}
 		}
 	}
 	
-	
-	
-	
+	///////////////////////////////////////////////////////////////////////////
+	// Exploration Actions
+	///////////////////////////////////////////////////////////////////////////
 	
 	private var playerActionEventListeners 			: array<CGameplayEntity>;
 	private var playerActionEventBlockingListeners 	: array<CGameplayEntity>;
@@ -1834,7 +2195,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		return playerActionEventListeners;
 	}
 	
-	
+	//Registers for event + blocks GameplayActions
 	public function RegisterForPlayerAction( listener : CGameplayEntity, isLockedByPlace : bool )
 	{
 		if ( !playerActionEventListeners.Contains( listener ) )
@@ -1854,7 +2215,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 	}
 	
-	
+	//Unregisters for event + unblocks GameplayActions
 	public function UnregisterForPlayerAction( listener : CGameplayEntity, isLockedByPlace : bool )
 	{
 		playerActionEventListeners.Remove( listener );
@@ -1867,7 +2228,7 @@ statemachine abstract import class CR4Player extends CPlayer
 	
 	event OnPlayerActionStart()
 	{
-		
+		//MS: Only used for ProudWalk
 		thePlayer.SetBehaviorVariable( 'inJumpState', 1.f );
 	}
 	
@@ -1880,7 +2241,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 		currentCustomAction = PEA_None;
 		
-		
+		//MS: Only used for ProudWalk
 		thePlayer.SetBehaviorVariable( 'inJumpState', 0.f );
 	}
 	
@@ -1903,7 +2264,11 @@ statemachine abstract import class CR4Player extends CPlayer
 		SetBehaviorVariable( 'playerStopAction', 0.0);
 		SetBehaviorVariable( 'playerExplorationAction', (float)(int)playerAction);
 		
-		
+		/*if ( playerAction == PEA_SlotAnimation )
+		{ 
+			if ( !this.ActionPlaySlotAnimationAsync('PLAYER_ACTION_SLOT',animName) )
+				return false;
+		}*/
 		
 		if ( RaiseForceEvent('playerActionStart') )
 		{
@@ -1947,14 +2312,14 @@ statemachine abstract import class CR4Player extends CPlayer
 			medallion.TriggerMedallionFX();
 		}
 	}
-		
 	
-	
-	
+	///////////////////////////////////////////////////////////////////////////
+	// @INTERACTIONS
+	///////////////////////////////////////////////////////////////////////////
 	
 	public function CanPerformPlayerAction(optional alsoOutsideExplorationState : bool) : bool
 	{
-		
+		//if in exploration or in any state and flag set
 		if(!alsoOutsideExplorationState && GetCurrentStateName() != 'Exploration')
 			return false;
 		
@@ -1964,7 +2329,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		return true;
 	}
 	
-	
+	//called when we receive an item
 	event OnItemGiven(data : SItemChangedData)
 	{
 		var keyName : name;
@@ -1985,9 +2350,9 @@ statemachine abstract import class CR4Player extends CPlayer
 			}
 		}
 		
-		inve = GetInventory();	
+		inve = GetInventory();	//OnItemGiven can be called before we cache inventory component
 		
-		
+		//key - check if we're next to a lock that uses this key and update interaction if needed
 		if(inve.ItemHasTag(data.ids[0], 'key'))
 		{
 			keyName = inve.GetItemName(data.ids[0]);
@@ -2001,7 +2366,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			}
 		}
 
-		
+		//alchemy level 3 items
 		if(inve.IsItemAlchemyItem(data.ids[0]))
 		{
 			UpgradeAlchemyItem(data.ids[0], CanUseSkill(S_Perk_08));			
@@ -2015,10 +2380,10 @@ statemachine abstract import class CR4Player extends CPlayer
 	{
 		var hasArmor, hasBoots, hasGloves, hasPants, hasSword, hasSaddle, hasBag, hasBlinders : bool;
 		
-		
+		//check player items
 		CheckOfirItems(GetInventory(), hasArmor, hasBoots, hasGloves, hasPants, hasSword, hasSaddle, hasBag, hasBlinders);
 
-		
+		//check stash items
 		CheckOfirItems(GetWitcherPlayer().GetHorseManager().GetInventoryComponent(), hasArmor, hasBoots, hasGloves, hasPants, hasSword, hasSaddle, hasBag, hasBlinders);
 		
 		if(hasArmor && hasBoots && hasGloves && hasPants && hasSword && hasSaddle && hasBag && hasBlinders)
@@ -2081,7 +2446,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 	}
 	
-	
+	//changes all alchemy items of level 3 abilities from level 2 to 3 (if upgrade) or from 3 to 2 (if not upgrading)
 	public function ChangeAlchemyItemsAbilities(upgrade : bool)
 	{
 		var i : int;
@@ -2096,7 +2461,7 @@ statemachine abstract import class CR4Player extends CPlayer
 				UpgradeAlchemyItem(items[i], upgrade);
 	}
 	
-	
+	//changes all alchemy items of level 3 abilities from level 2 to 3 (if upgrade) or from 3 to 2 (if not upgrading)
 	public function UpgradeAlchemyItem(itemID : SItemUniqueId, upgrade : bool)
 	{
 		var j, currLevel, otherLevel : int;
@@ -2107,17 +2472,17 @@ statemachine abstract import class CR4Player extends CPlayer
 		if(!inv.IsItemAlchemyItem(itemID))
 			return;
 			
-		
+		//get current level
 		currLevel = (int)CalculateAttributeValue(inv.GetItemAttributeValue(itemID, 'level'));
 		
-		
+		//if level ok then exit
 		if(currLevel == 3 || currLevel == 2 || currLevel < 2 || currLevel > 3)
 			return;
 	
-		
+		//get current ability name
 		currAbilities = inv.GetItemAbilitiesWithAttribute(itemID, 'level', currLevel);
 					
-		
+		//get other ability name
 		inv.GetItemContainedAbilities(itemID, abs);
 		dm = theGame.GetDefinitionsManager();
 		for(j=0; j<abs.Size(); j+=1)
@@ -2128,7 +2493,7 @@ statemachine abstract import class CR4Player extends CPlayer
 				otherAbilities.PushBack(abs[j]);
 		}
 		
-		
+		//swap abilities
 		if(otherAbilities.Size() == 0)
 		{
 			LogAssert(false, "CR4Player.UpgradeAlchemyItem: cannot find ability to swap to from <<" + currAbilities[0] + ">> on item <<" + inv.GetItemName(itemID) + ">> !!!");
@@ -2143,9 +2508,9 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 	}
 	
-	
-	
-	
+	///////////////////////////////////////////////////////////////////////////
+	// Movement adjustment helper functions
+	///////////////////////////////////////////////////////////////////////////
 
 	public function MovAdjRotateToTarget( ticket : SMovementAdjustmentRequestTicket )
 	{
@@ -2158,37 +2523,39 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 		else if ( localOrientationTarget == OT_Actor )
 		{
-			 if ( slideTarget )
+			/*if  ( parryTarget && IsGuarded() )
+				movementAdjustor.RotateTowards( ticket, parryTarget );
+			else*/ if ( slideTarget )
 				movementAdjustor.RotateTowards( ticket, slideTarget );
 			else if ( lAxisReleasedAfterCounter )
 				movementAdjustor.RotateTo( ticket, GetHeading() );
 			else
-				movementAdjustor.RotateTo( ticket, GetCombatActionHeading() );
+				movementAdjustor.RotateTo( ticket, GetCombatActionHeading() );//rawPlayerHeading );
 		}
 		else if ( localOrientationTarget == OT_Player )
 		{
 			if ( bLAxisReleased )
 				movementAdjustor.RotateTo( ticket, GetHeading() );
 			else 
-				movementAdjustor.RotateTo( ticket, rawPlayerHeading );
+				movementAdjustor.RotateTo( ticket, rawPlayerHeading );//GetCombatActionHeading() );
 		}
 		else if ( localOrientationTarget == OT_CameraOffset )
 		{
-			
-			movementAdjustor.RotateTo( ticket, VecHeading( theCamera.GetCameraDirection() ) );
+			//movementAdjustor.RotateTo( ticket, VecHeading( cachedCameraVector ) );//rawCameraHeading - oTCameraOffset );
+			movementAdjustor.RotateTo( ticket, VecHeading( theCamera.GetCameraDirection() ) );//rawCameraHeading );
 		}		
 		else
 		{
-			
+			// default to camera
 			movementAdjustor.RotateTo( ticket, rawCameraHeading );
 		}
-		
+		// never rotate to player
 	}
 
-	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////
+	// Look at targets - moved here from movables
+	////////////////////////////////////////////////////////////////////////////////////
+	//var cachedCameraVector : Vector;
 	public function UpdateLookAtTarget()
 	{
 		var localOrientationTarget	: EOrientationTarget;
@@ -2212,9 +2579,13 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		if ( localOrientationTarget == OT_Player || localOrientationTarget == OT_CustomHeading )
 		{
-					
+			/*headBoneIdx = GetTorsoBoneIndex();
+			if ( headBoneIdx >= 0 )
+			{
+				lookAtTarget = MatrixGetTranslation( GetBoneWorldMatrixByIndex( headBoneIdx ) );
+			}*/		
 			
-			
+			//lookAtTarget = GetHeadingVector() * 30.f + this.GetWorldPosition();// + lookAtTarget;
 			
 			if ( localOrientationTarget == OT_Player  )
 				angles = VecToRotation( GetHeadingVector() );
@@ -2223,9 +2594,9 @@ statemachine abstract import class CR4Player extends CPlayer
 			else
 				angles = VecToRotation( GetHeadingVector() );
 			
-			
+			//angles.Pitch = oTCameraPitchOffset;	
 			dir = RotForward( angles );
-			lookAtTarget = dir * 30.f + this.GetWorldPosition();
+			lookAtTarget = dir * 30.f + this.GetWorldPosition();// + lookAtTarget;
 			lookAtTarget.Z += 1.6f;
 			lookAtActive = 1.0f;		
 		}
@@ -2239,14 +2610,19 @@ statemachine abstract import class CR4Player extends CPlayer
 			else
 			{
 				lookAtTarget = GetWorldPosition();
-				lookAtTarget.Z += 1.6f; 
+				lookAtTarget.Z += 1.6f; // fake head?
 			}
 			lookAtTarget += theCamera.GetCameraDirection() * 100.f;
 			lookAtActive = 1.0f;
 		}
 		else if ( localOrientationTarget == OT_CameraOffset )
 		{
-			
+			/*lookAtTarget = GetWorldPosition();
+			lookAtTarget.Z += 1.6f; // fake head?			
+			camDir = theCamera.GetCameraDirection();			
+			camZ = camDir.Z;// + 0.1;
+			camDir = VecFromHeading( VecHeading( theCamera.GetCameraDirection() ) - oTCameraOffset ) * VecLength2D( camDir );
+			camDir.Z = camZ;*/
 					
 			dir = theCamera.GetCameraDirection();
 			angles = VecToRotation( dir );
@@ -2254,7 +2630,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			angles.Yaw -= oTCameraOffset;
 			dir = RotForward( angles );
 	
-			lookAtTarget = dir * 30.f + this.GetWorldPosition();
+			lookAtTarget = dir * 30.f + this.GetWorldPosition();// + lookAtTarget;
 			lookAtTarget.Z += 1.6f;
 			lookAtActive = 1.0f;
 		}		
@@ -2264,7 +2640,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			{ 
 				if ( ( ( ( W3PlayerWitcher )this ).GetCurrentlyCastSign() != ST_None && GetBehaviorVariable( 'combatActionType' ) == (int)CAT_CastSign )
 					|| GetBehaviorVariable( 'combatActionType' ) == (int)CAT_ItemThrow )
-					
+					//|| GetBehaviorVariable( 'combatActionType' ) == (int)CAT_Crossbow )
 				useTorsoBone = true;
 			}
 		
@@ -2284,7 +2660,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			}
 			else
 			{
-				
+				//FAIL SAFE in case the displayTarget disappears for some reason
 				
 				if ( slideTarget )
 				{
@@ -2304,7 +2680,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			
 			if ( !slideTarget && !IsUsingVehicle() )
 			{
-				
+				// TODO maybe just get axis from head?
 				playerRot = GetWorldRotation();
 				lookAtTarget = GetWorldPosition() + VecFromHeading( playerRot.Yaw ) * 100.0f;
 				lookAtActive = 0.0f;
@@ -2315,8 +2691,8 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 		
 		
-		
-		
+		//lookAtTarget = player.GetHeadingVector() * 30.f + this.GetWorldPosition();// + lookAtTarget; 
+		//lookAtActive = 1.0f;	
 		GetVisualDebug().AddSphere('lookAtTarget', 1.f, lookAtTarget, true, Color(255,0,0), 3.0f );
 		SetLookAtPosition( lookAtTarget );
 		UpdateLookAtVariables( lookAtActive, lookAtTarget );
@@ -2361,7 +2737,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		else
 		{
 			if ( actor )
-				lookAtTarget.Z += ( ((CMovingPhysicalAgentComponent)actor.GetMovingAgentComponent()).GetCapsuleHeight() * 0.5 ); 
+				lookAtTarget.Z += ( ((CMovingPhysicalAgentComponent)actor.GetMovingAgentComponent()).GetCapsuleHeight() * 0.5 ); // fake head?
 			else
 			{
 				tempComponent = (CDrawableComponent)( ent.GetComponentByClassName('CDrawableComponent') );
@@ -2435,20 +2811,20 @@ statemachine abstract import class CR4Player extends CPlayer
 		return lookAtPosition;
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////
+	// Scene
+	////////////////////////////////////////////////////////////////////////////////////
 	
 	event OnBlockingSceneEnded( optional output : CStorySceneOutput)
 	{
-		
+		//hack for possible immortality from finishers
 		SetImmortalityMode( AIM_None, AIC_SyncedAnim );
 		super.OnBlockingSceneEnded(output);
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////
+	// New combat / exploration and weapon drawing
+	////////////////////////////////////////////////////////////////////////////////////
 	
 	function GetCurrentMeleeWeaponName() : name
 	{
@@ -2513,11 +2889,18 @@ statemachine abstract import class CR4Player extends CPlayer
 	{
 		var weaponType : EPlayerWeapon;
 		
-		
+		//hide HUD buff icon
 		if ( slotName == 'r_weapon' && (category == 'steelsword' || category == 'silversword') )
 		{
-			RemoveOilBuff(category == 'steelsword');
-		}	
+			if( category == 'silversword' )
+			{
+				ManageAerondightBuff( false );
+			}
+			
+			GetBuff( EET_LynxSetBonus ).Pause( 'drawing weapon' );
+			
+			PauseOilBuffs( category == 'steelsword' );
+		}
 		
 		if ( slotName == 'r_weapon' )
 		{
@@ -2548,7 +2931,15 @@ statemachine abstract import class CR4Player extends CPlayer
 				
 		weaponHolster.OnEquipMeleeWeapon( weaponType, ignoreActionLock, sheatheIfAlreadyEquipped );
 		
-		
+		/*// Check if we want to go to combat or exploration
+		if( weaponHolster.GetCurrentMeleeWeapon() == PW_None )
+		{		
+			GoToExplorationIfNeeded( );
+		}
+		else
+		{
+			GoToCombatIfNeeded( );
+		}*/
 		
 		m_RefreshWeaponFXType = true;
 	}
@@ -2556,6 +2947,19 @@ statemachine abstract import class CR4Player extends CPlayer
 	event OnHolsterLeftHandItem()
 	{
 		weaponHolster.OnHolsterLeftHandItem();
+	}
+	
+	timer function DelayedTryToReequipWeapon( dt: float, id : int )
+	{
+		var weaponType : EPlayerWeapon;
+		
+		if( IsInCombat() && GetTarget() )
+		{
+			weaponType = GetMostConvenientMeleeWeapon( GetTarget() );
+			
+			if ( weaponType == PW_Steel || weaponType == PW_Silver )
+				weaponHolster.OnEquipMeleeWeapon( weaponType, false );
+		}	
 	}
 	
 	timer function DelayedSheathSword( dt: float, id : int )
@@ -2622,17 +3026,17 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		weaponHolster.TryToPrepareMeleeWeaponToAttack();
 		
-		
+		//if ( this.GetCurrentStateName() == 'Exploration' ) //PF - commenting this because Geralt won't switch to proper state when you sheathe sword while mashing attack
 		{
 			weaponType = GetCurrentMeleeWeaponType();
 			
 			if ( weaponType == PW_None )
 			{
-				
+				// Get the weapon we have to use
 				weaponType = GetMostConvenientMeleeWeapon( target );
 			}
 			
-			
+			// Can't go to combat if we are in not a proper state
 			if( !OnStateCanGoToCombat() )
 			{
 				return;
@@ -2682,7 +3086,7 @@ statemachine abstract import class CR4Player extends CPlayer
 				enemy = moveTarget;
 		}
 		
-		
+		// Should we fight
 		if( !ShouldGoToCombat( enemy ) )
 		{
 			return false;
@@ -2692,12 +3096,12 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		if ( weaponType == PW_None || ( reevaluateCurrentWeapon && weaponType == PW_Fists ) || ( !IsInCombat() && weaponHolster.IsOnTheMiddleOfHolstering() ) )
 		{
-			
+			// Get the weapon we have to use
 			weaponType = weaponHolster.GetMostConvenientMeleeWeapon( enemy );
 			reevaluateCurrentWeapon = false;
 		}
 		
-		
+		// Change the state+
 		GoToCombat( weaponType );
 		
 		
@@ -2727,11 +3131,11 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		if ( weaponType == PW_None || ( !IsInCombat() && weaponHolster.IsOnTheMiddleOfHolstering() ) )
 		{
-			
+			// Get the weapon we have to use
 			weaponType = weaponHolster.GetMostConvenientMeleeWeapon( enemy );
 		}
 		
-		
+		// Change the state+
 		GoToCombat( weaponType );
 		
 		
@@ -2740,7 +3144,12 @@ statemachine abstract import class CR4Player extends CPlayer
 	
 	public function GoToExplorationIfNeeded() : bool
 	{
-		
+		/*
+		if( GetCurrentStateName() == 'Exploration' )
+		{
+			return false;
+		}
+		*/
 		
 		if( ! IsInCombatState() )
 		{
@@ -2752,10 +3161,10 @@ statemachine abstract import class CR4Player extends CPlayer
 			return false;
 		}
 		
-		
+		// Change fists weapon to none
 		weaponHolster.EndedCombat();
 		
-		
+		// Change the state
 		GotoState( 'Exploration' );
 		return true;
 	}
@@ -2771,53 +3180,70 @@ statemachine abstract import class CR4Player extends CPlayer
 	}
 	
 	private function ShouldGoToCombat( optional enemy : CActor ) : bool
-	{	
+	{
+		var currentStateName : name;
 		
-		if ( !enemy )
-		{ 
-			
-			return false;
-		}
-		
-		
+		// Can't go to combat if we are in not a proper state
 		if( !OnStateCanGoToCombat() )
 		{
 			return false;
 		}
 		
+		currentStateName = GetCurrentStateName();
 		
-		
-		
-		
-		if ( this.GetCurrentStateName() == 'AimThrow' )
+		if( currentStateName == 'AimThrow' )
 		{
 			return false;
 		}
 		
-		if ( this.GetCurrentStateName() == 'Swimming' )
+		if( currentStateName == 'Swimming' )
 		{
 			return false;
 		}
 
-		if ( this.GetCurrentStateName() == 'TraverseExploration' )
+		if( currentStateName == 'TraverseExploration' )
 		{
 			return false;
-		}		
+		}
 		
+		// TODO: Reenable or find somethingbetter
+		// Temporaryly disabled cause it does not work on some terrain
+		/*
+		if ( !theGame.GetWorld().NavigationLineTest( GetWorldPosition(), enemy.GetWorldPosition(), 0.4 ) )
+		{ 
+			return false;
+		}
+		*/
 		
+		// if there is no enemy, check if combat is forced
+		if ( !enemy )
+		{ 
+			return playerMode.combatMode;
+		}
 		
-		
+		// See if we should be fighting this enemy
+		/*if ( !IsEnemyVisible( enemy ) )
+		{ 
+			return false;
+		}*/
+		/*if ( !WasVisibleInScaledFrame( enemy, 1.f, 1.f )  )
+		{ 
+			return false;
+		}*/
 		
 		return true;
 	}
 	
 	private function ShouldGoToExploration() : bool
 	{
-		if ( IsInCombat() )
+		if ( IsInCombat() )//moveTarget && IsThreat( moveTarget ) )
 		{
 			return false;
 		}
-		
+		/*if( IsGuarded() )
+		{
+			return false;
+		}*/
 		if ( rangedWeapon && rangedWeapon.GetCurrentStateName() != 'State_WeaponWait' )
 		{
 			return false;
@@ -2844,7 +3270,7 @@ statemachine abstract import class CR4Player extends CPlayer
 	
 	private function GoToCombat( weaponType : EPlayerWeapon, optional initialAction : EInitialAction )
 	{			
-		
+		// Set up and change state
 		switch( weaponType )
 		{
 			case PW_Silver:
@@ -2872,15 +3298,32 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 	}
 	
-	
+	// So we can debug and control what is changing the state
 	public function GotoState( newState : name, optional keepStack : bool, optional forceEvents : bool  )
 	{
-		
+		/*if( newState == 'Exploration' )
+		{
+			newState = newState;
+		}*/
 		
 		super.GotoState( newState, keepStack, forceEvents );
-		
+		//PushState( newState );
+	}
+	/*
+	public function PushState( newState : name )
+	{
+		if( newState == 'Exploration' )
+		{
+			newState = newState;
+		}
+		super.PushState( newState );
 	}
 	
+	public function PopState( optional popAll : bool )
+	{
+		super.PopState( popAll );
+	}
+	*/
 	public function IsThisACombatSuperState( stateName : name ) : bool
 	{
 		return stateName == 'Combat' || stateName == 'CombatSteel' || stateName == 'CombatSilver' || stateName == 'CombatFists';
@@ -2908,14 +3351,14 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 	}
 
-	
-	
-	
+	///////////////////////////////////////////////////////////////////////////
+	// Animation event handlers
+	///////////////////////////////////////////////////////////////////////////
 	protected var disableActionBlend : bool;
 	
-		
-		
-		
+		//KonradSuperDodgeHACK: To make dodge more responsive during NORMAL ATTACKS, dodge will fire immediately when hit animation can be played.
+		//When hit anim is disabled, then the action will be cached and will be processed at the END of DisallowHitAnim event.
+		//During all other actions, however, it will use the normal check of inputAllowed and combatActionAllowed. This is a super hack. And we will all go to hell for this.	
 	event OnAnimEvent_DisallowHitAnim( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
 		if ( animEventType == AET_DurationEnd )
@@ -2924,7 +3367,7 @@ statemachine abstract import class CR4Player extends CPlayer
 					&&  IsInCombatAction() 
 					&& GetBehaviorVariable( 'combatActionType' ) == (int)CAT_Attack )
 			{
-				
+				//LogChannel('combatActionAllowed',"BufferCombatAction != EBAT_EMPTY");
 				( (CR4Player)this ).ProcessCombatActionBuffer();
 				disableActionBlend = true;
 			}
@@ -3020,32 +3463,45 @@ statemachine abstract import class CR4Player extends CPlayer
 	
 	protected var slideNPC			: CNewNPC;
 	protected var minSlideDistance	: float;
+	protected var maxSlideDistance	: float;
 	protected var slideTicket 		: SMovementAdjustmentRequestTicket;
 	
 	event OnAnimEvent_SlideToTarget( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
 		var movementAdjustor	: CMovementAdjustor;
 		
-		if ( animEventType == AET_DurationStart )
+		if( animEventType == AET_DurationStart )
+		{
 			slideNPC = (CNewNPC)slideTarget;
+		}
 			
-		if(!slideNPC)
+		if( !slideNPC )
+		{
 			return false;
+		}
 			
-		if ( animEventType == AET_DurationStart && slideNPC.GetGameplayVisibility() )
+		if( animEventType == AET_DurationStart && slideNPC.GetGameplayVisibility() )
 		{
 			movementAdjustor = GetMovingAgentComponent().GetMovementAdjustor();
 			slideTicket = movementAdjustor.GetRequest( 'SlideToTarget' );
 			movementAdjustor.CancelByName( 'SlideToTarget' );
 			slideTicket = movementAdjustor.CreateNewRequest( 'SlideToTarget' );
 			movementAdjustor.BindToEventAnimInfo( slideTicket, animInfo );
-			
+			//movementAdjustor.Continuous(slideTicket);
 			movementAdjustor.MaxLocationAdjustmentSpeed( slideTicket, 1000000 );
 			movementAdjustor.ScaleAnimation( slideTicket );
 			minSlideDistance = ((CMovingPhysicalAgentComponent)this.GetMovingAgentComponent()).GetCapsuleRadius()+((CMovingPhysicalAgentComponent)slideNPC.GetMovingAgentComponent()).GetCapsuleRadius();
-			movementAdjustor.SlideTowards( slideTicket, slideTarget, minSlideDistance, minSlideDistance );					
+			if( IsInCombatFist() )
+			{
+				maxSlideDistance = 1000.0f;	
+			}
+			else
+			{
+				maxSlideDistance = minSlideDistance;
+			}
+			movementAdjustor.SlideTowards( slideTicket, slideTarget, minSlideDistance, maxSlideDistance );	
 		}
-		else if ( !slideNPC.GetGameplayVisibility() )
+		else if( !slideNPC.GetGameplayVisibility() )
 		{
 			movementAdjustor = GetMovingAgentComponent().GetMovementAdjustor();
 			movementAdjustor.CancelByName( 'SlideToTarget' );
@@ -3054,18 +3510,33 @@ statemachine abstract import class CR4Player extends CPlayer
 		else 
 		{
 			movementAdjustor = GetMovingAgentComponent().GetMovementAdjustor();
-			movementAdjustor.SlideTowards( slideTicket, slideTarget, minSlideDistance, minSlideDistance );				
+			movementAdjustor.SlideTowards( slideTicket, slideTarget, minSlideDistance, maxSlideDistance );				
 		}
 	}
 	
 	event OnAnimEvent_ActionBlend( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
 	}
-	
+	/*
+	event OnAnimEvent_Throwable( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
+	{
+		var thrownEntity		: CThrowable;	
+		
+		thrownEntity = (CThrowable)EntityHandleGet( thrownEntityHandle );
+			
+		if ( inv.IsItemCrossbow( inv.GetItemFromSlot('l_weapon') ) &&  rangedWeapon.OnProcessThrowEvent( animEventName ) )
+		{		
+			return true;
+		}
+		else if( thrownEntity && IsThrowingItem() && thrownEntity.OnProcessThrowEvent( animEventName ) )
+		{
+			return true;
+		}	
+	}*/
 	
 	event OnAnimEvent_SubstateManager( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
-		
+		// Notify the exploration manager
 		substateManager.OnAnimEvent( animEventName, animEventType, animInfo );
 	}
 	
@@ -3087,8 +3558,8 @@ statemachine abstract import class CR4Player extends CPlayer
 	{
 		if ( !substateManager.m_OwnerMAC.IsOnGround() )
 		{
-			
-			
+			//substateManager.m_SharedDataO.m_FromCriticalB	= true;
+			//substateManager.m_MoverO.SetVelocity( -6.0f * GetWorldForward() );
 			substateManager.QueueStateExternal( 'Jump' );
 			RemoveBuff( EET_Knockdown, true );
 			RemoveBuff( EET_HeavyKnockdown, true );
@@ -3101,17 +3572,17 @@ statemachine abstract import class CR4Player extends CPlayer
 	
 	event OnAnimEvent_DettachGround( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
-		
+		//substateManager.m_MoverO.SetManualMovement( true );
 	}
 	
-	
+	//pad vibration for finishers
 	event OnAnimEvent_pad_vibration( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
 		var witcher : W3PlayerWitcher;
 		
 		theGame.VibrateControllerHard();
 		
-		
+		//delayed FX for runeword 10 & 12
 		witcher = GetWitcherPlayer();
 		if(isInFinisher && witcher)
 		{
@@ -3128,16 +3599,16 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 	}
 	
-	
+	//pad vibration light
 	event OnAnimEvent_pad_vibration_light( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
-		
+		//theGame.VibrateControllerLight();	//draw & sheathe weapon
 	}
 	
 	event OnAnimEvent_KillWithRagdoll( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
 	{
-		
-		
+		//thePlayer.SetKinematic( false );
+		//thePlayer.Kill();
 	}
 	
 	event OnAnimEvent_RemoveBurning( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
@@ -3153,7 +3624,13 @@ statemachine abstract import class CR4Player extends CPlayer
 			this.PlayEffectSingle('black_spider_web_break');		
 		}
 	}
-
+	
+	// sound generation for creatures following noise instead of just finding combat target
+	event OnAnimEvent_MoveNoise( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo )
+	{
+		theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( this, 'MoveNoise', -1, 30.0f, -1.f, -1, true );
+	}
+///////////////////////////////////////////////////////////////////////////
 	
 	event OnBehaviorGraphNotification( notificationName : name, stateName : name )
 	{
@@ -3177,20 +3654,22 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		if ( animEventName == 'RotateToTarget' )
 		{
-			
+			/**
+			 *	Rotate player to target
+			 */
 			rotationRate = GetRotationRateFromAnimEvent( variant.enumValue );
 
 			movementAdjustor = GetMovingAgentComponent().GetMovementAdjustor();
 			if ( animEventType == AET_DurationStart || animEventType == AET_DurationStartInTheMiddle )
 			{
-				
-				
+				// when it starts (also in the middle - it may mean that we switch between events)
+				// create request if there isn't any and always setup rotation rate
 				if (! movementAdjustor.IsRequestActive( movementAdjustor.GetRequest( 'RotateToTarget' ) ) )
 				{
-					
+					// start rotation adjustment
 					ticket = movementAdjustor.CreateNewRequest( 'RotateToTarget' );
 					
-					
+					// use adjustment duration only when RR_0 is selected, otherwise use continuous to match desired rotation as fast as possible
 					if ((int)rotationRate == 0)
 						movementAdjustor.AdjustmentDuration( ticket, animEventDuration );
 					else
@@ -3199,16 +3678,16 @@ statemachine abstract import class CR4Player extends CPlayer
 						movementAdjustor.BindToEvent( ticket, 'RotateToTarget' );
 					}	
 					
-					movementAdjustor.DontUseSourceAnimation( ticket ); 
+					movementAdjustor.DontUseSourceAnimation( ticket ); // do not use source anim as it will use delta seconds from event
 					movementAdjustor.ReplaceRotation( ticket );
 				}
 				else
 				{
-					
+					// get existing ticket to update rotation rate
 					ticket = movementAdjustor.GetRequest( 'RotateToTarget' );
 				}
 				MovAdjRotateToTarget( ticket );
-				
+				// update rotationRate
 				if ((int)rotationRate > 0)
 				{
 					movementAdjustor.MaxRotationAdjustmentSpeed( ticket, (float)((int)rotationRate) );
@@ -3216,12 +3695,12 @@ statemachine abstract import class CR4Player extends CPlayer
 			}
 			else if ( animEventType == AET_DurationEnd )
 			{
-				
-				
+				// it will end if there's no event, but sometimes one event could end and be followed by another
+				// and we want to have that continuity kept, that's why we won't end request manually
 			}
 			else
 			{
-				
+				// continuous update (makes more sense when there is no target and we want to rotate towards camera)
 				ticket = movementAdjustor.GetRequest( 'RotateToTarget' );
 				MovAdjRotateToTarget( ticket );
 			}
@@ -3237,16 +3716,21 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 	}
 	
-	
+	/*public function CaptureSafePosition()
+	{
+		lastSafePosition	= GetWorldPosition();
+		lastSafeRotation	= GetWorldRotation();
+		safePositionStored	= true;
+	}*/
 
-	
-	
-	
+	///////////////////////////////////////////////////////////////////////////
+	// FISTFIGHT
+	///////////////////////////////////////////////////////////////////////////
 	event OnStartFistfightMinigame()
 	{
 		super.OnStartFistfightMinigame();
 		
-		
+		//Goto state CombatFist		
 		SetFistFightMinigameEnabled( true );
 		FistFightHealthChange( true );
 		thePlayer.GetPlayerMode().ForceCombatMode( FCMR_QuestFunction );
@@ -3351,9 +3835,9 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 	}
 
-	
-	
-	
+	///////////////////////////////////////////////////////////////////////////
+	// GWINT
+	///////////////////////////////////////////////////////////////////////////
 	public function GetGwintAiDifficulty() : EGwintDifficultyMode
 	{
 		return gwintAiDifficulty;
@@ -3384,7 +3868,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		gwintMinigameState = minigameState;
 	}
 	
-	public function OnGwintGameRequested( deckName : name )
+	public function OnGwintGameRequested( deckName : name, forceFaction : eGwintFaction )
 	{
 		var gwintManager:CR4GwintManager;
 		gwintManager = theGame.GetGwintManager();
@@ -3392,10 +3876,29 @@ statemachine abstract import class CR4Player extends CPlayer
 		gwintMinigameState = EMS_None;
 		
 		gwintManager.SetEnemyDeckByName(deckName);
+		gwintManager.SetForcedFaction(forceFaction);
 		
 		if (gwintManager.GetHasDoneTutorial() || !theGame.GetTutorialSystem().AreMessagesEnabled())
 		{
 			gwintManager.gameRequested = true;
+			theGame.RequestMenu( 'DeckBuilder' );
+		}
+		else
+		{
+			theGame.GetGuiManager().ShowUserDialog( UMID_SkipGwintTutorial, "gwint_tutorial_play_query_title", "gwint_tutorial_play_query", UDB_YesNo );
+		}
+	}
+	
+	public function StartGwint_TutorialOrSkip( skipTutorial : bool )
+	{
+		var gwintManager : CR4GwintManager;
+		
+		if( skipTutorial )
+		{
+			gwintManager = theGame.GetGwintManager();
+			gwintManager.gameRequested = true;
+			gwintManager.SetHasDoneTutorial(true);
+			gwintManager.SetHasDoneDeckTutorial(true);
 			theGame.RequestMenu( 'DeckBuilder' );
 		}
 		else
@@ -3416,9 +3919,9 @@ statemachine abstract import class CR4Player extends CPlayer
 	{
 		return gwintCardNumbersArray;
 	}
-	
-	
-	
+	///////////////////////////////////////////////////////////////////////////
+	// COMBAT CAMERA
+	///////////////////////////////////////////////////////////////////////////
 	
 	protected var customCameraStack : array<SCustomCameraParams>;
 	
@@ -3463,7 +3966,13 @@ statemachine abstract import class CR4Player extends CPlayer
 	event OnGameCameraTick( out moveData : SCameraMovementData, dt : float )
 	{
 		var targetRotation	: EulerAngles;
+		var dist : float;
 		
+		if( thePlayer.IsInCombat() )
+		{
+			dist = VecDistance2D( thePlayer.GetWorldPosition(), thePlayer.GetTarget().GetWorldPosition() );
+			thePlayer.GetVisualDebug().AddText( 'dbg', dist, thePlayer.GetWorldPosition() + Vector( 0.f,0.f,2.f ), true, , Color( 0, 255, 0 ) );
+		}
 		
 		if ( isStartingFistFightMinigame )
 		{
@@ -3471,24 +3980,24 @@ statemachine abstract import class CR4Player extends CPlayer
 			isStartingFistFightMinigame = false;
 		}
 		
-		
+		// Specific substate
 		if( substateManager.UpdateCameraIfNeeded( moveData, dt ) )
 		{
 			return true;
 		}
 		
-		
+		// focusMode camera
 		if ( theGame.IsFocusModeActive() )
 		{
 			theGame.GetGameCamera().ChangePivotRotationController( 'Exploration' );
 			theGame.GetGameCamera().ChangePivotDistanceController( 'Default' );
 			theGame.GetGameCamera().ChangePivotPositionController( 'Default' );
 		
-			
+			// HACK
 			moveData.pivotRotationController = theGame.GetGameCamera().GetActivePivotRotationController();
 			moveData.pivotDistanceController = theGame.GetGameCamera().GetActivePivotDistanceController();
 			moveData.pivotPositionController = theGame.GetGameCamera().GetActivePivotPositionController();
-			
+			// END HACK		
 		
 		
 			moveData.pivotPositionController.SetDesiredPosition( thePlayer.GetWorldPosition() );
@@ -3514,21 +4023,21 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		
 		
-		
+		// HACK: Target heading ( Made for ladder )
 		if( substateManager.m_SharedDataO.IsForceHeading( targetRotation ) )
 		{
 			moveData.pivotRotationController.SetDesiredHeading( targetRotation.Yaw );
 			moveData.pivotRotationController.SetDesiredPitch( targetRotation.Pitch );
 			moveData.pivotRotationValue.Yaw		= LerpAngleF( 2.1f * dt, moveData.pivotRotationValue.Yaw, targetRotation.Yaw );
 			moveData.pivotRotationValue.Pitch	= LerpAngleF( 1.0f * dt, moveData.pivotRotationValue.Pitch, targetRotation.Pitch );
-			
+			//return true;
 		}
 		
 		
 		if( customCameraStack.Size() > 0 )
 		{
-			
-			
+			// HANDLE CUSTOM CAMERAS HERE
+			// IF HANDLED - RETURN TRUE
 		}
 		
 		return false;
@@ -3558,7 +4067,13 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		var distance : float;
 		
+		/*if( thePlayer.IsInCombat() )
+		{
+			distance = VecDistance2D( thePlayer.GetWorldPosition(), thePlayer.GetTarget().GetWorldPosition() );
+		}
 		
+		thePlayer.GetVisualDebug().AddText( 'Distance', "Distance form target: " + distance, thePlayer.GetWorldPosition() + Vector( 0.f,0.f,2.f ), true, , Color( 0, 255, 0 ) );
+		*/
 		
 		if ( questCameraRequest.requestTimeStamp > 0 )
 		{
@@ -3614,11 +4129,11 @@ statemachine abstract import class CR4Player extends CPlayer
 		theGame.GetGameCamera().ChangePivotDistanceController( 'Default' );
 		theGame.GetGameCamera().ChangePivotPositionController( 'Default' );
 	
-		
+		// HACK
 		moveData.pivotRotationController = theGame.GetGameCamera().GetActivePivotRotationController();
 		moveData.pivotDistanceController = theGame.GetGameCamera().GetActivePivotDistanceController();
 		moveData.pivotPositionController = theGame.GetGameCamera().GetActivePivotPositionController();
-		
+		// END HACK
 
 		moveData.pivotPositionController.SetDesiredPosition( GetWorldPosition(), 15.f );
 
@@ -3637,7 +4152,7 @@ statemachine abstract import class CR4Player extends CPlayer
 
 		rotMult = constDamper.UpdateAndGet( timeDelta, rotMult );
 		
-		
+		//DampFloatSpring( rotMult, rotMultVel, rotMultDest, 4.f, timeDelta );
 		
 		if ( AbsF( AngleDistance( GetHeading(), moveData.pivotRotationValue.Yaw ) ) < 135.f && rawPlayerSpeed > 0 )
 			moveData.pivotRotationController.SetDesiredHeading( GetHeading(), rotMult );
@@ -3657,11 +4172,11 @@ statemachine abstract import class CR4Player extends CPlayer
 		else 
 			moveData.pivotPositionController.offsetZ = 1.3f;
 		
-		
-		
+		//if ( movementLockType == PMLT_NoSprint  )
+		//{			
 			if ( playerMoveType >= PMT_Run )
 			{		
-				
+				//camDist = 0.3f;
 				camDist = -0.5f;
 				camOffset = 0.25;
 				
@@ -3674,21 +4189,21 @@ statemachine abstract import class CR4Player extends CPlayer
 			}
 			else
 			{
-				
+				//camDist = -0.6f;
 				camDist = 0.f;			
 				camOffset = 0.4f;
 				smoothTime = 0.2f;
 				wasRunning = false;
 			}
 			
-			
+			//camDist = theGame.GetGameplayConfigFloatValue( 'debugA' );
 
 			DampVectorSpring( moveData.cameraLocalSpaceOffset, moveData.cameraLocalSpaceOffsetVel, Vector( 0.3f, camDist, 0.3f ), smoothTime, timeDelta );	
-			
-		
-		
-		
-			
+			//DampVectorSpring( moveData.cameraLocalSpaceOffset, moveData.cameraLocalSpaceOffsetVel, Vector( 0.5, camDist, camOffset ), smoothTime, timeDelta );
+		//}
+		//else
+		//	DampVectorSpring( moveData.cameraLocalSpaceOffset, moveData.cameraLocalSpaceOffsetVel, Vector( theGame.GetGameplayConfigFloatValue( 'debugA' ),theGame.GetGameplayConfigFloatValue( 'debugB' ),theGame.GetGameplayConfigFloatValue( 'debugC' ) ), 0.4f, timeDelta );
+			//DampVectorSpring( moveData.cameraLocalSpaceOffset, moveData.cameraLocalSpaceOffsetVel, Vector( 0.7f, 0.f, 0.3 ), 0.4f, timeDelta );	
 	}
 	
 	
@@ -3711,10 +4226,10 @@ statemachine abstract import class CR4Player extends CPlayer
 		{
 			theGame.GetGameCamera().ChangePivotRotationController( 'SignChannel' );
 			theGame.GetGameCamera().ChangePivotDistanceController( 'SignChannel' );
-			
+			// HACK
 			moveData.pivotRotationController = theGame.GetGameCamera().GetActivePivotRotationController();
 			moveData.pivotDistanceController = theGame.GetGameCamera().GetActivePivotDistanceController();
-			
+			// END HACK
 
 			if ( GetCurrentlyCastSign() == ST_Axii )
 				leftOffset = 32.f;
@@ -3732,13 +4247,13 @@ statemachine abstract import class CR4Player extends CPlayer
 			{
 				screenSpaceOffset = 0.65f;
 				oTCameraPitchOffset = 13.f; 
-				
+				//moveData.pivotDistanceController.SetDesiredDistance( 0.5f, 3.f );
 			}
 			else if ( oTCameraOffset == rightOffset )
 			{
 				screenSpaceOffset = -0.65f;
 				oTCameraPitchOffset = 13.f; 
-				
+				//moveData.pivotDistanceController.SetDesiredDistance( 0.5f, 3.f );
 			}
 		
 			moveData.pivotPositionController.offsetZ = 1.3f;
@@ -3755,7 +4270,7 @@ statemachine abstract import class CR4Player extends CPlayer
 					else
 					{
 						heading = moveData.pivotRotationValue.Yaw + oTCameraOffset;
-						pitch = moveData.pivotRotationValue.Pitch; 
+						pitch = moveData.pivotRotationValue.Pitch; //+ oTCameraPitchOffset;
 					}
 				}
 				else if ( GetOrientationTarget() == OT_Actor )
@@ -3771,16 +4286,16 @@ statemachine abstract import class CR4Player extends CPlayer
 						
 					angles = VecToRotation( vec );
 					heading = angles.Yaw + oTCameraOffset;
-					pitch = -angles.Pitch - oTCameraPitchOffset;
+					pitch = -angles.Pitch - oTCameraPitchOffset;//-angles.Pitch;				
 				}
 				else
 				{
 					angles = VecToRotation( GetHeadingVector() );
 					heading = angles.Yaw + oTCameraOffset;
-					pitch = -angles.Pitch - oTCameraPitchOffset;
+					pitch = -angles.Pitch - oTCameraPitchOffset;//-angles.Pitch;				
 				}
 			
-				if ( !wasBRAxisPushed && ( !bRAxisReleased ) )
+				if ( !wasBRAxisPushed && ( !bRAxisReleased ) )//|| !lastAxisInputIsMovement ) )
 					wasBRAxisPushed = true;
 
 				moveData.pivotRotationController.SetDesiredHeading( heading , 2.f );
@@ -3821,7 +4336,7 @@ statemachine abstract import class CR4Player extends CPlayer
 				screenSpaceOffsetUp = ClampF( screenSpaceOffsetUp, 0.4, 0.5 );				
 			}
 				
-			DampVectorSpring( moveData.cameraLocalSpaceOffset, moveData.cameraLocalSpaceOffsetVel, Vector( screenSpaceOffset, screenSpaceOffsetFwd, screenSpaceOffsetUp ), 0.25f, timeDelta );
+			DampVectorSpring( moveData.cameraLocalSpaceOffset, moveData.cameraLocalSpaceOffsetVel, Vector( screenSpaceOffset, screenSpaceOffsetFwd, screenSpaceOffsetUp ), 0.25f, timeDelta );//1.5,0.4		
 			moveData.pivotDistanceController.SetDesiredDistance( 2.8f, 5.f );	
 			moveData.pivotPositionController.SetDesiredPosition( GetWorldPosition() );		
 		
@@ -3847,20 +4362,20 @@ statemachine abstract import class CR4Player extends CPlayer
 				
 		theGame.GetGameCamera().ForceManualControlHorTimeout();
 		theGame.GetGameCamera().ForceManualControlVerTimeout();	
-		
-		
+		//if ( parent.delayCameraOrientationChange || parent.delayOrientationChange )
+		//{
 			cameraOffsetLeft = 30.f;
 			cameraOffsetRight = -30.f;
-		
-		
-		
-		
-		
-		
+		//}
+		//else
+		//{
+		//	cameraOffsetLeft = 2.f;
+		//	cameraOffsetRight = -2.f;
+		//}
 		
 		theGame.GetGameCamera().ChangePivotRotationController( 'SignChannel' );
 		theGame.GetGameCamera().ChangePivotDistanceController( 'SignChannel' );
-		
+		// HACK
 		moveData.pivotRotationController = theGame.GetGameCamera().GetActivePivotRotationController();
 		moveData.pivotDistanceController = theGame.GetGameCamera().GetActivePivotDistanceController();
 
@@ -3957,20 +4472,25 @@ statemachine abstract import class CR4Player extends CPlayer
 		{
 			if ( sprintingCamera )
 			{
-				
-				theGame.GetGameCamera().ForceManualControlVerTimeout();
+				//theGame.GetGameCamera().ForceManualControlHorTimeout();
+				if( thePlayer.GetAutoCameraCenter() )
+				{
+					theGame.GetGameCamera().ForceManualControlVerTimeout();
+				}
 				
 				playerToCamAngle =  AbsF( AngleDistance( GetHeading(), moveData.pivotRotationValue.Yaw ) );
 				
-				
-					useExplorationSprintCam = false;
+				/*if ( theGame.GetGameplayConfigFloatValue( 'debugE' ) > 0.1f )
+					useExplorationSprintCam = !IsInCombat() || ( moveTarget && VecDistance( moveTarget.GetWorldPosition(), GetWorldPosition() ) > findMoveTargetDistMax );
+				else*/
+					useExplorationSprintCam = false;// !IsInCombat() || ( moveTarget && VecDistance( moveTarget.GetWorldPosition(), GetWorldPosition() ) > findMoveTargetDistMax );
 				
 				if ( useExplorationSprintCam )
 				{
 					if ( playerToCamAngle <= 45  )
 					{
 						theGame.GetGameCamera().ChangePivotRotationController( 'Sprint' );
-						
+						// HACK
 						moveData.pivotRotationController = theGame.GetGameCamera().GetActivePivotRotationController();	
 
 						moveData.pivotRotationController.SetDesiredHeading( GetHeading(), 0.25f );
@@ -4048,7 +4568,9 @@ statemachine abstract import class CR4Player extends CPlayer
 				}
 				else 
 				{	
-					
+					/*camOffsetVector.X = 0.f;
+					camOffsetVector.Y = 0.4f;
+					camOffsetVector.Z = 0.2f;*/
 					smoothSpeed = 0.75f;
 					
 					camOffsetVector.X = 0.f;
@@ -4143,23 +4665,25 @@ statemachine abstract import class CR4Player extends CPlayer
 			headingMult = 1.f;
 			pitchMult = 1.f;
 		
-			
+			//if( GetBehaviorVariable( 'combatActionType' ) == (int)CAT_Attack )
 			if( GetBehaviorVariable( 'combatActionType' ) == (int)CAT_CastSign 
 				&& ( GetEquippedSign() == ST_Aard || GetEquippedSign() == ST_Yrden ) 
 				&& GetBehaviorVariable( 'alternateSignCast' ) == 1 )
 			{
-				
+				//theGame.GetGameCamera().ForceManualControlHorTimeout();
 				theGame.GetGameCamera().ForceManualControlVerTimeout();			
 				pitch = -20.f;
 				
-				
+				//DampVectorSpring( moveData.cameraLocalSpaceOffset, moveData.cameraLocalSpaceOffsetVel, Vector( theGame.GetGameplayConfigFloatValue( 'debugA' ), theGame.GetGameplayConfigFloatValue( 'debugB' ), theGame.GetGameplayConfigFloatValue( 'debugC' ) ), 0.4f, timeDelta );
 			}		
 			
-			
-			
-			
-				
-			
+			//vel = GetMovingAgentComponent().GetVelocity();
+			//if ( VecLength( vel ) > 0 && GetBehaviorVariable( 'combatActionType' ) == (int)CAT_Dodge )
+			//{
+				/*theGame.GetGameCamera().ForceManualControlHorTimeout();
+				heading = GetHeading();
+				headingMult = 0.5f;*/
+			//}
 			
 			if ( IsCurrentSignChanneled() && GetCurrentlyCastSign() == ST_Quen )
 			{
@@ -4171,8 +4695,11 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 	}
 	
-	
-	
+	/*public function UpdateCameraForSpecialAttack( out moveData : SCameraMovementData, timeDelta : float ) : bool
+	{
+		return false;
+	}*/
+	//------------------------------------------------------------------------------------------------------------------
 	event OnGameCameraExplorationRotCtrlChange()
 	{
 		if( substateManager )
@@ -4183,11 +4710,11 @@ statemachine abstract import class CR4Player extends CPlayer
 		return false;
 	}
 	
-	
-	
-	
+	///////////////////////////////////////////////////////////////////////////
+	// COMBAT MOVEMENT ORIENTATION
+	///////////////////////////////////////////////////////////////////////////	
 
-	
+	//Rotation
 	function SetCustomRotation( customRotationName : name, rotHeading : float, rotSpeed : float, activeTime : float, rotateExistingDeltaLocation : bool )
 	{
 		var movementAdjustor	: CMovementAdjustor;
@@ -4242,7 +4769,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 	}
 	
-	
+	//lock movement in dir
 	function CustomLockMovement( customMovementName : name, heading : float )
 	{
 		var movementAdjustor	: CMovementAdjustor;
@@ -4432,7 +4959,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		return false;
 	}
 
-	
+	// returns the topmost OT_CustomHeading in stack
 	public function GetOrientationTargetCustomHeading() : float
 	{
 		var i : int;
@@ -4498,17 +5025,17 @@ statemachine abstract import class CR4Player extends CPlayer
 			}
 			else
 			{
-				if ( IsUsingVehicle() )
+				if ( IsUsingVehicle() )// || this.IsSwimming() )
 					newCustomOrientationTarget = OT_Camera;
 				else if ( lastAxisInputIsMovement )
 				{
 					if ( this.IsSwimming() )
 					{
-						
-						
+						//if ( !bRAxisReleased
+						//	|| ( GetOrientationTarget() == OT_Camera && ( this.rangedWeapon.GetCurrentStateName() == 'State_WeaponAim' || this.rangedWeapon.GetCurrentStateName() == 'State_WeaponShoot'  ) ) )
 							newCustomOrientationTarget = OT_Camera;
-						
-						
+						//else
+						//	newCustomOrientationTarget = OT_CustomHeading;
 					}
 					else
 						newCustomOrientationTarget = OT_Player;
@@ -4536,10 +5063,10 @@ statemachine abstract import class CR4Player extends CPlayer
 		{
 			if ( (CActor)( GetDisplayTarget() ) )
 			{
-				
+				//if ( GetPlayerCombatStance() == PCS_AlertNear )
 					heading = VecHeading( GetDisplayTarget().GetWorldPosition() - GetWorldPosition() );
-				
-				
+				//else
+				//	heading = GetHeading();
 			}
 			else
 			{
@@ -4613,15 +5140,15 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 	}
 
-	
+	//This is also called from behgraph (e.g. SpecialHeavyAttack)
 	event OnDelayOrientationChangeOff()
 	{
 		delayOrientationChange = false;
 		delayCameraOrientationChange = false;
 		RemoveTimer( 'DelayOrientationChangeTimer' );
 
-		
-		
+		//if ( !IsCameraLockedToTarget() )
+		//	theGame.GetGameCamera().EnableManualControl( true );
 	}
 	
 	timer function DelayOrientationChangeTimer( time : float , id : int)
@@ -4630,7 +5157,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			|| ( actionType == 2 && theInput.GetActionValue( 'SpecialAttackHeavy' ) == 0.f )
 			|| ( actionType == 3 && theInput.GetActionValue( 'ThrowItemHold' ) == 0.f )
 			|| ( actionType == 1 && !IsGuarded() )
-			|| ( VecLength( rawRightJoyVec ) > 0.f ) )
+			|| ( VecLength( rawRightJoyVec ) > 0.f ) )//&& !( slideTarget && IsInCombatAction() && GetBehaviorVariable( 'combatActionType') == (int)CAT_CastSign && GetCurrentlyCastSign() == ST_Axii ) ) )
 		{
 			OnDelayOrientationChangeOff();
 		}
@@ -4674,8 +5201,8 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 	}		
 	
-	
-	
+	///////////////////////////////////////////////////////////////////////////
+	// Soft Lock Logic
 	
 
 	
@@ -4704,9 +5231,9 @@ statemachine abstract import class CR4Player extends CPlayer
 		var hasSwordDrawn : bool;
 		var sword : SItemUniqueId;
 		
-		
-		
-		
+		//we show fx only if overheal is greater than 1% - otherwise if we have a DoT and regen at the same time the health
+		//jumps back and forth between 100% and 99.99% stating and stopping the fx over and over
+		//needs to have sword drawn
 		if(abilityManager.GetOverhealBonus() > (0.005 * GetStatMax(BCS_Vitality)))
 		{
 			hasSwordDrawn = HasAbility('Runeword 4 _Stats', true);
@@ -4889,8 +5416,8 @@ statemachine abstract import class CR4Player extends CPlayer
 		substateManager.ReactOnHitCeiling();
 	}
 	
-	protected var hostileEnemies			: array<CActor>;		
-	private var hostileMonsters 		: array<CActor>;		
+	protected var hostileEnemies			: array<CActor>;		//all enemies that are actively engaged in combat with the player (may or may not be visible by Geralt)
+	private var hostileMonsters 		: array<CActor>;		// subgroup from hostileEnemies containing only monsters for sound system
 	function AddEnemyToHostileEnemiesList( actor : CActor, add : bool )
 	{
 		if ( add )
@@ -4916,7 +5443,7 @@ statemachine abstract import class CR4Player extends CPlayer
 				}
 				else
 				{
-					
+					// If we already waiting to remove an entity
 					if( hostileEnemyToRemove )
 					{
 						hostileEnemies.Remove( hostileEnemyToRemove );
@@ -5051,9 +5578,11 @@ statemachine abstract import class CR4Player extends CPlayer
 		canFindPathEnemiesList.Clear();
 	}
 
-	private var moveTargets 					: array<CActor>;		
+	private var moveTargets 					: array<CActor>;		//all hostileEnemies that Geralt is aware of.
 	public function GetMoveTargets() 			: array<CActor>	{ return moveTargets; }
 	public function GetNumberOfMoveTargets() 	: int	{ return moveTargets.Size(); }
+	public function GetHostileEnemies()			: array<CActor>	{ return hostileEnemies; }
+	public function GetHostileEnemiesCount()	: int	{ return hostileEnemies.Size(); }
 
 	protected var enableStrafe 		: bool;
 	
@@ -5082,14 +5611,14 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		thePlayer.SetupEnemiesCollection( enemyCollectionDist, enemyCollectionDist, 10, 'None', FLAG_Attitude_Neutral + FLAG_Attitude_Hostile + FLAG_Attitude_Friendly + FLAG_OnlyAliveActors );
 	
-		
-		
+		//if ( moveTarget )
+		//	cachedMoveTarget = moveTarget;
 	
-		if ( GetCurrentStateName() != 'PlayerDialogScene' && IsAlive() )
+		if ( GetCurrentStateName() != 'PlayerDialogScene' && IsAlive() )//&& !IsInCombatAction() )//GetBIsCombatActionAllowed() )
 		{
 			GetVisibleEnemies( actors );
 
-			
+			//Include enemies that geralt cannot see, but is hostile to him
 			if ( hostileEnemies.Size() > 0 )
 			{
 				for( i=0; i < hostileEnemies.Size() ; i+=1 )
@@ -5099,7 +5628,7 @@ statemachine abstract import class CR4Player extends CPlayer
 				}
 			}
 			
-			
+			//Include enemies that are technically dead, but can be finished off
 			if ( finishableEnemiesList.Size() > 0 )
 			{
 				for( i=0; i < finishableEnemiesList.Size() ; i+=1 )
@@ -5109,13 +5638,13 @@ statemachine abstract import class CR4Player extends CPlayer
 				}
 			}
 			
-			
+			//Check the last moveTarget for situation where enemy targets an ally when you round a corner
 			if ( moveTarget && !actors.Contains( moveTarget )  )
 				actors.PushBack( moveTarget );			
 			
 			FilterActors( actors, onlyThreatTargets, false );
 			
-			
+			//Determine whether Player should be threatened
 			if ( actors.Size() > 0 )
 			{
 				setIsThreatened = false;
@@ -5146,7 +5675,7 @@ statemachine abstract import class CR4Player extends CPlayer
 					}
 				}
 				
-				
+				//After filtering you will only have either all hostile or all neutral npcs
 				for( i = actors.Size()-1; i>=0; i-=1 )
 				{			
 					if ( ( !actors[i].IsAlive() && !finishableEnemiesList.Contains( actors[i] ) )
@@ -5165,10 +5694,10 @@ statemachine abstract import class CR4Player extends CPlayer
 			}
 			else if ( moveTarget && IsThreat( moveTarget ) )
 				setIsThreatened = true;
-				
+				//SetIsThreatened( true );
 			else
 				setIsThreatened = false;
-				
+				//SetIsThreatened( false );
 
 			if ( setIsThreatened )
 			{				
@@ -5187,7 +5716,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			moveTargets = actors;
 			potentialMoveTargets = moveTargets;
 			
-			
+			//MS: By default Geralt will not play PCS_AlertNear unless there is one guy among the hostile npcs that canBeStrafed
 			if ( !moveTarget ) 
 				enableStrafe = false;
 				
@@ -5199,7 +5728,7 @@ statemachine abstract import class CR4Player extends CPlayer
 						enableStrafe = true;
 					
 					if ( !potentialMoveTargets[i].GetGameplayVisibility() )
-						moveTargetDists.PushBack( 100.f ); 
+						moveTargetDists.PushBack( 100.f ); //Put invisible enemies as the last choice for moveTarget
 					else
 						moveTargetDists.PushBack( VecDistance( potentialMoveTargets[i].GetNearestPointInPersonalSpace( GetWorldPosition() ), GetWorldPosition() ) );
 
@@ -5264,7 +5793,11 @@ statemachine abstract import class CR4Player extends CPlayer
 					newEmptyMoveTargetTimer = 0.f;
 				}
 			}
-				
+			/*else if ( moveTarget 
+				&& ( moveTarget.IsAlive() || finishableEnemiesList.Contains( moveTarget ) )
+				//&& moveTarget.GetGameplayVisibility() 
+				&& hostileEnemies.Contains( moveTarget ) )
+			*/	
 			else if ( moveTarget && ( IsThreat( moveTarget ) || finishableEnemiesList.Contains( moveTarget ) ) )				
 			{
 				if ( !IsEnemyVisible( moveTarget ) )
@@ -5295,13 +5828,13 @@ statemachine abstract import class CR4Player extends CPlayer
 		else
 			SetIsThreatened( false );
 			
-		
+		//reactionsSystem
 		if ( IsThreatened() && !IsInFistFightMiniGame() )
-			theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( this, 'CombatNearbyAction', 5.0, 18.0f, -1.f, -1, true ); 
+			theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( this, 'CombatNearbyAction', 5.0, 18.0f, -1.f, -1, true ); //reactionSystemSearch
 		else
-			theGame.GetBehTreeReactionManager().RemoveReactionEvent( this, 'CombatNearbyAction'); 
+			theGame.GetBehTreeReactionManager().RemoveReactionEvent( this, 'CombatNearbyAction'); //reactionSystemSearch
 			
-		
+		// sending nearby monsters count as parameter to sound system
 		theSound.SoundParameter( "monster_count", hostileMonsters.Size() );
 	}
 	
@@ -5342,7 +5875,12 @@ statemachine abstract import class CR4Player extends CPlayer
 		var reachablilityFailedTimeStampDelta		: float;
 		var currentTimeTemp 		: float;
 	
-		
+		/*if ( GetIsSprinting() ) 
+		{
+			unableToPathFind = true;
+			isInCombatReason = 0; 
+			return false;		
+		}*/
 
 		if ( forceCombatMode && isSnappedToNavMesh )
 			return true;
@@ -5356,7 +5894,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 	
 		if( thePlayer.substateManager.GetStateCur() != 'CombatExploration' && !thePlayer.substateManager.CanChangeToState( 'CombatExploration' )
-		&& thePlayer.substateManager.GetStateCur() != 'Ragdoll' ) 
+		&& thePlayer.substateManager.GetStateCur() != 'Ragdoll' ) //&& !thePlayer.substateManager.CanChangeToState( 'Ragdoll' ) ) )
 		{
 			reachableEnemyWasTooFar = false;
 			reachablilityFailed = false;		
@@ -5458,7 +5996,12 @@ statemachine abstract import class CR4Player extends CPlayer
 				moveTargetNPC = (CNewNPC)moveTarget;
 				playerToTargetDist = VecDistance( moveTarget.GetWorldPosition(), this.GetWorldPosition() );
 
-				 if ( reachableEnemyWasTooFar 
+				/*if ( !theGame.GetWorld().NavigationLineTest( this.GetWorldPosition(), moveTarget.GetWorldPosition(), 0.4f ) )
+				{
+					isInCombatReason = 0;
+					return false;					
+				}
+				else*/ if ( reachableEnemyWasTooFar 
 					&& ( isReachableEnemyTooFar || !theGame.GetWorld().NavigationLineTest( this.GetWorldPosition(), moveTarget.GetWorldPosition(), 0.4f ) ) )
 				{
 					isInCombatReason = 0;
@@ -5581,8 +6124,8 @@ statemachine abstract import class CR4Player extends CPlayer
 	
 	private function IsReachableEnemyTooFar() : bool
 	{
-		
-		var navDistLimit			: float = findMoveTargetDist; 
+		//var navDistFailMax			: float = 100.f;
+		var navDistLimit			: float = findMoveTargetDist; //25.f;
 		var navDistDivisor			: float = 2.f;
 		var playerToTargetVector	: Vector;	
 	
@@ -5610,10 +6153,14 @@ statemachine abstract import class CR4Player extends CPlayer
 			return false;
 	}
 	
-	
+	//Force Geralt to face an enemy for a moment before changing to another enemy
 	public function LockToMoveTarget( lockTime : float )
 	{
-		
+		/*if ( IsMoveTargetChangeAllowed() )
+		{
+			bMoveTargetChangeAllowed = false;
+			AddTimer( 'DisableLockToMoveTargetTimer', lockTime );
+		}*/
 	}
 	
 	private timer function DisableLockToMoveTargetTimer( time : float , id : int)
@@ -5626,7 +6173,7 @@ statemachine abstract import class CR4Player extends CPlayer
 	
 	public function SetMoveTargetChangeAllowed( flag : bool )
 	{
-		
+		//bMoveTargetChangeAllowed = flag;
 	}
 	
 	public function IsMoveTargetChangeAllowed() : bool
@@ -5736,10 +6283,10 @@ statemachine abstract import class CR4Player extends CPlayer
 			ConfirmDisplayTarget( currentSelectedDisplayTarget );
 			return;
 		}
-		
+		//Setting multiplier that increases non actor target priority
 		nonActorTargetMult = 1.25;
 		
-		
+		//Update the interaction icon
 		hud = (CR4ScriptedHud)theGame.GetHud();	
 		
 		if ( !IsThreatened() )
@@ -5840,7 +6387,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		else if ( slideTarget 
 			&& this.rangedWeapon 
 			&& this.rangedWeapon.GetCurrentStateName() != 'State_WeaponWait'
-			&& this.playerAiming.GetCurrentStateName() == 'Waiting' ) 
+			&& this.playerAiming.GetCurrentStateName() == 'Waiting' ) //( this.rangedWeapon.GetCurrentStateName() == 'State_WeaponShoot' || this.rangedWeapon.GetCurrentStateName() == 'State_WeaponAim' ) )
 				currentSelectedDisplayTarget = slideTarget;
 		else 
 			currentSelectedDisplayTarget = tempTarget;	
@@ -5856,7 +6403,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			}
 		}
 		
-		
+		// disabling display for invisible targets
 		if ( (CActor)currentSelectedDisplayTarget && !((CActor)currentSelectedDisplayTarget).GetGameplayVisibility() )
 		{
 			currentSelectedDisplayTarget = NULL;
@@ -5957,8 +6504,8 @@ statemachine abstract import class CR4Player extends CPlayer
 		var i					: int;
 		var targetingInfo		: STargetingInfo;
 		
-		
-		
+		//GetVisibleEnemies( targets );
+		//targets = FilterActors( targets );
 		targets = GetMoveTargets();
 	
 		if ( targets.Size() > 0 )
@@ -6017,9 +6564,9 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		var temp : int;
 		
-		
-		
-		
+		// MAREK TODO :  Need to use cached values of screenspace coords instead of calculating again
+		//GetVisibleEnemies( targets );
+		//targets = FilterActors( targets );
 		source = (CActor)sourceEnt;
 		
 		targets = GetMoveTargets();
@@ -6037,7 +6584,11 @@ statemachine abstract import class CR4Player extends CPlayer
 			}
 		}		
 		
-			
+		/*if ( IsCombatMusicEnabled() || hostileEnemies.Size() > 0  )
+		{
+			if ( targets[0] && !IsThreat( targets[0] ) )
+				targets.Clear();
+		}*/	
 		
 		for( i = targets.Size() - 1; i >= 0; i -= 1 )
 		{
@@ -6060,7 +6611,9 @@ statemachine abstract import class CR4Player extends CPlayer
 			
 		theCamera.WorldVectorToViewRatio( sourcePos, sourceCoord.X , sourceCoord.Y ); 
 		
-		
+		/*if ( !IsUsingVehicle() )
+			targetingDist = softLockDist;			
+		else*/
 			targetingDist = softLockDistVehicle;
 		
 		if ( targets.Size() > 0 )
@@ -6068,7 +6621,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			targetingInfo.source 				= this;
 			targetingInfo.canBeTargetedCheck	= true;
 			targetingInfo.coneCheck 			= false;
-			targetingInfo.coneHalfAngleCos		= 0.86602540378f; 
+			targetingInfo.coneHalfAngleCos		= 0.86602540378f; // = CosF( Deg2Rad( 60.0f * 0.5f ) )
 			targetingInfo.coneDist				= targetingDist;
 			targetingInfo.coneHeadingVector		= Vector( 0.0f, 1.0f, 0.0f ); 
 			targetingInfo.distCheck				= true;
@@ -6088,7 +6641,7 @@ statemachine abstract import class CR4Player extends CPlayer
 				targetingInfo.rsHeadingCheck	= false;
 			else
 				targetingInfo.rsHeadingCheck	= true;
-			targetingInfo.rsHeadingLimitCos		= -0.5f; 
+			targetingInfo.rsHeadingLimitCos		= -0.5f; // = CosF( Deg2Rad( 120.0f ) );		
 		
 			for( i = targets.Size() - 1; i >= 0; i -= 1 )
 			{
@@ -6111,7 +6664,18 @@ statemachine abstract import class CR4Player extends CPlayer
 				else if ( targets[i] == sourceEnt )
 					targets.Erase( i );	
 			
-				
+				/*if ( GetDisplayTarget() && IsInCombatAction() && GetBehaviorVariable( 'combatActionType') == (int)CAT_CastSign && GetCurrentlyCastSign() == ST_Igni )
+				{
+
+				}
+				else
+				{
+					targetingInfo.rsHeadingCheck 		= false;
+					if ( !IsEntityTargetable( targetingInfo ) 
+						|| angleDiff > ( coneAngle * 0.5 )
+						|| targets[i] == sourceEnt )
+						targets.Erase( i );			
+				}*/
 			}
 		}
 		
@@ -6136,7 +6700,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			}			
 		}
 		
-		if ( targets.Size() > 0 )
+		if ( targets.Size() > 0 )//GetDisplayTarget() )
 			return targets[ ArrayFindMinF( sourceToTargetDists ) ];
 		else
 			return NULL;
@@ -6186,13 +6750,13 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		targetActor = (CActor)targetEntity;
 
-		
+		// "can be targeted" check
 		if ( info.canBeTargetedCheck && !targetActor.CanBeTargeted() )
 		{
 			return false;
 		}
 		
-		
+		// visibility check
 		if ( info.invisibleCheck && !targetActor.GetGameplayVisibility() )
 		{
 			return false;
@@ -6203,7 +6767,7 @@ statemachine abstract import class CR4Player extends CPlayer
 				
 		if ( targetActor )
 		{
-			{ 
+			{ // do not target mounted horses
 				targetNPC = (CNewNPC)targetActor;
 				if ( targetNPC )
 				{
@@ -6221,7 +6785,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			{
 				if ( targetActor )
 				{
-					
+					// radius is taken form the first actor
 					sourceToTargetDist = Distance2DBetweenCapsuleAndPoint( targetActor, sourceActor ) - targetingPrecalcs.playerRadius;
 				}
 				else
@@ -6242,7 +6806,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			}
 		}
 
-		
+		// distance check
 		if ( info.distCheck )
 		{
 			if ( sourceToTargetDist >= info.coneDist )
@@ -6251,13 +6815,13 @@ statemachine abstract import class CR4Player extends CPlayer
 			}
 		}
 
-		
+		// prepare source to target direction if needed
 		if ( info.coneCheck || info.rsHeadingCheck )
 		{
 			direction = VecNormalize2D( targetPosition - sourcePosition );
 		}
 		
-		
+		// cone check
 		if ( info.coneCheck )
 		{
 			if ( VecDot2D( direction, info.coneHeadingVector ) < info.coneHalfAngleCos )
@@ -6266,7 +6830,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			}
 		}
 		
-		
+		// heading cone check
 		if ( info.rsHeadingCheck )
 		{
 			if ( usePrecalcs )
@@ -6285,13 +6849,13 @@ statemachine abstract import class CR4Player extends CPlayer
 			}
 		}
 				
-		
+		// "in frame" check
 		if ( info.inFrameCheck && !WasVisibleInScaledFrame( targetEntity, info.frameScaleX, info.frameScaleY ) )
 		{
 			return false;
 		}
 		
-		
+		// navmesh check
 		if ( info.navMeshCheck && !IsSwimming() )
 		{
 			sourceCapsuleRadius = 0.1f;
@@ -6313,20 +6877,20 @@ statemachine abstract import class CR4Player extends CPlayer
 			}
 		}
 		
-		
+		// knockdown check
 		if ( info.knockDownCheck )
 		{
-			
+			// if actor is not alive
 			if ( targetActor && !targetActor.IsAlive() )
 			{
-				
+				// and contains enabled "Finish" interaction
 				finishEnabled = targetActor.GetComponent( 'Finish' ).IsEnabled();
 				if ( finishEnabled )
 				{
-					
+					// and is contained in finishable enemies list
 					if ( finishableEnemiesList.Contains( targetActor ) )
 					{
-						
+						// and is too far to "finish" -> we cannot target it
 						if ( sourceToTargetDist >= info.knockDownCheckDist )
 						{
 							return false;
@@ -6370,7 +6934,68 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 	}
 	
+	/*
+	public function IsEntityTargetable( source : CActor, targetEntity : CGameplayEntity, coneCheck : bool, coneAngle, coneDist, coneHeading : float, distCheck, invisibleCheck, navMeshCheck : bool, inFrameCheck : bool, frameScaleX : float, frameScaleY : float, knockDownCheck : bool, knockDownCheckDist : float, rsHeadingCheck : bool, rsHeading : float, rsHeadingLimit : float) : bool
+	{
+		var targetActor				: CActor;
+		var targetNPC				: CNewNPC;
+		var direction				: Vector;
+		var sourceToTargetDist		: float;
+		var coneDistSq  			: float;
+		var sourceCapsuleRadius 	: float;
+		var knockDownCheckDistSq	: float;
+		var sourceToTargetAngleDist	: float;
+		var b						: bool;
+		var targetsHorse			: W3HorseComponent;
+			
+		direction = VecNormalize2D( targetEntity.GetWorldPosition() - source.GetWorldPosition() );
+		targetActor = (CActor)targetEntity;
 		
+		if ( distCheck )
+		{
+			if ( targetActor )
+				sourceToTargetDist = VecDistanceSquared( source.GetWorldPosition(), targetActor.GetNearestPointInBothPersonalSpaces( source.GetWorldPosition() ) );
+			else
+				sourceToTargetDist = VecDistanceSquared( source.GetWorldPosition(), targetEntity.GetWorldPosition() );
+			
+			coneDistSq = coneDist * coneDist;
+		}
+		
+		if ( knockDownCheck && targetActor )
+			knockDownCheckDistSq = knockDownCheckDist * knockDownCheckDist;
+			
+		if ( navMeshCheck && targetActor ) 
+			sourceCapsuleRadius = ((CMovingPhysicalAgentComponent)source.GetMovingAgentComponent()).GetCapsuleRadius();
+			
+		if ( rsHeadingCheck )
+			sourceToTargetAngleDist = AngleDistance( VecHeading( GetLookAtPosition() - source.GetWorldPosition() ), VecHeading( targetEntity.GetWorldPosition() - source.GetWorldPosition() ) );
+		
+		// do not target mounted horses
+		if(targetActor)
+		{
+			targetNPC = (CNewNPC)targetActor;
+			if(targetNPC)
+			{
+				targetsHorse = (W3HorseComponent)targetNPC.GetHorseComponent();
+				if(targetsHorse && targetsHorse.IsNotBeingUsed() )
+					return false;
+			}
+		}	
+		
+		b = !coneCheck || AbsF( AngleDistance( coneHeading, VecHeading( direction ) ) ) < ( coneAngle * 0.5 );
+		b = b && ( !distCheck || sourceToTargetDist < coneDistSq );
+		b = b && ( !invisibleCheck || targetActor.GetGameplayVisibility() );
+		b = b && ( !navMeshCheck || (!IsSwimming() && theGame.GetWorld().NavigationLineTest( source.GetWorldPosition(), targetActor.GetWorldPosition(), sourceCapsuleRadius ) ) );
+		b = b && ( !inFrameCheck || WasVisibleInScaledFrame( targetEntity, frameScaleX, frameScaleY ) );
+		b = b && ( !rsHeadingCheck || ( rsHeading >= 0 && sourceToTargetAngleDist < 0 && sourceToTargetAngleDist >= ( rsHeadingLimit * -1 ) ) || ( rsHeading < 0 && sourceToTargetAngleDist >= 0 && sourceToTargetAngleDist <= rsHeadingLimit ) );
+		b = b && ( !knockDownCheck || !targetActor.GetComponent( 'Finish' ).IsEnabled() || ( targetActor.GetComponent( 'Finish' ).IsEnabled() && sourceToTargetDist < knockDownCheckDistSq ) );
+
+		if ( b )
+			return true;
+		else
+			return false;
+	}
+	*/	
 	private function FilterActors( out targets : array<CActor>, out onlyThreatsReturned : bool, optional usePrecalcs : bool )
 	{
 		var i  								: int;
@@ -6387,7 +7012,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		i = 0;
 		threatsCount = 0;
 		
-		
+		// after that loop first "threatsCount" targets will be "threat"
 		for ( i = 0; i < size; i+=1 )
 		{
 			if( IsThreat( targets[ i ], usePrecalcs ) )
@@ -6430,7 +7055,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		targets.Clear();
 		GetVisibleEnemies( targets );
 		
-		
+		//Include enemies that are technically dead, but can be finished off
 		for( i = 0; i < finishableEnemiesList.Size() ; i+=1 )
 		{
 			if ( !targets.Contains( finishableEnemiesList[i] ) )
@@ -6459,7 +7084,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			{
 				coneHeading = theGame.GetGameCamera().GetHeading();
 			}
-			coneHalfAngleDot = 0.5f; 
+			coneHalfAngleDot = 0.5f; // = CosF( Deg2Rad( 120.f * 0.5f ) ); - Just use calculator... why not? this is constant.
 		}
 		else
 		{ 
@@ -6473,7 +7098,7 @@ statemachine abstract import class CR4Player extends CPlayer
 				{
 					coneHeading = theGame.GetGameCamera().GetHeading();
 				}
-				coneHalfAngleDot = 0.17364817766f; 
+				coneHalfAngleDot = 0.17364817766f; // = CosF( Deg2Rad( 160.f * 0.5f ) );
 			}
 			else if ( bLAxisReleased )
 			{
@@ -6492,9 +7117,9 @@ statemachine abstract import class CR4Player extends CPlayer
 				if ( IsInCombat() )
 				{
 					if ( ShouldUsePCModeTargeting() )
-						coneHalfAngleDot = -1; 
+						coneHalfAngleDot = -1; // = CosF( Deg2Rad( 360.0f * 0.5f ) )
 					else
-						coneHalfAngleDot = 0.17364817766f; 
+						coneHalfAngleDot = 0.17364817766f; // = CosF( Deg2Rad( 160.f * 0.5f ) );
 				}
 				else
 				{
@@ -6516,9 +7141,9 @@ statemachine abstract import class CR4Player extends CPlayer
 				}
 				
 				if ( ShouldUsePCModeTargeting() )
-					coneHalfAngleDot = -1; 
+					coneHalfAngleDot = -1; // = CosF( Deg2Rad( 360.0f * 0.5f ) )
 				else				
-					coneHalfAngleDot = 0.17364817766f; 
+					coneHalfAngleDot = 0.17364817766f; // = CosF( Deg2Rad( 160.f * 0.5f ) );
 			}
 
 			coneHeadingVector = VecFromHeading( coneHeading );
@@ -6544,8 +7169,8 @@ statemachine abstract import class CR4Player extends CPlayer
 		outHeadingVector = coneHeadingVector;
 	}
 	
-	
-	
+	///////////////////////////////////////////////////////////////////////////
+	// (new) targeting
 	
 	function InitTargeting()
 	{
@@ -6606,7 +7231,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		targetingIn.shouldUsePcModeTargeting 		= this.ShouldUsePCModeTargeting();
 		targetingIn.bufferActionType 				= bufferActionType;
 		targetingIn.orientationTarget 				= this.GetOrientationTarget();
-		targetingIn.coneDist 						= coneDist; 
+		targetingIn.coneDist 						= coneDist; // computed few lines above
 		targetingIn.findMoveTargetDist 				= this.findMoveTargetDist;
 		targetingIn.cachedRawPlayerHeading 			= this.cachedRawPlayerHeading;
 		targetingIn.combatActionHeading 			= this.GetCombatActionHeading();
@@ -6713,7 +7338,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		var targetChangeFromActionInput		: bool;
 		var retainCurrentTarget				: bool;
 		
-		
+		// caching data
 		
 		playerPosition = this.GetWorldPosition();
 		playerHeadingVector = targetingPrecalcs.playerHeadingVector;			
@@ -6753,7 +7378,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			targetingInfo.coneDist				= targetingIn.coneDist;
 			targetingInfo.distCheck				= true;
 			targetingInfo.invisibleCheck		= true;
-			targetingInfo.navMeshCheck			= false; 
+			targetingInfo.navMeshCheck			= false; //true; 
 			
 			if ( ShouldUsePCModeTargeting() )
 				targetingInfo.inFrameCheck 			= false; 
@@ -6795,7 +7420,7 @@ statemachine abstract import class CR4Player extends CPlayer
 				}
 			}
 
-			
+			// checking "standard" cone dist again
 			targetingInfo.coneDist = targetingIn.coneDist;
 			
 			if ( !targetingIn.playerHasBlockingBuffs )
@@ -6828,7 +7453,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			}			
 			else if ( IsThreatened() )
 			{
-				
+				// Change locked enemy when the current one becomes invisible
 				if ( IsCameraLockedToTarget() )
 				{
 					if ( currentTarget && !currentTarget.GetGameplayVisibility() )
@@ -6862,8 +7487,8 @@ statemachine abstract import class CR4Player extends CPlayer
 				{
 					newTarget = displayTargetActor;
 				}
-				
-				
+				// target closest enemy immediately when transitioning from running/sprint to walk/idle, 
+				// but when you are already in walk/idle player should hit air after he kills his target, he should only target closest enemy when that enmy is within his field of vision
 				else if ( moveTarget &&
 						  isMoveTargetTargetable && 
 						 ( !IsInCombatAction() || isInParryOrCounter || GetBehaviorVariable( 'combatActionType' ) == (int)CAT_Dodge || GetBehaviorVariable( 'combatActionType' ) == (int)CAT_Roll ) )
@@ -6949,7 +7574,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		now = theGame.GetEngineTimeAsSeconds();
 		for ( i = visibleActors.Size() - 1; i >= 0; i-=1 )
 		{
-			
+			// wasn't visible for more than 1 second
 			if ( ( now - visibleActorsTime[i] ) > 1.0f )
 			{
 				visibleActors.EraseFast( i );
@@ -6974,7 +7599,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		nonCombatCheck = bLAxisReleased && !IsInCombat();
 		
-		
+		// first, let's prepare targeting info (so that we don't need to do it in each loop step)
 		if ( nonCombatCheck )
 		{
 			info.coneHeadingVector	= targetingPrecalcs.playerHeadingVector; 					
@@ -6983,7 +7608,7 @@ statemachine abstract import class CR4Player extends CPlayer
 				info.coneHeadingVector	= selectionHeadingVector;
 				info.invisibleCheck		= false;
 				info.coneCheck 			= true;
-				info.coneHalfAngleCos	= 0.76604444311f; 
+				info.coneHalfAngleCos	= 0.76604444311f; // = CosF( Deg2Rad( 80.0f * 0.5f ) )
 			}
 			else
 			{
@@ -6996,7 +7621,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		{
 			info.coneHeadingVector	= Vector( 0.0f, 0.0f, 0.0f );
 				
-			
+			//MS: ConeCheck is false because it's already been filtered by InternalFindTargetsInCone
 			if ( IsInCombat() )
 			{
 				info.inFrameCheck = false; 
@@ -7008,9 +7633,9 @@ statemachine abstract import class CR4Player extends CPlayer
 					info.coneCheck 			= true;
 					
 					if ( this.IsSwimming() )
-						info.coneHalfAngleCos	= -1; 
+						info.coneHalfAngleCos	= -1; // = CosF( Deg2Rad( 360.0f * 0.5f ) )
 					else
-						info.coneHalfAngleCos	= 0.86602540378f; 
+						info.coneHalfAngleCos	= 0.86602540378f; // = CosF( Deg2Rad( 60.0f * 0.5f ) )
 						
 					info.coneHeadingVector	= targetingIn.rawPlayerHeadingVector; 
 				}
@@ -7021,7 +7646,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		cameraDirection = targetingPrecalcs.cameraDirection;
 		playerToCamPlaneDist = VecDot2D( cameraDirection, this.GetWorldPosition() - cameraPosition );
 		
-		
+		// then, using prepared info let's filter out invalid targets
 		for( i = targets.Size() - 1; i >= 0; i -= 1 )
 		{	
 			info.targetEntity = targets[i];
@@ -7038,7 +7663,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			{
 				if ( nonCombatCheck && !lastAxisInputIsMovement )
 				{
-					
+					// removing targets between camera and player
 					targetToCamPlaneDist = VecDot2D( cameraDirection, targets[i].GetWorldPosition() - cameraPosition );
 					if ( targetToCamPlaneDist < playerToCamPlaneDist )
 					{
@@ -7211,13 +7836,13 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		target = GetTarget();
 		
-		
+		//MS: When Player pushes stick in npcs direction, he needs to push the stick beyond leftJoyRotLimit in order to change targets
 		if ( 	!target
 				|| !moveTarget
 				|| ( target && ( !IsThreat( target ) || !target.IsAlive() ) ) 
 				|| VecLength( rawLeftJoyVec ) < 0.7f
 				|| ( IsInCombatAction() && ( ( GetBehaviorVariable( 'combatActionType') == (int)CAT_Dodge ) || ( VecLength( rawLeftJoyVec ) >= 0.7f && ( prevRawLeftJoyRot >= ( rawLeftJoyRot + leftJoyRotLimit ) || prevRawLeftJoyRot <= ( rawLeftJoyRot - leftJoyRotLimit ) || AbsF( AngleDistance( cachedRawPlayerHeading, VecHeading( GetDisplayTarget().GetWorldPosition() - this.GetWorldPosition() ) ) ) > 60 ) ) ) ) 
-				|| ( !IsInCombatAction() && ( !rangedWeapon || ( rangedWeapon.GetCurrentStateName() != 'State_WeaponHolster' ) ) ))
+				|| ( !IsInCombatAction() && ( !rangedWeapon || ( rangedWeapon.GetCurrentStateName() != 'State_WeaponHolster' ) ) ))//&& rangedWeapon.GetCurrentStateName() != 'State_WeaponShoot' ) && rangedWeapon.GetCurrentStateName() != 'State_WeaponAim' ) )
 		{
 			SetPrevRawLeftJoyRot();
 			
@@ -7265,7 +7890,7 @@ statemachine abstract import class CR4Player extends CPlayer
 						{
 							distanceToPlayer = Distance2DBetweenCapsules( this, target );						
 						}
-						
+						// if within soft lock distance and soft lock visibility duration -> don't remove yet
 						if ( distanceToPlayer < this.softLockDist && ( now - visibleActorsTime[ i ] ) < 1.0f )
 						{
 							remove = false;
@@ -7304,7 +7929,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			}
 		}			
 	
-		
+		//LogChannel( 'selectedTarget', selectedTarget );
 		return selectedTarget;	
 	}
 
@@ -7365,7 +7990,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			selectionWeights.distanceWeight = 0.175f;
 			selectionWeights.distanceRingWeight = 0.25f;
 		}		
-		if ( !lAxisReleasedAfterCounter || IsInCombatAction() ) 
+		if ( !lAxisReleasedAfterCounter || IsInCombatAction() ) // !bLAxisReleased ||
 		{
 			if ( theInput.GetActionValue( 'ThrowItem' ) == 1.f || ( rangedWeapon && rangedWeapon.GetCurrentStateName() != 'State_WeaponWait' ) )
 			{
@@ -7373,17 +7998,17 @@ statemachine abstract import class CR4Player extends CPlayer
 				selectionWeights.distanceWeight = 0.f;
 				selectionWeights.distanceRingWeight = 0.f;	
 			}
-			else if ( !lAxisReleasedAfterCounter ) 
+			else if ( !lAxisReleasedAfterCounter ) // !bLAxisReleased )
 			{
-				selectionWeights.angleWeight = 0.55f;
-				selectionWeights.distanceWeight = 0.45f;
-				selectionWeights.distanceRingWeight = 0.f;
+				selectionWeights.angleWeight = 0.55f;//0.75f;
+				selectionWeights.distanceWeight = 0.45f;//0.25f;
+				selectionWeights.distanceRingWeight = 0.f;//0.3f;
 			}
 			else
 			{
 				selectionWeights.angleWeight = 0.75f;
 				selectionWeights.distanceWeight = 0.25f;
-				selectionWeights.distanceRingWeight = 0.f;
+				selectionWeights.distanceRingWeight = 0.f;//0.3f;			
 			}
 		}
 		else if( !IsCurrentSignChanneled() )
@@ -7411,7 +8036,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		sourceToTarget = target.GetWorldPosition() - sourcePosition;
 		sourceToTargetDist = VecLength2D( sourceToTarget );
-		
+		// normalize2D sourcetoTarget
 		if ( sourceToTargetDist < 0.0001f )
 		{
 			sourceToTarget = Vector( 0.0f, 0.0f, 0.0f );
@@ -7473,16 +8098,51 @@ statemachine abstract import class CR4Player extends CPlayer
 		{	
 			SetPlayerTarget( targetActor );
 			
-			
-			
+			//playerToTargetDistance = VecDistance( GetWorldPosition(), targetActor.GetNearestPointInBothPersonalSpaces( GetWorldPosition() ) );
+			//LogChannel( 'Targeting', "selection " + playerToTargetDistance );			
 		}
 	}
 
+/*
+	protected function SetTarget( targetActor : CActor, optional forceSetTarget : bool )
+	{
+		var playerToTargetDistance 	: float;
+		var target				 	: CActor;
+		//var gec : CGameplayEffectsComponent;
+		
 	
+		if ( !IsInNonGameplayCutscene() 
+			&& ( ( ( !targetActor || ( ( targetActor.IsAlive() || finishableEnemiesList.Contains( targetActor ) ) && !targetActor.IsKnockedUnconscious() ) ) && !IsActorLockedToTarget() ) || forceSetTarget ) ) 
+		{	
+			target = GetTarget();
+		
+			if ( target != targetActor )
+			{
+				if( target )
+				{
+					target.StopEffect( 'select_character' );	
+					//gec = GetGameplayEffectsComponent( target );
+					//if(gec)
+					//	gec.SetGameplayEffectFlag( EGEF_OutlineTarget, 0 );
+				}
+					
+				SetPlayerTarget( targetActor );
+				target = targetActor;
+				
+				if(target)
+				{		
+					playerToTargetDistance = VecDistance( GetWorldPosition(), target.GetNearestPointInBothPersonalSpaces( GetWorldPosition() ) );
+				}
+				
+				//LogChannel( 'Targeting', "selection " + playerToTargetDistance );				
+			}
+		}
+	}
+*/	
 	public function SetSlideTarget( actor : CGameplayEntity )
 	{
-		
-		
+		//if ( slideTarget != actor && slideTarget )
+		//	EnableCloseCombatCharacterRadius( false );
 
 		slideTarget = actor;
 		
@@ -7597,7 +8257,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			boneIndex = entity.GetBoneIndex( 'pelvis' );
 			if ( boneIndex == -1 )
 			{
-				boneIndex = entity.GetBoneIndex( 'k_pelvis_g' ); 
+				boneIndex = entity.GetBoneIndex( 'k_pelvis_g' ); // not hack at all. DONE !*100000000000000000000
 			}
 				
 			if ( boneIndex != -1 )
@@ -7622,7 +8282,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			}
 		}
 		
-		
+		// if still not found proper position for test
 		if  ( !positionFound )
 		{
 			drawableComp = (CDrawableComponent)entity.GetComponentByClassName( 'CDrawableComponent' );
@@ -7649,6 +8309,9 @@ statemachine abstract import class CR4Player extends CPlayer
 
 	public function HardLockToTarget( flag : bool )
 	{
+		if( flag && GetTarget().HasTag( 'NoHardLock' ) )
+			return;
+			
 		EnableHardLock( flag );
 		LockToTarget( flag );
 	}
@@ -7667,13 +8330,13 @@ statemachine abstract import class CR4Player extends CPlayer
 		if ( flag && !IsCameraLockedToTarget() )
 		{
 			thePlayer.EnableManualCameraControl( false, 'LockCameraToTarget' );
-			
+			//((CCustomCamera)theCamera.GetTopmostCameraObject()).EnableManualControl( false );
 			SetIsCameraLockedToTarget( flag );
 		}
 		else if ( !flag && IsCameraLockedToTarget() )
 		{
 			thePlayer.EnableManualCameraControl( true, 'LockCameraToTarget' );
-			
+			//((CCustomCamera)theCamera.GetTopmostCameraObject()).EnableManualControl( true );
 			SetIsCameraLockedToTarget( flag );
 		}
 	}
@@ -7686,7 +8349,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		{		
 			if ( !IsActorLockedToTarget() )
 			{
-				
+				//SetSlideTarget( target );	
 				SetIsActorLockedToTarget( flag );
 				SetMoveTargetChangeAllowed( true );
 				SetMoveTarget( GetTarget() );
@@ -7746,14 +8409,16 @@ statemachine abstract import class CR4Player extends CPlayer
 		}		
 	}
 	
-	
-	
-	
-	
-	
+	//////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// @Damage
+	//
+	//////////////////////////////////////////////////////////////////////////////////////////
 	protected function PlayHitAnimation(damageAction : W3DamageAction, animType : EHitReactionType)
 	{
-		var hitRotation : float;
+		var hitRotation 	: float;
+		var onHitCounter 	: SAbilityAttributeValue;
+		var counter 		: int;
 		
 		if( damageAction.HasAnyCriticalEffect() )
 			return;
@@ -7767,16 +8432,40 @@ statemachine abstract import class CR4Player extends CPlayer
 			SetBehaviorVariable( 'isAttackReflected', 1.f );
 		else
 			SetBehaviorVariable( 'isAttackReflected', 0.f );
+		
 		SetBehaviorVariable( 'HitReactionType',(int)animType);
 		SetBehaviorVariable( 'HitReactionWeapon', ProcessSwordOrFistHitReaction( this, (CActor)damageAction.attacker ) );
 		
 		if (damageAction.attacker)
 		{
+			super.PlayHitAnimation( damageAction, animType );
+			if ( damageAction.attacker.HasAbility( 'IncreaseHitReactionSeverityWithHitCounter' ) )
+			{
+				counter = GetHitCounter();
+				switch ( counter )
+				{
+					case 2 :						
+						SetBehaviorVariable( 'HitReactionType', 2 );
+						break;
+					
+					case 3 :						
+						AddEffectDefault( EET_Stagger, damageAction.attacker, damageAction.attacker.GetName() );
+						break;
+					
+					case 4 :						
+						AddEffectDefault( EET_Knockdown, damageAction.attacker, damageAction.attacker.GetName() );
+						break;
+					
+					default : 
+						break;
+				}
+			}
 			SetHitReactionDirection(damageAction.attacker);
 			SetDetailedHitReaction(damageAction.GetSwingType(), damageAction.GetSwingDirection());
 		}
-
+		
 		RaiseForceEvent( 'Hit' );
+		theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( this, 'ActorInHitReaction', -1, 30.0f, -1.f, -1, true ); //reactionSystemSearch
 		
 		if ( IsUsingBoat() )
 		{
@@ -7793,7 +8482,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			if ( this.GetBehaviorVariable( 'HitReactionDirection' ) == (float)( (int)EHRD_Back ) )
 				hitRotation += 180.f;
 		
-			
+			//GetVisualDebug().AddArrow( 'temp', GetWorldPosition(), GetWorldPosition() + VecFromHeading( hitRotation )*2, 1.f, 0.2f, 0.2f, true, Color(0,255,255), true, 5.f );
 			SetCustomRotation( 'Hit', hitRotation, 1080.f, 0.1f, false );
 		}
 		
@@ -7804,7 +8493,7 @@ statemachine abstract import class CR4Player extends CPlayer
 	{
 		super.ReduceDamage(damageData);
 		
-		
+		//halve damage if from your own bomb
 		if(damageData.attacker == this && (damageData.GetBuffSourceName() == "petard" || (W3Petard)damageData.causer) )
 		{
 			if ( theGame.CanLog() )
@@ -7816,48 +8505,70 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 	}
 	
-	
-	public function GetCriticalHitChance(isHeavyAttack : bool, target : CActor, victimMonsterCategory : EMonsterCategory) : float
+	//crit hit chance 0-1
+	public function GetCriticalHitChance( isLightAttack : bool, isHeavyAttack : bool, target : CActor, victimMonsterCategory : EMonsterCategory, isBolt : bool ) : float
 	{
 		var critChance : float;
 		var oilChanceAttribute : name;
+		var weapons : array< SItemUniqueId >;
+		var i : int;
+		var holdsCrossbow : bool;
+		var critVal : SAbilityAttributeValue;
 		
 		critChance = 0;
 		
-		
-		if(FactsQuerySum('debug_fact_critical_boy') > 0)
+		//cheats
+		if( FactsQuerySum( 'debug_fact_critical_boy' ) > 0 )
 		{
 			critChance += 1;
 		}
 		
-		if( IsInState( 'HorseRiding' ) && ((CActor)GetUsedVehicle()).GetMovingAgentComponent().GetRelativeMoveSpeed() >= 4.0 )
+		if( IsInState( 'HorseRiding' ) && ( ( CActor )GetUsedVehicle() ).GetMovingAgentComponent().GetRelativeMoveSpeed() >= 4.0 )
 		{
 			critChance += 1;
 		}
 		
+		//normal case
+		critChance += CalculateAttributeValue( GetAttributeValue( theGame.params.CRITICAL_HIT_CHANCE ) );
 		
-		critChance += CalculateAttributeValue(GetAttributeValue(theGame.params.CRITICAL_HIT_CHANCE));
-		
-		
-		if(isHeavyAttack && CanUseSkill(S_Sword_s08))
-			critChance += CalculateAttributeValue(GetSkillAttributeValue(S_Sword_s08, theGame.params.CRITICAL_HIT_CHANCE, false, true)) * GetSkillLevel(S_Sword_s08);
-		else if (!isHeavyAttack && CanUseSkill(S_Sword_s17))
-			critChance += CalculateAttributeValue(GetSkillAttributeValue(S_Sword_s17, theGame.params.CRITICAL_HIT_CHANCE, false, true)) * GetSkillLevel(S_Sword_s17);
-			
-		if(target && target.HasBuff(EET_Confusion))
-		{
-			critChance += ((W3ConfuseEffect)target.GetBuff(EET_Confusion)).GetCriticalHitChanceBonus();
+		//fix cases when we calculate change for crossbow but have sword bonus and vice-versa
+		weapons = inv.GetHeldWeapons();
+		for( i=0; i<weapons.Size(); i+=1 )
+		{			
+			holdsCrossbow = ( inv.IsItemCrossbow( weapons[i] ) || inv.IsItemBolt( weapons[i] ) );
+			if( holdsCrossbow != isBolt )
+			{
+				critVal = inv.GetItemAttributeValue( weapons[i], theGame.params.CRITICAL_HIT_CHANCE );
+				critChance -= CalculateAttributeValue( critVal );
+			}			
 		}
 		
+		//active skills bonus
+		if( isHeavyAttack && CanUseSkill( S_Sword_s08 ) )
+		{
+			critChance += CalculateAttributeValue( GetSkillAttributeValue( S_Sword_s08, theGame.params.CRITICAL_HIT_CHANCE, false, true ) ) * GetSkillLevel( S_Sword_s08 );
+		}
+		else if( isLightAttack && CanUseSkill( S_Sword_s17 ) )
+		{
+			critChance += CalculateAttributeValue( GetSkillAttributeValue( S_Sword_s17, theGame.params.CRITICAL_HIT_CHANCE, false, true ) ) * GetSkillLevel( S_Sword_s17 );
+		}
+	
+		if( target && target.HasBuff( EET_Confusion ) )
+		{
+			critChance += ( ( W3ConfuseEffect )target.GetBuff( EET_Confusion ) ).GetCriticalHitChanceBonus();
+		}
 		
-		oilChanceAttribute = MonsterCategoryToCriticalChanceBonus(victimMonsterCategory);
-		if(IsNameValid(oilChanceAttribute))
-			critChance += CalculateAttributeValue(GetAttributeValue(oilChanceAttribute));
-			
+		//oils
+		oilChanceAttribute = MonsterCategoryToCriticalChanceBonus( victimMonsterCategory );
+		if( IsNameValid( oilChanceAttribute ) )
+		{
+			critChance += CalculateAttributeValue( GetAttributeValue( oilChanceAttribute ) );
+		}
+	
 		return critChance;
 	}
 	
-	
+	//gets damage bonus for critical hit
 	public function GetCriticalHitDamageBonus(weaponId : SItemUniqueId, victimMonsterCategory : EMonsterCategory, isStrikeAtBack : bool) : SAbilityAttributeValue
 	{
 		var bonus, oilBonus : SAbilityAttributeValue;
@@ -7865,8 +8576,8 @@ statemachine abstract import class CR4Player extends CPlayer
 	
 		bonus = super.GetCriticalHitDamageBonus(weaponId, victimMonsterCategory, isStrikeAtBack);
 		
-		
-		if(inv.ItemHasOilApplied(weaponId))
+		//oil bonus		
+		if( inv.ItemHasActiveOilApplied( weaponId, victimMonsterCategory ) )
 		{
 			vsAttributeName = MonsterCategoryToCriticalDamageBonus(victimMonsterCategory);
 			oilBonus = inv.GetItemAttributeValue(weaponId, vsAttributeName);
@@ -7876,7 +8587,9 @@ statemachine abstract import class CR4Player extends CPlayer
 		return bonus;
 	}
 	
-		
+	/**
+		Called when we want to play hit animation
+	*/	
 	public function ReactToBeingHit(damageAction : W3DamageAction, optional buffNotApplied : bool) : bool
 	{
 		var strength 	: float;
@@ -7889,14 +8602,14 @@ statemachine abstract import class CR4Player extends CPlayer
 		var shakeCam : bool;
 		
 		attackAction = (W3Action_Attack)damageAction;
-		
+		//not parried, not countered, not dot, not dodged
 		if(!damageAction.IsDoTDamage() && (!attackAction || (!attackAction.IsParried() && !attackAction.IsCountered() && !attackAction.WasDodged()) ) )
 		{
 			npc = (CNewNPC)attackAction.attacker;
 			if(npc && npc.IsHeavyAttack(attackAction.GetAttackName()))
-				theGame.VibrateControllerVeryHard();
+				theGame.VibrateControllerVeryHard();//player got heavy hit
 			else
-				theGame.VibrateControllerHard();
+				theGame.VibrateControllerHard();//player got hit
 		}
 		
 		if ( (CActor)GetUsedVehicle() && this.playerAiming.GetCurrentStateName() == 'Aiming' )
@@ -7913,11 +8626,11 @@ statemachine abstract import class CR4Player extends CPlayer
 		else
 			sup = super.ReactToBeingHit(damageAction, buffNotApplied);
 		sup = false;
-		
+		//telemetry
 		if(damageAction.attacker)
 			theTelemetry.LogWithLabelAndValue( TE_FIGHT_HERO_GETS_HIT, damageAction.attacker.ToString(), (int)damageAction.processedDmg.vitalityDamage );
 		
-		
+		//camera shake
 		if(damageAction.DealsAnyDamage())
 		{
 			if( ((W3PlayerWitcher)this) && GetWitcherPlayer().IsAnyQuenActive() && damageAction.IsDoTDamage())
@@ -7943,35 +8656,42 @@ statemachine abstract import class CR4Player extends CPlayer
 			
 			this.HitReactionEffect( 0.25 );
 			
-			
+			//reset uninterrupted hits
 			ResetUninterruptedHitsCount();
 		}
 				
-		
+		//pause health regen
 		if(!damageAction.IsDoTDamage() && IsThreatened() && ShouldPauseHealthRegenOnHit() && damageAction.DealsAnyDamage() && !damageAction.WasDodged() && attackAction.CanBeParried() && !attackAction.IsParried())
 		{
 			PauseHPRegenEffects('being_hit', theGame.params.ON_HIT_HP_REGEN_DELAY);
 		}
 	
+		//if player is on a boat and not moving then force dismount
+		/*if(usedVehicle)
+		{
+			boat = (CBoatComponent) usedVehicle.GetComponentByClassName('CBoatComponent');
+			if(boat && boat.GetLinearVelocityXY() < boat.IDLE_SPEED_THRESHOLD)
+			{
+				boat.StopAndDismountBoat();
+			}
+		}*/
 		
-		
-		
-		
+		//finesse achievement fail
 		if(damageAction.processedDmg.vitalityDamage > 0 && !((W3Effect_Toxicity)damageAction.causer))
 			ReceivedCombatDamage();
 		
-		
+		//tutorial
 		if(FactsQuerySum("tut_fight_use_slomo") > 0)
 		{
 			theGame.RemoveTimeScale( theGame.GetTimescaleSource(ETS_TutorialFight) );
 			FactsRemove("tut_fight_slomo_ON");
 		}
 		
-		
+		// State
 		if( !substateManager.ReactOnBeingHit( damageAction ) )
 		{
 			GoToCombatIfNeeded();
-			
+			//PushState( 'CombatFists' );
 		}
 		
 		return sup;
@@ -7986,7 +8706,7 @@ statemachine abstract import class CR4Player extends CPlayer
 	{
 		super.PlayHitEffect(damageAction);
 
-		
+		//fullscreen hit fx
 		if(damageAction.DealsAnyDamage() && !damageAction.IsDoTDamage())
 			PlayEffect('hit_screen');
 	}
@@ -8008,11 +8728,11 @@ statemachine abstract import class CR4Player extends CPlayer
 	{
 		hitReactionEffect = true;
 	}
-	
-	
-	
-	
-	
+	//////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// @Parry
+	//
+	//////////////////////////////////////////////////////////////////////////////////////////
 	
 	function PerformParryCheck( parryInfo : SParryInfo) : bool
 	{
@@ -8024,14 +8744,16 @@ statemachine abstract import class CR4Player extends CPlayer
 		var action					: W3DamageAction;
 		var xmlStaminaDamage 		: float;
 		var xmlStaminaDamageName	: name = 'stamina_damage' ;
+		var counter 				: int;
+		var onHitCounter 			: SAbilityAttributeValue;
 		
-
-
+//		if ( !parryInfo.canBeParried )
+//			return false;
 		
-		if(CanParryAttack() &&  FistFightCheck( parryInfo.target, parryInfo.attacker, fistFightParry ) )
+		if(CanParryAttack() && /*parryInfo.targetToAttackerAngleAbs < theGame.params.PARRY_HALF_ANGLE &&*/ FistFightCheck( parryInfo.target, parryInfo.attacker, fistFightParry ) )
 		{	
 			parryHeading = GetParryHeading( parryInfo, parryDir ) ;
-			
+			//GetVisualDebug().AddArrow( 'CombatActionHeading', GetWorldPosition(), GetWorldPosition() + VecFromHeading( GetParryHeading( parryInfo, parryDir ) )*2, 1.f, 0.2f, 0.2f, true, Color(0,255,255), true, 5.f );
 			SetBehaviorVariable( 'parryDirection', (float)( (int)( parryDir ) ) );
 			SetBehaviorVariable( 'parryDirectionOverlay', (float)( (int)( parryDir ) ) );
 			SetBehaviorVariable( 'parryType', ChooseParryTypeIndex( parryInfo ) );
@@ -8048,16 +8770,26 @@ statemachine abstract import class CR4Player extends CPlayer
 					if ( !RaiseForceEvent( 'PerformParryOverlay' ) )
 						return false;
 					else
+					{
 						ClearCustomOrientationInfoStack();
+						IncDefendCounter();
+					}
 				}
 				else
 				{
-					if ( RaiseForceEvent( 'PerformParry' ) )
+					counter = GetDefendCounter();
+					onHitCounter = parryInfo.attacker.GetAttributeValue( 'break_through_parry_on_hit_counter' );
+					if ( onHitCounter.valueBase > 0 && counter == onHitCounter.valueBase )
+					{
+						AddEffectDefault( EET_Stagger, parryInfo.attacker, "Break through parry" );
+					}
+					else if ( RaiseForceEvent( 'PerformParry' ) )
 					{
 						OnCombatActionStart();
 						ClearCustomOrientationInfoStack();
 						SetSlideTarget( parryInfo.attacker );
 						SetCustomRotation( 'Parry', parryHeading, 1080.f, 0.1f, false );
+						IncDefendCounter();
 					}
 					else
 						return false;
@@ -8068,8 +8800,7 @@ statemachine abstract import class CR4Player extends CPlayer
 				AddEffectDefault(EET_Stagger, parryInfo.attacker, "Parry");
 				return true;
 			}
-			
-			
+			//parryTarget := this
 			if ( parryInfo.attacker.IsWeaponHeld( 'fist' ) && !parryInfo.target.IsWeaponHeld( 'fist' ) )
 			{
 				parryInfo.attacker.ReactToReflectedAttack(parryInfo.target);
@@ -8117,19 +8848,19 @@ statemachine abstract import class CR4Player extends CPlayer
 			else if( currToTargetAttackerAngleDiff >= 45 && currToTargetAttackerAngleDiff < 135 )
 			{
 				parryDir = PPD_Right;
-				
+				//return targetToAttackerHeading;
 				return targetToAttackerHeading + 90;
 			}
 			else if( currToTargetAttackerAngleDiff <= -45 && currToTargetAttackerAngleDiff > -135 )
 			{
 				parryDir = PPD_Left;
-				
+				//return targetToAttackerHeading;
 				return targetToAttackerHeading - 90;
 			}
 			else
 			{
 				parryDir = PPD_Back;
-				
+				//return targetToAttackerHeading;
 				return targetToAttackerHeading + 180;
 			}
 		}
@@ -8167,6 +8898,9 @@ statemachine abstract import class CR4Player extends CPlayer
 		var target						: CActor;
 		var useIncomingAttacker			: bool;
 		
+		if( newLockTarget.HasTag( 'NoHardLock' ) )
+			return false;
+
 		if ( newLockTarget )
 			tempLockTarget = newLockTarget;
 		else
@@ -8181,7 +8915,11 @@ statemachine abstract import class CR4Player extends CPlayer
 			if ( !useIncomingAttacker )
 			{
 				target = GetTarget();
-				if ( target && target.IsAlive() && target.GetGameplayVisibility() && IsEnemyVisible( target ) && IsThreat( target ) && CanBeTargetedIfSwimming( target ) )
+				if( target.HasTag('ForceHardLock'))
+				{
+					return true;
+				}
+				else if ( target && target.IsAlive() && target.GetGameplayVisibility() && IsEnemyVisible( target ) && IsThreat( target ) && CanBeTargetedIfSwimming( target ) )
 					tempLockTarget = FindTarget();
 				else 
 				{
@@ -8189,6 +8927,9 @@ statemachine abstract import class CR4Player extends CPlayer
 				}
 			}
 		}
+		
+		if( tempLockTarget.HasTag( 'NoHardLock' ) )
+			return false;
 		
 		if ( tempLockTarget )
 		{
@@ -8216,11 +8957,13 @@ statemachine abstract import class CR4Player extends CPlayer
 			return false;
 	}
 	
+	//////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////  @COMBAT  ///////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////	
 	
+	event OnTaskSyncAnim( npc : CNewNPC, animNameLeft : name ) {}
 	
-	
-	
-	
+	//checks if player is doing special attack light/heavy
 	public function IsDoingSpecialAttack(heavy : bool) : bool
 	{
 		var pat : EPlayerAttackType;
@@ -8278,20 +9021,20 @@ statemachine abstract import class CR4Player extends CPlayer
 	{
 		var ret : array<CActor>;
 	
-		
+		//cheat for QA tests - NPCs won't parry/counter
 		if(FactsQuerySum('player_is_the_boss') > 0)
 		{
-			
-			
+			//----------------  DEBUG	
+			//draw debug AR
 			SetDebugAttackRange(data.rangeName);
-			RemoveTimer('PostAttackDebugRangeClear');		
+			RemoveTimer('PostAttackDebugRangeClear');		//disable AR clearing since we've just set a new one
 		
 			return ret;
 		}
 		
 		ret = super.TestParryAndCounter(data, weaponId, parried, countered);
 		
-		
+		//achievement
 		if(parried)
 			theGame.GetGamerProfile().ResetStat(ES_CounterattackChain);
 			
@@ -8309,10 +9052,10 @@ statemachine abstract import class CR4Player extends CPlayer
 		return specialAttackTimeRatio;
 	}
 	
-	
+	//called when we processed special heavy attack action - either from hit or from CombatActionEnd()
 	public function OnSpecialAttackHeavyActionProcess()
 	{
-		
+		//clear ration after attack performed
 		SetSpecialAttackTimeRatio(0.f);
 	}
 	
@@ -8322,7 +9065,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		var weapon : EPlayerWeapon;
 		var targetActor : CActor;
 		
-		
+		//cam shake for player's heavy attacks		
 		if ( animData.attackName == 'attack_heavy_special' )
 		{
 			if( specialAttackTimeRatio != 1 )
@@ -8363,7 +9106,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		super.DoAttack(animData, weaponId, parried, countered, parriedBy, attackAnimationName, hitTime);
 	}
 	
-	
+	//var delayCombatStanceTimeStamp : float;
 	
 	private var confirmCombatStanceTimeStamp : float;
 	private var isConfirmingCombatStance : bool;
@@ -8383,6 +9126,11 @@ statemachine abstract import class CR4Player extends CPlayer
 			SetBehaviorVariable( 'forceCombatStance' , 1.f);
 		else
 			SetBehaviorVariable( 'forceCombatStance' , 0.f);
+			
+		if ( stance == PCS_AlertNear )
+			this.SetBehaviorVariable('isInCombatForOverlay',1.f);
+		else
+			this.SetBehaviorVariable('isInCombatForOverlay',0.f);
 	}
 	
 	private function CanChangeCombatStance( stance : EPlayerCombatStance, optional force : bool ) : bool
@@ -8398,19 +9146,13 @@ statemachine abstract import class CR4Player extends CPlayer
 		if ( isInHolsterAnim )
 			return false;
 		
-		if ( ( combatStance ==  PCS_Normal || combatStance ==  PCS_AlertFar )   
-			&& stance == PCS_AlertNear )
+		if ( ( combatStance ==  PCS_Normal || combatStance ==  PCS_AlertFar ) && stance == PCS_AlertNear )
 		{
 			currTime = theGame.GetEngineTimeAsSeconds();
 			if ( !isConfirmingCombatStance )
 			{		
 				isConfirmingCombatStance = true;
 				confirmCombatStanceTimeStamp = currTime;
-
-				if ( this.playerMoveType == PMT_Idle )
-					this.SetBehaviorVariable('isInCombatForOverlay',0.f);
-				else
-					this.SetBehaviorVariable('isInCombatForOverlay',1.f);				
 				
 				return false;
 			}
@@ -8456,9 +9198,9 @@ statemachine abstract import class CR4Player extends CPlayer
 		}		
 	}
 	
-	
-	
-	
+	///////////////////////////////////////////////////////////////////////////
+	//  @BUFFER @COMBATACTIONBUFFER
+	///////////////////////////////////////////////////////////////////////////
 	
 	private var dodgeTimerRunning : bool;
 	
@@ -8509,14 +9251,74 @@ statemachine abstract import class CR4Player extends CPlayer
 		if ( ShouldUsePCModeTargeting() )
 			return theGame.GetGameCamera().GetHeading();
 	
-		if ( lAxisReleasedAfterCounter ) 
+		if ( lAxisReleasedAfterCounter ) // && IsInCombatAction() )
 			ResetCachedRawPlayerHeading();
 			
 		processedActionHeading = cachedRawPlayerHeading;
 			
 		return processedActionHeading;
 	}
+	/*
+	private function ProcessCombatActionHeading( action : EBufferActionType ) : float
+	{
+		var processedActionHeading 	: float;
+		var unusedActor 			: CActor;	//MS: placeholder variable to fix memory error
+
+		if ( IsUsingVehicle() )
+		{
+			processedActionHeading = theGame.GetGameCamera().GetHeading();
+			return processedActionHeading;
+		}
+
+		if ( !bLAxisReleased || lAxisPushedTimeStamp + 0.5f > theGame.GetEngineTimeAsSeconds() )
+			processedActionHeading = cachedRawPlayerHeading;
+		else 
+		{
+			if ( GetDisplayTarget() )
+			{
+				if (  cachedCombatActionHeading == cachedRawPlayerHeading )
+					ResetCachedRawPlayerHeading();
+				else
+				{
+					cachedRawPlayerHeading = cachedCombatActionHeading;
+					canResetCachedCombatActionHeading = true;
+				}
 	
+				processedActionHeading = cachedRawPlayerHeading;	
+			}
+			else 
+			{	
+				if ( lAxisReleasedAfterCounterNoCA )
+					ResetRawPlayerHeading();
+					
+				cachedRawPlayerHeading = rawPlayerHeading;	
+			
+				if ( lAxisReleasedAfterCounterNoCA )
+					processedActionHeading = GetHeading();
+				else
+					processedActionHeading = cachedRawPlayerHeading;
+			}
+		}
+		
+		if ( this.IsCameraLockedToTarget() && this.IsActorLockedToTarget() && action != EBAT_Dodge && action != EBAT_Roll  )
+			processedActionHeading = theGame.GetGameCamera().GetHeading();
+			
+		if ( lAxisReleasedAfterCounterNoCA  )
+		{
+			if ( action == EBAT_Dodge || action == EBAT_Roll )
+			{
+				if ( ( !IsEnemyInCone( this, GetHeadingVector(), softLockDist, 60.f, unusedActor ) || !IsEnemyInCone( this, GetHeadingVector() + 180, softLockDist, 60.f, unusedActor ) ) && moveTarget )
+					processedActionHeading = VecHeading( moveTarget.GetWorldPosition() - GetWorldPosition() ) + 180;
+				else 
+					processedActionHeading = GetHeading() + 180;
+			}
+		}
+			
+		//GetVisualDebug().AddArrow( 'cachedRawPlayerHeading', GetWorldPosition(), GetWorldPosition() + VecFromHeading( cachedRawPlayerHeading ), 1.f, 0.2f, 0.2f, true, Color(0,255,128), true, 5.f );	
+		//GetVisualDebug().AddArrow( 'CombatActionHeading', GetWorldPosition(), GetWorldPosition() + VecFromHeading( GetCombatActionHeading() )*2, 1.f, 0.2f, 0.2f, true, Color(0,255,255), true, 5.f );
+
+		return processedActionHeading;
+	}*/
 	
 	function ResetRawPlayerHeading()
 	{		
@@ -8525,7 +9327,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		else
 			rawPlayerHeading = GetHeading();
 
-		
+		//LogChannel('ResetRawPlayerHeading',"ResetRawPlayerHeading" );
 	}	
 	
 	function ResetCachedRawPlayerHeading()
@@ -8553,7 +9355,13 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 		else
 		{
-			
+			/*if ( !IsCombatMusicEnabled() && displayTarget )
+			{
+				if ( !( (CActor)displayTarget ) )
+					return NULL;
+				else
+					return displayTarget;
+			}*/
 			
 			if ( !this.IsUsingVehicle() )
 				FindTarget( true, action, true );
@@ -8564,7 +9372,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 	}
 	
-	
+	//MS: FindNonActorTarget may or may not have an interaction component, which is why it is separate from ProcessInteraction
 	private function FindNonActorTarget( actionCheck : bool, optional action : EBufferActionType ) : CGameplayEntity
 	{
 		var targetableEntities			: array<CGameplayEntity>;
@@ -8610,7 +9418,7 @@ statemachine abstract import class CR4Player extends CPlayer
 				selectionWeights.distanceRingWeight = 0.125f;					
 			}
 
-			
+			//MSTODO : Ask programmers for filter for interactive entities
 			if ( !IsInCombat() || !bLAxisReleased )
 			{
 				FindGameplayEntitiesInRange( targetableEntities, this, findEntityDist, 10, theGame.params.TAG_SOFT_LOCK );
@@ -8626,7 +9434,7 @@ statemachine abstract import class CR4Player extends CPlayer
 					targetingInfo.source 				= this;
 					targetingInfo.canBeTargetedCheck	= false;
 					targetingInfo.coneCheck 			= true;
-					targetingInfo.coneHalfAngleCos		= 0.5f; 
+					targetingInfo.coneHalfAngleCos		= 0.5f; // = CosF( Deg2Rad( 120.0f * 0.5f ) )
 					targetingInfo.coneDist				= softLockDist;
 					targetingInfo.coneHeadingVector		= rawPlayerHeadingVector; 
 					targetingInfo.distCheck				= true;
@@ -8767,7 +9575,7 @@ statemachine abstract import class CR4Player extends CPlayer
 									targetingInfo.targetEntity 			= selectedTargetableEntity;
 									targetingInfo.canBeTargetedCheck	= false;
 									targetingInfo.coneCheck 			= true;
-									targetingInfo.coneHalfAngleCos		= 0.0f; 
+									targetingInfo.coneHalfAngleCos		= 0.0f; // = CosF( Deg2Rad( 180.0f * 0.5f ) )
 									targetingInfo.coneDist				= softLockDist;
 									targetingInfo.coneHeadingVector		= this.GetHeadingVector(); 
 									targetingInfo.distCheck				= true;
@@ -8804,7 +9612,33 @@ statemachine abstract import class CR4Player extends CPlayer
 		SetNonActorTarget( selectedTargetableEntity );
 		return selectedTargetableEntity;
 	}
-	
+	/*
+	timer function IsItemUseInputHeld ( time : float , id : int)
+	{	
+		if ( GetBIsInputAllowed() 
+			&& GetBIsCombatActionAllowed()
+			&& IsActionAllowed( EIAB_Crossbow ) 
+			&& inv.IsIdValid( GetSelectedItemId() )
+			&& inv.IsItemCrossbow( GetSelectedItemId()En )
+			&& rangedWeapon.GetCurrentStateName() == 'State_WeaponWait' )
+		{
+			SetIsAimingCrossbow( true );
+			PushCombatActionOnBuffer( EBAT_ItemUse, BS_Pressed );
+			ProcessCombatActionBuffer();
+		}
+		
+		if ( theInput.GetActionValue( 'ThrowItem' ) == 0.f )
+		{
+			if ( GetBIsCombatActionAllowed() )
+			{
+				PushCombatActionOnBuffer( EBAT_ItemUse, BS_Pressed );
+				ProcessCombatActionBuffer();
+			}
+				
+			SetIsAimingCrossbow( false );
+			RemoveTimer( 'IsItemUseInputHeld' );
+		}
+	}*/
 
 	public function SetupCombatAction( action : EBufferActionType, stage : EButtonStage )
 	{
@@ -8812,7 +9646,10 @@ statemachine abstract import class CR4Player extends CPlayer
 		var canAttackTarget	: CGameplayEntity;
 		var target : CActor;
 		
-		
+		/*if( thePlayer.substateManager.GetStateCur() == 'Slide' )
+		{
+			return;
+		}*/
 		if ( !IsCombatMusicEnabled() )
 		{
 			SetCombatActionHeading( ProcessCombatActionHeading( action ) ); 
@@ -8837,16 +9674,16 @@ statemachine abstract import class CR4Player extends CPlayer
 			weaponType = weaponHolster.GetCurrentMeleeWeapon();
 			PrepareToAttack( target, action );
 			
-			
+			//Do not automatically attack when drawing sword
 			if ( weaponType != weaponHolster.GetCurrentMeleeWeapon() )
 			{
-				
+				//Check if switching from PW_None to PW_Fists. If so, allow the attack
 				if ( !( weaponType == PW_None && weaponHolster.GetCurrentMeleeWeapon() == PW_Fists ) )
 					return;
 			}
 		}
 		
-		
+		//geralt's special attack heavy
 		if(action == EBAT_SpecialAttack_Heavy && !((W3ReplacerCiri)this) )
 			thePlayer.SetAttackActionName(SkillEnumToName(S_Sword_s02));
 		
@@ -8932,6 +9769,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			{
 				theInput.ForceDeactivateAction('ThrowItem');
 				theInput.ForceDeactivateAction('ThrowItemHold');
+				this.SignalGameplayEvent( 'FriendlyAttackAction' );
 				return false;
 			}
 		}
@@ -8940,7 +9778,7 @@ statemachine abstract import class CR4Player extends CPlayer
 	}
 	
 
-	
+	//returns true if processed
 	public function ProcessCombatActionBuffer() : bool
 	{
 		var actionResult 		: bool;
@@ -8954,7 +9792,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			RaiseEvent('CombatActionFriendlyEnd');
 		}
 		
-		
+		//Disable any npcs that are set to unpushable when Player performs another combat action
 		if ( ( action != EBAT_SpecialAttack_Heavy && action != EBAT_ItemUse )
 			|| ( action == EBAT_SpecialAttack_Heavy && stage == BS_Pressed ) 
 			|| ( action == EBAT_ItemUse && stage != BS_Released )  )
@@ -8963,18 +9801,19 @@ statemachine abstract import class CR4Player extends CPlayer
 			SetUnpushableTarget( NULL );
 		}
 		
-		
+		//if ( !( action == EBAT_Dodge && stage == BS_Pressed && IsInCombatAction() && GetBehaviorVariable( 'combatActionType' ) == (int)CAT_Dodge ) )
 		if ( !( action == EBAT_Dodge || action == EBAT_Roll ) )
+		{
 			SetIsCurrentlyDodging(false);
-	
-		
+		}
+		//-- init	
 		SetCombatActionHeading( ProcessCombatActionHeading( action ) );
 		
-		
+		//theGame.GetSyncAnimManager().OnRemoveFinisherCameraAnimation();
 		
 		if ( action == EBAT_ItemUse && GetInventory().IsItemCrossbow( selectedItemId ) )
 		{
-			
+			//stage == BS_Pressed && 
 			if ( rangedWeapon 
 				&& ( ( rangedWeapon.GetCurrentStateName() != 'State_WeaponShoot' && rangedWeapon.GetCurrentStateName() != 'State_WeaponAim' ) || GetIsShootingFriendly() ) )
 			{
@@ -8985,11 +9824,11 @@ statemachine abstract import class CR4Player extends CPlayer
 		{
 			SetSlideTarget( GetCombatActionTarget( action ) );
 		}
-	
+		
 		if( !slideTarget )
 			LogChannel( 'Targeting', "NO SLIDE TARGET" );
 			
-		
+		//-- process
 		actionResult = true;
 		
 		switch ( action )
@@ -9007,20 +9846,26 @@ statemachine abstract import class CR4Player extends CPlayer
 				
 				switch ( stage )
 				{
-					case BS_Pressed :
+					case BS_Pressed ://BS_Released :
 					{
+						// early out, stamina drain etc
+						//if( HasStaminaToUseAction(ESAT_LightAttack) )
+						//{
 						
-						
-						
-						
-							
-							
+							// replacing stamina lock with stamina drain - change in design
+							/*
+							s = LockStamina(ESAT_LightAttack);
+							if(s.retValue)
+							{
+								AddCombatActionStaminaLock(s.outValue);
+							}
+							*/
 							DrainStamina(ESAT_LightAttack);
-							
+							//target.SignalGameplayEventParamInt('Time2Dodge', (int)EDT_Attack );
 							
 							thePlayer.BreakPheromoneEffect();
 							actionResult = OnPerformAttack(theGame.params.ATTACK_NAME_LIGHT);
-						
+						//}
 					} break;
 					
 					default :
@@ -9039,36 +9884,48 @@ statemachine abstract import class CR4Player extends CPlayer
 				{
 					case BS_Released :
 					{
-						
-						
-						
-							
-							
+						// early out, stamina drain etc
+						//if( HasStaminaToUseAction(ESAT_HeavyAttack) )
+						//{
+							// replacing stamina lock with stamina drain - change in design
+							/*
+							s = LockStamina(ESAT_HeavyAttack);
+							if(s.retValue)
+							{
+								AddCombatActionStaminaLock(s.outValue);
+							}
+							*/
 							DrainStamina(ESAT_HeavyAttack);
 							
-							
+							//target.SignalGameplayEventParamInt('Time2Dodge', (int)EDT_Attack );
 							
 							thePlayer.BreakPheromoneEffect();		
 							actionResult = this.OnPerformAttack(theGame.params.ATTACK_NAME_HEAVY);
-						
+						//}
 					} break;
 					
 					case BS_Pressed :
 					{
 						if ( this.GetCurrentStateName() == 'CombatFists' )
 						{
-							
-							
-							
-								
-								
+							// early out, stamina drain etc
+							//if( HasStaminaToUseAction(ESAT_HeavyAttack) )
+							//{
+								// replacing stamina lock with stamina drain - change in design
+								/*
+								s = LockStamina(ESAT_HeavyAttack);
+								if(s.retValue)
+								{
+									AddCombatActionStaminaLock(s.outValue);
+								}
+								*/
 								DrainStamina(ESAT_HeavyAttack);
 								
-								
+								//target.SignalGameplayEventParamInt('Time2Dodge', (int)EDT_Attack );
 								
 								thePlayer.BreakPheromoneEffect();		
 								actionResult = this.OnPerformAttack(theGame.params.ATTACK_NAME_HEAVY);
-							
+							//}
 						}
 					} break;					
 					
@@ -9080,7 +9937,7 @@ statemachine abstract import class CR4Player extends CPlayer
 				}
 			} break;
 			
-			case EBAT_ItemUse :		
+			case EBAT_ItemUse :		//this gets called only for bombs. No usable items use this!
 			{				
 				switch ( stage )
 				{
@@ -9088,18 +9945,22 @@ statemachine abstract import class CR4Player extends CPlayer
 					{
 						if ( !( (W3PlayerWitcher)this ) || 
 							( !IsInCombatActionFriendly() && !( !GetBIsCombatActionAllowed() && ( GetBehaviorVariable( 'combatActionType' ) == (int)CAT_Attack || GetBehaviorVariable( 'combatActionType' ) == (int)CAT_CastSign ) ) ) )						
-							
+							//( !IsCastingSign() && !IsInCombatActionFriendly() && !( !GetBIsCombatActionAllowed() && GetBehaviorVariable( 'combatActionType' ) == (int)CAT_Attack ) ) )
 						{
 							if ( inv.IsItemCrossbow( selectedItemId ) )
 							{
 								rangedWeapon = ( Crossbow )( inv.GetItemEntityUnsafe( selectedItemId ) );
 								rangedWeapon.OnRangedWeaponPress();
 								GetTarget().SignalGameplayEvent( 'Approach' );
+								GetTarget().SignalGameplayEvent( 'ShootingCrossbow' );
 							}
 							else if(inv.IsItemBomb(selectedItemId) && this.inv.SingletonItemGetAmmo(selectedItemId) > 0 )
 							{
-								BombThrowStart();
-								GetTarget().SignalGameplayEvent( 'Approach' );
+								if( ((W3PlayerWitcher)this).GetBombDelay( ((W3PlayerWitcher)this).GetItemSlot( selectedItemId ) ) <= 0.0f )
+								{
+									BombThrowStart();
+									GetTarget().SignalGameplayEvent( 'Approach' );
+								}
 							}
 							else
 							{
@@ -9114,11 +9975,15 @@ statemachine abstract import class CR4Player extends CPlayer
 					{
 						if ( !( (W3PlayerWitcher)this ) || 
 							( !IsInCombatActionFriendly() && ( GetBIsCombatActionAllowed() || !( !GetBIsCombatActionAllowed() && ( GetBehaviorVariable( 'combatActionType' ) == (int)CAT_Attack || GetBehaviorVariable( 'combatActionType' ) == (int)CAT_CastSign ) ) ) ) )						
-							
+							//( !IsCastingSign() && !IsInCombatActionFriendly() && !( !GetBIsCombatActionAllowed() && GetBehaviorVariable( 'combatActionType' ) == (int)CAT_Attack ) ) )
 						{
 							if ( inv.IsItemCrossbow( selectedItemId ) )
 							{
-								
+								/*if ( rangedWeapon.GetCurrentStateName() == 'State_WeaponWait' )
+								{
+									rangedWeapon = ( Crossbow )( inv.GetItemEntityUnsafe( selectedItemId ) );
+									rangedWeapon.OnRangedWeaponPress();
+								}*/
 								rangedWeapon.OnRangedWeaponRelease();
 							}
 							else if(inv.IsItemBomb(selectedItemId))
@@ -9151,7 +10016,10 @@ statemachine abstract import class CR4Player extends CPlayer
 						actionResult = this.OnPerformEvade( PET_Dodge );
 					} break;
 					
-					
+					/*case BS_Pressed :
+					{
+						actionResult = this.OnPerformEvade( PET_Roll );
+					} break;*/
 					
 					default :
 					{
@@ -9296,10 +10164,10 @@ statemachine abstract import class CR4Player extends CPlayer
 			} break;
 			
 			default:
-				return false;	
+				return false;	//not processed
 		}
 
-		
+		//if here then buffer was processed
 		CleanCombatActionBuffer();
 		
 		if (actionResult)
@@ -9337,7 +10205,7 @@ statemachine abstract import class CR4Player extends CPlayer
 				SetAttackActionName(SkillEnumToName(S_Sword_s01));
 				PushCombatActionOnBuffer( EBAT_SpecialAttack_Light, BS_Released );
 				ProcessCombatActionBuffer();		
-				
+				//SetupCombatAction( EBAT_SpecialAttack_Light, BS_Released );
 				((W3PlayerWitcherStateCombatFists) GetState('Combat')).ResetTimeToEndCombat();
 				
 			}
@@ -9346,7 +10214,7 @@ statemachine abstract import class CR4Player extends CPlayer
 				SetAttackActionName(SkillEnumToName(S_Sword_s02));
 				PushCombatActionOnBuffer( EBAT_SpecialAttack_Heavy, BS_Released );
 				ProcessCombatActionBuffer();
-				
+				//SetupCombatAction( EBAT_SpecialAttack_Heavy, BS_Released );
 			}
 		}
 	}	
@@ -9362,7 +10230,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			
 			if ( actor )
 				actor.SignalGameplayEvent('PersonalTauntAction');
-			theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( this, 'TauntAction', -1.0, 4.5f, -1, 9999, true ); 
+			theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( this, 'TauntAction', -1.0, 4.5f, -1, 9999, true ); //reactionSystemSearch						
 		
 			OnCombatActionStart();
 
@@ -9380,20 +10248,39 @@ statemachine abstract import class CR4Player extends CPlayer
 	{
 		var reactionName : name;
 		
-		
+		/*switch ( action )
+		{
+			case EBAT_LightAttack :
+			reactionName = 'AttackAction';
+			break;
+			case EBAT_HeavyAttack :
+			reactionName = 'AttackAction';
+			break;
+			case EBAT_SpecialAttack_Light :
+			reactionName = 'AttackAction';
+			break;
+			case EBAT_SpecialAttack_Heavy :
+			reactionName = 'AttackAction';
+			break;
+			case EBAT_Ciri_SpecialAttack :
+			reactionName = 'AttackAction';
+			break;
+			default:
+			return;
+		}*/
 		
 		reactionName = 'AttackAction';
 		
 		if ( IsNameValid(reactionName) )
 		{
-			theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( this, reactionName, -1.0, 8.0f, -1, 5, true ); 
+			theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( this, reactionName, -1.0, 8.0f, -1, 5, true ); //reactionSystemSearch
 		}
 		
-		
-		theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( this, 'outOfMyWay', -1.0, 2.0f, -1, 5, true ); 
+		// event for horse - trigger running away
+		theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( this, 'outOfMyWay', -1.0, 2.0f, -1, 5, true ); //reactionSystemSearch
 	}
 	
-	var forceCanAttackWhenNotInCombat : int; 
+	var forceCanAttackWhenNotInCombat : int; // 0 = NoForce, 1 = ForceWhenNoDisplayTarget 2 = ForceEvenWithDisplayTarget
 	public function SetForceCanAttackWhenNotInCombat( forceMode : int )
 	{
 		forceCanAttackWhenNotInCombat = forceMode;
@@ -9451,7 +10338,7 @@ statemachine abstract import class CR4Player extends CPlayer
 				if ( altCast )
 					attackAngle	= 180.f;
 				else
-					
+					// sign cone angle / 2 with a bonus for safetey
 					attackAngle	= 90.f;
 				
 				if ( !lastAxisInputIsMovement )
@@ -9516,7 +10403,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			clearanceMax = attackLength	+ 3.f;
 		}
 
-		
+		//Use slideTarget first if it's NULL, then we try other npcs in the area
 		if ( canAttackTarget )
 		{
 			if ( ( canAttackTargetActor && canAttackTargetActor.IsHuman() ) || canAttackTargetActor.HasTag( 'softLock_Friendly' ) )
@@ -9529,7 +10416,7 @@ statemachine abstract import class CR4Player extends CPlayer
 				}
 			}
 			
-			
+			//return true;
 		}
 		
 		return true;
@@ -9541,7 +10428,11 @@ statemachine abstract import class CR4Player extends CPlayer
 		{
 			for ( i = size-1; i>=0; i-=1 )
 			{	
-				
+				/*
+					Andrzej: Geralt's friendly combat action - taunting actors with a sword or playing with Signs is set to work only for humans. 
+					We don't want it to work against all non-humans, so I've added an exception that works similar to targeting non actor objects.
+					If you want Geralt to play friendly combat action when targeting monsters, add tag softLock_Friendly to monster's entity.
+				*/
 				if ( !localTargets[i].IsHuman() && !localTargets[i].HasTag( 'softLock_Friendly' ) )
 					localTargets.Erase(i);
 			}
@@ -9580,7 +10471,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 		else
 		{
-			playerToTargetDist = VecDistance( this.GetWorldPosition(), actor.PredictWorldPosition( 0.5f ) ); 
+			playerToTargetDist = VecDistance( this.GetWorldPosition(), actor.PredictWorldPosition( 0.5f ) ); //actor.GetNearestPointInPersonalSpace( this.GetWorldPosition() ) );
 			
 			argh = AbsF( AngleDistance( inputHeading, VecHeading( actor.GetWorldPosition() - thePlayer.GetWorldPosition() ) ) );
 			
@@ -9603,9 +10494,9 @@ statemachine abstract import class CR4Player extends CPlayer
 		return false;
 	}
 	
-	
-	
-	
+	///////////////////////////////////////////////////////////////////////////
+	// 								HUD //#B
+	///////////////////////////////////////////////////////////////////////////
 	
 	public function GetHudMessagesSize() : int 
 	{
@@ -9634,27 +10525,33 @@ statemachine abstract import class CR4Player extends CPlayer
 		HudMessages.PushBack(value);
 	}
 	
-	
+	//hacks for review requests
 	private final function DisallowedActionDontShowHack(action : EInputActionBlock, isTimeLock : bool) : bool
 	{
 		var locks : array< SInputActionLock >;
 		var i : int;
 		
-		
+		//no info if we're trying to attack while staggered
 		if((action == EIAB_Fists || action == EIAB_SwordAttack || action == EIAB_Signs || action == EIAB_LightAttacks || action == EIAB_HeavyAttacks || action == EIAB_SpecialAttackLight || action == EIAB_SpecialAttackHeavy) && (HasBuff(EET_Stagger) || HasBuff(EET_LongStagger)) )
 		{
 			return true;
 		}
 		
+		//display message if trying to throw bombs while hypnotized by bies or blinded by water hag
+		if( action == EIAB_ThrowBomb && ( HasBuff( EET_Hypnotized ) || HasBuff( EET_Confusion ) ) )
+		{
+			return false;
+		}
 		
+		//show if locked temporarily
 		if(isTimeLock)
 			return false;
 		
-		
+		//always show meditation message
 		if(action == EIAB_OpenMeditation)
 			return false;
 		
-		
+		//if there's at least one lock from quest or from location fine
 		locks = GetActionLocks(action);
 		for(i=0; i<locks.Size(); i+=1)
 		{
@@ -9668,7 +10565,7 @@ statemachine abstract import class CR4Player extends CPlayer
 				return false;
 		}
 		
-		
+		//otherwise we don't display locks
 		return true;
 	}
 	
@@ -9679,12 +10576,12 @@ statemachine abstract import class CR4Player extends CPlayer
 		if(action != EIAB_Undefined && DisallowedActionDontShowHack(action, isTimeLock))
 			return;
 		
-		
+		//combat lock is strongest - overrides all
 		if(IsInCombat() && !IsActionCombat(action))
 			isCombatLock = true;
 			
-		
-		if(!isCombatLock && !isPlaceLock && ! isTimeLock && action != EIAB_Undefined)
+		//if no specific lock set, check based on action
+		if(!isCombatLock && !isPlaceLock && !isTimeLock && action != EIAB_Undefined)
 		{
 			lockType = inputHandler.GetActionBlockedHudLockType(action);
 			
@@ -9714,7 +10611,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		}		
 	}
 	
-	
+	//removes first or all instances of given message
 	public function RemoveHudMessageByString(msg : string, optional allQueuedInstances : bool)
 	{
 		var i, j : int;
@@ -9732,7 +10629,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			}
 		}
 		
-		
+		//if here then we want all remaining instances as well
 		for(j=HudMessages.Size()-1; j >= i; j-=1)
 		{
 			if(HudMessages[i] == msg)
@@ -9748,7 +10645,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			HudMessages.Erase(idx);
 	}
 	
-	function SetSettlementBlockCanter( valueAdd : int ) 
+	function SetSettlementBlockCanter( valueAdd : int ) // #B
 	{
 		m_SettlementBlockCanter += valueAdd;
 	}
@@ -9756,7 +10653,7 @@ statemachine abstract import class CR4Player extends CPlayer
 	var countDownToStart : int;
 	default countDownToStart = 0;
 	
-	function DisplayRaceStart( countDownSecondsNumber : int ) 
+	function DisplayRaceStart( countDownSecondsNumber : int ) // #B
 	{
 		var i : int;
 		countDownToStart = countDownSecondsNumber;
@@ -9768,7 +10665,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		AddTimer('RaceCountdown',1,true);
 	}
 	
-	timer function RaceCountdown(dt : float, id : int) 
+	timer function RaceCountdown(dt : float, id : int) // #B 
 	{
 		var hud : CR4ScriptedHud;
 		var messageModule : CR4HudModuleMessage;
@@ -9781,7 +10678,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			messageModule = (CR4HudModuleMessage)hud.GetHudModule("MessageModule");
 			if( messageModule )
 			{
-				messageModule.OnMessageHidden(); 
+				messageModule.OnMessageHidden(); // to force show next messeage
 			}
 		}
 		
@@ -9791,27 +10688,27 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 	}
 	
-	public function GetCountDownToStart() : int 
+	public function GetCountDownToStart() : int // #B
 	{
 		return countDownToStart;
 	}
 	
-	public function HAXE3GetContainer() : W3Container 
+	public function HAXE3GetContainer() : W3Container //#B temp for E3
 	{
 		return HAXE3Container;
 	}
 
-	public function HAXE3SetContainer( container : W3Container) : void 
+	public function HAXE3SetContainer( container : W3Container) : void //#B temp for E3
 	{
 		HAXE3Container = container;
 	}
 
-	public function HAXE3GetAutoLoot() : bool 
+	public function HAXE3GetAutoLoot() : bool //#B temp for E3
 	{
 		return HAXE3bAutoLoot;
 	}
 
-	public function HAXE3SetAutoLoot( value : bool ) : void 
+	public function HAXE3SetAutoLoot( value : bool ) : void //#B temp for E3
 	{
 		HAXE3bAutoLoot = value;
 	}
@@ -9830,10 +10727,10 @@ statemachine abstract import class CR4Player extends CPlayer
 	{
 		var hud : CR4ScriptedHud;
 		hud = (CR4ScriptedHud)theGame.GetHud();
-		hud.OnItemRecivedDuringScene(itemName, quantity); 
+		hud.OnItemRecivedDuringScene(itemName, quantity); // #B because our default currency are Crowns !!!
 	}
 	
-	function IsNewQuest( questGuid : CGUID ) : bool 
+	function IsNewQuest( questGuid : CGUID ) : bool // #B
 	{
 		var i : int;
 		for(i = 0; i < displayedQuestsGUID.Size(); i += 1 )
@@ -9846,8 +10743,28 @@ statemachine abstract import class CR4Player extends CPlayer
 		displayedQuestsGUID.PushBack(questGuid);
 		return true;
 	}	
+	
+	function GetRewardMultiplierData( rewardName : name ) : SRewardMultiplier
+	{
+		var defaultReward : SRewardMultiplier;
+		var i 			  : int;
+		
+		for(i = 0; i < rewardsMultiplier.Size(); i += 1 )
+		{
+			if( rewardsMultiplier[i].rewardName == rewardName )
+			{
+				return rewardsMultiplier[i];
+			}
+		}
+		
+		defaultReward.rewardName = rewardName;
+		defaultReward.rewardMultiplier = 1.0;
+		defaultReward.isItemMultiplier = false;
+		
+		return defaultReward;
+	}
 
-	function GetRewardMultiplier( rewardName : name ) : float 
+	function GetRewardMultiplier( rewardName : name ) : float // #B
 	{
 		var i : int;
 		for(i = 0; i < rewardsMultiplier.Size(); i += 1 )
@@ -9860,7 +10777,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		return 1.0;
 	}
 
-	function GetRewardMultiplierExists( rewardName : name ) : bool 
+	function GetRewardMultiplierExists( rewardName : name ) : bool // #B
 	{
 		var i : int;
 		for(i = 0; i < rewardsMultiplier.Size(); i += 1 )
@@ -9873,7 +10790,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		return false;
 	}
 
-	function SetRewardMultiplier( rewardName : name, value : float ) : void 
+	function SetRewardMultiplier( rewardName : name, value : float, optional isItemMultiplier : bool ) : void // #B
 	{
 		var i : int;
 		var rewardMultiplier : SRewardMultiplier;
@@ -9883,17 +10800,19 @@ statemachine abstract import class CR4Player extends CPlayer
 			if( rewardsMultiplier[i].rewardName == rewardName )
 			{
 				rewardsMultiplier[i].rewardMultiplier = value;
+				rewardsMultiplier[i].isItemMultiplier = isItemMultiplier;
 				return;
 			}
 		}
 		
 		rewardMultiplier.rewardName = rewardName;
 		rewardMultiplier.rewardMultiplier = value;
+		rewardMultiplier.isItemMultiplier = isItemMultiplier;
 		
 		rewardsMultiplier.PushBack(rewardMultiplier);
 	}	
 
-	function RemoveRewardMultiplier( rewardName : name ) : void 
+	function RemoveRewardMultiplier( rewardName : name ) : void // #B
 	{
 		var i : int;
 		for(i = 0; i < rewardsMultiplier.Size(); i += 1 )
@@ -9906,172 +10825,150 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 	}
 	
+	////////////////////////////////////////////////////////////////////////////////
+	//
+	// @Items
+	//
+	////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
-	
-	public final function GetCurrentOilAmmo(id : SItemUniqueId) : int
+	public final function TissueExtractorDischarge() : bool
 	{
-		return inv.GetItemModifierInt(id, 'oil_charges');
-	}
-	
-	public final function GetMaxOilAmmo(id : SItemUniqueId) : int
-	{
-		return inv.GetItemModifierInt(id, 'oil_max_charges');
-	}
-	
-	public final function ReduceOilAmmo(id : SItemUniqueId, optional ammo : int)
-	{
-		var currentAmmo : int;
+		var ids : array<SItemUniqueId>;
+		var chargesLeft, uses, curr, max, red, blue, green : int;
+		var i : int;
+		var text : string;
 		
-		if(ammo == 0)
-			ammo = 1;
-			
-		currentAmmo = GetCurrentOilAmmo(id);
-		if(currentAmmo > 0)
+		ids = thePlayer.inv.GetItemsByName( 'q705_tissue_extractor' );		
+		if( ids.Size() == 0 )
 		{
-			currentAmmo = Max(currentAmmo - ammo, 0);		
-			inv.SetItemModifierInt(id, 'oil_charges', currentAmmo);
-
-			
-			UpdateOilBuff(id);
-			
-			if(currentAmmo == 0)
-			{
-				RemoveItemOil(id);
-				
-				
-				if(ShouldProcessTutorial('TutorialAlchemyRefill') && FactsQuerySum("q001_nightmare_ended") > 0 && GetWitcherPlayer())
-					FactsAdd('tut_alch_refill', 1);
-			}
+			return false;
 		}
 		
-		theGame.GetGlobalEventsManager().OnScriptedEvent( SEC_OnOilApplied );
-	}
-	
-	
-	public final function HasOilBuffFromSword(sword : SItemUniqueId) : bool
-	{
-		var i : int;
-		var oil : W3Effect_Oil;
-		var oils : array<CBaseGameplayEffect>;
+		curr = GetTissueExtractorChargesCurr();
+		max = GetTissueExtractorChargesMax();
 		
-		oils = GetBuffs(EET_Oil);
-		for(i=0; i<oils.Size(); i+=1)
+		if( curr >= max )
 		{
-			oil = (W3Effect_Oil)oils[i];
-			if(oil && oil.GetSwordItemId() == sword)
-				return true;
+			//calculate how many times the effect will work
+			uses = FloorF( ( ( float ) curr ) / ( ( float ) max ) );
+			chargesLeft = Max( 0, curr - uses * max );
+			
+			//update charges
+			inv.SetItemModifierInt( ids[0], 'charges', chargesLeft );			
+			
+			//add items
+			blue = 0;
+			green = 0;
+			red = 0;
+			for( i=0; i<uses; i+=1 )
+			{
+				switch( RandRange( 3 ) )
+				{
+					case 0:
+						blue += 1;
+						break;
+					case 1:
+						green += 1;
+						break;
+					case 2:
+						red += 1;
+				}
+			}
+			
+			text = GetLocStringByKeyExt( "message_q705_extractor_extracted" );
+			
+			if( blue > 0 )
+			{
+				inv.AddAnItem( 'Greater mutagen blue', blue, false, true );
+				text += "<br/>" + blue + "x " + GetLocStringByKey( inv.GetItemLocalizedNameByName( 'Greater mutagen blue' ) );
+			}
+			if( green > 0 )
+			{
+				inv.AddAnItem( 'Greater mutagen green', green, false, true );
+				text += "<br/>" + green + "x " + GetLocStringByKey( inv.GetItemLocalizedNameByName( 'Greater mutagen green' ) );
+			}
+			if( red > 0 )
+			{
+				inv.AddAnItem( 'Greater mutagen red', red, false, true );
+				text += "<br/>" + red + "x " + GetLocStringByKey( inv.GetItemLocalizedNameByName( 'Greater mutagen red' ) );
+			}
+			
+			//popup to inform player			
+			theGame.GetGuiManager().ShowNotification( text );
+			
+			//clear flag for UI notification when item becomes charged
+			inv.SetItemModifierInt( ids[0], 'ui_notified', 0 );
+			
+			return true;
+		}
+		else
+		{
+			//popup to inform player
+			theGame.GetGuiManager().ShowNotification( GetLocStringByKeyExt( "message_q705_extractor_too_few_charges" ) );
 		}
 		
 		return false;
 	}
 	
-	
-	public final function AddOilBuff(steel : bool)
+	public final function TissueExtractorIncCharge()
 	{
-		var buffParams : SCustomEffectParams;
-		var oilParams : W3OilBuffParams;
-		var item : SItemUniqueId;
-		var oilName : name;
-		var dm : CDefinitionsManagerAccessor;
+		var ids : array<SItemUniqueId>;
+		var uiData : SInventoryItemUIData;
+		var curr : int;
 		
-		item = GetEquippedSword(steel);
-		
-		if(inv.ItemHasOilApplied(item) && !HasOilBuffFromSword(item))
+		ids = thePlayer.inv.GetItemsByName( 'q705_tissue_extractor' );
+		if( ids.Size() == 0 )
 		{
-			oilName = GetOilAppliedOnSword(steel);
-			dm = theGame.GetDefinitionsManager();
-			
-			oilParams = new W3OilBuffParams in theGame;
-			oilParams.iconPath = dm.GetItemIconPath(oilName);
-			oilParams.localizedName = dm.GetItemLocalisationKeyName(oilName);
-			oilParams.localizedDescription = dm.GetItemLocalisationKeyName(oilName);
-			oilParams.sword = item;
-			oilParams.maxCount = GetMaxOilAmmo(item);
-			oilParams.currCount = GetCurrentOilAmmo(item);
-			
-			buffParams.effectType = EET_Oil;
-			buffParams.creator = this;
-			buffParams.sourceName = "drawnSword";			
-			buffParams.buffSpecificParams = oilParams;
-			
-			AddEffectCustom(buffParams);
-			delete oilParams;
+			return;
 		}
-	}
-	
-	
-	protected final function RemoveOilBuff(isSteel : bool)
-	{
-		var i : int;
-		var oil : W3Effect_Oil;
-		var oils : array<CBaseGameplayEffect>;
-		var item : SItemUniqueId;
 		
+		curr = GetTissueExtractorChargesCurr() + 1;
+		inv.SetItemModifierInt( ids[0], 'charges', curr );
 		
-		item = GetEquippedSword(isSteel);
-		
-		if(!inv.ItemHasOilApplied(item))
-			return; 
+		//mark as new in inventory
+		if( curr >= GetTissueExtractorChargesMax() )
+		{
+			uiData = inv.GetInventoryItemUIData( ids[0] );
+			uiData.isNew = true;
+			inv.SetInventoryItemUIData( ids[0], uiData );
 			
-		oils = GetBuffs(EET_Oil);
-		for(i=0; i<oils.Size(); i+=1)
-		{
-			oil = (W3Effect_Oil)oils[i];
-			if(oil && oil.GetSwordItemId() == item)
-				RemoveEffect(oil);
-		}
-	}
-	
-	
-	private final function UpdateOilBuff(swordId : SItemUniqueId)
-	{
-		var i : int;
-		var oil : W3Effect_Oil;
-		var oils : array<CBaseGameplayEffect>;
-		
-		oils = GetBuffs(EET_Oil);
-		for(i=0; i<oils.Size(); i+=1)
-		{
-			oil = (W3Effect_Oil)oils[i];
-			if(oil)
+			//show popup ingame
+			if( inv.GetItemModifierInt( ids[0], 'ui_notified', 0 ) == 0 )
 			{
-				oil.UpdateCounter( GetCurrentOilAmmo(swordId) );
+				inv.SetItemModifierInt( ids[0], 'ui_notified', 1 );
+				theGame.GetGuiManager().ShowNotification( GetLocStringByKeyExt( "message_q705_extractor_charged" ), , true );
 			}
 		}
 	}
-			
 	
-	public function RemoveItemOil(id : SItemUniqueId)
+	public final function GetTissueExtractorChargesCurr() : int
 	{
-		var i : int;
-		var dm : CDefinitionsManagerAccessor;
-		var abilities : array<name>;
-		var sword : CWitcherSword;
-				
-		dm = theGame.GetDefinitionsManager();
-		inv.GetItemAbilities(id, abilities);
+		var ids : array<SItemUniqueId>;
 		
-		for(i=0; i<abilities.Size(); i+=1)
-			if(dm.AbilityHasTag(abilities[i], theGame.params.OIL_ABILITY_TAG))
-				inv.RemoveItemCraftedAbility(id, abilities[i]);
-				
-		inv.SetItemModifierInt(id, 'oil_charges', -1);
-		inv.SetItemModifierInt(id, 'oil_max_charges', -1);
-		sword = (CWitcherSword) inv.GetItemEntityUnsafe(id);
-		sword.RemoveOil( inv );
+		ids = thePlayer.inv.GetItemsByName( 'q705_tissue_extractor' );
+		if( ids.Size() == 0 )
+		{
+			return 0;
+		}
 		
+		return inv.GetItemModifierInt( ids[0], 'charges', 0 );
+	}
+	
+	public final function GetTissueExtractorChargesMax() : int
+	{
+		var ids : array<SItemUniqueId>;
+		var val : SAbilityAttributeValue;
 		
-		RemoveOilBuff(inv.IsItemSteelSwordUsableByPlayer(id));
+		ids = thePlayer.inv.GetItemsByName( 'q705_tissue_extractor' );
+		if( ids.Size() == 0 )
+		{
+			return 0;
+		}
 		
-		theGame.GetGlobalEventsManager().OnScriptedEvent( SEC_OnOilApplied );	
-	}	
-	
-	
-	
-	
-	
+		val = inv.GetItemAttributeValue( ids[0], 'maxCharges' );
+		
+		return FloorF( val.valueBase );
+	}
 	
 	public function GetEquippedSword(steel : bool) : SItemUniqueId;
 	
@@ -10102,12 +10999,12 @@ statemachine abstract import class CR4Player extends CPlayer
 		{
 			ammo = inv.GetItemModifierInt(items[i], 'ammo_current');
 							
-			
+			//if doesn't have infinite ammo
 			if(ammo > 0)
 			{
 				maxAmmo = inv.SingletonItemGetMaxAmmo(items[i]);
 				
-				
+				//if current ammo > max ammo, set current ammo to max ammo
 				if(ammo > maxAmmo)
 				{
 					inv.SetItemModifierInt(items[i], 'ammo_current', maxAmmo);
@@ -10128,18 +11025,18 @@ statemachine abstract import class CR4Player extends CPlayer
 		if(!inv.IsIdValid(itemId))
 			return false;
 		
-		
+		//apply buff
 		category = inv.GetItemCategory(itemId);
 		if(category == 'edibles' || inv.ItemHasTag(itemId, 'Drinks') || ( category == 'alchemy_ingredient' && inv.ItemHasTag(itemId, 'Alcohol')) )
 		{
-			
+			//cannot eat in fistfights
 			if(IsFistFightMinigameEnabled())
 			{
 				DisplayActionDisallowedHudMessage(EIAB_Undefined, false, false, true);
 				return false;
 			}
 		
-			
+			//edible buff
 			inv.GetItemBuffs(itemId, buffs);
 			
 			for(i=0; i<buffs.Size(); i+=1)
@@ -10151,7 +11048,7 @@ statemachine abstract import class CR4Player extends CPlayer
 				AddEffectCustom(params);
 			}
 			
-			
+			//custom hack
 			if ( inv.ItemHasTag(itemId, 'Alcohol') )
 			{
 				potionToxicity = CalculateAttributeValue(inv.GetItemAttributeValue(itemId, 'toxicity'));
@@ -10164,7 +11061,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		if(inv.IsItemFood(itemId))
 			FactsAdd("consumed_food_cnt");
 		
-		
+		//remove item
 		if(!inv.ItemHasTag(itemId, theGame.params.TAG_INFINITE_USE) && !inv.RemoveItem(itemId))
 		{
 			LogAssert(false,"Failed to remove consumable item from player inventory!" + inv.GetItemName( itemId ) );
@@ -10192,12 +11089,22 @@ statemachine abstract import class CR4Player extends CPlayer
 			vehicle.IssueCommandToDismount( dismountType );
 	}
 	
+	////////////////
+	// @stamina @stats
+	////////////////
 	
+	protected function ShouldDrainStaminaWhileSprinting() : bool
+	{
+		if( HasBuff( EET_PolishedGenitals ) && !IsInCombat() && !IsThreatened() )
+		{
+			return false;
+		}
+		
+		return super.ShouldDrainStaminaWhileSprinting();
+	}
 	
-	
-	
-	
-	
+	//Returns true if actor has enough stamina to perform given action type (refer to DrainStamina for more info).
+	//If there is not enough stamina and actor is a player character then a insufficient stamina indication is shown on HUD
 	public function HasStaminaToUseAction(action : EStaminaActionType, optional abilityName : name, optional dt :float, optional multiplier : float) : bool
 	{
 		var cost : float;
@@ -10219,7 +11126,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		return ret;
 	}
 		
-	
+	//since we cannot add timer on abilityManager...
 	timer function AbilityManager_FloorStaminaSegment(dt : float, id : int)
 	{
 		((W3PlayerAbilityManager)abilityManager).FloorStaminaSegment();
@@ -10261,9 +11168,9 @@ statemachine abstract import class CR4Player extends CPlayer
 		return 0;
 	}
 		
-	
-	
-	
+	////////////////
+	// water
+	////////////////
 	
 	private var inWaterTrigger : bool;
 	
@@ -10282,9 +11189,9 @@ statemachine abstract import class CR4Player extends CPlayer
 		return inWaterTrigger;
 	}
 	
-	
-	
-	
+	//////////////////////////////////////////////////////////////////////////////////////////
+	// @Skills @Perks
+	//////////////////////////////////////////////////////////////////////////////////////////
 
 	public function GetSkillColor(skill : ESkill) : ESkillColor
 	{
@@ -10337,7 +11244,7 @@ statemachine abstract import class CR4Player extends CPlayer
 	public function GetGroupBonusCount(commonColor : ESkillColor,groupID : int) : int
 	{
 		if(abilityManager && abilityManager.IsInitialized())
-			return ((W3PlayerAbilityManager)abilityManager).GetGroupBonusCount(commonColor, groupID);
+			return ((W3PlayerAbilityManager)abilityManager).GetSkillGroupColorCount(commonColor, groupID);
 			
 		return 0;
 	}
@@ -10406,9 +11313,17 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		ret = ( CanUseSkill(skill) && (abilityManager.GetStat(BCS_Stamina, signHack) >= cost) );
 		
-		
+		//perk, using adrenaline instead of stamina when out of stamina
 		if(!ret && IsSkillSign(skill) && CanUseSkill(S_Perk_09) && GetStat(BCS_Focus) >= 1)
+		{
 			ret = true;
+		}
+			
+		//Gryphon Armor Set Bonus 1 - next basic sign is being cast for free
+		if( !ret && IsSkillSign( skill ) && GetWitcherPlayer().HasBuff( EET_GryphonSetBonus ) )
+		{
+			ret = true;
+		}
 		
 		if(!ret)
 		{
@@ -10427,7 +11342,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		return 0;
 	}
 	
-	
+	//works for perks and bookperks as well
 	public function GetSkillAttributeValue(skill : ESkill, attributeName : name, addBaseCharAttribute : bool, addSkillModsAttribute : bool) : SAbilityAttributeValue
 	{
 		var null : SAbilityAttributeValue;
@@ -10438,7 +11353,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		return null;
 	}
 	
-	public function GetSkillLocalisationKeyName(skill : ESkill) : string 
+	public function GetSkillLocalisationKeyName(skill : ESkill) : string // #B
 	{
 		if(abilityManager && abilityManager.IsInitialized())
 			return ((W3PlayerAbilityManager)abilityManager).GetSkillLocalisationKeyName(skill);
@@ -10446,7 +11361,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		return "";
 	}
 	
-	public function GetSkillLocalisationKeyDescription(skill : ESkill) : string 
+	public function GetSkillLocalisationKeyDescription(skill : ESkill) : string // #B
 	{
 		if(abilityManager && abilityManager.IsInitialized())
 			return ((W3PlayerAbilityManager)abilityManager).GetSkillLocalisationKeyDescription(skill);
@@ -10454,7 +11369,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		return "";
 	}
 	
-	public function GetSkillIconPath(skill : ESkill) : string 
+	public function GetSkillIconPath(skill : ESkill) : string // #B
 	{
 		if(abilityManager && abilityManager.IsInitialized())
 			return ((W3PlayerAbilityManager)abilityManager).GetSkillIconPath(skill);
@@ -10486,7 +11401,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		return false;
 	}	
 	
-	public function CanLearnSkill(skill : ESkill) : bool 
+	public function CanLearnSkill(skill : ESkill) : bool //#B
 	{
 		if(abilityManager && abilityManager.IsInitialized())
 			return ((W3PlayerAbilityManager)abilityManager).CanLearnSkill(skill);
@@ -10494,7 +11409,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		return false;
 	}
 	
-	public function HasSpentEnoughPoints(skill : ESkill) : bool 
+	public function HasSpentEnoughPoints(skill : ESkill) : bool //#J
 	{
 		if(abilityManager && abilityManager.IsInitialized())
 			return ((W3PlayerAbilityManager)abilityManager).HasSpentEnoughPoints(skill);
@@ -10502,7 +11417,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		return false;
 	}
 	
-	public function PathPointsForSkillsPath(skill : ESkill) : int 
+	public function PathPointsForSkillsPath(skill : ESkill) : int //#J
 	{
 		if(abilityManager && abilityManager.IsInitialized())
 			return ((W3PlayerAbilityManager)abilityManager).PathPointsSpentInSkillPathOfSkill(skill);
@@ -10510,7 +11425,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		return -1;
 	}
 	
-	public function GetPlayerSkills() : array<SSkill> 
+	public function GetPlayerSkills() : array<SSkill> // #B
 	{
 		var null : array<SSkill>;
 		
@@ -10520,7 +11435,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		return null;
 	}
 	
-	public function GetPlayerSkill(s : ESkill) : SSkill 
+	public function GetPlayerSkill(s : ESkill) : SSkill // #B
 	{
 		var null : SSkill;
 		
@@ -10530,7 +11445,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		return null;
 	}
 	
-	public function GetSkillSubPathType(s : ESkill) : ESkillSubPath 
+	public function GetSkillSubPathType(s : ESkill) : ESkillSubPath // #B
 	{
 		if(abilityManager && abilityManager.IsInitialized())
 			return ((W3PlayerAbilityManager)abilityManager).GetSkillSubPathType(s);
@@ -10566,8 +11481,8 @@ statemachine abstract import class CR4Player extends CPlayer
 		return null;
 	}
 	
-	
-	
+	// mutagens
+	//public function OnSkillMutagenEquipped()
 
 	public function BlockSkill(skill : ESkill, block : bool, optional cooldown : float) : bool
 	{
@@ -10585,7 +11500,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		return false;
 	}
 
-	
+	//returns true if succeeded
 	public function EquipSkill(skill : ESkill, slotID : int) : bool
 	{
 		var ret : bool;
@@ -10610,7 +11525,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		return false;
 	}
 	
-	
+	//returns true if succeeded
 	public function UnequipSkill(slotID : int) : bool
 	{
 		var ret : bool;
@@ -10636,7 +11551,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		return false;
 	}
 	
-	
+	//returns true if succeeded
 	public function GetSkillOnSlot(slotID : int, out skill : ESkill) : bool
 	{
 		if(abilityManager && abilityManager.IsInitialized())
@@ -10646,7 +11561,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		return false;
 	}
 	
-	
+	//returns random free skill slot (if any, otherwise -1)
 	public function GetFreeSkillSlot() : int
 	{
 		var i, size : int;
@@ -10656,26 +11571,26 @@ statemachine abstract import class CR4Player extends CPlayer
 		for(i=1; i<size; i+=1)
 		{
 			if(!GetSkillOnSlot(i, skill))
-				continue;	
+				continue;	//if slot locked
 				
-			if(skill == S_SUndefined)	
+			if(skill == S_SUndefined)	//empty unlocked slot
 				return i;
 		}
 		
 		return -1;
 	}
 
+	//////////////////
+	// @attacks
+	//////////////////
 	
-	
-	
-	
-	
+	//performs an attack (mechanics wise) on given target and using given attack data
 	protected function Attack( hitTarget : CGameplayEntity, animData : CPreAttackEventData, weaponId : SItemUniqueId, parried : bool, countered : bool, parriedBy : array<CActor>, attackAnimationName : name, hitTime : float, weaponEntity : CItemEntity)
 	{	
 		var attackAction : W3Action_Attack;
 	
 		if(!PrepareAttackAction(hitTarget, animData, weaponId, parried, countered, parriedBy, attackAnimationName, hitTime, weaponEntity, attackAction))
-			return;	
+			return;	//failed to create a valid attack action
 		
 		if ( attackAction.IsParried() && ( ((CNewNPC)attackAction.victim).IsShielded(attackAction.attacker) || ((CNewNPC)attackAction.victim).SignalGameplayEventReturnInt('IsDefending',0) == 1 ) )
 		{
@@ -10685,7 +11600,7 @@ statemachine abstract import class CR4Player extends CPlayer
 				
 		theTelemetry.LogWithLabel( TE_FIGHT_PLAYER_ATTACKS, attackAction.GetAttackName() );
 	
-		
+		//process action
 		theGame.damageMgr.ProcessAction(attackAction);
 		
 		delete attackAction;
@@ -10741,7 +11656,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		var l_destructibleCmp	: CDestructionSystemComponent;
 		var barrel : COilBarrelEntity;
 		
-		
+		//return;
 		
 		if( isCurrentlyDodging )
 			return;
@@ -10755,14 +11670,14 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		l_weaponPosition 	= MatrixGetTranslation( l_slotMatrix );
 		
-		
+		// Finding weapon's tip
 		switch( l_stateName )
 		{
 			case 'CombatFists':
 				l_offset 	= MatrixGetAxisX( l_slotMatrix );
 				l_offset 	= VecNormalize( l_offset ) * 0.25f;
 			break;
-			
+			// sword
 			default:
 				l_offset 	= MatrixGetAxisZ( l_slotMatrix );
 				l_offset 	= VecNormalize( l_offset ) * 1.f;
@@ -10775,14 +11690,14 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		if( !attackEventInProgress )
 		{			
-			
+			// If the weapon is not moving fast enough, do not play collision fx
 			if( m_LastWeaponTipPos == Vector ( 0, 0, 0 ) )
 				l_distance = 0;
 			else
 				l_distance 	= VecDistance( l_weaponTipPos, m_LastWeaponTipPos ) ;
 				
-			
-			
+			//GetVisualDebug().AddText( 'LastWeaponTipText', "Last - dist: " + l_distance, m_LastWeaponTipPos, true, , Color( 249, 98, 158 ) );
+			//GetVisualDebug().AddArrow( 'OldDirectArrow', l_weaponPosition, m_LastWeaponTipPos , 0.8f, 0.1f, 0.2f, true, Color( 249, 98, 158 ) );
 				
 			m_LastWeaponTipPos	= l_weaponTipPos;
 			if( l_distance < 0.35f )
@@ -10790,13 +11705,15 @@ statemachine abstract import class CR4Player extends CPlayer
 			
 		}	
 		
-		
+		/*GetVisualDebug().AddSphere( 'WeaponPosition', 0.1f, l_weaponPosition, true, Color( 249, 98, 158 ) );		
+		GetVisualDebug().AddText( 'WeaponTipText', "Weapon Tip", l_weaponTipPos, true, , Color( 249, 98, 158 ) );
+		GetVisualDebug().AddArrow( 'CollisionArrow', l_weaponPosition, l_weaponTipPos , 0.8f, 0.1f, 0.2f, true, Color( 249, 98, 158 ) );*/
 		
 		m_LastWeaponTipPos		= l_weaponTipPos;			
 		
 		if ( !theGame.GetWorld().StaticTraceWithAdditionalInfo( l_weaponPosition, l_weaponTipPos, l_collidingPosition, l_normal, l_materialName, l_hitComponent, m_WeaponFXCollisionGroupNames ) )
 		{
-			
+			// Test left fist
 			if( l_stateName == 'CombatFists' )
 			{
 				CalcEntitySlotMatrix('l_weapon', l_slotMatrix);
@@ -10822,14 +11739,14 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		m_CollisionEffect.Teleport( l_collidingPosition );
 		
-		
+		// Play hit effect
 		switch( l_stateName )
 		{
 			case 'CombatFists':
 				m_CollisionEffect.PlayEffect('fist');
 			break;
 			default:				
-				
+				// Optimisation because IsSwordWooden() is heavy (around 0.13 ms)
 				if( m_RefreshWeaponFXType )
 				{
 					m_PlayWoodenFX 			= IsSwordWooden();
@@ -10863,6 +11780,9 @@ statemachine abstract import class CR4Player extends CPlayer
 						case 'custom_sword':
 							m_CollisionEffect.PlayEffect('sparks');
 						break;
+						case 'flesh':
+							m_CollisionEffect.PlayEffect('blood');
+						break;
 						default:
 							m_CollisionEffect.PlayEffect('wood');
 						break;
@@ -10872,18 +11792,18 @@ statemachine abstract import class CR4Player extends CPlayer
 			break;
 		}
 		
-		
+		//don't ask...
 		if(l_hitComponent)
 		{
 			barrel = (COilBarrelEntity)l_hitComponent.GetEntity();
 			if(barrel)
 			{
-				barrel.OnFireHit(NULL);	
+				barrel.OnFireHit(NULL);	//sets barrel on fire so that it explodes in a few sec
 				return;
 			}
 		}
 		
-		
+		// Destroy destructibles
 		l_destructibleCmp = (CDestructionSystemComponent) l_hitComponent;
 		if( l_destructibleCmp && l_stateName != 'CombatFists' )
 		{
@@ -10891,7 +11811,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 		
 		
-		
+		//GetVisualDebug().AddText( 'collisionText', "Collision Here", l_collidingPosition, true, , Color( 249, 98, 158 ) );
 	}
 	
 	public function ReactToReflectedAttack( target : CGameplayEntity)
@@ -10913,19 +11833,19 @@ statemachine abstract import class CR4Player extends CPlayer
 			delete action;
 		}
 		
-		theGame.VibrateControllerLight();
+		theGame.VibrateControllerLight();//player attack was reflected
 	}
 	
+	//////////////////
+	// falling damage
+	//////////////////
 	
-	
-	
-	
-	
+	//return false when not falling
 	function GetFallDist( out fallDist : float ) : bool
 	{
 		var fallDiff, jumpTotalDiff : float;
 		
-		
+		// Get the falling height
 		substateManager.m_SharedDataO.CalculateFallingHeights( fallDiff, jumpTotalDiff );
 		
 		if ( fallDiff <= 0 )
@@ -10947,18 +11867,18 @@ statemachine abstract import class CR4Player extends CPlayer
 			
 		if(hpPerc > 0)		
 		{
-			theGame.VibrateControllerHard();
+			theGame.VibrateControllerHard();//player falling damage
 		
 			if(IsAlive())
 			{
 				if(ShouldProcessTutorial('TutorialFallingDamage'))
 				{
-					FactsAdd("tutorial_falling_damage");
+					FactsSet( "tutorial_falling_damage", 1 );
 				}	
 				
 				if(FactsQuerySum("tutorial_falling_damage") > 1 && ShouldProcessTutorial('TutorialFallingRoll'))
 				{
-					
+					//fill tutorial object data
 					tut.type = ETMT_Hint;
 					tut.tutorialScriptTag = 'TutorialFallingRoll';
 					tut.hintPositionType = ETHPT_DefaultGlobal;
@@ -10967,7 +11887,7 @@ statemachine abstract import class CR4Player extends CPlayer
 					tut.glossaryLink = false;
 					tut.markAsSeenOnShow = true;
 					
-					
+					//show tutorial
 					theGame.GetTutorialSystem().DisplayTutorial(tut);
 				}
 			}
@@ -10976,7 +11896,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		return hpPerc;
 	}
 		
-	
+	//--------------------------------- STAMINA INDICATOR #B --------------------------------------
 	
 	public function SetShowToLowStaminaIndication( value : float ) : void
 	{
@@ -10994,7 +11914,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		showTooLowAdrenaline = true;
 	}
 	
-	
+	/////////////////////////////////
 		
 	protected function GotoCombatStateWithAction( initialAction : EInitialAction, optional initialBuff : CBaseGameplayEffect )
 	{
@@ -11005,8 +11925,8 @@ statemachine abstract import class CR4Player extends CPlayer
 		this.GotoState( 'CombatFists' );
 		
 	}
-	
-	
+	///////////////////////////////////////////////////////////////////////////////////////////
+	// COMBAT
 	public function IsThreat( actor : CActor, optional usePrecalcs : bool ) : bool
 	{
 		var npc 				: CNewNPC;
@@ -11042,7 +11962,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			return true;
 		}
 		
-		
+		//MS: We add a tolerance to make geralt go to alertfar everytime he runs away from npc
 		if ( GetAttitudeBetween( this, actor ) == AIA_Hostile )
 		{		
 			if ( usePrecalcs )
@@ -11054,7 +11974,7 @@ statemachine abstract import class CR4Player extends CPlayer
 				distanceToTarget = Distance2DBetweenCapsules( this, actor );
 			}
 
-			
+			// shortDistance = findMoveTargetDist + 5.0f;
 			if ( distanceToTarget < findMoveTargetDist + 5.0f )
 			{
 				return true;
@@ -11065,7 +11985,7 @@ statemachine abstract import class CR4Player extends CPlayer
 				targetCapsuleHeight = ( (CMovingPhysicalAgentComponent)actor.GetMovingAgentComponent() ).GetCapsuleHeight();
 				if ( targetCapsuleHeight >= 2.0f || npc.GetCurrentStance() == NS_Fly )
 				{	
-					
+					// expandedDistance = 40.f;
 					if ( distanceToTarget < 40.0f )
 					{
 						return true;
@@ -11096,10 +12016,10 @@ statemachine abstract import class CR4Player extends CPlayer
 		else
 		{
 			this.ProcessLAxisCaching();
-			
+			//UnblockAction(EIAB_Interactions, 'InsideCombatAction' );
 		}
 		
-		
+		//LogChannel('combatActionAllowed', "Is SET TO: " + flag );
 	}
 	
 	function GetBIsCombatActionAllowed() : bool
@@ -11134,7 +12054,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		if ( this.GetCurrentStateName() != 'DismountHorse' )
 			OnRangedForceHolster( true );	
 		
-		
+		//SetBehaviorVariable( 'combatActionType', (int)CAT_None2);
 	}
 
 	public function IsInCombatAction_Attack(): bool
@@ -11166,7 +12086,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		return isInRunAnimation;
 	}
 	
-	
+	//I need to call it after scene ends thats why it's public. PF
 	public function SetCombatIdleStance( stance : float )
 	{
 		SetBehaviorVariable( 'combatIdleStance', stance );
@@ -11180,7 +12100,7 @@ statemachine abstract import class CR4Player extends CPlayer
 	
 	public function GetCombatIdleStance() : float
 	{
-		
+		// 0.f == Left
 		return GetBehaviorVariable( 'combatIdleStance' );
 	}	
 
@@ -11205,6 +12125,23 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 	}
 	
+	private var isInIdle : bool;
+	
+	event OnPlayerIdleStart()
+	{
+		isInIdle = true;
+	}
+	
+	event OnPlayerIdleEnd()
+	{
+		isInIdle = false;
+	}
+	
+	public function IsInIdle() : bool
+	{
+		return isInIdle;
+	}
+	
 	event OnRunLoopStart()
 	{
 		EnableRunCamera( true );
@@ -11217,18 +12154,13 @@ statemachine abstract import class CR4Player extends CPlayer
 	
 	event OnCombatActionStartBehgraph()
 	{
-		var buff : CBaseGameplayEffect;
 		var action : EBufferActionType;
 		var cost, delay : float;
 	
-		
-		
+		// Block saves
+		//theGame.CreateNoSaveLock( noSaveLockCombatActionName, noSaveLockCombatAction, true );	
 	
-		OnCombatActionStart();
-
-		
-		
-		buff = GetBuff(EET_AutoStaminaRegen);
+		OnCombatActionStart();	
 		
 		action = PerformingCombatAction();
 		switch ( action )
@@ -11268,13 +12200,20 @@ statemachine abstract import class CR4Player extends CPlayer
 			{
 				abilityManager.GetStaminaActionCost(ESAT_Evade, cost, delay);
 			} break;
-			
+			/*
+			case EBAT_Ciri_SpecialAttack :
+			{
+				cost = GetStaminaActionCost();
+			} break;
+			*/
 			default :
 				;
 		}
 		
-		if( (!buff || !buff.IsPaused('InsideCombatAction')) && delay > 0 )
-			PauseEffects(EET_AutoStaminaRegen, 'InsideCombatAction');		
+		//Pause the stamina regen for as long as we're doing combat actions.
+		//Pause only once to avoid the pause counter from increasing with each lock
+		if( delay > 0 )
+			PauseStaminaRegen( 'InsideCombatAction' );
 	}
 	
 	public function HolsterUsableItem() : bool
@@ -11304,24 +12243,25 @@ statemachine abstract import class CR4Player extends CPlayer
 	private var holsterUsableItem : bool;
 	event OnCombatActionStart()
 	{	
-		
-		
+		//Block Actions
+		//BlockAction( EIAB_DrawWeapon, 'OnCombatActionStart' );
 		BlockAction( EIAB_UsableItem, 'OnCombatActionStart' );
 		BlockAction( EIAB_CallHorse, 'OnCombatActionStart' );
 		
-		
+		/*if ( !IsGuarded() )
+			SetParryTarget( NULL );*/
 	
 		LogChannel('combatActionAllowed',"FALSE OnCombatActionStart");
 		SetBIsCombatActionAllowed( false );
 		SetBIsInputAllowed( false, 'OnCombatActionStart' );
-		
+		//lastAxisInputIsMovement = true;
 		
 		ClearFinishableEnemyList( 0.f, 0 );		
 		
 		bIsInHitAnim = false;
 		
-		
-		
+		//Holster Crossbow if it's held
+		//if ( inv.IsItemCrossbow( inv.GetItemFromSlot( 'l_weapon' ) ) )//&& GetBehaviorVariable( 'combatActionType' ) != (int)CAT_Crossbow )
 		if ( rangedWeapon && rangedWeapon.GetCurrentStateName() != 'State_WeaponWait' )
 		{
 			CleanCombatActionBuffer();
@@ -11329,9 +12269,9 @@ statemachine abstract import class CR4Player extends CPlayer
 			OnRangedForceHolster( false, true );
 		}
 			
-		
+		//Holster UsableItem if it's held
 		holsterUsableItem = false;	
-		if ( thePlayer.IsHoldingItemInLHand() ) 
+		if ( thePlayer.IsHoldingItemInLHand() ) // && !thePlayer.IsUsableItemLBlocked() )
 		{
 			if ( GetBehaviorVariable( 'combatActionType' ) == (int)CAT_CastSign )
 				holsterUsableItem = true;
@@ -11350,7 +12290,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			restoreUsableItem = true;		
 		}
 
-		
+		//Stop Geralt from automatically attacking while in AttackApproach when Player performs a non-attack combat action
 		if ( GetBehaviorVariable( 'combatActionType' ) != (int)CAT_Attack && GetBehaviorVariable( 'combatActionType' ) != (int)CAT_PreAttack )
 		{
 			RemoveTimer( 'ProcessAttackTimer' );
@@ -11359,11 +12299,11 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 		else
 		{
-			
+			//MS: Do not remove this!! The attack to idle transition states will not work correctly if you change weapon mid-attack. 
 			BlockAction( EIAB_DrawWeapon, 'OnCombatActionStart_Attack' );
 		}		
 			
-		
+		//GetMovingAgentComponent().SnapToNavigableSpace(true);		
 	}
 
 	var isInParryOrCounter : bool;
@@ -11380,69 +12320,75 @@ statemachine abstract import class CR4Player extends CPlayer
 		SetBIsInCombatAction( false );
 	}
 	
-	
+	//called when a combat action is completed (e.g. single hit in a combo sequence)
 	event OnCombatActionEnd()
 	{
 		var item : SItemUniqueId;
 		var combatActionType : float;
-	
+		
 		super.OnCombatActionEnd();
 		
 		
-		
+		//Unblock Actions
 		BlockAllActions( 'OnCombatActionStart', false );
-
-		UnblockAction( EIAB_DrawWeapon, 'OnCombatActionStart_Attack' );		
 		
+		UnblockAction( EIAB_DrawWeapon, 'OnCombatActionStart_Attack' );
 		
+		// failsafe	
+		UnblockAction( EIAB_Movement, 'CombatActionFriendly' );		
 		
-
+		//why? this way after EACH attack you reset it - what's the point then?
+		//ResetUninterruptedHitsCount();
+		
 		oTCameraOffset = 0.f;
 		oTCameraPitchOffset = 0.f;
-
 		
+		//LogChannel('combatActionAllowed',"TRUE OnCombatActionEnd");
 		SetBIsCombatActionAllowed( true );
-		
-
+		//reapply critical buff if any
+		//ReapplyCriticalBuff();
 		SetBIsInputAllowed( true, 'OnCombatActionEnd' );			
 		SetCanPlayHitAnim( true );
 		EnableFindTarget( true );
 		
-		SetIsCurrentlyDodging( false );
-		
+		//AK: commented out because it sets dodging flag to false right after dodging starts when we chain multiple dodges
+		//IsCurrentlyDodging returned false in the middle of dodge anim
+		//SetIsCurrentlyDodging( false );
 		SetFinisherVictim( NULL );
 		
 		OnBlockAllCombatTickets( false );
 		
 		LogStamina("CombatActionEnd");
 		
-		
+		//GetMovingAgentComponent().SnapToNavigableSpace(false);
 		
 		SetAttackActionName('');
 		combatActionType = GetBehaviorVariable('combatActionType');
 		
-		
+		//clean-up after special attack heavy finishes
 		if(GetBehaviorVariable('combatActionType') == (int)CAT_SpecialAttack)
 		{
 			theGame.GetGameCamera().StopAnimation( 'camera_shake_loop_lvl1_1' );
 			OnSpecialAttackHeavyActionProcess();
 		}
-		
+		// Do we need to interrupt?
 		substateManager.ReactToChanceToFallAndSlide();
 	}
 	
 	event OnCombatActionFriendlyStart()
 	{
 		SetBIsInCombatActionFriendly(true);
+		BlockAction( EIAB_Movement, 'CombatActionFriendly', false, false, false );
 		OnCombatActionStart();
 	}
 	
 	event OnCombatActionFriendlyEnd()
 	{
 		SetBIsInCombatActionFriendly(false);
+		UnblockAction( EIAB_Movement, 'CombatActionFriendly' );
 		OnCombatActionEnd();
 		SetBIsInCombatAction(false);
-		
+		//RaiseForceEvent( 'ForceIdle' );
 	}	
 	
 	event OnHitStart()
@@ -11464,10 +12410,10 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		bIsInHitAnim = true;
 		
-		OnCombatActionStart();	
+		OnCombatActionStart();	//"because it's needed"
 		
-		
-		ResumeEffects(EET_AutoStaminaRegen, 'InsideCombatAction');
+		//OnCombatActionStart pauses the regen and we don't want that
+		ResumeStaminaRegen( 'InsideCombatAction' );
 		
 		if( GetHealthPercents() < 0.3f )
 		{
@@ -11513,7 +12459,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		var camera 	: CCustomCamera = theGame.GetGameCamera();
 		var animation		: SCameraAnimationDefinition;
 		
-		if  (IsLastEnemyKilled() && theGame.GetWorld().NavigationCircleTest( this.GetWorldPosition(), 3.f ) )
+		if( IsLastEnemyKilled() && theGame.GetWorld().NavigationCircleTest( this.GetWorldPosition(), 3.f ) )
 		{
 			camera.StopAnimation('camera_shake_hit_lvl3_1' );
 			
@@ -11526,7 +12472,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			animation.reset = true;
 			
 			camera.PlayAnimation( animation );
-			
+			//thePlayer.AddTimer( 'RemoveFinisherCameraAnimationCheck', 0.01, true );
 			
 			thePlayer.EnableManualCameraControl( false, 'Finisher' );
 		}
@@ -11560,11 +12506,11 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		this.RemoveAnimEventCallback('SyncEvent');
 		
-		
+		//SetIsPerformingPhaseChangeAnimation( false ); // for eredin fight
 		SetImmortalityMode( AIM_None, AIC_SyncedAnim );
 		theGame.RemoveTimeScale( 'AnimEventSlomoMo' );
 		AddTimer( 'FinisherEndEnableCamera', 0.5f );
-		
+		//OnBlockAllCombatTickets( false );
 		OnCombatActionEnd();
 		OnCombatActionEndComplete();
 	}
@@ -11585,12 +12531,12 @@ statemachine abstract import class CR4Player extends CPlayer
 		weaponEntity = this.GetInventory().GetItemEntityUnsafe( GetInventory().GetItemFromSlot('r_weapon') );
 		weaponEntity.CalcEntitySlotMatrix( 'blood_fx_point', weaponSlotMatrix );
 		bloodFxPos = MatrixGetTranslation( weaponSlotMatrix );
-		bloodFxRot = this.GetWorldRotation();
+		bloodFxRot = this.GetWorldRotation();//MatrixGetRotation( weaponSlotMatrix );
 		tempEntity = theGame.CreateEntity( (CEntityTemplate)LoadResource('finisher_blood'), bloodFxPos, bloodFxRot);
 		tempEntity.PlayEffect('crawl_blood');
 	}
 
-	
+	//called when all combat actions have ended (e.g. whole combo)
 	event OnCombatActionEndComplete()
 	{
 		var buff : CBaseGameplayEffect;
@@ -11598,13 +12544,13 @@ statemachine abstract import class CR4Player extends CPlayer
 		buff = ChooseCurrentCriticalBuffForAnim();
 		SetCombatAction( EBAT_EMPTY );
 		
-		
+		//Unblock Actions what you wann
 		UnblockAction( EIAB_DrawWeapon, 'OnCombatActionStart' );
 		UnblockAction( EIAB_OpenInventory, 'OnCombatActionStart' );
 		UnblockAction( EIAB_UsableItem, 'OnCombatActionStart' );
 		
 		UnblockAction( EIAB_DrawWeapon, 'OnCombatActionStart_Attack' );			
-				
+		
 		SetUnpushableTarget( NULL );
 		SetBIsInCombatAction(false);
 		SetIsCurrentlyDodging(false);
@@ -11632,13 +12578,13 @@ statemachine abstract import class CR4Player extends CPlayer
 			ResetRawPlayerHeading();
 			ResetCachedRawPlayerHeading();
 		}
-			
 		
+		//reapply critical buff if any
 		ReapplyCriticalBuff();	
 		SetBIsInputAllowed( true, 'OnCombatActionEndComplete' );
-			
 		
-		ResumeEffects(EET_AutoStaminaRegen, 'InsideCombatAction');
+		//stamina regen is paused as long as we are doing some combat actions
+		ResumeStaminaRegen( 'InsideCombatAction' );
 		
 		bIsInHitAnim = false;
 		
@@ -11646,11 +12592,11 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		m_LastWeaponTipPos = Vector(0, 0, 0, 0 );
 		
-		
+		//free tickets
 		this.AddTimer('FreeTickets',3.f,false);
 		
-		
-		
+		// remove save lock
+		//theGame.ReleaseNoSaveLockByName( noSaveLockCombatActionName );
 	}
 	
 	event OnMovementFullyBlended() 
@@ -11677,7 +12623,9 @@ statemachine abstract import class CR4Player extends CPlayer
 	}
 	
 	
-	
+	/*
+		These declarations are needed here only to call event with the same name inside combat state (there's no other way to call it!).
+	*/
 	event OnGuardedReleased(){}
 	event OnPerformAttack( playerAttackType : name ){}
 	event OnPerformEvade( playerEvadeType : EPlayerEvadeType ){}	
@@ -11709,7 +12657,9 @@ statemachine abstract import class CR4Player extends CPlayer
 		thePlayer.BlockAllActions('HorseSummon',false);
 	}
 	
-	
+	/*
+		CombatAction events when on vehicles
+	*/
 	event OnCombatActionStartVehicle( action : EVehicleCombatAction )
 	{
 		this.SetBIsCombatActionAllowed( false );
@@ -11726,20 +12676,23 @@ statemachine abstract import class CR4Player extends CPlayer
 		this.SetBIsCombatActionAllowed( true );
 	}
 
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////  @CRITICAL STATES  /////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
 	
 	protected function CriticalBuffInformBehavior(buff : CBaseGameplayEffect)
 	{
-		
+		/*if ( this.GetCurrentStateName() == 'Exploration' || this.GetCurrentStateName() == 'AimThrow' )
+			GotoCombatStateWithAction( IA_CriticalState, buff );
+		else
+		{*/
 			if( !CanAnimationReactToCriticalState( buff ) )
 			{
 				return;
 			}
 			
-
-
+//			if ( IsInCombatAction() )
+//				RaiseEvent('ForceBlendOut');
 			
 			SetBehaviorVariable( 'CriticalStateType', (int)GetBuffCriticalType(buff) );
 			SetBehaviorVariable( 'bCriticalState', 1);	
@@ -11751,7 +12704,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			
 			LogCritical("Sending player critical state event for <<" + buff.GetEffectType() + ">>");
 			
-		
+		//}
 	}
 	
 	private function CanAnimationReactToCriticalState( buff : CBaseGameplayEffect ) : bool
@@ -11762,7 +12715,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		isHeavyCritical	= false;
 		
-		
+		// Find out if it is a heavy critical state
 		buffCritical	= ( W3CriticalEffect ) buff;
 		if( buffCritical )
 		{
@@ -11777,7 +12730,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			}
 		}
 		
-		
+		// If it is not, we may skip it 
 		if( !isHeavyCritical )
 		{
 			if( !CanReactToCriticalState() )
@@ -11802,19 +12755,19 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		OnCombatActionEndComplete();
 		
-		
+		//abort throwing if super was processed properly
 		newReqCS = newRequestedCS;
 		if(super.OnCriticalStateAnimStart())
 		{
-			
+			//WhenCombatActionIsFinished();
 			RemoveTimer( 'IsItemUseInputHeld' );
 			keepRequestingCriticalAnimStart = false;
 			CancelHoldAttacks();
 			
-			
-			
-			
-			
+			//knockdown direction
+			// No knockdown when using a vehicule: the vehicule will handle the knock down logic
+			//PFTODO
+			//we need this for NPCs also (knockdown dir)
 			if(!IsUsingVehicle())
 			{
 				newCritical = GetBuffCriticalType(newReqCS);
@@ -11829,7 +12782,7 @@ statemachine abstract import class CR4Player extends CPlayer
 					else
 						heading = GetHeading();
 						
-					
+					//this.GetMovingAgentComponent().GetMovementAdjustor().CancelAll();	
 					SetCustomRotation( 'Knockdown', heading, 2160.f, 0.1f, true );
 					
 					if ( newCritical != ECST_Stagger  && newCritical != ECST_LongStagger )
@@ -11837,14 +12790,20 @@ statemachine abstract import class CR4Player extends CPlayer
 				}
 			}
 			
+			theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( this, 'CriticalEffectStart', -1, 30.0f, -1.f, -1, true ); //reactionSystemSearch
 			return true;
 		}
 		
-		
+		//SetBehaviorVariable( 'bCriticalStopped', 1);
 		return false;
 	}
 	
-	
+	/*
+		Called when new critical effect has started
+		This will interrupt current critical state
+		
+		returns true if the effect got fired properly
+	*/
 	public function StartCSAnim(buff : CBaseGameplayEffect) : bool
 	{
 		SetBehaviorVariable( 'bCriticalStopped', 0 );
@@ -11856,11 +12815,11 @@ statemachine abstract import class CR4Player extends CPlayer
 				OnCriticalStateAnimStart();
 			}
 		
-			ResumeEffects(EET_AutoStaminaRegen, 'InsideCombatAction');	
+			ResumeStaminaRegen( 'InsideCombatAction' );
 		
 			keepRequestingCriticalAnimStart = true;
 			AddTimer('RequestCriticalAnimStart', 0, true);
-			
+			//RequestCriticalAnimStart(0);
 			
 			return true;
 		}
@@ -11870,10 +12829,10 @@ statemachine abstract import class CR4Player extends CPlayer
 	
 	public function CriticalEffectAnimationInterrupted(reason : string) : bool
 	{
-		var ret : bool;	
-	
+		var ret : bool;	//for debug
+		
 		LogCriticalPlayer("R4Player.CriticalEffectAnimationInterrupted() - because: " + reason);
-	
+		
 		ret = super.CriticalEffectAnimationInterrupted(reason);
 		
 		if(ret)
@@ -11890,12 +12849,13 @@ statemachine abstract import class CR4Player extends CPlayer
 	{
 		LogCriticalPlayer("R4Player.CriticalStateAnimStopped() - forced: " + forceRemoveBuff);
 		
+		theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( this, 'RecoveredFromCriticalEffect', -1, 30.0f, -1.f, -1, true ); //reactionSystemSearch
 		super.CriticalStateAnimStopped(forceRemoveBuff);
 		
 		substateManager.ReactOnCriticalState( false );
 	}
-		
 	
+	// keeps requesting (sending event) to enter critical states anim state in behavior
 	timer function RequestCriticalAnimStart(dt : float, id : int)
 	{	
 		if(keepRequestingCriticalAnimStart)
@@ -11918,15 +12878,15 @@ statemachine abstract import class CR4Player extends CPlayer
 	
 	event OnRagdollUpdate(progress : float)
 	{
-		
+		//super.OnRagdollUpdate(progress);
 		
 		SetIsInAir(progress == 0);
 	}
 
-	
+	// getting from ragdoll after certain time has passed
 	event OnRagdollOnGround()
 	{
-		
+		// try to getup immediately as currently when laying on ground we might be constantly switched between on ground and in air
 		TryToEndRagdollOnGround( 0.0f );
 	}
 	
@@ -11951,7 +12911,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			type = critical.GetEffectType();
 			if(type == EET_Knockdown || type == EET_HeavyKnockdown || type == EET_Ragdoll)
 			{
-				
+				// 2.5 seconds is not that long but this is not ragdoll simulator :)
 				if (critical.GetTimeActive() >= 2.5f)
 				{
 					SetIsInAir(false);
@@ -11966,7 +12926,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			}
 		}
 		
-		
+		// not in critical or type differs
 		RemoveTimer('TryToEndRagdollOnGround');
 	}
 	
@@ -11987,9 +12947,9 @@ statemachine abstract import class CR4Player extends CPlayer
 	
 		super.RequestCriticalAnimStop(dontSetCriticalToStopped);
 	}
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	// @Buffs @Effects
+	////////////////////////////////////////////////////////////////////////////////////////////
 
 	public function SimulateBuffTimePassing(simulatedTime : float)
 	{
@@ -12000,7 +12960,15 @@ statemachine abstract import class CR4Player extends CPlayer
 	{
 		var params : SCustomEffectParams;
 		
-		
+		/*
+			Welcome to the Ancient Pit. If you're here reading this then you're doomed...
+			
+			You're probably asking why someone is overriding default effect durations with some custom arbitrary numbers...
+			
+			The thuth is: noone remembers...
+			
+			But we need this and you cannot remove it or shit will start falling apart.
+		*/
 		if(effectType == EET_Stagger || effectType == EET_LongStagger || effectType == EET_Knockdown || effectType == EET_HeavyKnockdown)
 		{
 			params.effectType = effectType;
@@ -12026,41 +12994,39 @@ statemachine abstract import class CR4Player extends CPlayer
 	}
 	
 	
+	////////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
+	//a cheat to ressurect player
 	public function CheatResurrect()
 	{
+		var items 		: array< SItemUniqueId >;
+		var i, size, itemLevel, maxPrice, itemPrice 	: int;
+		var itemToEquip : SItemUniqueId;
+
 		if(IsAlive())
 			return;
 			
+		
+		if ( !theGame.GetGuiManager().GetRootMenu() )
+		{
+			Log(" *** Call this function after DeathScreen appears *** ");
+			return;
+		}
+		
 		SetAlive(true);
 		
 		SetKinematic(true);
-		
-		delete abilityManager;
-		delete effectManager;
-		
-		SetAbilityManager();		
-		abilityManager.Init(this, GetCharacterStats(), false, theGame.GetDifficultyMode());
-		
-		SetEffectManager();
-		
-		abilityManager.PostInit();						
 	
 		EnableFindTarget( true );
 		SetBehaviorVariable( 'Ragdoll_Weight', 0.f );
 		RaiseForceEvent( 'RecoverFromRagdoll' );
 		SetCanPlayHitAnim( true );
 		SetBehaviorVariable( 'CriticalStateType', (int)ECST_None );		
-		
-		
-		
-			GoToStateIfNew('Exploration');	
+		GoToStateIfNew('Exploration');	
 
 		( (CDismembermentComponent)this.GetComponent( 'Dismemberment' ) ).ClearVisibleWound();
 		
-		SetIsInAir(false);	
+		SetIsInAir(false);	//might block getup from ragdol in knockdown
 		
 		theInput.SetContext('Exploration');
 		
@@ -12070,13 +13036,51 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		theGame.CloseMenu('DeathScreenMenu');
 		
-		
+		//restore sounds
 		theSound.LeaveGameState(ESGS_Death);
+
+		//need to call stop/start functions, otherwise no auto HP regen, tox drain, etc. ever again
+	 	abilityManager.ForceSetStat(BCS_Vitality, GetStatMax(BCS_Vitality));
+		effectManager.StopVitalityRegen();
+		abilityManager.ForceSetStat( BCS_Air , 100.f );
+		effectManager.StopAirRegen();
+		abilityManager.ForceSetStat( BCS_Stamina , 100.f );
+		effectManager.StopStaminaRegen();
+		abilityManager.ForceSetStat( BCS_Toxicity , 0.f );
+		abilityManager.ForceSetStat( BCS_Focus , 0.f );
+		GetWitcherPlayer().UpdateEncumbrance();
+
+		//equip highest level sword in inventory that can be equipped
+		if ( !inv.IsThereItemOnSlot( EES_SteelSword ) )
+		{
+			items = inv.GetItemsByCategory( 'steelsword' );
+		}
+		else if ( !inv.IsThereItemOnSlot( EES_SilverSword ) )
+		{
+			items = inv.GetItemsByCategory( 'silversword' );
+		}
 		
-		theGame.ReleaseNoSaveLock(deathNoSaveLock);		
+		size = items.Size();
+		maxPrice = -1;
+		for ( i = 0; i < size; i += 1 )
+		{
+			itemPrice = inv.GetItemPrice(items[i]);
+			itemLevel = inv.GetItemLevel(items[i]);
+			if ( itemLevel <= GetLevel() && itemPrice > maxPrice )
+			{
+				maxPrice = itemPrice;
+				itemToEquip = items[i];
+			}
+		}
+		if( inv.IsIdValid( itemToEquip ) )
+		{
+			EquipItem( itemToEquip , , true );
+		}
+
+		theGame.ReleaseNoSaveLock(deathNoSaveLock);
 	}
 	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////
 	
 	public function SetIsInsideInteraction(b : bool)				{isInsideInteraction = b;}
 	public function IsInsideInteraction() : bool					{return isInsideInteraction;}
@@ -12117,9 +13121,9 @@ statemachine abstract import class CR4Player extends CPlayer
 		return true;
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////   @COMBAT   /////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
 	
 	public function SetGuarded(flag : bool)
 	{
@@ -12137,9 +13141,9 @@ statemachine abstract import class CR4Player extends CPlayer
 	{
 		return super.IsGuarded() && ( !rangedWeapon || rangedWeapon.GetCurrentStateName() == 'State_WeaponWait' );
 	}
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////   @THROWABLE   @BOMBS   @PETARDS  @Usable ///////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
 		
 	public function GetSelectedItemId() : SItemUniqueId			{return selectedItemId;}
 	public function ClearSelectedItemId()						{selectedItemId = GetInvalidUniqueId();}
@@ -12210,10 +13214,11 @@ statemachine abstract import class CR4Player extends CPlayer
 	{
 		if( currentlyEquipedItemL != GetInvalidUniqueId() )
 		{
-			if ( force )
+			if( force )
 			{
-				if (!RaiseEvent( 'ItemEndL' ) )	
+				if( !RaiseForceEvent( 'ItemEndL' ) )	
 				{
+					
 					OnUsingItemsReset();
 				}
 				return;
@@ -12399,7 +13404,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		if ( currentlyEquipedItemL != GetInvalidUniqueId() )
 		{
-			SetBehaviorVariable( 'SelectedItemL', (int)GetUsableItemTypeById( currentlyEquipedItemL ) );		
+			SetBehaviorVariable( 'SelectedItemL', (int)GetUsableItemTypeById( currentlyEquipedItemL ), true );		
 			if ( force )
 			{
 				if ( RaiseEvent( 'ItemEndL' ) )
@@ -12424,7 +13429,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			{
 				return false;
 			}
-			SetBehaviorVariable( 'SelectedItemL', (int)GetUsableItemTypeById( selectedItemId ) );
+			SetBehaviorVariable( 'SelectedItemL', (int)GetUsableItemTypeById( selectedItemId ), true );
 			if( RaiseEvent( 'ItemUseL' ) )
 			{	
 				currentlyEquipedItemL = selectedItemId;
@@ -12460,27 +13465,27 @@ statemachine abstract import class CR4Player extends CPlayer
 				
 	}
 	
-	
+	// Starts the 'WaitForItemSpawnAndProccesTask' task
 	public function StartWaitForItemSpawnAndProccesTask()
 	{
 		AddTimer( 'WaitForItemSpawnAndProccesTask', 0.001f, true,,,,true );
 	}
 	
-	
+	// Kills the 'WaitForItemSpawnAndProccesTask' task
 	public function KillWaitForItemSpawnAndProccesTask()
 	{
 		RemoveTimer ( 'WaitForItemSpawnAndProccesTask' );
 	}
 	
-	
-	
+	// Informs the 'WaitForItemSpawnAndProccesTask' task, that selected item should be used ASAP.
+	// Flag will be reset by the task itself
 	public function AllowUseSelectedItem()
 	{
 		m_useSelectedItemIfSpawned = true;
 	}
 	
-	
-	
+	// Task waits for inventory to created selected item. Item will be used ASAP as the task is allowed to do so.
+	// Right after that - it kills itself.
 	timer function WaitForItemSpawnAndProccesTask( timeDelta : float , id : int )
 	{
 		var itemEntity : W3UsableItem;
@@ -12492,7 +13497,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			return;
 		}
 	
-		
+		// selectad item is wrong!
 		if ( selectedItemId == GetInvalidUniqueId() )
 		{
 			canTaskBeKilled = true;
@@ -12501,9 +13506,9 @@ statemachine abstract import class CR4Player extends CPlayer
 		itemEntity = (W3UsableItem)inv.GetItemEntityUnsafe( selectedItemId );
 		if ( itemEntity && m_useSelectedItemIfSpawned )
 		{
-			
+			// we have selected item and we are allowed to use it, so to it and kill itself.
 			canTaskBeKilled = true;
-			m_useSelectedItemIfSpawned = false; 			
+			m_useSelectedItemIfSpawned = false; 			// reset flag
 			ProcessUseSelectedItem( itemEntity, true );	 
 		}
 		
@@ -12568,7 +13573,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		UnblockAction(EIAB_Crossbow, 'BombThrow');
 	}
 	
-	
+	//Called when bomb throwing has started - it is ensured that we CAN throw it. At this point we don't know yet if it's a quick throw or aimed throw
 	protected function BombThrowStart()
 	{
 		var slideTargetActor : CActor;
@@ -12585,10 +13590,10 @@ statemachine abstract import class CR4Player extends CPlayer
 			
 			slideTargetActor = (CActor)( slideTarget );
 			
-			
-			
-			
-			
+			//AK BOMB: moved rotation from anim event to scripts to prevent rotation to friendly and neutral npcs.
+			// removed the check after commenting out ProcessCanAttackWhenNotInCombatBomb
+			//if( !slideTargetActor || ( slideTargetActor && GetAttitudeBetween(this, slideTarget) == AIA_Hostile ) )
+			//	SetCustomRotation( 'Throw', VecHeading( slideTarget.GetWorldPosition() - GetWorldPosition() ), 0.0f, 0.3f, false );
 		}
 		else
 		{
@@ -12608,16 +13613,16 @@ statemachine abstract import class CR4Player extends CPlayer
 		if ( RaiseForceEvent('CombatAction') )
 			OnCombatActionStart();
 		
-		
+		//FIXME might be aborted afterwards and no bomb would be thrown actually
 		theTelemetry.LogWithLabel(TE_FIGHT_HERO_THROWS_BOMB, inv.GetItemName( selectedItemId ));	
 	}
 	
-	
+	//from animation
 	event OnThrowAnimStart()
 	{
 		var itemId : SItemUniqueId;
 		var thrownEntity		: CThrowable;
-		
+		//Disable slots on radial menu
 		this.radialSlots.Clear();
 		GetWitcherPlayer().GetItemEquippedOnSlot(EES_Petard1, itemId );
 		
@@ -12671,7 +13676,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			vehicle.GetUserCombatManager().OnForceItemActionAbort();
 		}
 			
-		
+		//if bomb was not detached yet (is not flying)
 		if(thrownEntity && !thrownEntity.WasThrown())
 		{ 
 			thrownEntity.BreakAttachment();
@@ -12686,9 +13691,89 @@ statemachine abstract import class CR4Player extends CPlayer
 	
 	public function ProcessCanAttackWhenNotInCombatBomb()
 	{
+		var targets : array< CGameplayEntity >;
+		var temp, throwVector, throwFrom, throwTo, throwVectorU : Vector;
+		var temp_n : name;
+		var throwVecLen : float;
+		var component : CComponent;
+		/* //AK BOMB: keeping it just in case we need to bring it back
+		var impactRange : float;
+		var entities	: array<CGameplayEntity>;
+		var ent 		: CEntity;
+		var actor		: CActor;
+		var petard		: W3Petard;
+		var vehicle		: CEntity;
+		var slotMatrix	: Matrix;
+		var isShootingFriendly	: bool;
 		
 		
-		SetIsShootingFriendly( false );
+		if ( thrownEntity )
+		{
+			petard = (W3Petard)( thrownEntity );
+			
+			if ( !IsThreatened() )
+			{
+				if ( this.playerAiming.GetCurrentStateName() == 'Aiming' )
+					ent = playerAiming.GetSweptFriendly();
+				else
+					actor = (CActor)GetDisplayTarget();
+				
+				if( ent || ( actor && actor.IsHuman() && !IsThreat( actor ) ) )
+					SetIsShootingFriendly( true );
+				else
+					SetIsShootingFriendly( false );				
+			}
+			else
+				SetIsShootingFriendly( false );				
+		}
+		else
+			SetIsShootingFriendly( false );
+		*/
+		
+		//Quest can lock bomb throwing to allow bombs to throw only at specific targets
+		if( FactsQuerySum( "BombThrowSpecificTargets" ) > 0 )
+		{
+			//more optimal but less accurate version
+			//FindGameplayEntitiesCloseToPoint( targets, playerAiming.GetThrowPosition(), 2.f, 20, 'BombThrowSpecificTarget' );
+			//SetIsShootingFriendly( targets.Size() == 0 );
+			
+			//fun fact - without breaking all calculations into separate variables this code doesn't work...
+			throwFrom = playerAiming.GetThrowStartPosition();
+			throwTo = playerAiming.GetThrowPosition();
+			throwVector = throwTo - throwFrom;
+			throwVecLen = VecDistance( throwFrom, throwTo );
+			throwVectorU =  throwVector / throwVecLen;
+			if( theGame.GetWorld().StaticTraceWithAdditionalInfo( throwFrom, throwTo + throwVectorU, temp, temp, temp_n, component ) && component && component.GetEntity().HasTag( 'BombThrowSpecificTarget' ) )
+			{
+				SetIsShootingFriendly( false );
+			}
+			else
+			{
+				SetIsShootingFriendly( true );
+			}
+		}
+		else if( FactsQuerySum( "BombThrowDisallowSpecificTargets" ) > 0 )
+		{
+			//fun fact - without breaking all calculations into separate variables this code doesn't work...
+			throwFrom = playerAiming.GetThrowStartPosition();
+			throwTo = playerAiming.GetThrowPosition();
+			throwVector = throwTo - throwFrom;
+			throwVecLen = VecDistance( throwFrom, throwTo );
+			throwVectorU =  throwVector / throwVecLen;
+			if( theGame.GetWorld().StaticTraceWithAdditionalInfo( throwFrom, throwTo + throwVectorU, temp, temp, temp_n, component ) && component && component.GetEntity().HasTag( 'BombThrowDisallowedTarget' ) )
+			{
+				SetIsShootingFriendly( true );
+			}
+			else
+			{
+				SetIsShootingFriendly( false );
+			}
+		}
+		else
+		{
+			SetIsShootingFriendly( false );
+		}
+		
 		SetBehaviorVariable( 'isShootingFriendly', (float)( GetIsShootingFriendly() ) );		
 	}
 
@@ -12702,12 +13787,12 @@ statemachine abstract import class CR4Player extends CPlayer
 		return isShootingFriendly;
 	}
 	
-	
+	//only for usable items
 	protected function UsableItemStart()
 	{
 		var thrownEntity : CThrowable;
 		
-		
+		//this seems like bullshit but it's because usable items use the same code as throwing bombs and shooting crossbow
 		thrownEntity = (CThrowable)inv.GetDeploymentItemEntity( selectedItemId,,,true );
 		thrownEntity.Initialize( this, selectedItemId );
 		EntityHandleSet( thrownEntityHandle, thrownEntity );
@@ -12735,16 +13820,23 @@ statemachine abstract import class CR4Player extends CPlayer
 	
 	protected function BombThrowRelease()
 	{
+		var stateName : name;
+		
+		stateName = playerAiming.GetCurrentStateName();
 		OnDelayOrientationChangeOff();
 		
-		if ( GetIsShootingFriendly() )
+		if( GetIsShootingFriendly() || ( FactsQuerySum( "BombThrowSpecificTargets" ) > 0 && stateName != 'Aiming' ) )
+		{
 			BombThrowAbort();
+		}
 		else
 		{
 			SetBehaviorVariable( 'throwStage', (int)TS_End );
 			
-			if ( playerAiming.GetCurrentStateName() == 'Aiming' )
+			if ( stateName == 'Aiming' )
+			{
 				SetCustomRotation( 'Throw', VecHeading( this.GetLookAtPosition() - GetWorldPosition() ), 0.0f, 0.2f, false );
+			}
 		}
 	}
 	
@@ -12755,7 +13847,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		RemoveCustomOrientationTarget( 'UsableItems' );		
 	}
 			
-	
+	// Called when usable item use or crossbow shot was aborted (bombs use different function)
 	public function ThrowingAbort()
 	{
 		var thrownEntity		: CThrowable;
@@ -12771,7 +13863,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			thrownEntity.StopAiming( true );
 		}
 		
-		
+		//if bomb was not detached yet (is not flying)
 		if(thrownEntity && !thrownEntity.WasThrown())
 		{ 
 			thrownEntity.BreakAttachment();
@@ -12782,23 +13874,23 @@ statemachine abstract import class CR4Player extends CPlayer
 	
 	public function CanSetupCombatAction_Throw() : bool
 	{
-		
+		//if has item selected
 		if(!inv.IsIdValid( selectedItemId ))
 			return false;
 			
-		
+		//if not a throwable item
 		if(!inv.IsItemSingletonItem(selectedItemId))
 			return false;
 			
-		
+		//if input is not blocked
 		if(!GetBIsInputAllowed())
 			return false;
 			
-		
+		//if has ammo
 		if(inv.GetItemQuantity(GetSelectedItemId()) <= 0 && !inv.ItemHasTag(selectedItemId, theGame.params.TAG_INFINITE_AMMO))
 			return false;
 			
-		
+		//if action is not blocked or (HACK) we're in swimming
 		if(!inputHandler.IsActionAllowed(EIAB_ThrowBomb) && GetCurrentStateName() != 'Swimming')
 			return false;
 	
@@ -12810,7 +13902,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		return (CThrowable)EntityHandleGet( thrownEntityHandle );
 	}
 	
-	
+	// Crossbow events and  functions
 	event OnWeaponWait()			{ rangedWeapon.OnWeaponWait(); }
 	event OnWeaponDrawStart()		{ rangedWeapon.OnWeaponDrawStart(); }
 	event OnWeaponReloadStart() 	{ rangedWeapon.OnWeaponReloadStart(); }
@@ -12849,7 +13941,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		return false;
 	}
 	
-	
+	// Tickets
 	event OnBlockAllCombatTickets( release : bool )
 	{
 		if (!release )
@@ -12857,17 +13949,17 @@ statemachine abstract import class CR4Player extends CPlayer
 	}
 	event OnForceTicketUpdate()						{}
 
+	////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////  @ATTACKS 		   /////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
-	
-	 event OnPocessActionPost(action : W3DamageAction)
+	/*script*/ event OnProcessActionPost(action : W3DamageAction)
 	{
 		var npc : CNewNPC;
 		var attackAction : W3Action_Attack;
 		var lifeLeech : float;
 		
-		super.OnPocessActionPost(action);
+		super.OnProcessActionPost(action);
 		
 		attackAction = (W3Action_Attack)action;
 		
@@ -12886,19 +13978,19 @@ statemachine abstract import class CR4Player extends CPlayer
 			
 			if(attackAction.IsActionMelee())
 			{
-				
+				//uninterrupted hits counting
 				IncreaseUninterruptedHitsCount();
 				
-				
+				//camera shake
 				if( IsLightAttack( attackAction.GetAttackName() ) )
 				{
 					GCameraShake(0.1, false, GetWorldPosition(), 10);
 				}
 				
-				
+				//Caretaker Shovel life steal
 				if(npc && inv.GetItemName(attackAction.GetWeaponId()) == 'PC Caretaker Shovel')
 				{
-					
+					//inv.PlayItemEffect( items[i], 'stab_attack' );
 					lifeLeech = CalculateAttributeValue(inv.GetItemAttributeValue(attackAction.GetWeaponId() ,'lifesteal'));
 					if (npc.UsesVitality())
 						lifeLeech *= action.processedDmg.vitalityDamage;
@@ -12927,9 +14019,9 @@ statemachine abstract import class CR4Player extends CPlayer
 			return 1.f;
 	}
 		
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////  @HORSE  		   /////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
 	
 	public function GetHorseWithInventory() : CNewNPC
 	{
@@ -12939,7 +14031,7 @@ statemachine abstract import class CR4Player extends CPlayer
 	{
 		return currentlyMountedHorse;
 	}
-	
+	// Do not use outside of vehicle component
 	public function _SetHorseCurrentlyMounted( horse : CNewNPC )
 	{
 		currentlyMountedHorse = horse;
@@ -13067,11 +14159,26 @@ statemachine abstract import class CR4Player extends CPlayer
 	public function CanFollowNpc() : bool { return canFollowNpc; }
 	public function GetActorToFollow() : CActor { return actorToFollow; }
 
+	/*public function SetIsFollowing( val : bool )
+	{ 
+		isFollowing = val; 
+		
+		if( val )
+			followingStartTime = theGame.GetEngineTimeAsSeconds();
+		else
+			followingStartTime = 0.0;
+	}
+	public function GetFollowingStartTime() : float { return followingStartTime; }
+	public function IsFollowing() : bool { return isFollowing; }
 	
+	timer function ResetIsFollowing( td : float, id : int )
+	{
+		isFollowing = false;
+	}*/
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////   @SWIMMING   ////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
 	
 	public function SetIsSwimming ( toggle : bool )		
 	{ 
@@ -13081,34 +14188,34 @@ statemachine abstract import class CR4Player extends CPlayer
 			isSwimming = toggle;
 		}	
 	}
+	//public function IsSwimming () : bool				{ return isSwimming;	}
 	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////  @DURABILITY  //////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
 	
-	
-	
-	
-	
-	
+	//returns true if repaired
 	public function RepairItemUsingConsumable(item, consumable : SItemUniqueId) : bool
 	{
 		var curr, max, repairValue, itemValue, repairBonus, newDurability : float;
 	
-		
+		//basic check
 		if(!inv.IsIdValid(item) || !inv.IsIdValid(consumable) || !inv.HasItemDurability(item))
 			return false;
 			
 		curr = inv.GetItemDurability(item);
 		max = inv.GetItemMaxDurability(item);
 		
-		
+		//check durability level
 		if(curr > max)
 			return false;
 			
-		
+		//check consumable type
 		if( (inv.IsItemAnyArmor(item) && inv.ItemHasTag(consumable, theGame.params.TAG_REPAIR_CONSUMABLE_ARMOR)) ||
 			(inv.IsItemSilverSwordUsableByPlayer(item) && inv.ItemHasTag(consumable, theGame.params.TAG_REPAIR_CONSUMABLE_SILVER)) ||
 			(inv.IsItemSteelSwordUsableByPlayer(item) && inv.ItemHasTag(consumable, theGame.params.TAG_REPAIR_CONSUMABLE_STEEL))  )
 		{
-			
+			//item stats
 			itemValue = CalculateAttributeValue(inv.GetItemAttributeValue(consumable, 'durabilityRepairValue'));
 			if(itemValue <= 0)
 			{
@@ -13117,16 +14224,19 @@ statemachine abstract import class CR4Player extends CPlayer
 			}
 			repairBonus = CalculateAttributeValue(inv.GetItemAttributeValue(consumable, 'durabilityBonusValue'));
 						
-			
+			//calculate
 			repairValue = max * itemValue /100;
 			
-			
+			/* disabled repairing over 100%
+			if(HasBookPerk(S_Book_28))
+				max = max * (1 + (repairBonus + perkValue) /100);
+			*/
 			
 			newDurability = MinF(max, curr + repairValue);
 			
 			inv.SetItemDurabilityScript(item, newDurability);
 			
-			
+			//consume
 			inv.RemoveItem(consumable);
 			
 			return true;
@@ -13134,21 +14244,64 @@ statemachine abstract import class CR4Player extends CPlayer
 		return false;
 	}
 	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////  @PushingObject 		   /////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////
+	/*
+	event OnRigidBodyCollision( component : CComponent, actorIndex : int, shapeIndex : int )
+	{
+		pushableComponent = component;
+		if ( pushableComponent )
+			this.RaiseEvent('PushObject');
+		
+		//component.ApplyForceAtPointToPhysicalObject
+	}
 	
+	event OnRigidBodyExit( component : CComponent )
+	{
+		this.RaiseEvent('PushObjectEnd');
+		pushableComponent = NULL;
+	}
+			
+	event OnPushObjectStart()
+	{
+		moveAdj = GetMovingAgentComponent().GetMovementAdjustor();
+		moveAdj.CancelAll();
+		pushRotTicket = moveAdj.CreateNewRequest( 'RotateToObject' );
+		moveAdj.MaxRotationAdjustmentSpeed(pushRotTicket,30);
+		moveAdj.Continuous(pushRotTicket);
+		moveAdj.DontEnd(pushRotTicket);
+		this.AddTimer('PushObjectUpdate',0.01,true, , , true);
+		
+	}
 	
+	event OnPushObjectStop()
+	{
+		this.RemoveTimer('PushObjectUpdate');
+		moveAdj.CancelByName('RotateToObject');
+		moveAdj = NULL;
+	}
 	
+	timer function PushObjectUpdate( dt : float , id : int)
+	{
+		var impulse : Vector;
+		moveAdj.RotateTo( pushRotTicket, rawPlayerHeading );
+		impulse = this.GetHeadingVector()*10.0;
+		//impulse.Z += 0.5;
+		//pushableComponent.ApplyLocalImpulseToPhysicalObject(impulse);
+	}
+	*/
 	
-	
-	
-	
-	
+	///////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////  @DAY @NIGHT CYCLE CHECK  /////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////
 	
 	private function CheckDayNightCycle()
 	{
 		var time : GameTime;
 		var isNight : bool;
 		
-		
+		//if changed
 		isNight = theGame.envMgr.IsNight();
 		if(prevDayNightIsNight != isNight)
 		{
@@ -13160,7 +14313,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			prevDayNightIsNight = isNight;
 		}
 		
-		
+		//schedule next call		
 		if(isNight)
 			time = theGame.envMgr.GetGameTimeTillNextDay();
 		else
@@ -13174,7 +14327,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		CheckDayNightCycle();
 	}
 	
-	 event OnNightStarted()
+	/*script*/ event OnNightStarted()
 	{
 		var pam : W3PlayerAbilityManager;
 		
@@ -13185,7 +14338,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		}		
 	}
 	
-	 event OnDayStarted()
+	/*script*/ event OnDayStarted()
 	{
 		var pam : W3PlayerAbilityManager;
 		
@@ -13196,9 +14349,9 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 	}
 	
-	
-	
-	
+	///////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////  @INPUT  //////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////
 	
 	public function ForceUnlockAllInputActions(alsoQuestLocks : bool)
 	{
@@ -13226,9 +14379,9 @@ statemachine abstract import class CR4Player extends CPlayer
 		return combatInputContext;
 	}
 	
-	
-	
-	
+	///////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////  @EXPLORATION  ////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////
 	
 	public function SetIsOnBoat(b : bool)
 	{
@@ -13272,11 +14425,11 @@ statemachine abstract import class CR4Player extends CPlayer
 		return IsInSettlement();
 	}
 
-	
-	
-	
+	///////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////  GLOSSARY  ////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////
 
-	
+	//Processes glossary image filename and exchanges it with override if provided
 	public function ProcessGlossaryImageOverride( defaultImage : string, uniqueTag : name ) : string
 	{
 		var size : int;
@@ -13297,7 +14450,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		return defaultImage;
 	}
 	
-	
+	//Adds glossary image override filename to array
 	public function EnableGlossaryImageOverride( uniqueTag : name, imageFileName : string, enable : bool )
 	{
 		var imageData : SGlossaryImageOverride;
@@ -13320,9 +14473,22 @@ statemachine abstract import class CR4Player extends CPlayer
 			}
 		}
 	}
+	///////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////  WEATHER DISPLAY  /////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////	
+	public function SetWeatherDisplayDisabled( disable : bool )
+	{
+		disableWeatherDisplay = disable;
+	}
 	
+	public function GetWeatherDisplayDisabled() : bool
+	{
+		return disableWeatherDisplay;
+	}
 	
-	
+	///////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////  MONSTER HUNT INVESTIGATION AREAS  /////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////
 	
 	public function SetCurrentMonsterHuntInvestigationArea ( area : W3MonsterHuntInvestigationArea )
 	{
@@ -13330,9 +14496,9 @@ statemachine abstract import class CR4Player extends CPlayer
 	}
 
 
-	
-	
-	
+	///////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////  BARBER SYSTEM CUSTOM HEAD   /////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////
 	
 	public function RememberCustomHead( headName : name )
 	{
@@ -13349,9 +14515,9 @@ statemachine abstract import class CR4Player extends CPlayer
 		rememberedCustomHead = '';
 	}	
 	
-	
-	
-	
+	///////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////  @TUTORIAL	   ////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////
 	
 	public function CreateTutorialInput()
 	{
@@ -13443,14 +14609,14 @@ statemachine abstract import class CR4Player extends CPlayer
 	}
 	
 
-	
-	
-	
+	///////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////  @FINISHERS	   ////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////	
 	
 	timer function DelayedFinisherInputTimer(dt : float, id : int)
 	{	
-		
-		
+		//theGame.SetTimeScale( 0.1, theGame.GetTimescaleSource(ETS_FinisherInput), theGame.GetTimescalePriority(ETS_FinisherInput) );
+		//GetFinisherVictim().EnableFinishComponent( true );	
 	}
 	
 	timer function RemoveFinisherCameraAnimationCheck(dt : float, id : int)
@@ -13462,16 +14628,16 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 	}
 	
-	
-	
-	
+	///////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////  @DEBUG @TIMERS	   ////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////
 		
 	timer function GameplayFactRemove(dt : float, timerId : int)
 	{
 		theGame.GameplayFactRemoveFromTimer(timerId);
 	}	
 	
-	
+	//gives NORMAL starting inventory
 	timer function GiveStartingItems(dt : float, timerId : int)
 	{
 		var template : CEntityTemplate;
@@ -13481,7 +14647,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		var id : SItemUniqueId;
 		var i : int;
 		
-		
+		//wait for inventory to init
 		if(inv)
 		{			
 			inv.GetAllItems(items);
@@ -13495,7 +14661,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			return;
 		}
 		
-		
+		//add items
 		template = (CEntityTemplate)LoadResource("geralt_inventory_release");
 		entity = theGame.CreateEntity(template, Vector(0,0,0));
 		invEntity = (CInventoryComponent)entity.GetComponentByClassName('CInventoryComponent');
@@ -13508,7 +14674,7 @@ statemachine abstract import class CR4Player extends CPlayer
 			{
 				inv.MountItem(id);
 			}
-			else if(!inv.IsItemFists(id) && inv.GetItemName(id) != 'Cat 1')	
+			else if(!inv.IsItemFists(id) && inv.GetItemName(id) != 'Cat 1')	//hack for cat potion - don't equip!
 			{
 				EquipItem(id);
 			}
@@ -13520,12 +14686,12 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		entity.Destroy();
 		
-		
+		//remove timer
 		RemoveTimer('GiveStartingItems');
 	}
 	
-	
-	
+	//Adds items used for testing. Won't be called in final release. Items are added from geralt_inventory entity.
+	//Works as a timer since we need to wait for inventory to init and there is no such event.
 	timer function Debug_GiveTestingItems(dt : float, optional id : int)
 	{
 		var template : CEntityTemplate;
@@ -13535,7 +14701,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		var i : int;
 		var slot : EEquipmentSlots;
 			
-		
+		//wait for inventory to init
 		if(inv)
 		{
 			inv.GetAllItems(items);
@@ -13555,10 +14721,10 @@ statemachine abstract import class CR4Player extends CPlayer
 		invTesting.GiveAllItemsTo(inv, true);
 		entity.Destroy();
 		
-		
+		//once called remove the timer
 		RemoveTimer('Debug_GiveTestingItems');
 		
-		
+		//equip crossbow, bombs and bolts, select bolts
 		inv.GetAllItems(items);
 				
 		for(i=0; i<items.Size(); i+=1)
@@ -13584,7 +14750,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 	}
 	
-	
+	//called in tutorial in not final version to remove testing items
 	timer function Debug_RemoveTestingItems(dt : float, id : int)
 	{
 		var template : CEntityTemplate;
@@ -13607,7 +14773,7 @@ statemachine abstract import class CR4Player extends CPlayer
 	
 	timer function Debug_DelayedConsoleCommand(dt : float, id : int)
 	{
-		
+		//inv.AddAnItem('Recipe for Mutagen 23');
 		inv.AddAnItem('Boots 2 schematic');
 	}
 	
@@ -13616,9 +14782,9 @@ statemachine abstract import class CR4Player extends CPlayer
 		((W3PlayerAbilityManager)abilityManager).DBG_SkillSlots();
 	}
 
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////  @BACKLIGHT COLOR  ////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	public final function SetPadBacklightColor(r, g, b : int)
 	{
@@ -13637,11 +14803,11 @@ statemachine abstract import class CR4Player extends CPlayer
 		
 		switch(signType)
 		{
-			case ST_Yrden: 	SetPadBacklightColor( 200 , 81  , 255 ); break;	
-			case ST_Quen: 	SetPadBacklightColor( 255 , 205 , 68  ); break;	
-			case ST_Igni: 	SetPadBacklightColor( 255 , 79  , 10  ); break;	
-			case ST_Axii: 	SetPadBacklightColor( 255 , 255 , 255 ); break;	
-			case ST_Aard: 	SetPadBacklightColor( 158 , 214 , 255 ); break;	
+			case ST_Yrden: 	SetPadBacklightColor( 200 , 81  , 255 ); break;	// Violet
+			case ST_Quen: 	SetPadBacklightColor( 255 , 205 , 68  ); break;	// Yellow
+			case ST_Igni: 	SetPadBacklightColor( 255 , 79  , 10  ); break;	// Orange
+			case ST_Axii: 	SetPadBacklightColor( 255 , 255 , 255 ); break;	// White
+			case ST_Aard: 	SetPadBacklightColor( 158 , 214 , 255 ); break;	// Blue
 		}
 	}
 	
@@ -13661,7 +14827,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		{
 			weapons = inv.GetHeldWeapons();
 			
-			
+			//if holding a sword the default backlight color matches the one set in sword entity
 			if(weapons.Size() > 0)
 			{
 				sword = (CWitcherSword)inv.GetItemEntityUnsafe(weapons[0]);
@@ -13683,12 +14849,17 @@ statemachine abstract import class CR4Player extends CPlayer
 		LogPS4Light("Setting light from health, " + NoTrailZeros(RoundMath(healthPercentage*100)) + "%");
 	}
 	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	event OnOpenningDoor()
 	{
 		if( !thePlayer.IsUsingHorse() )
 			RaiseEvent('OpenDoor');
+	}
+	
+	public final function SetLoopingCameraShakeAnimName( n : name )
+	{
+		loopingCameraShakeAnimName = n;
 	}
 	
 	public var loopingCameraShakeAnimName : name;
@@ -13709,11 +14880,11 @@ statemachine abstract import class CR4Player extends CPlayer
 	{
 		if( theGame.IsFocusModeActive() )
 		{
-			return 0.25; 
+			return 0.25; // Tweaked for [108933] Geralt is being clipped when using focus mode while running towards camera.
 		}
 		else
 		{
-			return 0.02f; 
+			return 0.02f; // Tweaked for [114907] Player dissolving while aiming crossbow.
 		}
 	}
 	
@@ -13738,7 +14909,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		thePlayer.GetTarget().PlayEffect( 'olgierd_energy_blast' );
 	}
 
-	
+	// TEST
 	public function SetTestAdjustRequestedMovementDirection( val : bool )
 	{
 		testAdjustRequestedMovementDirection = val;
@@ -13755,15 +14926,15 @@ statemachine abstract import class CR4Player extends CPlayer
 		boneFollow		= thePlayer.GetBoneIndex( 'Reference' );
 		bonePosition	= MatrixGetTranslation( thePlayer.GetBoneWorldMatrixByIndex( boneFollow ) );
 		frame.DrawText( "R", bonePosition, Color( 50, 200, 70 ) );
-		
+		//frame.DrawText( "R", bonePositionCam, Color( 200, 50, 70 ) );
 		
 		boneFollow		= thePlayer.GetBoneIndex( 'Trajectory' );
 		bonePosition	= MatrixGetTranslation( thePlayer.GetBoneWorldMatrixByIndex( boneFollow ) );
 		frame.DrawSphere( bonePosition, 0.1f, Color( 200, 50, 70 ) );
 		frame.DrawText( "T", bonePosition, Color( 200, 50, 70 ) );
 		
-		
-		
+		//frame.DrawSphere( lastSafePosition, 1.0f, Color( 50, 200, 70 ) );
+		//frame.DrawText( "SavePos", lastSafePosition, Color( 50, 200, 70 ) );
 		
 		yrdenEntity = (W3YrdenEntity)GetWitcherPlayer().GetSignEntity(ST_Yrden);
 		yrdenEntity.OnVisualDebug(frame, flag, false);
@@ -13838,7 +15009,7 @@ statemachine abstract import class CR4Player extends CPlayer
 		}		
 	}
 	
-	
+	// TEMP
 	public function DealDamageToBoat( dmg : float, index : int, optional globalHitPos : Vector )
 	{
 		var boat : CBoatDestructionComponent;
@@ -13853,15 +15024,15 @@ statemachine abstract import class CR4Player extends CPlayer
 		}
 	}
 	
-	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////
+	//
+	// PLAYABLE AREA
+	//
 	public function OnStartTeleportingPlayerToPlayableArea()
 	{
 		var FADEOUT_INTERVAL : float = 0.5;
 		
-		
+		// if we jumped on horse right before being teleported, we need to disable falling damage because height difference may kill us
 		if ( thePlayer.IsUsingHorse() )
 		{
 			if ( thePlayer.GetUsedHorseComponent().OnCheckHorseJump() )
@@ -13899,29 +15070,31 @@ statemachine abstract import class CR4Player extends CPlayer
 	
 	public function OnTeleportPlayerToPlayableArea( afterClosingMap : bool )
 	{
-		var BLACKSCREEN_INTERVAL : float = 0.5;
+		var BLACKSCREEN_INTERVAL : float = 0.1;
 		var manager : CCommonMapManager = theGame.GetCommonMapManager();
-
-		theGame.FadeOutAsync( 0 );
+		
 		thePlayer.TeleportWithRotation( manager.GetBorderTeleportPosition(), manager.GetBorderTeleportRotation() );
 		thePlayer.AddTimer( 'BorderTeleportFadeInTimer', BLACKSCREEN_INTERVAL, false );
+		
+		theGame.FadeOutAsync( 0 );
+		theGame.SetFadeLock('PlayerTeleportation');
 	}
 	
 	timer function BorderTeleportFadeInTimer( dt : float, id : int )
 	{
-		var FADEIN_INTERVAL : float = 0.5;
-
-		theGame.FadeInAsync( FADEIN_INTERVAL );
+		theGame.ResetFadeLock('PlayerTeleportation');
+		theGame.FadeOutAsync( 0 );
+		theGame.FadeInAsync( 2.0f );
 	}
 	
 	public final function SetLastInstantKillTime(g : GameTime)
 	{
 		lastInstantKillTime = g;
 	}
-	
-	
-	
-	
+	//
+	//
+	//
+	////////////////////////////////////////////////////////////////////////////////
 
 	timer function TestTimer(dt : float, id : int )
 	{
@@ -13974,8 +15147,13 @@ statemachine abstract import class CR4Player extends CPlayer
 	}
 	public function ResetEtherealCount() { etherealCount = 0; }
 	
+	public function SetInsideDiveAttackArea( val : bool ) { insideDiveAttackArea = val; }
+	public function IsInsideDiveAttackArea() : bool { return insideDiveAttackArea; }
+	public function SetDiveAreaNumber( val : int ) { diveAreaNumber = val; }
+	public function GetDiveAreaNumber() : int { return diveAreaNumber; }
 	
-	
+	// PHANTOM WEAPON
+	//------------------------------------------------------------------------------------------------------------------
 	public function InitPhantomWeaponMgr()
 	{
 		if( !phantomWeaponMgr )
@@ -14009,7 +15187,53 @@ statemachine abstract import class CR4Player extends CPlayer
 	{
 		GetPhantomWeaponMgr().DischargeWeapon();
 	}
+	//------------------------------------------------------------------------------------------------------------------
+	// FORCED FINISHER - mutation8
+	//------------------------------------------------------------------------------------------------------------------
 	
+	private var forcedFinisherVictim : CActor;
+	
+	timer function PerformFinisher( time : float , id : int )
+	{
+		var combatTarget : CActor;
+		var i : int;
+		
+		combatTarget = thePlayer.GetTarget();
+		
+		if( combatTarget )
+		{
+			combatTarget.Kill( 'AutoFinisher', false, thePlayer );
+			thePlayer.SetFinisherVictim( combatTarget );
+			forcedFinisherVictim = combatTarget;
+			thePlayer.CleanCombatActionBuffer();
+			thePlayer.OnBlockAllCombatTickets( true );
+			moveTargets = thePlayer.GetMoveTargets();
+					
+			for( i = 0; i < moveTargets.Size(); i += 1 )
+			{
+				if( combatTarget != moveTargets[i] )
+					moveTargets[i].SignalGameplayEvent( 'InterruptChargeAttack' );
+			}	
+			
+			if( theGame.GetInGameConfigWrapper().GetVarValue( 'Gameplay', 'AutomaticFinishersEnabled' ) == "true" )
+				combatTarget.AddAbility( 'ForceFinisher', false );
+			
+			if( combatTarget.HasTag( 'ForceFinisher' ) )
+				combatTarget.AddAbility( 'ForceFinisher', false );
+				
+			combatTarget.SignalGameplayEvent( 'ForceFinisher' );
+			
+			thePlayer.FindMoveTarget();
+
+			thePlayer.AddTimer( 'SignalFinisher', 0.2, false );
+		}
+	}
+	
+	timer function SignalFinisher( time : float , id : int )
+	{
+		forcedFinisherVictim.SignalGameplayEvent( 'Finisher' );
+		forcedFinisherVictim = NULL;
+	}
 }
 
 exec function ttt()

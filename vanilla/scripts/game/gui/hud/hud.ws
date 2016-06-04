@@ -1,11 +1,6 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-import class CR4Hud extends CHud
+﻿import class CR4Hud extends CHud
 {
-	
+	//import final function GetActorHeadIconScreenPosition( actor : CActor, allowOffScreen : bool, screenPos : Vector ) : bool;
 	import final function ShowOneliner( text : string, entity : CEntity );
 	import final function HideOneliner( entity : CEntity );
 }
@@ -36,9 +31,9 @@ class CR4ScriptedHud extends CR4Hud
 	private var m_fxSetIsDynamicSFF			: CScriptedFlashFunction;
 	private var m_fxSetControllerType 	 	: CScriptedFlashFunction;
 	private var m_fxSwapAcceptCancel	    : CScriptedFlashFunction;
-	
 	protected var m_fxSetGamepadType       	: CScriptedFlashFunction;
 	protected var m_fxLockControlScheme     : CScriptedFlashFunction;
+	private var m_fxSetGameLanguage			: CScriptedFlashFunction;
 	
 	private var hudModules					: array<CR4HudModuleBase>;
 	public	var hudModulesNames				: array<name>;
@@ -59,24 +54,27 @@ class CR4ScriptedHud extends CR4Hud
 	private var m_visibleHudByUser   : bool;	default m_visibleHudByUser = true;
 	private var m_visibleHudByScene  : bool;	default m_visibleHudByScene = false;
 	private var m_visibleHudByRadial : bool;	default m_visibleHudByRadial = false;
-	
-	private var m_lastUsedDeviceName : EInputDeviceType;
+	private var languageName 					: string;
+
 
 	event OnTick( timeDelta : float )
 	{
-		var curUsedDeviceName : EInputDeviceType;
-		var overlayPopupRef	  : CR4OverlayPopup;
-		var guiManager        : CR4GuiManager;
-		
+/////////////////////////////////////////////////////////////////////////////
+//
+// !!! HACK !!!
+//
 		ClearCachedPositionForEntity();
-		
+//
+// !!! END OF HACK !!!
+//
+/////////////////////////////////////////////////////////////////////////////
 		UpdateLootPopupContext();
 		
 		if( currentInputContext != theInput.GetContext() )
 		{
 			previousInputContext = currentInputContext;
 			currentInputContext = theInput.GetContext();
-			
+			// #Y OMG! We can't switch context during RadialMenu, it's very not intuitive and may cause a lot of bugs
 			if( IsRadialMenuOpened() && currentInputContext != 'RadialMenu' && !IsRadialMenuOverwritenByContext(currentInputContext) )
 			{
 				theInput.RestoreContext( 'RadialMenu', true );
@@ -89,18 +87,18 @@ class CR4ScriptedHud extends CR4Hud
 				m_fxSetInputContextSFF.InvokeSelfOneArg(FlashArgString(currentInputContext));
 			}
 			
-			
-			
-			
-			
-			
+			// I will just leave this line commented for future generations, it's too precious to be deleted and forgotten
+			//                    |
+			//                    |
+			//                    V
+			//if( previousInputContext != 'RadialMenu' && !( currentInputContext == 'Exploration' && previousInputContext == 'JumpClimb' || currentInputContext == 'Exploration' && previousInputContext == 'JumpClimb' ) )
 			{
 				GetHudEventController().RunEvent_ControlsFeedbackModule_Update( currentInputContext );
 			}
 
 			OnInputContextChanged();
 			
-			
+			//LogChannel('HUD_TICK',"");
 			LogChannel('HUD_TICK',"INPUT CONTEXT CHANGED "+currentInputContext+" previousInputContext "+previousInputContext);
 			LogChannel('HUD_TICK',"");
 		}
@@ -110,23 +108,19 @@ class CR4ScriptedHud extends CR4Hud
 		UpdateDeathTimer(timeDelta);
 		
 		GetHudEventController().RunDelayedEvents();
-		
-		// TEMP: update for steam controller
-		curUsedDeviceName = theInput.GetLastUsedGamepadType();
-		if( ( curUsedDeviceName == GT_Steam || m_lastUsedDeviceName == GT_Steam ) && curUsedDeviceName != m_lastUsedDeviceName )
-		{
-			m_lastUsedDeviceName = curUsedDeviceName;
-			UpdateInputDeviceType();
-			guiManager = theGame.GetGuiManager();
-			overlayPopupRef = (CR4OverlayPopup) guiManager.GetPopup( 'OverlayPopup' );
-			
-			if( overlayPopupRef )
+	}
+	
+	
+	public function setGameLanguage() : void
+	{
+		var tempLanguageName 	: string;
+		var audioLanguageName 	: string;
+		theGame.GetGameLanguageName(audioLanguageName,tempLanguageName);
+			if( tempLanguageName != languageName )
 			{
-				overlayPopupRef.UpdateGamepadType();
+				languageName = tempLanguageName;
+				m_fxSetGameLanguage.InvokeSelfOneArg( FlashArgString(languageName) );
 			}
-			
-			UpdateInputDevice();
-		}
 	}
 	
 	protected function CheckDLCMessagePending():void
@@ -187,9 +181,9 @@ class CR4ScriptedHud extends CR4Hud
 	{
 		var currentMenu : CR4Menu;
 		
-		
-		
-		
+		// #J SUPER lame way to bypass fact that current timers are paused when game is paused, even if it needs not to be
+		// Best way to fix TTP#100217 that I could think of without new timer system. If theres a better way that I know nothing about
+		// feel free, nay, encouraged to do it that way.
 		if ( m_deathTimerActive )
 		{
 			m_deathTimer -= timeDelta;
@@ -200,7 +194,7 @@ class CR4ScriptedHud extends CR4Hud
 				
 				currentMenu = theGame.GetGuiManager().GetRootMenu();
 				
-				
+				// In case pause menu popped in when it should not have.
 				if (currentMenu)
 				{
 					currentMenu.CloseMenu();
@@ -244,7 +238,7 @@ class CR4ScriptedHud extends CR4Hud
 		theGame.GetCurrentViewportResolution( currentWidth, currentHeight );
 		ratio = ( (float)currentWidth ) / currentHeight;
 		
-		
+		// this should be the same as in UpdateAnchorsAspectRatio in HudModuleAnchors.as
 		if ( AbsF( ratio - 4.0 / 3.0 ) < 0.01 )
 		{
 			m_scaleformWidth   = 1920;
@@ -257,6 +251,13 @@ class CR4ScriptedHud extends CR4Hud
 			m_scaleformWidth   = 2520;
 			m_scaleformHeight  = 1080;
 			m_scaleformOffsetX = -300;
+			m_scaleformOffsetY = 0;
+		}
+		else if ( AbsF( ratio - 43.0 / 18.0 ) < 0.01 )
+		{
+			m_scaleformWidth   = 2580;
+			m_scaleformHeight  = 1080;
+			m_scaleformOffsetX = -330;
 			m_scaleformOffsetY = 0;
 		}
 		else
@@ -299,10 +300,10 @@ class CR4ScriptedHud extends CR4Hud
 		RescaleModules();
 	}
 	
-	
-	
+	// INIT #B
+	// -------------------------------------------------------------------------------
 
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{
 		var i : int;
 		m_HudFlashSFS = GetHudFlash();
@@ -319,34 +320,35 @@ class CR4ScriptedHud extends CR4Hud
 		
 		m_fxSetGamepadType		= m_HudFlashSFS.GetMemberFlashFunction( "setGamepadType" );
 		m_fxLockControlScheme	= m_HudFlashSFS.GetMemberFlashFunction( "lockControlScheme" );
+		m_fxSetGameLanguage 	= m_HudFlashSFS.GetMemberFlashFunction( "setGameLanguage" );
 		
 		CreateHudModule("AnchorsModule");			
 		hudModulesNames.PushBack('ControlsFeedbackModule');
-		hudModulesNames.PushBack('HorseStaminaBarModule');		
-		hudModulesNames.PushBack('HorsePanicBarModule');			
-		hudModulesNames.PushBack('InteractionsModule');			
-		hudModulesNames.PushBack('MessageModule');				
-		hudModulesNames.PushBack('RadialMenuModule');			
-		hudModulesNames.PushBack('QuestsModule');				
-		
-		hudModulesNames.PushBack('SubtitlesModule');				
-		
-		
-		hudModulesNames.PushBack('BuffsModule');					
-		hudModulesNames.PushBack('WolfHeadModule');				
-		hudModulesNames.PushBack('ItemInfoModule');				
-		hudModulesNames.PushBack('OxygenBarModule');				
+		hudModulesNames.PushBack('HorseStaminaBarModule');		// OK // #B Anchors OK
+		hudModulesNames.PushBack('HorsePanicBarModule');			// OK // #B Anchors OK
+		hudModulesNames.PushBack('InteractionsModule');			// OK 
+		hudModulesNames.PushBack('MessageModule');				// OK
+		hudModulesNames.PushBack('RadialMenuModule');			// OK
+		hudModulesNames.PushBack('QuestsModule');				// OK // #B Anchors OK
+		//hudModulesNames.PushBack('SignInfoModule');				// OK // #B Anchors OK
+		hudModulesNames.PushBack('SubtitlesModule');				// OK
+		//hudModulesNames.PushBack('DebugFastMenuModule');			// OK
+		//hudModulesNames.PushBack('LootPopupModule');				// OK // #B Anchors OK
+		hudModulesNames.PushBack('BuffsModule');					// OK // #B Anchors OK
+		hudModulesNames.PushBack('WolfHeadModule');				// OK // #B Anchors OK
+		hudModulesNames.PushBack('ItemInfoModule');				//  <-------------------- some scaleform error!!! // #B Anchors OK
+		hudModulesNames.PushBack('OxygenBarModule');				// #B Anchors OK
 		hudModulesNames.PushBack('EnemyFocusModule');
 		hudModulesNames.PushBack('BossFocusModule');
 		hudModulesNames.PushBack('DialogModule');
-		
+		//hudModulesNames.PushBack('DebugTextModule');
 		hudModulesNames.PushBack('BoatHealthModule');
-		
-		hudModulesNames.PushBack('ConsoleModule');				
-		hudModulesNames.PushBack('JournalUpdateModule');				
-		hudModulesNames.PushBack('AreaInfoModule');				
-		hudModulesNames.PushBack('CrosshairModule');				
-		hudModulesNames.PushBack('OnelinersModule');				
+		//hudModulesNames.PushBack('DeathScreenModule');
+		hudModulesNames.PushBack('ConsoleModule');				// #B Anchors OK 
+		hudModulesNames.PushBack('JournalUpdateModule');				// #B Anchors OK 
+		hudModulesNames.PushBack('AreaInfoModule');				// #B Anchors OK 
+		hudModulesNames.PushBack('CrosshairModule');				// #B Anchors OK 
+		hudModulesNames.PushBack('OnelinersModule');				// #B Anchors OK 
 		hudModulesNames.PushBack('Minimap2Module');
 		hudModulesNames.PushBack('CompanionModule');
 		hudModulesNames.PushBack('DamagedItemsModule');
@@ -362,10 +364,11 @@ class CR4ScriptedHud extends CR4Hud
 		
 		UpdateHudConfigs();
 		UpdateAcceptCancelSwaping();
-		//UpdateControlSchemeLock(); ignore for now
-		UpdateInputDeviceType();
+		UpdateControlSchemeLock();
 		
 		CheckDLCMessagePending();
+		setGameLanguage();
+		ToogleMinimalBuffView(true);
 	}
 	
 	public function IsHudVisibilityAllowedByUser() : bool
@@ -393,7 +396,7 @@ class CR4ScriptedHud extends CR4Hud
 			m_visibleHudByUser = show;
 			if ( m_visibleHudByScene )
 			{
-				
+				// if visibility was forced by scene, turn it off
 				m_visibleHudByScene = false;
 			}
 
@@ -424,7 +427,7 @@ class CR4ScriptedHud extends CR4Hud
 
 		if ( IsRadialMenuOpened() )
 		{
-			
+			// restriction - don't allow to show/hide hud by user when radial is opened
 			return;
 		}
 
@@ -472,17 +475,6 @@ class CR4ScriptedHud extends CR4Hud
 			radialMenuModule.UpdateSwapAcceptCancel();
 		}
 	}
-	
-	protected function UpdateInputDeviceType():void
-	{
-		var deviceType : EInputDeviceType;
-		
-		if (m_fxSetGamepadType)
-		{
-			deviceType = theInput.GetLastUsedGamepadType();
-			m_fxSetGamepadType.InvokeSelfOneArg( FlashArgUInt(deviceType) );
-		}
-	}
 
 	protected function UpdateControlSchemeLock():void
 	{
@@ -516,7 +508,7 @@ class CR4ScriptedHud extends CR4Hud
 	{
 		UpdateHudConfig('Subtitles', false);
 		
-		
+		// Note: When game is intializing, all modules need to update on these values themselves properly.
 		
 		UpdateHudConfig('HudVisibility', false);
 		UpdateHudConfig('HudSize', false);
@@ -533,7 +525,7 @@ class CR4ScriptedHud extends CR4Hud
 		UpdateHudConfig('HorsePanicBarModule', false);
 		UpdateHudConfig('HorseStaminaBarModule', false);
 		UpdateHudConfig('ItemInfoModule', false);
-		
+		//UpdateHudConfig('JournalUpdateModule', false);
 		UpdateHudConfig('Minimap2Module', false);
 		UpdateHudConfig('DayWeatherIndicator',false);
 		UpdateHudConfig('TrackedMonster',false);
@@ -546,6 +538,7 @@ class CR4ScriptedHud extends CR4Hud
 		UpdateHudConfig('MinimapFocusClues', false);
 		UpdateHudConfig('MinimapTracksWaypoints', false);
 		UpdateHudConfig('MiminapPoiQuestionMarks', false);
+		UpdateHudConfig('MinimapPoiCompletedIcons', false);
 		UpdateHudConfig('ControlsFeedbackModule', false);		
 		UpdateHudConfig('TimeLeftModule', false);
 		
@@ -592,7 +585,7 @@ class CR4ScriptedHud extends CR4Hud
 		case 'HorsePanicBarModule':
 		case 'HorseStaminaBarModule':
 		case 'ItemInfoModule':
-		
+		//case 'JournalUpdateModule':
 		case 'Minimap2Module':
 		case 'OnelinersModule':
 		case 'OxygenBarModule':
@@ -647,10 +640,16 @@ class CR4ScriptedHud extends CR4Hud
 			}
 			break;
 		case 'DayWeatherIndicator':
-			
+			/*{
+				configValue = inGameConfigWrapper.GetVarValue('Hud', configName);
+				EnableDayTimeDisplay(configValue == "true");
+			}*/
 			break;
 		case 'TrackedMonster':
-			
+			/*{
+				configValue = inGameConfigWrapper.GetVarValue('Hud', configName);
+				EnableBuffedMonsterDisplay(configValue == "true");
+			}*/
 			break;
 		case 'MinimapRotation':
 			{
@@ -668,6 +667,12 @@ class CR4ScriptedHud extends CR4Hud
 			{
 				configValue = inGameConfigWrapper.GetVarValue('Hud', configName);
 				theGame.GetCommonMapManager().ShowKnownEntities( configValue == "true" );
+			}
+			break;
+		case 'MinimapPoiCompletedIcons':
+			{
+				configValue = inGameConfigWrapper.GetVarValue('Hud', configName);
+				theGame.GetCommonMapManager().ShowDisabledEntities( configValue == "true" );
 			}
 			break;
 		case 'MinimapTracksWaypoints':
@@ -767,20 +772,20 @@ class CR4ScriptedHud extends CR4Hud
 		return false;
 	}
 		
-	
-	
+	// DIALOGS & SUBTITLES
+	// -------------------------------------------------------------------------------
 
-	event  OnDialogHudShow()
+	event /*C++*/ OnDialogHudShow()
 	{
-		theInput.StoreContext( 'Scene' ); 
+		theInput.StoreContext( 'Scene' ); //#B should be Scene
 	}
 
-	event  OnDialogHudHide()
+	event /*C++*/ OnDialogHudHide()
 	{	
-		theInput.RestoreContext( 'Scene', true ); 
+		theInput.RestoreContext( 'Scene', true ); // note : MS - we don't really know at this point what context we are going back to
 	}
 
-	event  OnDialogSentenceSet( text : string, alternativeUI : bool )
+	event /*C++*/ OnDialogSentenceSet( text : string, alternativeUI : bool )
 	{
 		var dialogModule : CR4HudModuleDialog;
 		
@@ -795,7 +800,7 @@ class CR4ScriptedHud extends CR4Hud
 		}
 	}
 	
-	event  OnDialogPreviousSentenceSet( text : string )
+	event /*C++*/ OnDialogPreviousSentenceSet( text : string )
 	{
 		var dialogModule : CR4HudModuleDialog;
 		
@@ -810,7 +815,7 @@ class CR4ScriptedHud extends CR4Hud
 		}
 	}
 	
-	event  OnDialogPreviousSentenceHide()
+	event /*C++*/ OnDialogPreviousSentenceHide()
 	{
 		var dialogModule : CR4HudModuleDialog;
 		
@@ -825,7 +830,7 @@ class CR4ScriptedHud extends CR4Hud
 		}
 	}
 
-	event  OnDialogSentenceHide()
+	event /*C++*/ OnDialogSentenceHide()
 	{
 		var dialogModule : CR4HudModuleDialog;
 		
@@ -840,7 +845,7 @@ class CR4ScriptedHud extends CR4Hud
 		}
 	}
 	
-	event  OnDialogChoicesSet( choices : array< SSceneChoice >, alternativeUI : bool )
+	event /*C++*/ OnDialogChoicesSet( choices : array< SSceneChoice >, alternativeUI : bool )
 	{
 		var dialogModule : CR4HudModuleDialog;
 		
@@ -855,7 +860,7 @@ class CR4ScriptedHud extends CR4Hud
 		}
 	}
 	
-	event  OnDialogChoiceTimeoutSet( timeOutPercent : float )
+	event /*C++*/ OnDialogChoiceTimeoutSet( timeOutPercent : float )
 	{
 		var dialogModule : CR4HudModuleDialog;
 		
@@ -870,7 +875,7 @@ class CR4ScriptedHud extends CR4Hud
 		}
 	}
 
-	event  OnDialogChoiceTimeoutHide()
+	event /*C++*/ OnDialogChoiceTimeoutHide()
 	{
 		var dialogModule : CR4HudModuleDialog;
 		
@@ -885,7 +890,7 @@ class CR4ScriptedHud extends CR4Hud
 		}
 	}
 
-	event  OnDialogSkipConfirmShow()
+	event /*C++*/ OnDialogSkipConfirmShow()
 	{
 		var dialogModule : CR4HudModuleDialog;
 		
@@ -900,7 +905,7 @@ class CR4ScriptedHud extends CR4Hud
 		}
 	}
 
-	event  OnDialogSkipConfirmHide()
+	event /*C++*/ OnDialogSkipConfirmHide()
 	{
 		var dialogModule : CR4HudModuleDialog;
 		
@@ -915,7 +920,7 @@ class CR4ScriptedHud extends CR4Hud
 		}
 	}
 	
-	event  OnSubtitleAdded( id : int, speakerNameDisplayText : string, htmlString : string, alternativeUI : bool  )
+	event /*C++*/ OnSubtitleAdded( id : int, speakerNameDisplayText : string, htmlString : string, alternativeUI : bool  )
 	{
 		var subtitlesModule : CR4HudModuleSubtitles;
 		
@@ -930,7 +935,7 @@ class CR4ScriptedHud extends CR4Hud
 		}
 	}
 	
-	event  OnSubtitleRemoved( id : int )
+	event /*C++*/ OnSubtitleRemoved( id : int )
 	{
 		var subtitlesModule : CR4HudModuleSubtitles;
 		
@@ -945,8 +950,8 @@ class CR4ScriptedHud extends CR4Hud
 		}
 	}
 
-	
-	
+	// VIDEO
+	// -------------------------------------------------------------------------------
 	
 	event OnVideoSubtitles( subtitles : string )
 	{
@@ -962,10 +967,10 @@ class CR4ScriptedHud extends CR4Hud
 		}
 	}
 
-	
-	
+	// ONELINERS
+	// -------------------------------------------------------------------------------
 
-	event  OnCreateOneliner( target : CEntity, value : string, ID : int )
+	event /* C++ */ OnCreateOneliner( target : CEntity, value : string, ID : int )
 	{
 		var onelinersModule : CR4HudModuleOneliners;
 		
@@ -980,7 +985,7 @@ class CR4ScriptedHud extends CR4Hud
 		}
 	}
 
-	event  OnRemoveOneliner( ID : int )
+	event /* C++ */ OnRemoveOneliner( ID : int )
 	{
 		var onelinersModule : CR4HudModuleOneliners;
 		
@@ -995,10 +1000,10 @@ class CR4ScriptedHud extends CR4Hud
 		}
 	}
 
-	
-	
+	// INTERACTIONS #B
+	// -------------------------------------------------------------------------------
 
-	event  OnInteractionsUpdated( component : CInteractionComponent )
+	event /*C++*/ OnInteractionsUpdated( component : CInteractionComponent )
 	{
 		var interactionsModule : CR4HudModuleInteractions;
 		
@@ -1024,30 +1029,54 @@ class CR4ScriptedHud extends CR4Hud
 		return false;
 	}
 	
+	// DEBUG TEXT #B
+	// -------------------------------------------------------------------------------
 	
-	
-	
-	event  OnDebugTextShown( text : string )
+	event /*C++*/ OnDebugTextShown( text : string )
 	{
+		/*
+		var debugTextModule : CR4HudModuleDebugText;
 		
+		debugTextModule = (CR4HudModuleDebugText)GetHudModule( "DebugTextModule" );
+		if ( debugTextModule )
+		{
+			debugTextModule.ShowDebugText( text );
+		}
+		else
+		{
+			LogChannel( 'MissingHudModule', "CR4HudModuleDebugText not found (OnDebugTextShown)" );
+		}
+		*/
 	}
 
-	event  OnDebugTextHidden()
+	event /*C++*/ OnDebugTextHidden()
 	{
+		/*
+		var debugTextModule : CR4HudModuleDebugText;
 		
+		debugTextModule = (CR4HudModuleDebugText)GetHudModule( "DebugTextModule" );
+		if ( debugTextModule )
+		{
+			debugTextModule.HideDebugText();
+		}
+		else
+		{
+			LogChannel( 'MissingHudModule', "CR4HudModuleDebugText not found (OnDebugTextHidden)" );
+		}
+		*/
 	}
 				
-	
-	
+	// JOURNAL UPDATE MODULE
+	// -------------------------------------------------------------------------------
 
-	event  OnCharacterEvent( journalCharacter : CJournalCharacter )
+	event /*C++*/ OnCharacterEvent( journalCharacter : CJournalCharacter )
 	{
 		LogChannel( 'Journal', "OnCharacterEvent" );
 		OnJournalUpdate(journalCharacter,false);
-		m_guiManager.RegisterNewGlossaryEntry( journalCharacter, 'panel_title_glossary_dictionary' ); 
+		m_guiManager.RegisterNewGlossaryEntry( journalCharacter, 'panel_title_glossary_dictionary' ); // panel_title_glossary_characters
 	}
 
-	event  OnCharacterDescriptionEvent( journalCharacterDescription : CJournalCharacterDescription )
+	event /*C++*/ OnCharacterDescriptionEvent( journalCharacterDescription : CJournalCharacterDescription )
 	{
 		var journalCharacter : CJournalCharacter;
 		LogChannel( 'Journal', "OnCharacterDescriptionEvent" );
@@ -1058,22 +1087,22 @@ class CR4ScriptedHud extends CR4Hud
 		}
 	}
 
-	event  OnCreatureEvent( journalCreature : CJournalCreature )
+	event /*C++*/ OnCreatureEvent( journalCreature : CJournalCreature )
 	{
 		LogChannel( 'Journal', "OnCreatureEvent" );
 		OnJournalUpdate(journalCreature,false);
 		m_guiManager.RegisterNewGlossaryEntry( journalCreature, 'panel_title_glossary_bestiary' );
 	}
 
-	event  OnCreatureDescriptionEvent( journalCreatureDescription : CJournalCreatureDescriptionEntry )
+	event /*C++*/ OnCreatureDescriptionEvent( journalCreatureDescription : CJournalCreatureDescriptionEntry )
 	{
 		var journalCreature : CJournalCreature;
 		LogChannel( 'Journal', "OnCreatureDescriptionEvent" );
 		
-		
-		
-		
-		
+		// this will never work, CJournalCreatureDescriptionEntry has parent CJournalCreatureDescriptionGroup, not CJournalCreature
+		// but at this point I waouldn't rather want to fix it
+		//   |
+		//   V
 		journalCreature = (CJournalCreature)journalCreatureDescription.GetParent();
 		if( journalCreature )
 		{
@@ -1081,46 +1110,58 @@ class CR4ScriptedHud extends CR4Hud
 		}
 	}
 
-	event  OnGlossaryEvent( journalGlossary : CJournalGlossary )
+	event /*C++*/ OnGlossaryEvent( journalGlossary : CJournalGlossary )
 	{
-	
+	/*
+		LogChannel( 'Journal', "OnGlossaryEvent" );
+		OnJournalUpdate(journalGlossary,false);
+		m_guiManager.RegisterNewGlossaryEntry( journalGlossary, 'panel_title_glossary_dictionary' );
+	*/
 	}
 
-	event  OnGlossaryDescriptionEvent( journalGlossaryDescription : CJournalGlossaryDescription )
+	event /*C++*/ OnGlossaryDescriptionEvent( journalGlossaryDescription : CJournalGlossaryDescription )
 	{
-	
+	/*
+		var journalGlossary : CJournalGlossary;
+		LogChannel( 'Journal', "OnGlossaryDescriptionEvent" );
+		journalGlossary = (CJournalGlossary)journalGlossaryDescription.GetParent();
+		if( journalGlossary )
+		{
+			OnJournalUpdate(journalGlossary,true);
+		}
+	*/
 	}
 
-	event  OnStoryBookPageEvent( journalStoryBookPage : CJournalStoryBookPage )
+	event /*C++*/ OnStoryBookPageEvent( journalStoryBookPage : CJournalStoryBookPage )
 	{
 		LogChannel( 'Journal', "OnStoryBookPageEvent" );
 	}
 
-	event  OnTutorialEvent( journalTutorial : CJournalTutorial )
+	event /*C++*/ OnTutorialEvent( journalTutorial : CJournalTutorial )
 	{
 		LogChannel( 'Journal', "OnTutorialEvent" );
 	}
 
-	event  OnPlaceEvent( journalPlace : CJournalPlace )
+	event /*C++*/ OnPlaceEvent( journalPlace : CJournalPlace )
 	{
 		LogChannel( 'Journal', "OnPlaceEvent" );
 	}
 
-	event  OnPlaceDescriptionEvent( journalPlaceDescription : CJournalPlaceDescription )
+	event /*C++*/ OnPlaceDescriptionEvent( journalPlaceDescription : CJournalPlaceDescription )
 	{
 		LogChannel( 'Journal', "OnPlaceDescriptionEvent" );
 	}
 
-	event  OnQuestEvent( journalQuest : CJournalQuest )
+	event /*C++*/ OnQuestEvent( journalQuest : CJournalQuest )
 	{
 		LogChannel( 'Journal', "OnQuestEvent "+journalQuest.baseName );
 		OnQuestUpdate( journalQuest, true );
 	}
 
-	event  OnQuestObjectiveEvent( journalQuest : CJournalQuest, journalObjective : CJournalQuestObjective )
+	event /*C++*/ OnQuestObjectiveEvent( journalQuest : CJournalQuest, journalObjective : CJournalQuestObjective )
 	{
 		LogChannel( 'Journal', "OnQuestObjectiveEvent " + journalQuest.baseName + " : " + journalObjective.baseName );
-		OnQuestUpdate( journalQuest, false ); 
+		OnQuestUpdate( journalQuest, false ); // #B disable when we want to display only quest updates (not objectives)
 	}
 	
 	function OnQuestUpdate( journalQuest : CJournalQuest, isQuestUpdate : bool )
@@ -1254,16 +1295,16 @@ class CR4ScriptedHud extends CR4Hud
 		m_guiManager.RegisterNewAlchemyEntry( schematicName );
 	}	
 		
-	
-	
+	// Quest Tracker Events #B
+	// -------------------------------------------------------------------------------
 
-	event  OnQuestTrackingStarted( journalQuest : CJournalQuest )
+	event /*C++*/ OnQuestTrackingStarted( journalQuest : CJournalQuest )
 	{
 		GetHudEventController().RunEvent_QuestsModule_OnQuestTrackingStarted( journalQuest );
 		LogChannel( 'Journal', "OnQuestTrackingStarted " + journalQuest.baseName );
 	}
 
-	event  OnTrackedQuestUpdated( journalQuest : CJournalQuest )
+	event /*C++*/ OnTrackedQuestUpdated( journalQuest : CJournalQuest )
 	{
 		var hudQuestTrackerModule : CR4HudModuleQuests;
 		
@@ -1279,7 +1320,7 @@ class CR4ScriptedHud extends CR4Hud
 		LogChannel( 'Journal', "OnTrackedQuestUpdated " + journalQuest.baseName );
 	}
 	
-	event  OnTrackedQuestObjectivesUpdated( journalObjective : CJournalQuestObjective )
+	event /*C++*/ OnTrackedQuestObjectivesUpdated( journalObjective : CJournalQuestObjective )
 	{
 		var hudQuestTrackerModule : CR4HudModuleQuests;
 		
@@ -1295,7 +1336,7 @@ class CR4ScriptedHud extends CR4Hud
 		LogChannel( 'Journal', "OnTrackedQuestObjectivesUpdated " + journalObjective.baseName );
 	}
 
-	event  OnTrackedQuestObjectiveCounterUpdated( journalObjective : CJournalQuestObjective )
+	event /*C++*/ OnTrackedQuestObjectiveCounterUpdated( journalObjective : CJournalQuestObjective )
 	{
 		var hudQuestTrackerModule : CR4HudModuleQuests;
 		
@@ -1311,7 +1352,7 @@ class CR4ScriptedHud extends CR4Hud
 		LogChannel( 'Journal', "OnTrackedQuestObjectiveCounterUpdated " + journalObjective.baseName );
 	}
 
-	event  OnTrackedQuestObjectiveHighlighted( journalObjective : CJournalQuestObjective, journalObjectiveIndex : int )
+	event /*C++*/ OnTrackedQuestObjectiveHighlighted( journalObjective : CJournalQuestObjective, journalObjectiveIndex : int )
 	{
 		GetHudEventController().RunEvent_QuestsModule_OnTrackedQuestObjectiveHighlighted( journalObjective, journalObjectiveIndex );
 		LogChannel( 'Journal', "OnTrackedQuestObjectiveHighlighted " + journalObjective.baseName );
@@ -1445,7 +1486,7 @@ class CR4ScriptedHud extends CR4Hud
 			case 'TutorialMinimapAndQuestLog' :
 				hudModule = (CR4HudModuleBase)GetHudModule("Minimap2Module");
 				hudModule.ShowTutorialHighlight(bShow,NameToString(tutorialName));
-				if( tutorialName != 'TutorialMinimapAndQuestLog' ) 
+				if( tutorialName != 'TutorialMinimapAndQuestLog' ) // #B because it should be called also for Quest Tracker
 				{
 					break;
 				}
@@ -1493,11 +1534,15 @@ class CR4ScriptedHud extends CR4Hud
 	
 	public function OnRadialOpened()
 	{
+	
+		ToogleMinimalBuffView(false);
 		ForceShow( true, HVS_RadialMenu );
+
 	}
 	
 	public function OnRadialClosed()
 	{
+		ToogleMinimalBuffView(true);
 		ForceShow( false, HVS_RadialMenu );
 	}
 	
@@ -1510,11 +1555,24 @@ class CR4ScriptedHud extends CR4Hud
 	{
 		ForceShow( false, HVS_Scene );
 	}
+	
+	public function ToogleMinimalBuffView( value : bool )
+	{
+		var buffModule : CR4HudModuleBuffs;
+		
+		buffModule = (CR4HudModuleBuffs)GetHudModule("BuffsModule");
+		if( buffModule )
+		{
+			buffModule.SetMinimalViewMode(value);
+		}	
+	}
+	
+	
 
-
-
-
-
+/////////////////////////////////////////////////////////////////////////////
+//
+// !!! HACK !!!
+//
 	private var _cachedEntity : CEntity;
 	private var _cachedEntityPosition : Vector;
 	
@@ -1538,10 +1596,21 @@ class CR4ScriptedHud extends CR4Hud
 	{
 		_cachedEntity = NULL;
 	}
+//
+// !!! END OF HACK !!!
+//
+/////////////////////////////////////////////////////////////////////////////
 
-
-
-
+	function OnRelevantSkillChanged( skill : ESkill, equipped : bool )
+	{
+		var buffModule : CR4HudModuleBuffs;
+		
+		buffModule = (CR4HudModuleBuffs)GetHudModule("BuffsModule");
+		if( buffModule )
+		{
+			buffModule.ForceUpdate();
+		}		
+	}
 }
 
 exec function showCrossbowTut()
@@ -1574,26 +1643,26 @@ function GetBaseScreenPosition( out screenPos : Vector, entity : CEntity, option
 
 	hud = (CR4ScriptedHud)theGame.GetHud();
 	
-	
-	
-	
+	// if you're going to change something here, you need to know that this function is used by *three* hud modules
+	// proceed with caution
+	// keep it simple
 	targetActor = (CActor)entity;
 	if ( targetActor )
 	{
 	
-
-
-
-
+/////////////////////////////////////////////////////////////////////////////
+//
+// !!! HACK !!!
+//
 		if ( hud.IsCachedPositionForEntity( targetActor ) )
 		{
 			targetPos = hud.GetCachedPositionForEntity( targetActor );
 		}
 		else
 		{
-
-
-
+//
+//
+/////////////////////////////////////////////////////////////////////////////
 			headBoneIdx = targetActor.GetHeadBoneIndex();
 			if ( headBoneIdx >= 0 )
 			{
@@ -1603,14 +1672,14 @@ function GetBaseScreenPosition( out screenPos : Vector, entity : CEntity, option
 			{
 				targetPos = targetActor.GetWorldPosition();
 			}
-
-
-
+/////////////////////////////////////////////////////////////////////////////			
+//
+//
 			hud.SetCachedPositionForEntity( targetActor, targetPos );
-
-
-
-
+//
+// !!! END OF HACK !!!
+//
+/////////////////////////////////////////////////////////////////////////////
 		}
 		targetPos += targetActor.iconOffset;
 		targetPos.Z += actorExtraZ;
@@ -1652,7 +1721,7 @@ function GetBaseScreenPosition( out screenPos : Vector, entity : CEntity, option
 				drawableComponentCount = targetEntity.GetComponentsCountByClassName( 'CDrawableComponent' );
 				if ( drawableComponentCount == 1 )
 				{
-					
+					// get drawable component only if there is only one
 					drawableComponent = (CDrawableComponent)( targetEntity.GetComponentByClassName( 'CDrawableComponent' ) );
 					if( drawableComponent  )
 					{
@@ -1721,7 +1790,7 @@ function IsPointOnScreen( screenPos : Vector ) : bool
 			screenPos.Y < 1080;
 }
 	
-
+//#B DEBUG FUNCTIONS TO REMOVE SOMEDAY
 
 exec function showoneliner1( plainText : string )
 {
@@ -1820,4 +1889,28 @@ exec function ForceHudScaleRefresh()
 		hud.UpdateScaleformStageSize();
 		hud.UpdateHudScale();
 	}
+}
+
+exec function showKnown( show : bool )
+{
+	var configValue : string;
+	var inGameConfigWrapper : CInGameConfigWrapper;
+		
+	inGameConfigWrapper = (CInGameConfigWrapper)theGame.GetInGameConfigWrapper();
+	inGameConfigWrapper.SetVarValue( 'Hud', 'MiminapPoiQuestionMarks', show );
+	theGame.SaveUserSettings();
+
+	theGame.GetCommonMapManager().ShowKnownEntities( show );
+}
+
+exec function showDisabled( show : bool )
+{
+	var configValue : string;
+	var inGameConfigWrapper : CInGameConfigWrapper;
+		
+	inGameConfigWrapper = (CInGameConfigWrapper)theGame.GetInGameConfigWrapper();
+	inGameConfigWrapper.SetVarValue( 'Hud', 'MinimapPoiCompletedIcons', show );
+	theGame.SaveUserSettings();
+
+	theGame.GetCommonMapManager().ShowDisabledEntities( show );
 }

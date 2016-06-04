@@ -1,43 +1,32 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
-
+﻿
+//////////////////////////////////////////////////////////////////////////////
+///////// CBTTaskAnimalSetIsScared
 class CBTTaskAnimalSetIsScared extends IBehTreeTask
 {
 	var value 				: bool;
 	var setOnDeactivate 	: bool;
-	var aiStorageHandler 	: CAIStorageHandler;
+	var animalData		 	: CAIStorageAnimalData;
 	function OnActivate() : EBTNodeStatus
 	{
-		var animalData 	: CAIStorageAnimalData;
 		if ( setOnDeactivate == false )
 		{
-			animalData 			= (CAIStorageAnimalData)aiStorageHandler.Get();
 			animalData.scared 	= value;
 		}
 		return BTNS_Active;
 	}
 	function OnDeactivate()
 	{
-		var animalData 	: CAIStorageAnimalData;
 		if ( setOnDeactivate )
 		{
-			animalData 			= (CAIStorageAnimalData)aiStorageHandler.Get();
 			animalData.scared 	= value;
 		}
 	}
 	function Initialize()
 	{
-		aiStorageHandler = new CAIStorageHandler in this;
-		aiStorageHandler.Initialize( 'AnimalData', '*CAIStorageAnimalData', this );
-		aiStorageHandler.Get();
+		animalData = (CAIStorageAnimalData)RequestStorageItem( 'AnimalData', 'CAIStorageAnimalData' );
 	}
 }
-
+// CBTTaskAnimalSetIsScaredDef
 class CBTTaskAnimalSetIsScaredDef extends IBehTreeHorseTaskDefinition
 {
 	default instanceClass = 'CBTTaskAnimalSetIsScared';
@@ -47,40 +36,28 @@ class CBTTaskAnimalSetIsScaredDef extends IBehTreeHorseTaskDefinition
 }
 
 
-
-
+///////////////////////////////////////////////////
+// CBTCondAnimalIsScared
 class CBTCondAnimalIsScared extends IBehTreeTask
 {	
-	var aiStorageHandler : CAIStorageHandler;
+	var animalData 	: CAIStorageAnimalData;
 	function IsAvailable() : bool
 	{
-		var animalData 	: CAIStorageAnimalData;
-		
-		if( GetNPC().GetAttitudeGroup() == 'animals' || GetNPC().GetAttitudeGroup() == 'AG_small_animals' )
-		{
-			
-		}
-		
-		animalData 			= (CAIStorageAnimalData)aiStorageHandler.Get();
 		return animalData.scared;
 	}
 	function OnListenedGameplayEvent( eventName : name ) : bool
 	{
-		var animalData 	: CAIStorageAnimalData;
-		animalData 			= (CAIStorageAnimalData)aiStorageHandler.Get();
 		animalData.scared 	= true;
 		
 		return true;
 	}
 	function Initialize()
 	{
-		aiStorageHandler = new CAIStorageHandler in this;
-		aiStorageHandler.Initialize( 'AnimalData', '*CAIStorageAnimalData', this );
-		aiStorageHandler.Get();
+		animalData = (CAIStorageAnimalData)RequestStorageItem( 'AnimalData', 'CAIStorageAnimalData' );
 	}
 };
 
-
+// CBTCondAnimalIsScaredDef
 class CBTCondAnimalIsScaredDef extends IBehTreeHorseConditionalTaskDefinition
 {
 	default instanceClass = 'CBTCondAnimalIsScared';
@@ -93,8 +70,8 @@ class CBTCondAnimalIsScaredDef extends IBehTreeHorseConditionalTaskDefinition
 	}
 };
 
-
-
+///////////////////////////////////////////////////
+// CBTCondAnimalFlee
 class CBTCondAnimalFlee extends IBehTreeTask
 {	
 	var chanceOfBeingScared 			: float;
@@ -154,7 +131,7 @@ class CBTCondAnimalFlee extends IBehTreeTask
 	}
 };
 
-
+// CBTCondAnimalFleeDef
 class CBTCondAnimalFleeDef extends IBehTreeHorseConditionalTaskDefinition
 {
 	default instanceClass = 'CBTCondAnimalFlee';
@@ -166,8 +143,8 @@ class CBTCondAnimalFleeDef extends IBehTreeHorseConditionalTaskDefinition
 };
 
 
-
-
+///////////////////////////////////////////////////
+// CBTTaskReactToHostility
 class CBTTaskReactToHostility extends IBehTreeTask
 {	
 	function OnListenedGameplayEvent( eventName : name ) : bool
@@ -200,7 +177,7 @@ class CBTTaskReactToHostility extends IBehTreeTask
 	}
 };
 
-
+// CBTCondAnimalIsScaredDef
 class CBTTaskReactToHostilityDef extends IBehTreeTaskDefinition
 {
 	default instanceClass = 'CBTTaskReactToHostility';

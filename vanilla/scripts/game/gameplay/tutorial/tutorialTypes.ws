@@ -1,20 +1,18 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file
+/***********************************************************************/
+/** Copyright © 2014 CDProjektRed
+/** Author : Tomek Kozera
 /***********************************************************************/
 
-
-
-
-enum ETutorialMessageType		
+enum ETutorialMessageType		//for quests
 {
 	ETMT_Undefined,
 	ETMT_Hint,
 	ETMT_Message
 }
 
-
+//give some exp then if player didn't level up since the start of the game add more to force 1 level up
 reward function TutorialLevelUp()
 {
 	var witcher : W3PlayerWitcher;
@@ -38,9 +36,9 @@ struct SUITutorial
 	editable saved var requiredGameplayFactName2 			: string;
 	editable saved var requiredGameplayFactValueInt2 		: int;
 	editable saved var requiredGameplayFactComparator2 	: ECompareOp;
-	editable saved var priority							: int;				
+	editable saved var priority							: int;				//if several UI tutorials trigger at the same time, the one with lowest priority value will be shown only
 	editable saved var abortOnMenuClose					: bool;
-	editable saved var sourceName							: string;		
+	editable saved var sourceName							: string;		//optional source of tutorial, used for removing handlers when there are multiple ones of same type
 	
 	hint priority = "Lesser values are MORE important";
 };
@@ -48,6 +46,6 @@ struct SUITutorial
 enum EUITutorialTriggerCondition
 {
 	EUITTC_OnMenuOpen
-	
-	
+	//EUITTC_OnMenuClose
+	//EUITTC_WhenInMenu
 }

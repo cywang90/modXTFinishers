@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-enum ELogicalOperator
+﻿enum ELogicalOperator
 {
 	AND,
 	OR
@@ -282,7 +277,7 @@ class W3LessunClue extends CFlyingCrittersLairEntityScript
 				accuracy = 360 + accuracy;
 			}
 			
-			
+			//Log("Clue accuracy: " + accuracy);
 			
 			theSound.SoundGlobalParameter("focus_boid_aim", accuracy);
 		}

@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-class CTeleportEntity extends CInteractiveEntity
+﻿class CTeleportEntity extends CInteractiveEntity
 {
 	editable var keyItemName : name;
 	editable var removeKeyOnUse : bool;
@@ -56,7 +51,7 @@ class CTeleportEntity extends CInteractiveEntity
 		
 		bIsEnabled = flag;
 		
-		
+		//Try registering component every time due to streaming
 		activationComponent = GetComponent( "activationComponent" );
 		if(activationComponent)
 			activationComponent.SetEnabled( flag );
@@ -66,7 +61,7 @@ class CTeleportEntity extends CInteractiveEntity
 	{
 		var teleportTriggerArea : CComponent;
 		
-		
+		//Try registering component every time due to streaming
 		teleportTriggerArea = GetComponent( "teleportTriggerArea" );
 		if(teleportTriggerArea)
 			teleportTriggerArea.SetEnabled( flag );
@@ -101,7 +96,7 @@ class CTeleportEntity extends CInteractiveEntity
 	
 	function PlayerHasKey() : bool
 	{
-		if( !IsNameValid(keyItemName) )	
+		if( !IsNameValid(keyItemName) )	//empty name, no key
 		{
 			return true;
 		}
@@ -125,8 +120,8 @@ class CTeleportEntity extends CInteractiveEntity
 		
 		if( oneWayTeleport )
 		{
-			
-			
+			//StopEffectIfActive( 'teleport_fx' );
+			//DestroyAllEffects();
 			EnableTeleport( false );
 		}
 		

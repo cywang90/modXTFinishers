@@ -1,10 +1,7 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2013-2014
+/** Author : Tomek Kozera
 /***********************************************************************/
-
-
 
 class W3Effect_Swarm extends W3CriticalDOTEffect
 {
@@ -26,7 +23,7 @@ class W3Effect_Swarm extends W3CriticalDOTEffect
 	{
 		var dot : SDoTDamage;
 		
-		
+		//add damage if set in effectValue
 		if((effectValue.valueAdditive + effectValue.valueMultiplicative) > 0)
 		{
 			dot.damageTypeName = theGame.params.DAMAGE_NAME_PHYSICAL;
@@ -78,7 +75,7 @@ class W3Effect_Swarm extends W3CriticalDOTEffect
 		}
 	}
 	
-	
+	//Overrides parent as swarm is speical DoT in a way that it actually can deal no damage (when used only to get the animation)
 	protected function IsImmuneToAllDamage(dt : float) : bool
 	{
 		if(damages.Size() == 0)

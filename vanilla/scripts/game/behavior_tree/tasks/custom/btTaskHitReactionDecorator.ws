@@ -1,11 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file
 /***********************************************************************/
-
-
-
+/** Copyright © 2012 CD Projekt RED
+/** Author : Patryk Fiutowski, Andrzej Kwiatkowski
+/***********************************************************************/
 
 class CBTTaskHitReactionDecorator extends CBTTaskPlayAnimationEventDecorator
 {
@@ -28,7 +26,9 @@ class CBTTaskHitReactionDecorator extends CBTTaskPlayAnimationEventDecorator
 	
 	function IsAvailable() : bool
 	{
-		return (GetActor().CanPlayHitAnim() && !GetNPC().IsUnstoppable() );
+		var npc : CNewNPC = GetNPC();
+		
+		return ( npc.CanPlayHitAnim() && !npc.IsUnstoppable() );
 	}
 	
 	function OnActivate() : EBTNodeStatus
@@ -38,11 +38,12 @@ class CBTTaskHitReactionDecorator extends CBTTaskPlayAnimationEventDecorator
 		GetStats();
 		
 		npc.SetIsInHitAnim(true);
+		theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( npc, 'ActorInHitReaction', -1, 30.0f, -1.f, -1, true ); //reactionSystemSearch
 		
 		InitializeReactionDataStorage();
 		reactionDataStorage.ChangeAttitudeIfNeeded( npc, (CActor)lastAttacker );
 		
-		if ( CheckGuardOrCounter() && ( !increaseHitCounterOnlyOnMeleeDmg || damageIsMelee ) )
+		if (  ( !increaseHitCounterOnlyOnMeleeDmg || damageIsMelee ) && CheckGuardOrCounter() )
 		{
 			npc.DisableHitAnimFor(0.1);
 			npc.SetIsInHitAnim(false);
@@ -51,8 +52,6 @@ class CBTTaskHitReactionDecorator extends CBTTaskPlayAnimationEventDecorator
 		
 		return BTNS_Active;
 	}
-	
-	
 	
 	function OnDeactivate()
 	{
@@ -66,19 +65,20 @@ class CBTTaskHitReactionDecorator extends CBTTaskPlayAnimationEventDecorator
 	{
 		var raiseGuardMultiplier : int;
 		var counterMultiplier : int;
+		var actor : CActor = GetActor();
 		
-		hitsToRaiseGuard = (int)CalculateAttributeValue(GetActor().GetAttributeValue('hits_to_raise_guard'));
-		raiseGuardChance = (int)MaxF(0, 100*CalculateAttributeValue(GetActor().GetAttributeValue('raise_guard_chance')));
-		raiseGuardMultiplier = (int)MaxF(0, 100*CalculateAttributeValue(GetActor().GetAttributeValue('raise_guard_chance_mult_per_hit')));
+		hitsToRaiseGuard = (int)CalculateAttributeValue(actor.GetAttributeValue('hits_to_raise_guard'));
+		raiseGuardChance = (int)MaxF(0, 100*CalculateAttributeValue(actor.GetAttributeValue('raise_guard_chance')));
+		raiseGuardMultiplier = (int)MaxF(0, 100*CalculateAttributeValue(actor.GetAttributeValue('raise_guard_chance_mult_per_hit')));
 		
-		hitsToCounter = (int)CalculateAttributeValue(GetActor().GetAttributeValue('hits_to_roll_counter'));
-		counterChance = (int)MaxF(0, 100*CalculateAttributeValue(GetActor().GetAttributeValue('counter_chance')));
-		counterMultiplier = (int)MaxF(0, 100*CalculateAttributeValue(GetActor().GetAttributeValue('counter_chance_per_hit')));
+		hitsToCounter = (int)CalculateAttributeValue(actor.GetAttributeValue('hits_to_roll_counter'));
+		counterChance = (int)MaxF(0, 100*CalculateAttributeValue(actor.GetAttributeValue('counter_chance')));
+		counterMultiplier = (int)MaxF(0, 100*CalculateAttributeValue(actor.GetAttributeValue('counter_chance_per_hit')));
 		
-		counterStaminaCost = CalculateAttributeValue(GetNPC().GetAttributeValue( 'counter_stamina_cost' ));
+		counterStaminaCost = CalculateAttributeValue(actor.GetAttributeValue( 'counter_stamina_cost' ));
 		
-		raiseGuardChance += Max( 0, GetNPC().GetHitCounter() - 1 ) * raiseGuardMultiplier;
-		counterChance += Max( 0, GetNPC().GetHitCounter() - 1 ) * counterMultiplier;
+		raiseGuardChance += Max( 0, actor.GetHitCounter() - 1 ) * raiseGuardMultiplier;
+		counterChance += Max( 0, actor.GetHitCounter() - 1 ) * counterMultiplier;
 		
 		if ( hitsToRaiseGuard < 0 )
 		{
@@ -99,10 +99,10 @@ class CBTTaskHitReactionDecorator extends CBTTaskPlayAnimationEventDecorator
 			}
 		}
 		
+		GetStats();
 		hitCounter = npc.GetHitCounter();
 		if ( hitCounter >= hitsToRaiseGuard && npc.CanGuard() )
 		{
-			GetStats();
 			if( Roll( raiseGuardChance ) )
 			{		
 				if ( npc.RaiseGuard() )
@@ -112,7 +112,7 @@ class CBTTaskHitReactionDecorator extends CBTTaskPlayAnimationEventDecorator
 				}
 			}
 		}
-		if ( !npc.IsHuman() && GetActor().GetMovingAgentComponent().GetName() != "wild_hunt_base" && hitCounter >= hitsToCounter  )
+		if ( !npc.IsHuman() && hitCounter >= hitsToCounter && npc.GetMovingAgentComponent().GetName() != "wild_hunt_base" && !npc.HasTag( 'dettlaff_vampire' )  )
 		{
 			if( Roll( counterChance ) && npc.GetStat( BCS_Stamina ) >= counterStaminaCost )
 			{
@@ -144,10 +144,10 @@ class CBTTaskHitReactionDecorator extends CBTTaskPlayAnimationEventDecorator
 			lastAttacker = damageData.attacker;
 			
 			if ( !npc.IsInFistFightMiniGame() && (CActor)lastAttacker )
-				theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( lastAttacker, 'CombatNearbyAction', 5.f, 10.f, 999.0f, -1, true); 
+				theGame.GetBehTreeReactionManager().CreateReactionEventIfPossible( lastAttacker, 'CombatNearbyAction', 5.f, 10.f, 999.0f, -1, true); //reactionSystemSearch
 			
 			rotateNode = GetRotateNode();
-			
+			//if ( isActive && ( !increaseHitCounterOnlyOnMeleeDmg || (increaseHitCounterOnlyOnMeleeDmg && damageIsMelee) ) )
 			if ( !increaseHitCounterOnlyOnMeleeDmg || (increaseHitCounterOnlyOnMeleeDmg && damageIsMelee) )
 				npc.IncHitCounter();			
 			
@@ -160,7 +160,7 @@ class CBTTaskHitReactionDecorator extends CBTTaskPlayAnimationEventDecorator
 			}
 			
 			
-			
+			//this node is decorated with ProlongHLCombat meaning that if event will return true combat will be activated
 			if ( damageData.hitReactionAnimRequested  )
 				return true;
 			else
@@ -206,32 +206,15 @@ class CBTTaskHitReactionDecorator extends CBTTaskPlayAnimationEventDecorator
 	
 	function GetRotateNode() : CNode
 	{
-		
 		if ( lastAttacker )
 			return lastAttacker;
 		
 		return GetCombatTarget();
 	}
 	
-	var cachedPos : Vector;
-	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo ) : bool
-	{
-		var owner 			: CNewNPC;
-		var player			: CR4Player;
-		var movementAdjustor	: CMovementAdjustor;
-		var ticket 				: SMovementAdjustmentRequestTicket;
-		
-		player = thePlayer;
-		
-		
-		return super.OnAnimEvent(animEventName,animEventType,animInfo);
-	}
-	
 	function InitializeReactionDataStorage()
 	{
-		storageHandler = new CAIStorageHandler in this;
-		storageHandler.Initialize( 'ReactionData', '*CAIStorageReactionData', this );
-		reactionDataStorage = (CAIStorageReactionData)storageHandler.Get();
+		reactionDataStorage = (CAIStorageReactionData)RequestStorageItem( 'ReactionData', 'CAIStorageReactionData' );
 	}
 }
 
@@ -262,8 +245,8 @@ class CBTTaskHitReactionDecoratorDef extends CBTTaskPlayAnimationEventDecoratorD
 	}
 }
 
-
-
+////////////////////////////////////////////////////
+// CBTCondBeingHit
 class CBTCondBeingHit extends IBehTreeTask
 {	
 	var timeOnLastHit 	: float;
@@ -311,8 +294,8 @@ class CBTCondBeingHitDef extends IBehTreeConditionalTaskDefinition
 }
 
 
-
-
+////////////////////////////////////////////////////
+// CBTCompleteOnHit
 class CBTCompleteOnHit extends IBehTreeTask
 {	
 	public var onlyIfCanPlayHitAnim : bool;

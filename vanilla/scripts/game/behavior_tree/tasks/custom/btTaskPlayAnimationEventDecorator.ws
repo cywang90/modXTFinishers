@@ -1,11 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** 
 /***********************************************************************/
-
-
-
+/** Copyright © 2012
+/** Author : Patryk Fiutowski, Andrzej Kwiatkowski
+/***********************************************************************/
 
 class CBTTaskPlayAnimationEventDecorator extends IBehTreeTask
 {
@@ -19,7 +17,9 @@ class CBTTaskPlayAnimationEventDecorator extends IBehTreeTask
 	var xmlStaminaCostName					: name;
 	var drainStaminaOnUse					: bool;
 	var completeTaskOnRotateEnd				: bool;
-			
+	var useCombatTargetForRotation			: bool; //duplicated variable from TaskAttack because moving it here would reset this flag in all AI trees
+	var setIsImportantAnim 					: bool; //prevents interruption by combat target selection
+	
 	private var staminaCost					: float;
 	private var moraleThreshold				: float;
 	private var lookAt 						: bool;
@@ -31,7 +31,6 @@ class CBTTaskPlayAnimationEventDecorator extends IBehTreeTask
 	
 	private var waitingForEndOfDisableHit 	: bool;
 	
-	protected var storageHandler 			: CAIStorageHandler;
 	protected var combatDataStorage 		: CBaseAICombatStorage;	
 	
 	function IsAvailable() : bool
@@ -56,6 +55,11 @@ class CBTTaskPlayAnimationEventDecorator extends IBehTreeTask
 		var npc : CNewNPC = GetNPC();
 		
 		GetStats();
+		InitializeCombatDataStorage();
+		if ( setIsImportantAnim )
+		{
+			combatDataStorage.SetIsInImportantAnim( true );
+		}
 		
 		if ( drainStaminaOnUse && staminaCost )
 			npc.DrainStamina(ESAT_FixedValue, staminaCost, 1);
@@ -77,6 +81,10 @@ class CBTTaskPlayAnimationEventDecorator extends IBehTreeTask
 	{
 		var npc : CNewNPC = GetNPC();
 		
+		if ( setIsImportantAnim )
+		{
+			combatDataStorage.SetIsInImportantAnim( false );
+		}
 		if ( hitAnim || disableHitOnActivation )
 		{
 			npc.SetCanPlayHitAnim( true );
@@ -138,9 +146,7 @@ class CBTTaskPlayAnimationEventDecorator extends IBehTreeTask
 	
 	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo ) : bool
 	{
-		var npc : CNewNPC = GetNPC();
-		
-		if ( finishTaskOnAllowBlend && animEventName == 'AllowBlend' && animEventType == AET_DurationStart )
+		if ( animEventName == 'AllowBlend' && finishTaskOnAllowBlend && animEventType == AET_DurationStart )
 		{
 			Complete(true);
 		}
@@ -148,49 +154,60 @@ class CBTTaskPlayAnimationEventDecorator extends IBehTreeTask
 		{
 			if( animEventType == AET_DurationStart )
 			{
-				npc.PlayEffect('l_trail');
+				GetNPC().PlayEffect('l_trail');
 			}
 			else if( animEventType == AET_DurationEnd )
 			{
-				npc.StopEffect('l_trail');
+				GetNPC().StopEffect('l_trail');
 			}
 		}
 		else if ( animEventName == 'RTrail' )
 		{
 			if( animEventType == AET_DurationStart )
 			{
-				npc.PlayEffect('r_trail');
+				GetNPC().PlayEffect('r_trail');
 			}
 			else if( animEventType == AET_DurationEnd )
 			{
-				npc.StopEffect('r_trail');
+				GetNPC().StopEffect('r_trail');
 			}
 		}
 		else if ( animEventName == 'DisableHitAnim' && !disableHitOnActivation )
 		{
 			if( animEventType == AET_DurationEnd )
 			{
-				npc.SetCanPlayHitAnim( true );
+				GetNPC().SetCanPlayHitAnim( true );
 				hitAnim = false;
 				waitingForEndOfDisableHit = false;
 			}
 			else
 			{
-				npc.SetCanPlayHitAnim( false );
+				GetNPC().SetCanPlayHitAnim( false );
 				waitingForEndOfDisableHit = true;
 				hitAnim = true;
+			}
+		}
+		else if ( animEventName == 'ReflectMeleeAttacks' )
+		{
+			if( animEventType == AET_DurationEnd )
+			{
+				GetNPC().RemoveAbility( 'ReflectMeleeAttacks' );
+			}
+			else if ( !GetNPC().HasAbility( 'ReflectMeleeAttacks' ) )
+			{
+				GetNPC().AddAbility( 'ReflectMeleeAttacks', false );
 			}
 		}
 		else if ( animEventName == 'SetUnstoppable' && !disableHitOnActivation )
 		{
 			if( animEventType == AET_DurationEnd )
 			{
-				npc.SetUnstoppable( false );
+				GetNPC().SetUnstoppable( false );
 				unstoppable = false;
 			}
 			else
 			{
-				npc.SetUnstoppable( true );
+				GetNPC().SetUnstoppable( true );
 				unstoppable = true;
 			}
 		}
@@ -198,12 +215,12 @@ class CBTTaskPlayAnimationEventDecorator extends IBehTreeTask
 		{
 			if( animEventType == AET_DurationStart )
 			{
-				npc.SignalGameplayEvent('LookatOff');
+				GetNPC().SignalGameplayEvent('LookatOff');
 				lookAt = true;
 			}
 			else if ( animEventType == AET_DurationEnd )
 			{
-				npc.SignalGameplayEvent('LookatOn');
+				GetNPC().SignalGameplayEvent('LookatOn');
 				lookAt = false;
 			}
 		}
@@ -211,7 +228,7 @@ class CBTTaskPlayAnimationEventDecorator extends IBehTreeTask
 		{
 			if( animEventType == AET_DurationStart )
 			{
-				npc.SignalGameplayEvent('LookatOn');
+				GetNPC().SignalGameplayEvent('LookatOn');
 				lookAt = false;
 			}
 		}
@@ -219,25 +236,25 @@ class CBTTaskPlayAnimationEventDecorator extends IBehTreeTask
 		{
 			if( animEventType == AET_DurationStart )
 			{
-				npc.SetCanPlayHitAnim( false );
+				GetNPC().SetCanPlayHitAnim( false );
 				hitAnim = true;
 			}
 			else if( animEventType == AET_DurationEnd )
 			{
-				npc.SetCanPlayHitAnim( true );
+				GetNPC().SetCanPlayHitAnim( true );
 				hitAnim = false;
 			}
 		}
-		else if ( animEventName == 'OpenGuard' && npc.HasShieldedAbility() )
+		else if ( animEventName == 'OpenGuard' && GetNPC().HasShieldedAbility() )
 		{
 			if( animEventType == AET_DurationStart )
 			{
-				npc.SetGuarded(false);
+				GetNPC().SetGuarded(false);
 				guardOpen = true;
 			}
 			else if( animEventType == AET_DurationEnd )
 			{
-				npc.SetGuarded(true);
+				GetNPC().SetGuarded(true);
 				guardOpen = false;
 			}
 		}
@@ -245,33 +262,33 @@ class CBTTaskPlayAnimationEventDecorator extends IBehTreeTask
 		{
 			if( animEventType == AET_DurationStart )
 			{
-				npc.SetImmortalityMode( AIM_Invulnerable, AIC_Combat );
+				GetNPC().SetImmortalityMode( AIM_Invulnerable, AIC_Combat );
 			}
 			else if( animEventType == AET_DurationEnd )
 			{
-				npc.SetImmortalityMode( AIM_None, AIC_Combat );
+				GetNPC().SetImmortalityMode( AIM_None, AIC_Combat );
 			}
 		}
 		else if ( animEventName == 'DisableGameplayVisibility' )
 		{
 			if( animEventType == AET_DurationStart )
 			{
-				npc.SetGameplayVisibility( false );
+				GetNPC().SetGameplayVisibility( false );
 			}
 			else if( animEventType == AET_DurationEnd )
 			{
-				npc.SetGameplayVisibility( true );
+				GetNPC().SetGameplayVisibility( true );
 			}
 		}
 		else if ( animEventName == 'DisableProxyCollisions' )
 		{
 			if( animEventType == AET_DurationStart )
 			{
-				npc.EnableCharacterCollisions( false );
+				GetNPC().EnableCharacterCollisions( false );
 			}
 			else if( animEventType == AET_DurationEnd )
 			{
-				npc.EnableCharacterCollisions( true );
+				GetNPC().EnableCharacterCollisions( true );
 			}
 		}
 		else if ( animEventName == 'CompleteTask' && animEventType == AET_DurationEnd )
@@ -282,7 +299,19 @@ class CBTTaskPlayAnimationEventDecorator extends IBehTreeTask
 		{
 			Complete( true );
 		}
-		
+		else if ( animEventName == 'SlowMotion' )
+		{
+			if( animEventType != AET_DurationEnd && !slowMo )
+			{
+				theGame.SetTimeScale(0.2, theGame.GetTimescaleSource(ETS_SlowMoTask), theGame.GetTimescalePriority(ETS_SlowMoTask) );
+				slowMo = true;
+			}
+ 			else if( animEventType == AET_DurationEnd )
+			{
+				theGame.RemoveTimeScale( theGame.GetTimescaleSource(ETS_SlowMoTask) );
+				slowMo = false;
+			}
+		}
 		return false;
 	}
 	
@@ -292,16 +321,29 @@ class CBTTaskPlayAnimationEventDecorator extends IBehTreeTask
 		{
 			if ( eventName == 'RotateEventStart')
 			{
-				GetNPC().SetRotationAdjustmentRotateTo( GetCombatTarget() );
+				if ( useCombatTargetForRotation )
+				{
+					GetNPC().SetRotationAdjustmentRotateTo( GetCombatTarget() );
+				}
+				else
+				{
+					GetNPC().SetRotationAdjustmentRotateTo( GetActionTarget() );
+				}
 				return true;
 			}
 			if ( eventName == 'RotateAwayEventStart')
 			{
-				GetNPC().SetRotationAdjustmentRotateTo( GetCombatTarget(), 180.0 );
+				if ( useCombatTargetForRotation )
+				{
+					GetNPC().SetRotationAdjustmentRotateTo( GetCombatTarget(), 180.0 );
+				}
+				else
+				{
+					GetNPC().SetRotationAdjustmentRotateTo( GetActionTarget(), 180.0 );
+				}
 				return true;
 			}
 		}
-		
 		return false;
 	}
 	
@@ -309,8 +351,7 @@ class CBTTaskPlayAnimationEventDecorator extends IBehTreeTask
 	{
 		if ( !combatDataStorage )
 		{
-			storageHandler = InitializeCombatStorage();
-			combatDataStorage = (CBaseAICombatStorage)storageHandler.Get();
+			combatDataStorage = (CBaseAICombatStorage)InitializeCombatStorage();
 		}
 	}
 };
@@ -329,6 +370,8 @@ class CBTTaskPlayAnimationEventDecoratorDef extends IBehTreeTaskDefinition
 	editable var xmlStaminaCostName			: name;
 	editable var drainStaminaOnUse			: bool;
 	editable var completeTaskOnRotateEnd	: bool;
+	editable var useCombatTargetForRotation : bool;
+	editable var setIsImportantAnim 		: bool;
 	
 	default rotateOnRotateEvent = true;
 	default finishTaskOnAllowBlend = true;
@@ -336,4 +379,7 @@ class CBTTaskPlayAnimationEventDecoratorDef extends IBehTreeTaskDefinition
 	default disableLookatOnActivation = false;
 	default interruptOverlayAnim = true;
 	default checkStats = true;
+	default useCombatTargetForRotation = true;
+	
+	hint setIsImportantAnim = "prevents interruption by combat target selection";
 };

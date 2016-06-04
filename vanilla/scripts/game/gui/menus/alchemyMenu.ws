@@ -1,11 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file - alchemy
 /***********************************************************************/
-
-
-
+/** Copyright © 2014 CDProjektRed
+/** Author :		 Bartosz Bigaj
+/***********************************************************************/
 
 struct SItemAttribute
 {
@@ -33,7 +31,7 @@ class CR4AlchemyMenu extends CR4ListBaseMenu
 	
 	var itemsQuantity 						: array< int >;
 	
-	event  OnConfigUI()
+	event /*flash*/ OnConfigUI()
 	{	
 		var commonMenu 			: CR4CommonMenu;
 		var l_craftingFilters	: SCraftingFilters;
@@ -65,24 +63,26 @@ class CR4AlchemyMenu extends CR4ListBaseMenu
 										 FlashArgString(GetLocStringByKeyExt("gui_panel_filter_already_crafted")), FlashArgBool(l_craftingFilters.showAlreadyCrafted));
 		
 		commonMenu = (CR4CommonMenu)m_parentMenu;
-		bCouldCraft = true;
+		bCouldCraft = true;//commonMenu.m_mode_meditation;
 		m_fxSetCraftingEnabled.InvokeSelfOneArg(FlashArgBool(bCouldCraft));
 		pinnedTag = NameToFlashUInt(theGame.GetGuiManager().PinnedCraftingRecipe);
 		m_fxSetPinnedRecipe.InvokeSelfOneArg(FlashArgUInt(pinnedTag));
 		
 		PopulateData();
 		
-		
+		//SelectCurrentModule(); // #Y List should be always selected by default
 		SelectFirstModule();
+		
+		m_fxSetTooltipState.InvokeSelfTwoArgs( FlashArgBool( thePlayer.upscaledTooltipState ), FlashArgBool( true ) );
 	}
 
-	event  OnClosingMenu()
+	event /* C++ */ OnClosingMenu()
 	{
 		super.OnClosingMenu();
 		theGame.GetGuiManager().SetLastOpenedCommonMenuName( GetMenuName() );
 	}
 
-	event  OnCloseMenu() 
+	event /*flash*/ OnCloseMenu() //#B
 	{
 		var commonMenu : CR4CommonMenu;
 		
@@ -92,18 +92,18 @@ class CR4AlchemyMenu extends CR4ListBaseMenu
 			commonMenu.ChildRequestCloseMenu();
 		}
 		
-		theSound.SoundEvent( 'gui_global_quit' ); 
+		theSound.SoundEvent( 'gui_global_quit' ); // #B sound - quit - find better place
 		CloseMenu();
 	}
 
 	event OnEntryRead( tag : name )
 	{
-		
-		
-		
+		//var journalEntry : CJournalBase;
+		//journalEntry = m_journalManager.GetEntryByTag( tag );
+		//m_journalManager.SetEntryUnread( journalEntry, false );
 	}
 	
-	event  OnStartCrafting()
+	event /*flash*/ OnStartCrafting()
 	{
 		OnPlaySoundEvent("gui_alchemy_brew");
 	}
@@ -116,21 +116,21 @@ class CR4AlchemyMenu extends CR4ListBaseMenu
 	
 	event OnEntryPress( tag : name )
 	{
-		
+		//CreateItem(FindRecipieID(tag));
 	}
 	
-	event  OnCraftingFiltersChanged( showHasIngre : bool, showMissingIngre : bool, showAlreadyCrafted : bool )
+	event /*flash*/ OnCraftingFiltersChanged( showHasIngre : bool, showMissingIngre : bool, showAlreadyCrafted : bool )
 	{
 		theGame.GetGuiManager().SetAlchemyFiltters(showHasIngre, showMissingIngre, showAlreadyCrafted);
 	}
 	
-	event  OnEmptyCheckListCloseFailed()
+	event /*flash*/ OnEmptyCheckListCloseFailed()
 	{
 		showNotification(GetLocStringByKeyExt("gui_missing_filter_error"));
 		OnPlaySoundEvent("gui_global_denied");
 	}
 	
-	event  OnChangePinnedRecipe( tag : name )
+	event /*flash*/ OnChangePinnedRecipe( tag : name )
 	{
 		if (tag != '')
 		{
@@ -139,8 +139,10 @@ class CR4AlchemyMenu extends CR4ListBaseMenu
 		theGame.GetGuiManager().SetPinnedCraftingRecipe(tag);
 	}
 
-	event OnEntrySelected( tag : name ) 
+	event OnEntrySelected( tag : name ) // #B common
 	{
+		//var alchBuy : W3TutorialManagerUIHandlerStateAlchemyBuy;
+		var i : int;
 		var uiState : W3TutorialManagerUIHandlerStateAlchemy;
 		
 		if (tag != '')
@@ -155,16 +157,34 @@ class CR4AlchemyMenu extends CR4ListBaseMenu
 			m_fxHideContent.InvokeSelfOneArg(FlashArgBool(false));
 		}
 		
-		
+		//tutorial
 		if(ShouldProcessTutorial('TutorialAlchemySelectRecipe'))
 		{
 			uiState = (W3TutorialManagerUIHandlerStateAlchemy)theGame.GetTutorialSystem().uiHandler.GetCurrentState();
 			if(uiState)
 				uiState.SelectedRecipe(tag, m_alchemyManager.CanCookRecipe(tag) == EAE_NoException);
 		}
+		
+		//ingredients buying tutorial
+		/*
+		if( ShouldProcessTutorial( 'TutorialAlchemyBuy' ) )
+		{
+			for( i=0; i<itemsNames.Size(); i+=1 )
+			{
+				if( m_npcInventory.GetItemQuantityByName( itemsNames[i] ) > 0 )
+				{
+					alchBuy = (W3TutorialManagerUIHandlerStateAlchemyBuy) theGame.GetTutorialSystem().uiHandler.GetCurrentState();
+					if( alchBuy )
+					{
+						alchBuy.OnCanSellSomething();
+					}
+					break;
+				}
+			}
+		}*/
 	}
 	
-	event  OnShowCraftedItemTooltip( tag : name )
+	event /*flash*/ OnShowCraftedItemTooltip( tag : name )
 	{
 	}
 	
@@ -226,7 +246,7 @@ class CR4AlchemyMenu extends CR4ListBaseMenu
 				
 				if (recipe.level > 1)
 				{
-					
+					// update list to remove items with lower level
 					m_recipeList = m_alchemyManager.GetRecipes(false);
 				}
 				PopulateData();
@@ -264,17 +284,18 @@ class CR4AlchemyMenu extends CR4ListBaseMenu
 		var canCraftResult			: EAlchemyExceptions;
 		var canCraftResultFilters	: EAlchemyExceptions;
 		
-		
+		//for cookable count
 		var cookableType			: EAlchemyCookedItemType;
 		var cookable				: SCookable;
 		var cookables				: array<SCookable>;
 		var exists					: bool;
 		var j, cookableCount		: int;
+		var minQuality, maxQuality  : int;
 
 		l_DataFlashArray = m_flashValueStorage.CreateTempFlashArray();
 		length = m_recipeList.Size();
 		
-		
+		//count cookable items
 		for(i=0; i<length; i+=1)
 		{
 			if(m_alchemyManager.CanCookRecipe(m_recipeList[i].recipeName) == EAE_NoException)
@@ -316,7 +337,7 @@ class CR4AlchemyMenu extends CR4ListBaseMenu
 			canCraftResult = m_alchemyManager.CanCookRecipe(recipe.recipeName);
 			canCraftResultFilters = m_alchemyManager.CanCookRecipe(recipe.recipeName, true);
 			
-			
+			//add amount of cookable items after group name, e.g. "Bombs (3)"
 			cookableCount = 0;
 			for(j=0; j<cookables.Size(); j+=1)
 			{
@@ -327,28 +348,36 @@ class CR4AlchemyMenu extends CR4ListBaseMenu
 				}
 			}
 			
-			
+			//set data
 			l_DataFlashObject = m_flashValueStorage.CreateTempFlashObject();
 			
 			if(cookableCount > 0)
 			{
-				l_DataFlashObject.SetMemberFlashString(  "categoryPostfix", " (" + cookableCount + ")" );
+				l_DataFlashObject.SetMemberFlashString(  "categoryPostfix", " | " + cookableCount + " |");
 			}
 			else
 			{
 				l_DataFlashObject.SetMemberFlashString(  "categoryPostfix", "" );
 			}
 			
+			thePlayer.inv.GetItemQualityFromName( recipe.cookedItemName, minQuality, maxQuality );
+			
 			l_DataFlashObject.SetMemberFlashUInt(  "tag", NameToFlashUInt(l_Tag) );
 			l_DataFlashObject.SetMemberFlashString(  "dropDownLabel", l_GroupTitle );
 			l_DataFlashObject.SetMemberFlashUInt(  "dropDownTag",  NameToFlashUInt(l_GroupTag) );
-			l_DataFlashObject.SetMemberFlashBool(  "dropDownOpened", true ); 
+			l_DataFlashObject.SetMemberFlashBool(  "dropDownOpened", true ); // IsCategoryOpened( l_GroupTag )
 			l_DataFlashObject.SetMemberFlashString(  "dropDownIcon", "icons/monsters/ICO_MonsterDefault.png" );
 			
 			l_DataFlashObject.SetMemberFlashBool( "isNew", l_IsNew );
+			//l_DataFlashObject.SetMemberFlashBool( "selected", ( l_Tag == currentTag ) );
+			if ( m_guiManager.GetShowItemNames() )
+			{
+				l_Title = l_Title + "<br><font color=\"#FFDB00\">'" + recipe.recipeName + "'</font>";
+			}
 			
 			l_DataFlashObject.SetMemberFlashString(  "label", l_Title );
 			l_DataFlashObject.SetMemberFlashString(  "iconPath", l_IconPath );
+			l_DataFlashObject.SetMemberFlashInt( "rarity", minQuality );
 			
 			if (canCraftResult != EAE_NoException)
 			{
@@ -402,7 +431,7 @@ class CR4AlchemyMenu extends CR4ListBaseMenu
 		var i : int;
 		var str : string;
 		var locStrId : int;
-		
+		//var descriptionsGroup, tmpGroup : CJournalCreatureDescriptionGroup;
 		var description : CJournalCharacterDescription;
 		
 		str = "";
@@ -480,7 +509,7 @@ class CR4AlchemyMenu extends CR4ListBaseMenu
 	{
 		var itemQuality : int;
 		
-		itemQuality = 1; 
+		itemQuality = 1; // #J TODO: find a way to get the item quality from the name
 		return GetItemRarityDescriptionFromInt(itemQuality);
 	}
 	
@@ -518,7 +547,27 @@ class CR4AlchemyMenu extends CR4ListBaseMenu
 	
 	function PlayOpenSoundEvent()
 	{
+		// Common Menu takes care of this for us
+		//OnPlaySoundEvent("gui_global_panel_open");	
+	}
+	
+	public final function IsInShop() : bool
+	{
+		var l_obj		 			: IScriptable;		
+		var l_initData				: W3InventoryInitData;
+		var m_npc					: CNewNPC;
 		
+		l_obj = GetMenuInitData();
+		l_initData = (W3InventoryInitData)l_obj;
+		if (l_initData)
+		{
+			m_npc = (CNewNPC)l_initData.containerNPC;
+		}
+		else
+		{
+			m_npc = (CNewNPC)l_obj;
+		}
 		
+		return m_npc;
 	}
 }

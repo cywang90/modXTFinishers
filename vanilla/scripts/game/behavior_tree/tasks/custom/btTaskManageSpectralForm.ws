@@ -1,29 +1,24 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
- 
-
-
-
-
-
-
-
-
-
+﻿ //>--------------------------------------------------------------------------
+// BTTaskManageSpectralForm
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Activate and deactivate the spectral form when crossing the Yrden Trap
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// R.Pergent - 06-November-2014
+// Copyright © 2014 CD Projekt RED
+//---------------------------------------------------------------------------
 class BTTaskManageSpectralForm extends IBehTreeTask
 {	
-	
-	
-	
+	//>----------------------------------------------------------------------
+	// VARIABLES
+	//-----------------------------------------------------------------------
 	private var m_LastEnteredYrden 	: W3YrdenEntity;
 	
 	private var m_IsInYrden			: bool;
 	
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function OnActivate() : EBTNodeStatus
 	{
 		if( CanSwitchToShadow() )
@@ -33,15 +28,15 @@ class BTTaskManageSpectralForm extends IBehTreeTask
 		
 		return BTNS_Active;
 	}	
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	latent function Main() : EBTNodeStatus
 	{
 		var l_npc : CNewNPC = GetNPC();
 		
 		while( true )
 		{
-			
+			// If the last entered Yrden disappeared
 			if( m_IsInYrden && !m_LastEnteredYrden )
 			{
 				m_IsInYrden = false;
@@ -66,8 +61,8 @@ class BTTaskManageSpectralForm extends IBehTreeTask
 		}
 		return BTNS_Active;
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	private final function CanSwitchToShadow() : bool
 	{
 		if( !m_IsInYrden && GetNPC().HasAbility('ShadowForm') && !GetNPC().IsAbilityBlocked('ShadowForm') )
@@ -76,8 +71,8 @@ class BTTaskManageSpectralForm extends IBehTreeTask
 		}
 		return false;
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	private final function ActivateShadowForm()
 	{
 		var l_npc : CNewNPC = GetNPC();
@@ -92,8 +87,8 @@ class BTTaskManageSpectralForm extends IBehTreeTask
 			l_npc.SoundSwitch( 'ghost_visibility', 'invisible' );
 		}
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	private final function DeactivateShadowForm()
 	{
 		var l_npc : CNewNPC = GetNPC();
@@ -111,8 +106,8 @@ class BTTaskManageSpectralForm extends IBehTreeTask
 			l_npc.SoundSwitch( 'ghost_visibility', 'visible' );
 		}
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	final function OnListenedGameplayEvent( eventName : name ) : bool
 	{
 		var l_yrdenEntity 	: W3YrdenEntity;
@@ -130,7 +125,7 @@ class BTTaskManageSpectralForm extends IBehTreeTask
 			
 			m_LastEnteredYrden = l_yrdenEntity;			
 			
-			
+			// Immediate reaction
 			DeactivateShadowForm();
 			
 			break;
@@ -140,7 +135,7 @@ class BTTaskManageSpectralForm extends IBehTreeTask
 				m_IsInYrden = false;
 				GetNPC().SetBehaviorVariable( 'isInYrden', 0 );
 				
-				
+				// Immediate reaction:
 				if( CanSwitchToShadow() )
 				{
 					ActivateShadowForm();
@@ -154,8 +149,8 @@ class BTTaskManageSpectralForm extends IBehTreeTask
 
 }
 
-
-
+//>----------------------------------------------------------------------
+//-----------------------------------------------------------------------
 class BTTaskManageSpectralFormDef extends IBehTreeTaskDefinition
 {
 	default instanceClass = 'BTTaskManageSpectralForm';

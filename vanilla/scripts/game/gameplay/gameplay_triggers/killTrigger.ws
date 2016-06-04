@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-class W3KillTrigger extends CEntity
+﻿class W3KillTrigger extends CEntity
 {
 	private var postponedTillOnGroundMPAC 	: array<CMovingPhysicalAgentComponent>;	
 	editable var postponeTillOnGround 		: bool;
@@ -31,12 +26,12 @@ class W3KillTrigger extends CEntity
 			}
 			else
 			{
-				actor.Kill();
+				actor.Kill( 'Kill Trigger' );
 			}
 		}
 	}
 	
-	
+	//handles postponed kills
 	timer function PostponedKills(dt : float, id : int)
 	{
 		var i : int;
@@ -46,13 +41,13 @@ class W3KillTrigger extends CEntity
 		{
 			if( postponeTillStoppedFalling && postponedTillOnGroundMPAC[i].IsFalling() == false)
 			{
-				((CActor)postponedTillOnGroundMPAC[i].GetEntity()).Kill();
+				((CActor)postponedTillOnGroundMPAC[i].GetEntity()).Kill( 'Kill Trigger' );
 				postponedTillOnGroundMPAC.EraseFast(i);
 				continue;
 			}
 			if( postponeTillOnGround && postponedTillOnGroundMPAC[i].IsOnGround())
 			{
-				((CActor)postponedTillOnGroundMPAC[i].GetEntity()).Kill();
+				((CActor)postponedTillOnGroundMPAC[i].GetEntity()).Kill( 'Kill Trigger' );
 				postponedTillOnGroundMPAC.EraseFast(i);
 				continue;
 			}
@@ -61,7 +56,7 @@ class W3KillTrigger extends CEntity
 			
 			if(postponeTillinWater && actor.IsSwimming())
 			{
-				actor.Kill();
+				actor.Kill( 'Kill Trigger' );
 				postponedTillOnGroundMPAC.EraseFast(i);
 				continue;
 			}
@@ -78,8 +73,8 @@ class W3KillTrigger extends CEntity
 		
 		if(postponeTillOnGround)
 		{
-			
-			
+			//If actor left trigger we remove it from array and not kill it (to avoid weird things like death in the middle of cutscene). If this happens
+			// then someone has to fix size of their trigger.
 			actor = (CActor)activator.GetEntity();
 			
 			if ( actor)

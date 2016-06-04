@@ -1,11 +1,9 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Witcher Script file
 /***********************************************************************/
-
-
-
+/** Wait for tagged target to approach
+/** Copyright © 2012
+/***********************************************************************/
 
 class CBTTaskWaitFor extends IBehTreeTask
 {
@@ -28,13 +26,13 @@ class CBTTaskWaitFor extends IBehTreeTask
 			{
 				return BTNS_Failed;
 			}
-			
+			// Time ran out
 			if( timeout > 0.0f && timeoutCounter > GetLocalTime() )
 			{
 				return BTNS_Completed;
 			}
 			
-			
+			// Target approached
 			if( VecDistance2D( target.GetWorldPosition(), npc.GetWorldPosition() ) < testDistance )
 			{
 				return BTNS_Completed;

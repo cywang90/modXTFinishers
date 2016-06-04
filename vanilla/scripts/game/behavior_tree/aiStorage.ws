@@ -1,9 +1,4 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-import class CHorseRiderSharedParams extends CObject
+﻿import class CHorseRiderSharedParams extends IScriptable
 {
 	import private var 	horse 		: CActor;
 	import var 	mountStatus 		: EVehicleMountStatus;
@@ -11,7 +6,7 @@ import class CHorseRiderSharedParams extends CObject
 	import var  boat 				: EntityHandle;
 	import var vehicleSlot			: EVehicleSlot;
 	
-	
+	// script :
 	var hasFallenFromHorse 		: bool;
 	var scriptedActionPending 	: bool;
 	var isPlayingAnimWithRider  : bool;
@@ -29,25 +24,25 @@ import class CHorseRiderSharedParams extends CObject
 	}
 };
 
-
-
-import class CAIStorageAnimalData extends CObject
+///////////////////////////////////////////////
+// CAIStorageAnimalData
+import class CAIStorageAnimalData extends IScriptable
 {
-	var scared			: Bool; 
+	var scared			: Bool; // Running off from ennemy
 	default scared 		= false;	
 };
 
-
-
-import class CAIStorageHorseData extends CObject
+///////////////////////////////////////////////
+// CAIStorageHorseData
+import class CAIStorageHorseData extends IScriptable
 {
 	var horseEntity 	: CActor;
 	var horseComponent 	: W3HorseComponent;
 };
 
-
-
-import class CAIStorageRiderData extends CObject
+///////////////////////////////////////////////
+// CAIStorageRiderData
+import class CAIStorageRiderData extends IScriptable
 {
 	import var sharedParams 					: CHorseRiderSharedParams;
 	import var horseScriptedActionTree 			: IAIActionTree;
@@ -67,15 +62,15 @@ import class CAIStorageRiderData extends CObject
 
 
 
-
-
-class CAIStorageReactionData extends CObject
+///////////////////////////////////////////////
+// CAIStorageReactionData
+class CAIStorageReactionData extends IScriptable
 {
 	private const var TAUNTS_TO_BE_ALARMED 	: int; default TAUNTS_TO_BE_ALARMED = 2;
-	
+	//private const var TAUNTS_TO_BE_ANGRY 	: int; default TAUNTS_TO_BE_ANGRY = 3;
 	
 	private var alarmedTimeStamp 	: float;
-	
+	//private var angryTimeStamp 		: float;
 	
 	function IsAlarmed( timeStamp : float ) : bool
 	{
@@ -136,7 +131,7 @@ class CAIStorageReactionData extends CObject
 		tauntCounter = 0;
 	}
 	
-	
+	//Attitudes
 	
 	private var temporaryHostileActors : array<CActor>;
 	
@@ -171,7 +166,7 @@ class CAIStorageReactionData extends CObject
 	{
 		var ownerHorse : CActor;
 		
-		
+		//don't add same actor twice
 		if ( temporaryHostileActors.Contains(_actor) )
 			return;
 		

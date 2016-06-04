@@ -1,35 +1,30 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
-
-
-
-
-
-
-
+﻿// CBTTaskBoatGrab
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// Manage boat grabbing of the siren
+//---------------------------------------------------------------------------
+//>--------------------------------------------------------------------------
+// R.Pergent - 18-November-2014
+// Copyright © 2014 CD Projekt RED
+//---------------------------------------------------------------------------
 class CBTTaskBoatGrab extends IBehTreeTask
 {
-	
-	
-	
+	//>--------------------------------------------------------------------------
+	// VARIABLES
+	//---------------------------------------------------------------------------
 	private var m_Collided		 		: bool;
 	private var m_TargetBoat 			: CEntity;	
 	private var m_ClosestSlot			: name;
 	
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	function OnActivate() : EBTNodeStatus
 	{
 		m_TargetBoat = NULL;
 		return BTNS_Active;
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function OnGameplayEvent( _EventName : name ) : bool
 	{	
 		var l_slotFound			: bool;
@@ -67,8 +62,8 @@ class CBTTaskBoatGrab extends IBehTreeTask
 		
 		return false;
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function OnDeactivate()
 	{
 		var l_destructionComp 	: CBoatDestructionComponent;
@@ -82,8 +77,8 @@ class CBTTaskBoatGrab extends IBehTreeTask
 		}
 		m_ClosestSlot =	'';
 	}
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 	function OnAnimEvent( animEventName : name, animEventType : EAnimationEventType, animInfo : SAnimationEventAnimInfo ) : bool
 	{
 		var l_npc				: CNewNPC;
@@ -102,7 +97,7 @@ class CBTTaskBoatGrab extends IBehTreeTask
 			((CMovingPhysicalAgentComponent)l_npc.GetMovingAgentComponent()).SetSwimming( false );
 			l_npc.SetIsSwimming(false);
 			
-			
+			// Slide to the position on boat				
 			GetBoat().CalcEntitySlotMatrix( m_ClosestSlot, l_slotMatrix );				
 			l_npc.GetMovingAgentComponent().SetAdditionalOffsetToConsumePointWS( l_slotMatrix, 0.5f );				
 			l_npc.CreateAttachment( GetBoat(), m_ClosestSlot );			
@@ -110,8 +105,8 @@ class CBTTaskBoatGrab extends IBehTreeTask
 		
 		return l_res;
 	}
-	
-	
+	//>----------------------------------------------------------------------
+	//-----------------------------------------------------------------------
 	private final function GetBoat() : CEntity
 	{
 		if( !m_TargetBoat )
@@ -122,12 +117,16 @@ class CBTTaskBoatGrab extends IBehTreeTask
 		return m_TargetBoat;
 	}
 }
-
-
+//>--------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 class CBTTaskBoatGrabDef extends IBehTreeTaskDefinition
 {
 	default instanceClass = 'CBTTaskBoatGrab';
-	
-	
-	
+	//>--------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
+	/*function InitializeEvents()
+	{
+		super.InitializeEvents();
+		listenToGameplayEvents.PushBack( 'CollisionWithBoat' );
+	}*/
 }

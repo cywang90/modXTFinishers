@@ -1,10 +1,7 @@
 ﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/** Copyright © 2015
+/** Author : Tomek Kozera
 /***********************************************************************/
-
-
 
 state Dismantling in W3TutorialManagerUIHandler extends TutHandlerBaseState
 {
@@ -23,65 +20,45 @@ state Dismantling in W3TutorialManagerUIHandler extends TutHandlerBaseState
 		
 		isClosing = false;
 		
-		ShowHint(DESCRIPTION, theGame.params.TUT_POS_INVENTORY_X, 0.32f, ETHDT_Input);
+		ShowHint(DESCRIPTION, POS_DISMANTLE_X, POS_DISMANTLE_Y, ETHDT_Input);
 	}
 			
 	event OnLeaveState( nextStateName : name )
 	{
 		isClosing = true;
 		
-		CloseHint(DESCRIPTION);
-		CloseHint(ITEMS);
-		CloseHint(COMPONENTS);
-		CloseHint(COST);
-		CloseHint(DISMANTLING);
+		CloseStateHint(DESCRIPTION);
+		CloseStateHint(ITEMS);
+		CloseStateHint(COMPONENTS);
+		CloseStateHint(COST);
+		CloseStateHint(DISMANTLING);
 		
 		theGame.GetTutorialSystem().MarkMessageAsSeen(DESCRIPTION);
-		GameplayFactsRemove("tut_dismantle_cond");	
+		GameplayFactsRemove("tut_dismantle_cond");	//not needed anymore, let's not store it in saves
 		
 		super.OnLeaveState(nextStateName);
 	}
 	
 	event OnTutorialClosed(hintName : name, closedByParentMenu : bool)
 	{
-		var highlights : array<STutorialHighlight>;
-		
 		if(closedByParentMenu || isClosing)
 			return true;
 			
 		if(hintName == DESCRIPTION)
 		{
-			highlights.Resize(1);
-			highlights[0].x = 0.1;
-			highlights[0].y = 0.13;
-			highlights[0].width = 0.3;
-			highlights[0].height = 0.53;
-						
-			ShowHint(ITEMS, theGame.params.TUT_POS_INVENTORY_X, 0.32f, ETHDT_Input, highlights);
+			ShowHint( ITEMS, POS_DISMANTLE_X, POS_DISMANTLE_Y, ETHDT_Input, GetHighlightDismantleItems() );
 		}		
 		else if(hintName == ITEMS)
 		{
-			highlights.Resize(1);
-			highlights[0].x = 0.43;
-			highlights[0].y = 0.39;
-			highlights[0].width = 0.23;
-			highlights[0].height = 0.27;
-						
-			ShowHint(COMPONENTS, theGame.params.TUT_POS_INVENTORY_X, 0.32f, ETHDT_Input, highlights);
+			ShowHint(COMPONENTS, POS_DISMANTLE_X, POS_DISMANTLE_Y, ETHDT_Input, GetHighlightDismantleComponents() );
 		}
 		else if(hintName == COMPONENTS)
 		{
-			highlights.Resize(1);
-			highlights[0].x = 0.46;
-			highlights[0].y = 0.3;
-			highlights[0].width = 0.2;
-			highlights[0].height = 0.15;
-						
-			ShowHint(COST, theGame.params.TUT_POS_INVENTORY_X, 0.32f, ETHDT_Input, highlights);
+			ShowHint( COST, POS_DISMANTLE_X, POS_DISMANTLE_Y, ETHDT_Input, GetHighlightDismantleCost() );
 		}
 		else if(hintName == COST)
 		{
-			ShowHint(DISMANTLING, theGame.params.TUT_POS_INVENTORY_X, 0.32f, ETHDT_Input);
+			ShowHint(DISMANTLING, POS_DISMANTLE_X, POS_DISMANTLE_Y, ETHDT_Input);
 		}
 		else if(hintName == DISMANTLING)
 		{

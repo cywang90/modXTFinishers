@@ -1,17 +1,12 @@
-﻿/***********************************************************************/
-/** 	© 2015 CD PROJEKT S.A. All rights reserved.
-/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
-/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
-/***********************************************************************/
-
-
+﻿// Please keep this as empty as possible
+// use RidingManager instead
 state MountBoat in CR4Player extends MountTheVehicle
 {
 	var boatComp : CBoatComponent;
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	event OnEnterState( prevStateName : name )
 	{
@@ -39,7 +34,7 @@ state MountBoat in CR4Player extends MountTheVehicle
 		super.OnLeaveState( nextStateName );
 	}
 	
-	
+	// This is called when the state was interupted ( ie the mount didn't have time to finish )
 	cleanup function MountCleanup() 
 	{
 		super.MountCleanup();
@@ -47,9 +42,9 @@ state MountBoat in CR4Player extends MountTheVehicle
 		parent.SignalGameplayEventParamInt( 'RidingManagerDismountBoat', DT_instant | DT_fromScript );
 	}
 	
-	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	entry function ProcessMountBoat()
 	{
@@ -60,7 +55,7 @@ state MountBoat in CR4Player extends MountTheVehicle
 		
 		SleepOneFrame();
 			
-		
+		// whole shit about boat being occupied by npc could be handled here
 		
 		if( mountType == MT_instant )
 		{
@@ -109,7 +104,7 @@ state MountBoat in CR4Player extends MountTheVehicle
 		var ret : EPlayerBoatMountFacing;
 		var angleToInteract	: float;
 		
-		angleToInteract = AngleNormalize( 180 + parent.GetHeading() - parent.GetUsedVehicle().GetHeading() ); 
+		angleToInteract = AngleNormalize( 180 + parent.GetHeading() - parent.GetUsedVehicle().GetHeading() ); // 180 is CCW to CW
 		
 		if( angleToInteract >= 45 && angleToInteract < 135 )
 			ret = EPBMD_Right;
@@ -120,7 +115,7 @@ state MountBoat in CR4Player extends MountTheVehicle
 		else
 			ret = EPBMD_Front;
 		
-		
+		//LogBoat("Mount facing is " + ret);
 		return ret;		
 	}
 }
