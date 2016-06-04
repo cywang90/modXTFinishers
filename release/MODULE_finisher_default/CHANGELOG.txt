@@ -3,6 +3,19 @@ MODULE finisher_default Changelog
 =================================
 
 -----------------
+v2.3.0 (16/06/04)
+-----------------
+
+Compatibility
+-------------
+- Now requires BASE eXTensible Finishers v4.4.0 (or later).
+
+Features
+--------
+- Added new configuration option to ignore immunity-to-finishers check on enemies.
+- Now supports non-lethal finishers.
+
+-----------------
 v2.2.1 (16/01/10)
 -----------------
 
