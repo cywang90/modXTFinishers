@@ -51,7 +51,7 @@ class XTFinishersDefaultFinisherHandler extends XTFinishersAbstractReactionStart
 		var autoFinisherEffectTypes : array<EEffectType>;
 		var hasEffect				: bool;
 		var levelDelta				: int;
-		var areEnemiesAttackingModifier, navCheckModifier : bool;
+		var areEnemiesAttackingModifier, navCheckModifier, ignoreImmunityModifier : bool;
 		
 		actorVictim = (CActor)context.action.victim;
 		attackAction = (W3Action_Attack)context.action;
@@ -130,14 +130,17 @@ class XTFinishersDefaultFinisherHandler extends XTFinishersAbstractReactionStart
 		case XTF_FINISHER_TYPE_AUTO :
 			areEnemiesAttackingModifier = !theGame.xtFinishersMgr.finisherModule.params.FINISHER_AUTO_REQUIRE_NO_AGGRO;
 			navCheckModifier = !theGame.xtFinishersMgr.finisherModule.params.FINISHER_AUTO_REQUIRE_NAV_CHECK;
+			ignoreImmunityModifier = theGame.xtFinishersMgr.finisherModule.params.FINISHER_AUTO_IGNORE_IMMUNITY;
 			break;
 		case XTF_FINISHER_TYPE_INSTANTKILL :
 			areEnemiesAttackingModifier = !theGame.xtFinishersMgr.finisherModule.params.FINISHER_INSTANTKILL_REQUIRE_NO_AGGRO;
 			navCheckModifier = !theGame.xtFinishersMgr.finisherModule.params.FINISHER_INSTANTKILL_REQUIRE_NAV_CHECK;
+			ignoreImmunityModifier = theGame.xtFinishersMgr.finisherModule.params.FINISHER_INSTANTKILL_IGNORE_IMMUNITY;
 			break;
 		default :
 			areEnemiesAttackingModifier = !theGame.xtFinishersMgr.finisherModule.params.FINISHER_REQUIRE_NO_AGGRO;
 			navCheckModifier = !theGame.xtFinishersMgr.finisherModule.params.FINISHER_REQUIRE_NAV_CHECK;
+			ignoreImmunityModifier = theGame.xtFinishersMgr.finisherModule.params.FINISHER_IGNORE_IMMUNITY;
 		}
 		
 			
@@ -156,7 +159,7 @@ class XTFinishersDefaultFinisherHandler extends XTFinishersAbstractReactionStart
 		result = result && !context.effectsSnapshot.HasEffect(EET_Knockdown);
 		result = result && !context.effectsSnapshot.HasEffect(EET_Ragdoll);
 		result = result && !context.effectsSnapshot.HasEffect(EET_Frozen);
-		result = result && (context.finisher.type == XTF_FINISHER_TYPE_DEBUG || !actorVictim.HasAbility('DisableFinishers'));
+		result = result && (context.finisher.type == XTF_FINISHER_TYPE_DEBUG || ignoreImmunityModifier || !actorVictim.HasAbility('DisableFinishers'));
 		result = result && (context.finisher.type == XTF_FINISHER_TYPE_DEBUG || actorVictim.GetAttitude(thePlayer) == AIA_Hostile);
 		result = result && !thePlayer.IsUsingVehicle();
 		result = result && thePlayer.IsAlive();
@@ -222,18 +225,41 @@ class XTFinishersDefaultFinisherHandler extends XTFinishersAbstractReactionStart
 	}
 	
 	protected function SelectFinisherAnimName(context : XTFinishersActionContext) : name {
+		var actorVictim : CActor;
 		var animNames : array<name>;
 		
-		if (thePlayer.forceFinisher && thePlayer.forceFinisherAnimName != '') {
-			return thePlayer.forceFinisherAnimName;
-		}
+		actorVictim = (CActor)context.action.victim;
 		
-		if (thePlayer.GetCombatIdleStance() <= 0.f) {
-			animNames = theGame.xtFinishersMgr.finisherModule.params.allowedLeftSideFinisherAnimNames;
-		} else {
-			animNames = theGame.xtFinishersMgr.finisherModule.params.allowedRightSideFinisherAnimNames;
+		if(actorVictim.WillBeUnconscious()) { // nonlethal finisher
+			if (thePlayer.GetCombatIdleStance() <= 0.f) {
+				if (actorVictim.HasAbility('ForceHiltFinisher')) {
+					return theGame.xtFinishersMgr.consts.FINISHER_NONLETHAL_STANCE_LEFT_HILT;
+				} else if (actorVictim.HasAbility('ForceHeadbuttFinisher' )) {
+					return theGame.xtFinishersMgr.consts.FINISHER_NONLETHAL_STANCE_LEFT_HEAD;
+				} else {
+					animNames = theGame.xtFinishersMgr.finisherModule.params.allowedLeftSideNonLethalFinisherAnimNames;
+				}
+			} else {
+				if (actorVictim.HasAbility('ForceHiltFinisher')) {
+					return theGame.xtFinishersMgr.consts.FINISHER_NONLETHAL_STANCE_RIGHT_HILT;
+				} else if (actorVictim.HasAbility('ForceHeadbuttFinisher')) {
+					return theGame.xtFinishersMgr.consts.FINISHER_NONLETHAL_STANCE_RIGHT_HEAD;
+				} else {
+					animNames = theGame.xtFinishersMgr.finisherModule.params.allowedRightSideNonLethalFinisherAnimNames;
+				}
+			}
+		} else { // lethal finisher
+			if (thePlayer.forceFinisher && thePlayer.forceFinisherAnimName != '') {
+				return thePlayer.forceFinisherAnimName;
+			}
+			
+			if (thePlayer.GetCombatIdleStance() <= 0.f) {
+				animNames = theGame.xtFinishersMgr.finisherModule.params.allowedLeftSideFinisherAnimNames;
+			} else {
+				animNames = theGame.xtFinishersMgr.finisherModule.params.allowedRightSideFinisherAnimNames;
+			}
 		}
-		
+
 		return animNames[RandRange(animNames.Size(), 0)];
 	}
 	
