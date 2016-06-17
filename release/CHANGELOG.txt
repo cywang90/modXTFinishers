@@ -2,6 +2,30 @@
 eXTensible Finishers Changelog
 ==============================
 
+-----------------------
+Release 12.1 (16/06/17)
+-----------------------
+
+Includes
+--------
+BASE		eXTensible Finishers		v4.4.1
+MODULE		finisher_default			v2.3.0
+MODULE		dismember_default			v2.2.1
+MODULE		slowdown_default			v2.3.2
+MODULE		camshake_default			v3.2.1
+MODULE		slowdown_tailoredfinishers	v2.0.1
+
+Compatibility
+-------------
+- BASE eXTensible Finishers and MODULE finisher_default
+	- Now compatible with The Witcher 3: Wild Hunt Patch 1.22 if used in conjunction with Script Merger.
+	- Still compatible with Patch 1.21 only if not used with Script Merger.
+	
+Bug Fixes
+---------
+- MODULE slowdown_default
+	- Fixed a minor documentation error.
+
 ---------------------
 Release 12 (16/06/04)
 ---------------------

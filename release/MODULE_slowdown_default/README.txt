@@ -8,7 +8,7 @@ Author: aznricepuff
 VERSION
 -------
 
-This README is for v2.3.1.
+This README is for v2.3.2.
 
 ------------
 REQUIREMENTS

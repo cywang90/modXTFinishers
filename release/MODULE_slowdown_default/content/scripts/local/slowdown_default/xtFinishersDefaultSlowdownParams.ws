@@ -73,8 +73,8 @@ class XTFinishersDefaultSlowdownParams {
 		default SLOWDOWN_DISMEMBER_AUTO_CHANCE = 100.0;						// Chance to activate slow motion when an AUTOMATIC dismember is triggered.
 		default SLOWDOWN_DISMEMBER_CHANCE_LAST_ENEMY = 100.0;				// Chance to activate slow motion when a REGULAR or DEBUG dismember is triggered on the LAST enemy in combat.
 		default SLOWDOWN_DISMEMBER_FROZEN_CHANCE_LAST_ENEMY = 100.0;		// Chance to activate slow motion when a FROZEN dismember is triggered on the LAST enemy in combat.
-		default SLOWDOWN_DISMEMBER_BOMB_CHANCE_LAST_ENEMY = 100.0;			// Chance to activate slow motion when a BOLT dismember is triggered on the LAST enemy in combat.
-		default SLOWDOWN_DISMEMBER_BOLT_CHANCE_LAST_ENEMY = 100.0;			// Chance to activate slow motion when a BOMB dismember is triggered on the LAST enemy in combat.
+		default SLOWDOWN_DISMEMBER_BOMB_CHANCE_LAST_ENEMY = 100.0;			// Chance to activate slow motion when a BOMB dismember is triggered on the LAST enemy in combat.
+		default SLOWDOWN_DISMEMBER_BOLT_CHANCE_LAST_ENEMY = 100.0;			// Chance to activate slow motion when a BOLT dismember is triggered on the LAST enemy in combat.
 		default SLOWDOWN_DISMEMBER_YRDEN_CHANCE_LAST_ENEMY = 100.0;			// Chance to activate slow motion when a YRDEN dismember is triggered on the LAST enemy in combat.
 		default SLOWDOWN_DISMEMBER_TOXICCLOUD_CHANCE_LAST_ENEMY = 100.0;	// Chance to activate slow motion when a TOXIC CLOUD dismember is triggered on the LAST enemy in combat.
 		default SLOWDOWN_DISMEMBER_AUTO_CHANCE_LAST_ENEMY = 100.0;			// Chance to activate slow motion when an AUTOMATIC dismember is triggered on the LAST enemy in combat.

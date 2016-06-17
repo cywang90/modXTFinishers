@@ -8,12 +8,12 @@ Author: aznricepuff
 VERSION
 -------
 
-This README is for Release 12, which includes the following components:
+This README is for Release 12.1, which includes the following components:
 
-BASE		eXTensible Finishers 		v4.4.0
+BASE		eXTensible Finishers 		v4.4.1
 MODULE		finisher_default 			v2.3.0
 MODULE		dismember_default 			v2.2.1
-MODULE		slowdown_default 			v2.3.1
+MODULE		slowdown_default 			v2.3.2
 MODULE		camshake_default			v3.2.1
 MODULE		slowdown_tailoredfinishers	v2.0.1
 
@@ -21,8 +21,10 @@ MODULE		slowdown_tailoredfinishers	v2.0.1
 REQUIREMENTS
 ------------
 
-- The Witcher 3: Wild Hunt Patch 1.21
-	- (Patch 1.10/1.11/1.12 users can choose to install using the compatibility files, which may not contain the latest features and bug fixes.)
+- If using Script Merger: The Witcher 3: Wild Hunt Patch 1.22
+- If NOT using Script Merger: The Witcher 3: Wild Hunt Patch 1.21 or later
+
+- Patch 1.10/1.11/1.12/1.21 users can choose to install using the compatibility files, which may not contain the latest features and bug fixes.
 
 ------------
 INSTALLATION
