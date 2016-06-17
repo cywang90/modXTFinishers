@@ -8,13 +8,14 @@ Author: aznricepuff
 VERSION
 -------
 
-This README is for v4.4.0.
+This README is for v4.4.1.
 
 ------------
 REQUIREMENTS
 ------------
 
-- The Witcher 3: Wild Hunt Patch 1.21
+- If using Script Merger: The Witcher 3: Wild Hunt Patch 1.22
+- If NOT using Script Merger: The Witcher 3: Wild Hunt Patch 1.21 or later
 
 ------------
 INSTALLATION
