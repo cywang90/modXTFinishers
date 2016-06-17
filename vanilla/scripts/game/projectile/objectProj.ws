@@ -1,4 +1,9 @@
-﻿class W3ObjectProjectile extends CProjectileTrajectory
+﻿/***********************************************************************/
+/** 	© 2015 CD PROJEKT S.A. All rights reserved.
+/** 	THE WITCHER® is a trademark of CD PROJEKT S. A.
+/** 	The Witcher game is based on the prose of Andrzej Sapkowski.
+/***********************************************************************/
+class W3ObjectProjectile extends CProjectileTrajectory
 {
 	private var action : W3DamageAction;
 	private var owner : CActor;
@@ -19,7 +24,7 @@
 		
 		if ( victim )
 		{
-			//FIXME URGENT - FIXED DAMAGE
+			
 			action = new W3DamageAction in this;
 			action.AddDamage(theGame.params.DAMAGE_NAME_PIERCING, 20.f );
 			action.attacker = owner;
@@ -34,7 +39,7 @@
 	{
 		StopAllEffects();
 		StopProjectile();
-		//AddTimer('TimeDestroy', 10, false, , , true);
+		
 		Destroy();
 	}
 	
