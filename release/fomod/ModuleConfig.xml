@@ -44,7 +44,7 @@
 					<plugins order="Explicit">
 						<plugin name="Latest Version">
 							<description>
-								<![CDATA[Will install the latest version of the mod. Requires Patch 1.21.]]>
+								<![CDATA[Will install the latest version of the mod. Requires Patch 1.22-1.31.]]>
 							</description>
 							<conditionFlags>
 								<flag name="compatibility">Latest</flag>
@@ -101,6 +101,39 @@
 				</group>
 			</optionalFileGroups>
 		</installStep>
+		<installStep name="GOTY">
+			<visible operator="And">
+				<flagDependency flag="compatibility" value="Latest"/>
+			</visible>
+			<optionalFileGroups order="Explicit">
+				<group name="Choose Your Witcher 3 Game Type" type="SelectExactlyOne">
+					<plugins order="Explicit">
+						<plugin name="Non-GOTY Edition">
+							<description>
+								<![CDATA[Select if you ARE NOT running the GOTY Edition.]]>
+							</description>
+							<conditionFlags>
+								<flag name="GOTY">False</flag>
+							</conditionFlags>
+							<typeDescriptor>
+								<type name="Optional"/>
+							</typeDescriptor>
+						</plugin>
+						<plugin name="GOTY Edition">
+							<description>
+								<![CDATA[Select if you ARE running the GOTY Edition.]]>
+							</description>
+							<conditionFlags>
+								<flag name="GOTY">True</flag>
+							</conditionFlags>
+							<typeDescriptor>
+								<type name="Optional"/>
+							</typeDescriptor>
+						</plugin>
+					</plugins>
+				</group>
+			</optionalFileGroups>
+		</installStep>
 	</installSteps>
 	<conditionalFileInstalls>
 		<patterns>
@@ -129,6 +162,15 @@
 				</dependencies>
 				<files>
 					<folder source="PREPACKAGE_default+tailoredfinishers/content" destination="modXTFinishers/content" priority="1"/>
+				</files>
+			</pattern>
+			<!--GOTY-->
+			<pattern>
+				<dependencies operator="And">
+					<flagDependency flag="GOTY" value="True"/>
+				</dependencies>
+				<files>
+					<folder source="GOTY/content" destination="modXTFinishers/content" priority="2"/>
 				</files>
 			</pattern>
 			<!--Compatibility Files-->

@@ -8,7 +8,7 @@ Author: aznricepuff
 VERSION
 -------
 
-This README is for Release 12.1, which includes the following components:
+This README is for Release 12.2, which includes the following components:
 
 BASE		eXTensible Finishers 		v4.4.1
 MODULE		finisher_default 			v2.3.0
@@ -21,8 +21,7 @@ MODULE		slowdown_tailoredfinishers	v2.0.1
 REQUIREMENTS
 ------------
 
-- If using Script Merger: The Witcher 3: Wild Hunt Patch 1.22
-- If NOT using Script Merger: The Witcher 3: Wild Hunt Patch 1.21 or later
+- The Witcher 3: Wild Hunt Patch 1.22-1.31.
 
 - Patch 1.10/1.11/1.12/1.21 users can choose to install using the compatibility files, which may not contain the latest features and bug fixes.
 
@@ -44,6 +43,7 @@ Download the mod from Nexus Mods using the "Download with Manager" option. Then.
 2. A pop-up will appear...
 3. "Choose Installation Type": Select your preferred installation type. Select the option text to see a description in the window on the right.
 4. "Compatibility Options": Choose between either the latest version of the mod or versions compatible with older game patches. If you are running the latest game patch, use the default option ("Latest version").
+5. "Choose Your Witcher 3 Game Type": (Only available if "Latest Version" was selected in the "Compatibility Options" section) Choose either non-GOTY or GOTY, depending on which edition of the game you have.
 
 If you wish to switch between installation types or choose a different compatibility setting after installation is complete, you must uninstall and re-install the mod in NMM. Simply disabling and re-enabling the mod will not work.
 
@@ -72,6 +72,8 @@ Download the 7-zip mod package manually from Nexus Mods. Then...
 	B. TO INSTALL ONE OF THE PREPACKAGED INSTALLATIONS: Copy the "content" folder in the PREPACKAGE_default or PREPACKAGE_default+tailoredfinishers directory into your <The Witcher 3 Path>\mods\modXTFinishers directory.
 	
 	C. TO INSTALL MODULES INDIVIDUALLY: Do step 5A. Then for each module you wish to install, follow the instructions in the README.txt file found in the module directory (named MODULE_[module name]).
+
+6. IF AND ONLY IF you are running the GOTY edition of Witcher 3: Copy the "content" folder in the GOTY directory into your <The Witcher 3 Path>\mods\modXTFinishers directory. Accept any prompts to replace existing files.
 
 -----
 USAGE
