@@ -3,6 +3,23 @@ eXTensible Finishers Changelog
 ==============================
 
 -----------------------
+Release 12.2 (16/09/19)
+-----------------------
+
+Includes
+--------
+BASE		eXTensible Finishers		v4.4.1
+MODULE		finisher_default			v2.3.0
+MODULE		dismember_default			v2.2.1
+MODULE		slowdown_default			v2.3.2
+MODULE		camshake_default			v3.2.1
+MODULE		slowdown_tailoredfinishers	v2.0.1
+
+Compatibility
+-------------
+- Added compatibility for GOTY edition (Patch 1.31).
+
+-----------------------
 Release 12.1 (16/06/17)
 -----------------------
 
